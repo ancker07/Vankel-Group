@@ -71,7 +71,7 @@ export const authService = {
 
     updateProfile: async (formData: FormData): Promise<{ success: boolean; message: string; user?: any }> => {
         try {
-            const response = await apiClient.post('/users/update-profile', formData, {
+            const response = await apiClient.post('/profile/update', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -90,7 +90,7 @@ export const authService = {
 
     getProfile: async (email: string): Promise<{ success: boolean; user?: any; message?: string }> => {
         try {
-            const response = await apiClient.post('/get-profile', { email });
+            const response = await apiClient.post('/profile/details', { email });
             return response.data;
         } catch (error: any) {
             const msg = error.response?.data?.message || 'Failed to fetch profile';
