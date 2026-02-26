@@ -723,12 +723,15 @@ const App: React.FC = () => {
           <LoginPage
             role={location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN'}
             lang={lang}
-            onLogin={(name) => {
+            onLogin={(name, resolvedEmail) => {
               const r = location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN';
               setRole(r);
               localStorage.setItem('vanakel_role', r);
               setUserName(name || 'Vanakel User');
               localStorage.setItem('vanakel_userName', name || 'Vanakel User');
+              if (resolvedEmail) {
+                localStorage.setItem('vanakel_userEmail', resolvedEmail);
+              }
               setIsApproved(true);
               localStorage.setItem('vanakel_isApproved', 'true');
               setIsTourActive(true);
@@ -752,11 +755,14 @@ const App: React.FC = () => {
 
         <Route path="/superadmin/login" element={
           <SuperAdminLogin
-            onLogin={(name) => {
+            onLogin={(name, resolvedEmail) => {
               setRole('SUPERADMIN');
               localStorage.setItem('vanakel_role', 'SUPERADMIN');
               setUserName(name || 'Super Admin');
               localStorage.setItem('vanakel_userName', name || 'Super Admin');
+              if (resolvedEmail) {
+                localStorage.setItem('vanakel_userEmail', resolvedEmail);
+              }
               setIsApproved(true);
               localStorage.setItem('vanakel_isApproved', 'true');
               setIsTourActive(true);

@@ -6,7 +6,7 @@ import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
 
 interface LoginPageProps {
-    onLogin: (name: string) => void;
+    onLogin: (name: string, email: string) => void;
     onBack: () => void;
     onSignup?: () => void;
     lang: Language;
@@ -40,10 +40,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
             });
 
             if (data.success) {
-                onLogin(data.user?.name || email.split('@')[0]);
+                onLogin(data.user?.name || email.split('@')[0], email);
             } else {
                 if (password === 'demo123') {
-                    onLogin(email.split('@')[0]);
+                    onLogin(email.split('@')[0], email);
                     return;
                 }
 
@@ -57,7 +57,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
             }
         } catch (err) {
             if (password === 'demo123') {
-                onLogin(email);
+                onLogin(email, email);
                 return;
             }
             setError('Could not connect to the authentication server');
