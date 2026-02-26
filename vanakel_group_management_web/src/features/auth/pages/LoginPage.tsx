@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, ArrowLeft, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, Building2, Briefcase, ChevronRight } from 'lucide-react';
 import { Language, Role } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
+import { authService } from '../services/authService';
 
 interface LoginPageProps {
     onLogin: (name: string) => void;
@@ -32,22 +33,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
         setError('');
 
         try {
-            const response = await fetch('http://localhost:8000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password,
-                    role: role
-                }),
+            const data = await authService.login({
+                email: email,
+                password: password,
+                role: role
             });
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
+            if (data.success) {
                 onLogin(data.user?.name || email.split('@')[0]);
             } else {
                 if (password === 'demo123') {
@@ -55,7 +47,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
                     return;
                 }
 
-                if (response.status === 403 && data.message && data.message.includes('pending')) {
+                if (data.message && data.message.includes('pending')) {
                     localStorage.setItem('vanakel_userEmail', email);
                     window.location.replace('/pending-approval');
                     return;

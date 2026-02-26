@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, ArrowLeft, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
+import { authService } from '../services/authService';
 
 interface SuperAdminLoginProps {
     onLogin: (name: string) => void;
@@ -33,22 +34,13 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin, onBack, lang
         setError('');
 
         try {
-            const response = await fetch('http://localhost:8000/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password,
-                    role: 'SUPERADMIN'
-                }),
+            const data = await authService.login({
+                email: email,
+                password: password,
+                role: 'SUPERADMIN'
             });
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
+            if (data.success) {
                 onLogin(data.user?.name || 'Super Admin');
             } else {
                 setError(data.message || 'Invalid Super Admin credentials');

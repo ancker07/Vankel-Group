@@ -1,53 +1,53 @@
 
-const API_URL = 'vanakelgroup.com/api';
+import { apiClient } from '@/lib/apiClient';
 
 export const dataService = {
     getBuildings: async () => {
-        const response = await fetch(`${API_URL}/buildings`);
-        return response.json();
+        const response = await apiClient.get('/buildings');
+        return response.data;
     },
     getSyndics: async () => {
-        const response = await fetch(`${API_URL}/syndics`);
-        return response.json();
+        const response = await apiClient.get('/syndics');
+        return response.data;
     },
     getMissions: async () => {
-        const response = await fetch(`${API_URL}/missions`);
-        return response.json();
+        const response = await apiClient.get('/missions');
+        return response.data;
     },
     getInterventions: async () => {
-        const response = await fetch(`${API_URL}/interventions`);
-        return response.json();
+        const response = await apiClient.get('/interventions');
+        return response.data;
+    },
+    createIntervention: async (formData: FormData) => {
+        const response = await apiClient.post('/interventions', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
     },
     approveMission: async (id: string, scheduledDate?: string) => {
-        const response = await fetch(`${API_URL}/missions/${id}/approve`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scheduled_date: scheduledDate })
-        });
-        return response.json();
+        const response = await apiClient.post(`/missions/${id}/approve`, { scheduled_date: scheduledDate });
+        return response.data;
     },
     rejectMission: async (id: string) => {
-        const response = await fetch(`${API_URL}/missions/${id}/reject`, { method: 'POST' });
-        return response.json();
+        const response = await apiClient.post(`/missions/${id}/reject`);
+        return response.data;
     },
     updateIntervention: async (id: string, payload: any) => {
-        const response = await fetch(`${API_URL}/interventions/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        return response.json();
+        const response = await apiClient.put(`/interventions/${id}`, payload);
+        return response.data;
     },
     getPendingUsers: async () => {
-        const response = await fetch(`${API_URL}/users/pending`);
-        return response.json();
+        const response = await apiClient.get('/users/pending');
+        return response.data;
     },
     approveUser: async (id: string) => {
-        const response = await fetch(`${API_URL}/users/${id}/approve`, { method: 'POST' });
-        return response.json();
+        const response = await apiClient.post(`/users/${id}/approve`);
+        return response.data;
     },
     rejectUser: async (id: string) => {
-        const response = await fetch(`${API_URL}/users/${id}/reject`, { method: 'POST' });
-        return response.json();
+        const response = await apiClient.post(`/users/${id}/reject`);
+        return response.data;
     }
-}
+};

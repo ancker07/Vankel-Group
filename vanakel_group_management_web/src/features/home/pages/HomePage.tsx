@@ -132,6 +132,18 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                         <a href="#features" className="block text-sm font-bold text-zinc-400 hover:text-white" onClick={() => setIsMenuOpen(false)}>{t.features}</a>
                         <a href="#workflow" className="block text-sm font-bold text-zinc-400 hover:text-white" onClick={() => setIsMenuOpen(false)}>{t.workflow}</a>
                         <div className="pt-4 border-t border-zinc-900 flex flex-col gap-3">
+                            <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800 mb-2 justify-center">
+                                {['FR', 'EN', 'NL'].map(l => (
+                                    <button
+                                        key={l}
+                                        onClick={() => { setLang(l as Language); setIsMenuOpen(false); }}
+                                        className={`px-4 py-2 rounded-md text-sm font-black transition-all flex-1 ${lang === l ? 'bg-brand-green text-brand-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                    >
+                                        {l}
+                                    </button>
+                                ))}
+                            </div>
+
                             {role ? (
                                 <button
                                     onClick={() => { navigate(getDashboardPath()); setIsMenuOpen(false); }}

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Clock, ShieldCheck, Mail, ArrowLeft, LogOut } from 'lucide-react';
 import { Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
+import { authService } from '../services/authService';
 
 interface PendingApprovalPageProps {
     lang: Language;
@@ -27,22 +28,8 @@ const PendingApprovalPage: React.FC<PendingApprovalPageProps> = ({ lang, onLogou
 
         try {
             setCheckError(null);
-            const response = await fetch('http://localhost:8000/api/check-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ email })
-            });
+            const data = await authService.checkStatus(email);
 
-            if (!response.ok) {
-                const errData = await response.json();
-                setCheckError(`API Error: ${errData.message || response.statusText}`);
-                return;
-            }
-
-            const data = await response.json();
             if (data.success && data.status === 'APPROVED') {
                 onApproved();
             } else if (data.success) {
