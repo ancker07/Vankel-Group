@@ -161,6 +161,9 @@ export const TRANSLATIONS = {
     dash_short: 'Dash',
     emails_short: 'Emails',
     admin_short: 'Admin',
+    ongoing_short: 'Follow-up',
+    missions_short: 'Missions',
+    profile_short: 'Profile',
 
     language: 'Language',
     live: 'Live',
@@ -592,6 +595,9 @@ export const TRANSLATIONS = {
     dash_short: 'Dash',
     emails_short: 'Emails',
     admin_short: 'Admin',
+    ongoing_short: 'Suivi',
+    missions_short: 'Missions',
+    profile_short: 'Profil',
 
     language: 'Langue',
     live: 'En direct',
@@ -1024,6 +1030,9 @@ export const TRANSLATIONS = {
     dash_short: 'Dash',
     emails_short: 'E-mails',
     admin_short: 'Admin',
+    ongoing_short: 'Opvolging',
+    missions_short: 'Missies',
+    profile_short: 'Profiel',
 
     language: 'Taal',
     live: 'Live',
