@@ -1,0 +1,7 @@
+{
+  "name": "Vanakel Group - Management Platform",
+  "description": "Professional construction-industry management system for buildings, interventions, and predictive maintenance with AI-assisted reporting.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

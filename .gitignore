@@ -1,0 +1,44 @@
+# Laravel
+.env
+.env.backup
+.env.production
+/vendor/
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*.php
+/storage/logs/*.log
+/public/storage
+/temp/
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+
+# Node
+node_modules/
+dist/
+build/
+
+# Flutter
+**/build/
+**/.dart_tool/
+**/.pub/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/ios/Flutter/.last_build_id
+**/doc/api/
+/coverage/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

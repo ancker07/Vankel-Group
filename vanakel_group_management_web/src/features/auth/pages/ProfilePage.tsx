@@ -1,0 +1,210 @@
+
+import React, { useState } from 'react';
+import { User, Mail, Phone, Shield, Building, Lock, LogOut, Edit2, Check, X } from 'lucide-react';
+import UserAvatar from '@/components/common/UserAvatar';
+
+interface ProfilePageProps {
+    userName: string;
+    role: string;
+    t: any;
+    onLogout: () => void;
+}
+
+const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [name, setName] = useState(userName);
+    const [email, setEmail] = useState('contact@vanakel.be');
+    const [phone, setPhone] = useState('+32 400 00 00 00');
+    const [bio, setBio] = useState('Syndic professionnel gérant plusieurs résidences à Bruxelles.');
+
+    const handleSave = () => {
+        setIsEditing(false);
+        // In a real app, this would call an API
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header / Hero Section */}
+            <div className="relative overflow-hidden rounded-3xl bg-zinc-950 border border-zinc-800 p-8 md:p-12">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
+                <div className="relative flex flex-col md:flex-row items-center gap-8">
+                    <div className="relative">
+                        <UserAvatar name={name} size="xl" className="border-4 border-zinc-900 ring-2 ring-brand-green/20" />
+                        <button className="absolute bottom-0 right-0 p-2 bg-brand-green text-brand-black rounded-lg shadow-lg hover:scale-110 transition-transform">
+                            <Edit2 size={16} />
+                        </button>
+                    </div>
+                    <div className="text-center md:text-left space-y-2">
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                            <h1 className="text-3xl font-black text-white">{name}</h1>
+                            <span className="px-3 py-1 bg-brand-green/10 text-brand-green rounded-full text-[10px] font-black uppercase tracking-widest border border-brand-green/20">
+                                {role}
+                            </span>
+                        </div>
+                        <p className="text-zinc-500 font-medium">{t.memberSince} Février 2026</p>
+
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Information Column */}
+                <div className="lg:col-span-2 space-y-8">
+                    <section className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                <User size={20} className="text-brand-green" />
+                                {t.information}
+                            </h2>
+                            {!isEditing ? (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="text-xs font-black text-brand-green uppercase tracking-widest hover:text-brand-green-light transition-colors"
+                                >
+                                    {t.modifier || 'Modifier'}
+
+                                </button>
+                            ) : (
+                                <div className="flex gap-4">
+                                    <button onClick={handleSave} className="text-brand-green hover:scale-110 transition-transform">
+                                        <Check size={20} />
+                                    </button>
+                                    <button onClick={() => setIsEditing(false)} className="text-red-500 hover:scale-110 transition-transform">
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1.5">
+                                    <User size={12} /> {t.contact_name || 'Nom Complet'}
+
+                                </label>
+                                {isEditing ? (
+                                    <input
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors"
+                                    />
+                                ) : (
+                                    <p className="text-zinc-300 font-medium px-1">{name}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1.5">
+                                    <Mail size={12} /> {t.email}
+
+                                </label>
+                                {isEditing ? (
+                                    <input
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors"
+                                    />
+                                ) : (
+                                    <p className="text-zinc-300 font-medium px-1">{email}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1.5">
+                                    <Phone size={12} /> {t.phone}
+
+                                </label>
+                                {isEditing ? (
+                                    <input
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors"
+                                    />
+                                ) : (
+                                    <p className="text-zinc-300 font-medium px-1">{phone}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1.5">
+                                    <Building size={12} /> Gérance
+                                </label>
+                                <p className="text-zinc-300 font-medium px-1">Pro Gérance SPRL</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5 pt-2">
+                            <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Bio</label>
+                            {isEditing ? (
+                                <textarea
+                                    value={bio}
+                                    onChange={(e) => setBio(e.target.value)}
+                                    rows={3}
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors resize-none"
+                                />
+                            ) : (
+                                <p className="text-zinc-400 text-sm leading-relaxed px-1">{bio}</p>
+                            )}
+                        </div>
+                    </section>
+                </div>
+
+                {/* Sidebar Column */}
+                <div className="space-y-8">
+                    {/* Stats Card */}
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 space-y-6">
+                        <h2 className="text-lg font-bold text-white uppercase tracking-tight">{t.statistiques}</h2>
+
+                        <div className="space-y-4">
+                            <div className="bg-zinc-900/50 p-4 rounded-2xl flex justify-between items-center border border-zinc-800/50">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-zinc-600 uppercase">{t.properties}</p>
+
+                                    <p className="text-2xl font-black text-white">12</p>
+                                </div>
+                                <Building className="text-zinc-700" size={24} />
+                            </div>
+                            <div className="bg-zinc-900/50 p-4 rounded-2xl flex justify-between items-center border border-zinc-800/50">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-zinc-600 uppercase">{t.ongoing || 'Interventions'}</p>
+
+                                    <p className="text-2xl font-black text-white">48</p>
+                                </div>
+                                <Check className="text-brand-green" size={24} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actions Card */}
+                    <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 space-y-3">
+                        <button className="w-full flex items-center gap-3 p-4 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all border border-transparent hover:border-zinc-800 group">
+                            <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors">
+                                <Lock size={16} />
+                            </div>
+                            <span className="text-sm font-bold">{t.security}</span>
+
+                        </button>
+                        <button className="w-full flex items-center gap-3 p-4 rounded-2xl text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all border border-transparent hover:border-zinc-800 group">
+                            <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center group-hover:bg-brand-green/10 group-hover:text-brand-green transition-colors">
+                                <Shield size={16} />
+                            </div>
+                            <span className="text-sm font-bold">{t.privacy}</span>
+
+                        </button>
+                        <div className="pt-3">
+                            <button
+                                onClick={onLogout}
+                                className="w-full flex items-center gap-3 p-4 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all group"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors">
+                                    <LogOut size={16} />
+                                </div>
+                                <span className="text-sm font-black uppercase tracking-widest">{t.logout}</span>
+
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ProfilePage;

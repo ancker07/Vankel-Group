@@ -1,0 +1,15 @@
+
+> vanakel-group---management-platform@0.0.0 build
+> vite build
+
+vite v6.4.1 building for production...
+transforming...
+✓ 57 modules transformed.
+✗ Build failed in 809ms
+error during build:
+Could not resolve "../constants" from "src/features/maintenance/components/CreateMaintenanceModal.tsx"
+file: /Users/macbook/Documents/flutter work/vanakel_group_management_platform_app/vanakel_group_management_web/src/features/maintenance/components/CreateMaintenanceModal.tsx
+    at getRollupError (file:///Users/macbook/Documents/flutter%20work/vanakel_group_management_platform_app/vanakel_group_management_web/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///Users/macbook/Documents/flutter%20work/vanakel_group_management_platform_app/vanakel_group_management_web/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///Users/macbook/Documents/flutter%20work/vanakel_group_management_platform_app/vanakel_group_management_web/node_modules/rollup/dist/es/shared/node-entry.js:21687:24)
+    at file:///Users/macbook/Documents/flutter%20work/vanakel_group_management_platform_app/vanakel_group_management_web/node_modules/rollup/dist/es/shared/node-entry.js:21647:26
