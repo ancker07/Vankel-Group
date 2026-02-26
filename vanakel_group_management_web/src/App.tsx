@@ -78,6 +78,25 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('vanakel_isApproved');
     return saved === 'true';
   });
+  const [fullUserData, setFullUserData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const email = localStorage.getItem('vanakel_userEmail');
+      if (email && (role === 'ADMIN' || role === 'SYNDIC')) {
+        try {
+          const response = await authService.getProfile(email);
+          if (response.success) {
+            setFullUserData(response.user);
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [role]);
 
 
   // Data State
@@ -863,7 +882,7 @@ const App: React.FC = () => {
                         />
 
                       } />
-                      <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} />} />
+                      <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} userData={fullUserData} />} />
 
                       <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
 

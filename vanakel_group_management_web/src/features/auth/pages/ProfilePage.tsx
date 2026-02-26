@@ -9,18 +9,33 @@ interface ProfilePageProps {
     t: any;
     onLogout: () => void;
     onUpdateProfile?: (data: FormData) => Promise<void>;
+    userData?: any;
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, onUpdateProfile }) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, onUpdateProfile, userData }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(userName);
     const [email, setEmail] = useState(() => localStorage.getItem('vanakel_userEmail') || 'contact@vanakel.be');
     const [phone, setPhone] = useState('+32 400 00 00 00');
     const [bio, setBio] = useState('Syndic professionnel gérant plusieurs résidences à Bruxelles.');
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Sync state with userData props when they load dynamically
+    React.useEffect(() => {
+        if (userData) {
+            setName(userData.name || userName);
+            setEmail(userData.email || localStorage.getItem('vanakel_userEmail') || 'contact@vanakel.be');
+            setPhone(userData.phone || '+32 400 00 00 00');
+            setBio(userData.bio || 'Syndic professionnel gérant plusieurs résidences à Bruxelles.');
+            if (userData.image_url) {
+                setImagePreview(userData.image_url);
+            }
+        }
+    }, [userData, userName]);
 
     const handleSave = async () => {
         if (onUpdateProfile) {
@@ -50,11 +65,29 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
         const file = e.target.files?.[0];
         if (file) {
             setImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
             console.log("File selected:", file.name);
             // Auto-trigger save mode when image changes
             setIsEditing(true);
         }
     };
+
+    // Calculate member since from userData or use default
+    const memberSince = React.useMemo(() => {
+        if (userData?.created_at) {
+            const date = new Date(userData.created_at);
+            const monthNames = [
+                "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+                "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+            ];
+            return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        }
+        return "Février 2026";
+    }, [userData]);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -63,7 +96,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
                 <div className="relative flex flex-col md:flex-row items-center gap-8">
                     <div className="relative group">
-                        <UserAvatar name={name} size="xl" className="border-4 border-zinc-900 ring-2 ring-brand-green/20" />
+                        {imagePreview ? (
+                            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-zinc-900 ring-2 ring-brand-green/20">
+                                <img src={imagePreview} alt={name} className="w-full h-full object-cover" />
+                            </div>
+                        ) : (
+                            <UserAvatar name={name} size="xl" className="border-4 border-zinc-900 ring-2 ring-brand-green/20" />
+                        )}
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -86,7 +125,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                                 {role}
                             </span>
                         </div>
-                        <p className="text-zinc-500 font-medium">{t.memberSince} Février 2026</p>
+                        <p className="text-zinc-500 font-medium">{t.memberSince} {memberSince}</p>
 
                     </div>
                 </div>
@@ -172,7 +211,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                                 <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1.5">
                                     <Building size={12} /> Gérance
                                 </label>
-                                <p className="text-zinc-300 font-medium px-1">Pro Gérance SPRL</p>
+                                <p className="text-zinc-300 font-medium px-1">{userData?.company_name || 'Pro Gérance SPRL'}</p>
                             </div>
                         </div>
 
@@ -203,7 +242,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-zinc-600 uppercase">{t.properties}</p>
 
-                                    <p className="text-2xl font-black text-white">12</p>
+                                    <p className="text-2xl font-black text-white">{userData?.properties_count || '12'}</p>
                                 </div>
                                 <Building className="text-zinc-700" size={24} />
                             </div>
@@ -211,7 +250,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-zinc-600 uppercase">{t.ongoing || 'Interventions'}</p>
 
-                                    <p className="text-2xl font-black text-white">48</p>
+                                    <p className="text-2xl font-black text-white">{userData?.interventions_count || '48'}</p>
                                 </div>
                                 <Check className="text-brand-green" size={24} />
                             </div>

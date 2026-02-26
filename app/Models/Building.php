@@ -8,5 +8,10 @@ class Building extends Model
 {
     //
     protected $guarded = [];
+
+    public function interventions()
+    {
+        return $this->hasMany(Intervention::class);
+    }
 }
 

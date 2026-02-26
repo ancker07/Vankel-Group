@@ -22,5 +22,6 @@ Route::get('/interventions', [InterventionController::class, 'getInterventions']
 Route::put('/interventions/{id}', [InterventionController::class, 'updateIntervention']);
 Route::post('/check-status', [AuthController::class, 'checkStatus']);
 Route::post('/users/update-profile', [AuthController::class, 'updateProfile']);
+Route::post('/get-profile', [AuthController::class, 'getProfile']);
 
 

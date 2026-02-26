@@ -235,5 +235,40 @@ class AuthController extends Controller
             'user' => $user
         ]);
     }
+    public function getProfile(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'phone' => $user->phone,
+                'bio' => $user->bio,
+                'image_url' => $user->image_url ? asset('storage/' . $user->image_url) : null,
+                'company_name' => $user->company_name,
+                'status' => $user->status,
+                'created_at' => $user->created_at,
+                'properties_count' => \App\Models\Building::where('syndic_id', $user->id)->count(),
+                'interventions_count' => \App\Models\Intervention::whereHas('building', function($q) use ($user) {
+                    $q->where('syndic_id', $user->id);
+                })->count(),
+            ]
+        ]);
+    }
 }
   

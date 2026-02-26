@@ -86,6 +86,16 @@ export const authService = {
             const msg = error.response?.data?.message || 'Failed to update profile';
             return { success: false, message: msg };
         }
+    },
+
+    getProfile: async (email: string): Promise<{ success: boolean; user?: any; message?: string }> => {
+        try {
+            const response = await apiClient.post('/get-profile', { email });
+            return response.data;
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Failed to fetch profile';
+            return { success: false, message: msg };
+        }
     }
 };
 
