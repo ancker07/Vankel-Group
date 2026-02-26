@@ -3,11 +3,14 @@ import React from 'react';
 
 interface UserAvatarProps {
     name: string;
+    imageUrl?: string | null;
     size?: 'sm' | 'md' | 'lg' | 'xl';
     className?: string;
 }
 
-const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = 'md', className = '' }) => {
+const UserAvatar: React.FC<UserAvatarProps> = ({ name, imageUrl, size = 'md', className = '' }) => {
+    const [imgError, setImgError] = React.useState(false);
+
     const initials = name
         .split(' ')
         .map(n => n[0])
@@ -37,10 +40,19 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = 'md', className = 
 
     return (
         <div
-            className={`rounded-full flex items-center justify-center font-black text-white shadow-lg ${sizeClasses[size]} ${className}`}
-            style={{ background: getGradient(name) }}
+            className={`rounded-full flex items-center justify-center font-black text-white shadow-lg overflow-hidden ${sizeClasses[size]} ${className}`}
+            style={{ background: !imageUrl || imgError ? getGradient(name) : 'transparent' }}
         >
-            {initials}
+            {imageUrl && !imgError ? (
+                <img
+                    src={imageUrl}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                    onError={() => setImgError(true)}
+                />
+            ) : (
+                initials
+            )}
         </div>
     );
 };

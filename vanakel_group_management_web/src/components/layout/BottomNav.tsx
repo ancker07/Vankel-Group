@@ -75,7 +75,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                         className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'dashboard' ? 'text-brand-green' : 'text-zinc-500'}`}
                     >
                         <LayoutDashboard size={20} />
-                        <span className="text-[9px] font-bold">{t.dash_short || 'Dash'}</span>
+                        <span className="text-[10px] font-bold whitespace-nowrap">{t.dash_short || 'Dash'}</span>
 
 
                     </button>
@@ -103,7 +103,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                                 </span>
                             )}
                         </div>
-                        <span className="text-[9px] font-bold">{role === 'SYNDIC' ? (t.ongoing || 'Interventions') : 'Interv..'}</span>
+                        <span className="text-[10px] font-bold whitespace-nowrap">{role === 'SYNDIC' ? (t.ongoing_short || 'Suivi') : 'Interv.'}</span>
 
                     </button>
                     <button
@@ -119,7 +119,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                                 </span>
                             )}
                         </div>
-                        <span className="text-[9px] font-bold">{t.missions}</span>
+                        <span className="text-[10px] font-bold whitespace-nowrap">{t.missions_short || 'Missions'}</span>
 
                     </button>
                     {role !== 'SYNDIC' ? (
@@ -139,7 +139,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                             className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'profile' ? 'text-brand-green' : 'text-zinc-500'}`}
                         >
                             <User size={20} />
-                            <span className="text-[9px] font-bold">{t.profile}</span>
+                            <span className="text-[10px] font-bold whitespace-nowrap">{t.profile_short || 'Profil'}</span>
 
                         </button>
                     )}

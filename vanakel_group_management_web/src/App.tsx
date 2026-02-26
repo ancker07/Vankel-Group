@@ -367,6 +367,16 @@ const App: React.FC = () => {
           setUserName(newName);
           localStorage.setItem('vanakel_userName', newName);
         }
+
+        // Refresh full user data to sync image and other fields
+        const email = localStorage.getItem('vanakel_userEmail');
+        if (email) {
+          const profileRes = await authService.getProfile(email);
+          if (profileRes.success) {
+            setFullUserData(profileRes.user);
+          }
+        }
+
         addToast("Profile Updated", response.message || "Your profile has been saved successfully.");
       } else {
         addToast("Update Failed", response.message || "Could not update your profile.");
@@ -812,6 +822,7 @@ const App: React.FC = () => {
                     setSelectedInterventionId={setSelectedInterventionId}
                     t={t}
                     userName={userName}
+                    userImageUrl={fullUserData?.image_url}
                   />
 
                   <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 relative scroll-smooth">

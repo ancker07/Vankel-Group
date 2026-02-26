@@ -15,6 +15,7 @@ interface HeaderProps {
     setSelectedInterventionId: (id: string | null) => void;
     t: any;
     userName?: string;
+    userImageUrl?: string | null;
 }
 
 import UserAvatar from '@/components/common/UserAvatar';
@@ -29,12 +30,13 @@ const Header: React.FC<HeaderProps> = ({
     setShowNotifications,
     setSelectedInterventionId,
     t,
-    userName = 'Vanakel User'
+    userName = 'Vanakel User',
+    userImageUrl
 }) => {
     return (
         <header className="h-16 md:h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-zinc-950/80 backdrop-blur-xl shrink-0 z-20 sticky top-0">
-            <div className="flex items-center gap-4 md:hidden">
-                <span className="font-black text-lg text-white">VANAKEL</span>
+            <div className="flex items-center gap-4">
+                <span className="font-black text-lg text-white md:hidden">VANAKEL</span>
             </div>
 
             <div className="hidden md:flex items-center gap-2">
@@ -66,19 +68,19 @@ const Header: React.FC<HeaderProps> = ({
                     )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-1 md:gap-2">
                     {(['EN', 'FR', 'NL'] as LangType[]).map(l => (
                         <button
                             key={l}
                             onClick={() => setLang(l)}
-                            className={`text-[10px] md:text-xs font-black px-2 py-1 rounded transition-colors ${lang === l ? 'bg-brand-green text-brand-black' : 'text-zinc-600 hover:text-zinc-300'}`}
+                            className={`text-[10px] md:text-xs font-black px-2 py-1 rounded transition-colors ${lang === l ? 'bg-brand-green text-brand-black' : 'text-zinc-600 hover:text-zinc-300'} ${lang !== l ? 'hidden md:block' : ''}`}
                         >
                             {l}
                         </button>
                     ))}
                 </div>
 
-                <UserAvatar name={userName} size="md" />
+                <UserAvatar name={userName} imageUrl={userImageUrl} size="md" />
             </div>
         </header>
     );

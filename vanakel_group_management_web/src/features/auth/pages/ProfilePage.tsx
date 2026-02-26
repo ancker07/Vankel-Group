@@ -90,7 +90,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
     }, [userData]);
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 px-4 md:px-0 pb-20">
             {/* Header / Hero Section */}
             <div className="relative overflow-hidden rounded-3xl bg-zinc-950 border border-zinc-800 p-8 md:p-12">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
@@ -131,8 +131,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                 </div>
             </div>
 
+            {/* Profile Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Information Column */}
+                {/* Information Form */}
                 <div className="lg:col-span-2 space-y-8">
                     <section className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 space-y-6">
                         <div className="flex justify-between items-center">

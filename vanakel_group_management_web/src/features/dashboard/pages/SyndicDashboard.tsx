@@ -20,7 +20,7 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
     t
 }) => {
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto pb-12">
+        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto pb-12 px-4 md:px-0">
             <div className="flex justify-between items-end mb-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">{t.syndic_portal || 'Syndic Portal'}</h1>
@@ -69,8 +69,8 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
                                     <div className="p-2 md:p-3 bg-zinc-900 rounded-lg shrink-0">
                                         <Wrench size={20} className="text-zinc-500 group-hover:text-brand-green transition-colors" />
                                     </div>
-                                    <div className="min-w-0">
-                                        <h4 className="font-bold text-white text-sm md:text-base truncate">{int.title}</h4>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-bold text-white text-sm md:text-base truncate leading-tight">{int.title}</h4>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="text-[10px] md:text-xs text-zinc-500 font-mono truncate max-w-[150px] md:max-w-none">
                                                 {new Date(int.createdAt || int.scheduledDate || '').toLocaleDateString()}
@@ -81,8 +81,8 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
 
                                 <div className="flex items-center gap-4 shrink-0 pl-2">
                                     <div className={`px-2 md:px-3 py-1 bg-brand-green/10 border border-brand-green/20 rounded-lg hidden sm:block ${int.status === 'COMPLETED' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
-                                            int.status === 'DELAYED' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
-                                                'bg-blue-500/10 border-blue-500/20 text-brand-green'
+                                        int.status === 'DELAYED' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
+                                            'bg-blue-500/10 border-blue-500/20 text-brand-green'
                                         }`}>
                                         <span className="text-[9px] md:text-[10px] font-black uppercase tracking-wider">
                                             {int.status}

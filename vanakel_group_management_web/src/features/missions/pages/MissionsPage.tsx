@@ -106,15 +106,15 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     );
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-12">
-            <div className="flex justify-between items-center bg-zinc-950 p-6 rounded-3xl border border-zinc-900 shadow-xl">
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-12 px-4 md:px-0">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 bg-zinc-950 p-6 rounded-3xl border border-zinc-900 shadow-xl">
                 <div>
                     <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.missions}</h2>
                     <p className="text-zinc-600 text-xs mt-1">{t.missions_subtitle || 'Manage and track your building service requests'}</p>
                 </div>
                 <button
                     onClick={onCreateClick}
-                    className="bg-brand-green text-brand-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-brand-green/20 flex items-center gap-2 border border-brand-green/20"
+                    className="w-full sm:w-auto bg-brand-green text-brand-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-brand-green/20 flex items-center justify-center gap-2 border border-brand-green/20"
                 >
                     <Plus size={16} strokeWidth={3} /> {t.create_request || 'Create Request'}
                 </button>
