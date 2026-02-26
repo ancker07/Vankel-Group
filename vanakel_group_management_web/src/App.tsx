@@ -33,6 +33,7 @@ import ConfirmationModal from '@/components/common/ConfirmationModal';
 import ToastContainer from '@/components/common/ToastContainer';
 import OnboardingTour from '@/features/dashboard/components/OnboardingTour';
 import { dataService } from '@/services/dataService';
+import { authService } from '@/features/auth/services/authService';
 
 import {
   mockSyndics,
@@ -338,6 +339,24 @@ const App: React.FC = () => {
     navigate('/');
   };
 
+  const handleProfileUpdate = async (formData: FormData) => {
+    try {
+      const response = await authService.updateProfile(formData);
+      if (response.success) {
+        const newName = formData.get('name') as string;
+        if (newName) {
+          setUserName(newName);
+          localStorage.setItem('vanakel_userName', newName);
+        }
+        addToast("Profile Updated", response.message || "Your profile has been saved successfully.");
+      } else {
+        addToast("Update Failed", response.message || "Could not update your profile.");
+      }
+    } catch (error) {
+      addToast("Error", "An unexpected error occurred while updating your profile.");
+    }
+  };
+
 
   // --- Handlers ---
   const addToast = (title: string, message: string) => {
@@ -493,14 +512,7 @@ const App: React.FC = () => {
         });
       }
 
-      const response = await fetch('http://localhost:8000/api/interventions', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error('API error');
-
-      const result = await response.json();
+      const result = await dataService.createIntervention(formData);
       const serverData = result.data;
 
       if (result.type === 'mission') {
@@ -851,7 +863,7 @@ const App: React.FC = () => {
                         />
 
                       } />
-                      <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} />} />
+                      <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} />} />
 
                       <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
 

@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { User, Mail, Phone, Shield, Building, Lock, LogOut, Edit2, Check, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, Mail, Phone, Shield, Building, Lock, LogOut, Edit2, Check, X, Camera } from 'lucide-react';
 import UserAvatar from '@/components/common/UserAvatar';
 
 interface ProfilePageProps {
@@ -8,18 +8,52 @@ interface ProfilePageProps {
     role: string;
     t: any;
     onLogout: () => void;
+    onUpdateProfile?: (data: FormData) => Promise<void>;
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout }) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, onUpdateProfile }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(userName);
-    const [email, setEmail] = useState('contact@vanakel.be');
+    const [email, setEmail] = useState(() => localStorage.getItem('vanakel_userEmail') || 'contact@vanakel.be');
     const [phone, setPhone] = useState('+32 400 00 00 00');
     const [bio, setBio] = useState('Syndic professionnel gérant plusieurs résidences à Bruxelles.');
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
-        setIsEditing(false);
-        // In a real app, this would call an API
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleSave = async () => {
+        if (onUpdateProfile) {
+            setIsSaving(true);
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('name', name);
+            formData.append('phone', phone);
+            formData.append('bio', bio);
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            try {
+                await onUpdateProfile(formData);
+                setIsEditing(false);
+            } catch (err) {
+                console.error("Failed to update profile", err);
+            } finally {
+                setIsSaving(false);
+            }
+        } else {
+            setIsEditing(false);
+        }
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+            console.log("File selected:", file.name);
+            // Auto-trigger save mode when image changes
+            setIsEditing(true);
+        }
     };
 
     return (
@@ -28,10 +62,21 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout }
             <div className="relative overflow-hidden rounded-3xl bg-zinc-950 border border-zinc-800 p-8 md:p-12">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
                 <div className="relative flex flex-col md:flex-row items-center gap-8">
-                    <div className="relative">
+                    <div className="relative group">
                         <UserAvatar name={name} size="xl" className="border-4 border-zinc-900 ring-2 ring-brand-green/20" />
-                        <button className="absolute bottom-0 right-0 p-2 bg-brand-green text-brand-black rounded-lg shadow-lg hover:scale-110 transition-transform">
-                            <Edit2 size={16} />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute bottom-0 right-0 p-2 bg-brand-green text-brand-black rounded-lg shadow-lg hover:scale-110 transition-transform group-hover:block"
+                            title="Changer la photo"
+                        >
+                            <Camera size={16} />
                         </button>
                     </div>
                     <div className="text-center md:text-left space-y-2">
@@ -100,8 +145,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout }
                                 {isEditing ? (
                                     <input
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors"
+                                        disabled
+                                        className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-500 cursor-not-allowed focus:outline-none transition-colors"
+                                        title={t.email_not_editable || "L'email ne peut pas être modifié"}
                                     />
                                 ) : (
                                     <p className="text-zinc-300 font-medium px-1">{email}</p>
