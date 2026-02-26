@@ -57,7 +57,7 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
 
                 <div className="space-y-3">
                     {allInterventions.length === 0 ? (
-                        <p className="text-center py-8 text-zinc-600 font-medium">No interventions found.</p>
+                        <p className="text-center py-8 text-zinc-600 font-medium">{t.no_interventions_found || 'No interventions found.'}</p>
                     ) : (
                         allInterventions.map((int) => (
                             <div

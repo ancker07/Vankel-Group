@@ -50,7 +50,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     )}
                                     <span className="text-[10px] text-zinc-500 font-mono">{new Date(m.timestamp).toLocaleDateString()}</span>
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2">{m.title || 'Mission Request'}</h4>
+                                <h4 className="text-lg font-bold text-white mb-2">{m.title || t.mission_request}</h4>
                                 <p className="text-sm text-zinc-400 leading-relaxed mb-4">{m.description}</p>
 
                                 {m.documents && m.documents.length > 0 && (
@@ -77,7 +77,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <ShieldCheck size={12} className="text-zinc-600" />
-                                        <span>{s?.companyName || 'No Syndic'}</span>
+                                        <span>{s?.companyName || t.no_syndic}</span>
                                     </div>
                                 </div>
                             </div>

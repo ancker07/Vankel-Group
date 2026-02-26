@@ -80,14 +80,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
     const memberSince = React.useMemo(() => {
         if (userData?.created_at) {
             const date = new Date(userData.created_at);
-            const monthNames = [
-                "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-                "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-            ];
-            return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            const monthKey = `month_${date.getMonth()}`;
+            return `${t[monthKey]} ${date.getFullYear()}`;
         }
-        return "Février 2026";
-    }, [userData]);
+        return `${t.month_1} 2026`;
+    }, [userData, t]);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 px-4 md:px-0 pb-20">
@@ -113,7 +110,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             className="absolute bottom-0 right-0 p-2 bg-brand-green text-brand-black rounded-lg shadow-lg hover:scale-110 transition-transform group-hover:block"
-                            title="Changer la photo"
+                            title={t.change_photo}
                         >
                             <Camera size={16} />
                         </button>
@@ -187,7 +184,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                                         value={email}
                                         disabled
                                         className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-500 cursor-not-allowed focus:outline-none transition-colors"
-                                        title={t.email_not_editable || "L'email ne peut pas être modifié"}
+                                        title={t.email_not_editable}
                                     />
                                 ) : (
                                     <p className="text-zinc-300 font-medium px-1">{email}</p>
@@ -210,14 +207,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest flex items-center gap-1.5">
-                                    <Building size={12} /> Gérance
+                                    <Building size={12} /> {t.company}
                                 </label>
-                                <p className="text-zinc-300 font-medium px-1">{userData?.company_name || 'Pro Gérance SPRL'}</p>
+                                <p className="text-zinc-300 font-medium px-1">{userData?.company_name || 'Vanakel Group'}</p>
                             </div>
                         </div>
 
                         <div className="space-y-1.5 pt-2">
-                            <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Bio</label>
+                            <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">{t.bio}</label>
                             {isEditing ? (
                                 <textarea
                                     value={bio}
