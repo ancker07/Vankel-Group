@@ -68,12 +68,12 @@ const Header: React.FC<HeaderProps> = ({
                     )}
                 </div>
 
-                <div className="flex gap-1 md:gap-2">
+                <div className="flex gap-1">
                     {(['EN', 'FR', 'NL'] as LangType[]).map(l => (
                         <button
                             key={l}
                             onClick={() => setLang(l)}
-                            className={`text-[10px] md:text-xs font-black px-2 py-1 rounded transition-colors ${lang === l ? 'bg-brand-green text-brand-black' : 'text-zinc-600 hover:text-zinc-300'} ${lang !== l ? 'hidden md:block' : ''}`}
+                            className={`text-[9px] md:text-xs font-black px-1.5 md:px-2 py-1 rounded transition-colors ${lang === l ? 'bg-brand-green text-brand-black' : 'text-zinc-600 hover:text-zinc-300'}`}
                         >
                             {l}
                         </button>
