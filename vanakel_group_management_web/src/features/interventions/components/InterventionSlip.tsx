@@ -4,10 +4,11 @@ import {
   Intervention, Building, Professional, Syndic, Language, Role, InterventionStatus
 } from '@/types';
 import {
-  X, Mail, MessageCircle, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin
+  X, Mail, MessageCircle, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye
 } from 'lucide-react';
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote } from '@/services/gemini';
+import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
 interface SlipProps {
   intervention: Intervention;
@@ -91,7 +92,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const isSyndic = role === 'SYNDIC';
   const [isEditable, setIsEditable] = useState(intervention.status !== 'COMPLETED' && !isSyndic);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [viewerData, setViewerData] = useState<{ docs: any[], index: number } | null>(null);
 
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
@@ -574,7 +575,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
                               src={url}
                               alt={`upload-${idx}`}
                               className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform"
-                              onClick={() => setPreviewImage(url)}
+                              onClick={() => {
+                                // Prepare unified list: Photos first, then Docs
+                                const photoDocs = photos.map((p, i) => ({ id: `photo-${i}`, name: `Photo ${i + 1}`, url: p, type: 'OTHER', status: 'APPROVED', timestamp: '' } as any));
+                                const unifiedDocs = [...photoDocs, ...documents];
+                                setViewerData({ docs: unifiedDocs, index: idx });
+                              }}
                             />
                             {isEditable && (
                               <button
@@ -602,11 +608,23 @@ const InterventionSlip: React.FC<SlipProps> = ({
                             </div>
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => window.open(doc.url, '_blank')}
-                                className="p-1.5 text-zinc-500 hover:text-brand-green transition-colors"
+                                onClick={() => {
+                                  const photoDocs = photos.map((p, i) => ({ id: `photo-${i}`, name: `Photo ${i + 1}`, url: p, type: 'OTHER', status: 'APPROVED', timestamp: '' } as any));
+                                  const unifiedDocs = [...photoDocs, ...documents];
+                                  setViewerData({ docs: unifiedDocs, index: photos.length + idx });
+                                }}
+                                className="p-1.5 text-zinc-400 hover:text-brand-green transition-colors"
+                                title="Preview"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <a
+                                href={doc.url}
+                                download
+                                className="p-1.5 text-zinc-400 hover:text-white transition-colors"
                               >
                                 <FileText size={14} />
-                              </button>
+                              </a>
                               {isEditable && (
                                 <button
                                   onClick={() => setDocuments(prev => prev.filter((_, i) => i !== idx))}
@@ -711,19 +729,14 @@ const InterventionSlip: React.FC<SlipProps> = ({
         </div>
       )}
 
-      {/* Image Preview Modal */}
-      {previewImage && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-in fade-in duration-200" onClick={() => setPreviewImage(null)}>
-          <button className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors p-2" onClick={() => setPreviewImage(null)}>
-            <X size={32} />
-          </button>
-          <img
-            src={previewImage}
-            alt="Preview"
-            className="max-w-full max-h-full rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+      {/* Document Viewer Modal */}
+      {viewerData && (
+        <DocumentViewerModal
+          isOpen={!!viewerData}
+          onClose={() => setViewerData(null)}
+          documents={viewerData.docs}
+          initialIndex={viewerData.index}
+        />
       )}
     </div>
   );

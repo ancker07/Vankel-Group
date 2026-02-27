@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Building, Syndic } from '@/types';
 import { MapPin, ShieldCheck, ClipboardList } from 'lucide-react';
 
@@ -11,16 +10,27 @@ interface GestionPropertyCardProps {
 }
 
 const GestionPropertyCard: React.FC<GestionPropertyCardProps> = ({ building, syndic, interventionCount, onClick }) => {
+  const [isImgLoading, setIsImgLoading] = useState(true);
+
   return (
     <div className="bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col hover:border-zinc-700 transition-all group shadow-lg">
       {/* Thumbnail Section */}
       <div className="h-40 relative overflow-hidden bg-zinc-900">
         {building.imageUrl ? (
-          <img
-            src={building.imageUrl}
-            alt={building.address}
-            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
-          />
+          <>
+            {isImgLoading && (
+              <div className="absolute inset-0 bg-zinc-900 animate-pulse flex items-center justify-center">
+                <MapPin size={32} className="text-zinc-800 animate-bounce" />
+              </div>
+            )}
+            <img
+              src={building.imageUrl}
+              alt={building.address}
+              className={`w-full h-full object-cover transition-all duration-500 ${isImgLoading ? 'opacity-0' : 'opacity-80 group-hover:opacity-100'}`}
+              onLoad={() => setIsImgLoading(false)}
+              onError={() => setIsImgLoading(false)}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-700">
             <MapPin size={48} strokeWidth={1} />

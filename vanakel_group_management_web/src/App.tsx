@@ -34,6 +34,7 @@ import ToastContainer from '@/components/common/ToastContainer';
 import OnboardingTour from '@/features/dashboard/components/OnboardingTour';
 import { dataService } from '@/services/dataService';
 import { authService } from '@/features/auth/services/authService';
+import { STORAGE_BASE_URL } from '@/lib/apiClient';
 
 import {
   mockSyndics,
@@ -152,13 +153,20 @@ const App: React.FC = () => {
           const mappedBuildings: Building[] = apiBuildings.map((b: any) => ({
             id: String(b.id),
             address: b.address,
-            city: b.city || 'Unknown',
-            tenants: b.tenants || [],
+            city: b.city,
+            imageUrl: b.image_url
+              ? (b.image_url.startsWith('http') ? b.image_url : `${STORAGE_BASE_URL}/${b.image_url}`)
+              : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop',
+            tenants: (b.tenants || []).map((t: any) => ({
+              firstName: t.first_name,
+              lastName: t.last_name,
+              email: t.email,
+              phone: t.phone
+            })),
             phone: b.phone || '',
-            linkedProfessionalId: b.linked_professional_id || '',
-            linkedSyndicId: String(b.syndic_id || ''),
+            linkedProfessionalId: b.pro_id ? String(b.pro_id) : undefined,
+            linkedSyndicId: b.syndic_id ? String(b.syndic_id) : undefined,
             adminNote: b.admin_note || '',
-            imageUrl: b.image_url || 'https://images.unsplash.com/photo-1460317442991-0ec2aa5a1199?q=80&w=600',
             installationDate: b.created_at,
             devices: b.devices || []
           }));
@@ -186,7 +194,7 @@ const App: React.FC = () => {
               name: d.file_name,
               type: 'OTHER',
               status: 'APPROVED',
-              url: `http://localhost:8000/storage/${d.file_path}`,
+              url: `${STORAGE_BASE_URL}/${d.file_path}`,
               timestamp: d.created_at
             }))
           }));
@@ -205,13 +213,13 @@ const App: React.FC = () => {
             createdAt: i.created_at,
             status: i.status as InterventionStatus,
             notes: i.notes || [],
-            photos: i.photos || [],
+            photos: (i.photos || []).map((p: string) => p.startsWith('http') ? p : `${STORAGE_BASE_URL}/${p}`),
             documents: (i.documents || []).map((d: any) => ({
               id: String(d.id),
               name: d.file_name,
               type: 'OTHER',
               status: 'APPROVED',
-              url: `http://localhost:8000/storage/${d.file_path}`,
+              url: d.url || (d.file_path.startsWith('http') ? d.file_path : `${STORAGE_BASE_URL}/${d.file_path}`),
               timestamp: d.created_at
             })),
             proId: String(i.professional_id || ''),
@@ -564,7 +572,7 @@ const App: React.FC = () => {
             name: d.file_name,
             type: 'OTHER',
             status: 'APPROVED',
-            url: `http://localhost:8000/storage/${d.file_path}`,
+            url: `${STORAGE_BASE_URL}/${d.file_path}`,
             timestamp: d.created_at
           }))
         };
@@ -588,7 +596,7 @@ const App: React.FC = () => {
             name: d.file_name,
             type: 'OTHER',
             status: 'PENDING',
-            url: `http://localhost:8000/storage/${d.file_path}`,
+            url: `${STORAGE_BASE_URL}/${d.file_path}`,
             timestamp: d.created_at
           })),
           proId: '',
@@ -654,7 +662,7 @@ const App: React.FC = () => {
           name: d.file_name,
           type: 'OTHER',
           status: 'APPROVED',
-          url: `http://localhost:8000/storage/${d.file_path}`,
+          url: `${STORAGE_BASE_URL}/${d.file_path}`,
           timestamp: d.created_at
         })),
         proId: '',
@@ -733,7 +741,7 @@ const App: React.FC = () => {
           <LoginPage
             role={location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN'}
             lang={lang}
-            onLogin={(name, resolvedEmail) => {
+            onLogin={(name, resolvedEmail, token) => {
               const r = location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN';
               setRole(r);
               localStorage.setItem('vanakel_role', r);
@@ -741,6 +749,9 @@ const App: React.FC = () => {
               localStorage.setItem('vanakel_userName', name || 'Vanakel User');
               if (resolvedEmail) {
                 localStorage.setItem('vanakel_userEmail', resolvedEmail);
+              }
+              if (token) {
+                localStorage.setItem('vanakel_authToken', token);
               }
               setIsApproved(true);
               localStorage.setItem('vanakel_isApproved', 'true');
@@ -765,7 +776,8 @@ const App: React.FC = () => {
 
         <Route path="/superadmin/login" element={
           <SuperAdminLogin
-            onLogin={(name, resolvedEmail) => {
+            lang={lang}
+            onLogin={(name, resolvedEmail, token) => {
               setRole('SUPERADMIN');
               localStorage.setItem('vanakel_role', 'SUPERADMIN');
               setUserName(name || 'Super Admin');
@@ -773,13 +785,14 @@ const App: React.FC = () => {
               if (resolvedEmail) {
                 localStorage.setItem('vanakel_userEmail', resolvedEmail);
               }
+              if (token) {
+                localStorage.setItem('vanakel_authToken', token);
+              }
               setIsApproved(true);
               localStorage.setItem('vanakel_isApproved', 'true');
-              setIsTourActive(true);
-              navigate('/admin/super_admin');
+              navigate('/superadmin/dashboard');
             }}
             onBack={() => navigate('/')}
-            lang={lang}
           />
         } />
 
@@ -955,7 +968,7 @@ const App: React.FC = () => {
                   <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} onCancel={() => setMissionActionModal(null)} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); }} t={t} />
                 )}
                 {deletePlanId && (
-                  <ConfirmationModal isOpen={!!deletePlanId} onClose={() => setDeletePlanId(null)} onConfirm={handleDeleteMaintenance} title={t.confirmDeleteTitle || 'Confirm Deletion'} message={t.confirmDeleteMaintMsg || 'Delete this maintenance plan?'} confirmLabel={t.btnDelete || 'Delete'} cancelLabel={t.btnCancel || 'Cancel'} />
+                  <ConfirmationModal is onClose={() => setDeletePlanId(null)} onConfirm={handleDeleteMaintenance} title={t.confirmDeleteTitle || 'Confirm Deletion'} message={t.confirmDeleteMaintMsg || 'Delete this maintenance plan?'} confirmLabel={t.btnDelete || 'Delete'} cancelLabel={t.btnCancel || 'Cancel'} />
                 )}
               </div>
             )

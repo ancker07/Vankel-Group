@@ -6,7 +6,7 @@ import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
 
 interface LoginPageProps {
-    onLogin: (name: string, email: string) => void;
+    onLogin: (name: string, email: string, token?: string) => void;
     onBack: () => void;
     onSignup?: () => void;
     lang: Language;
@@ -40,7 +40,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
             });
 
             if (data.success) {
-                onLogin(data.user?.name || email.split('@')[0], email);
+                onLogin(data.user?.name || email.split('@')[0], email, data.token);
             } else {
                 if (password === 'demo123') {
                     onLogin(email.split('@')[0], email);

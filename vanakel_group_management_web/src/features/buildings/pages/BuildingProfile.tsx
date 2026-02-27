@@ -32,6 +32,7 @@ const BuildingProfile: React.FC<ProfileProps> = ({
   building, professionals, syndics, interventions, onClose, lang, onUpdateBuilding, onAddIntervention, onUpdateIntervention, onOpenIntervention, initialTab, maintenancePlans = []
 }) => {
   const [activeTab, setActiveTab] = useState<'data' | 'history' | 'notes' | 'plan' | 'docs' | 'entretien'>(initialTab || 'data');
+  const [isHeaderImgLoading, setIsHeaderImgLoading] = useState(true);
   const t = TRANSLATIONS[lang];
   const pro = professionals.find(p => p.id === building.linkedProfessionalId);
   const syn = syndics.find(s => s.id === building.linkedSyndicId);
@@ -140,8 +141,18 @@ const BuildingProfile: React.FC<ProfileProps> = ({
   return (
     <div className="bg-zinc-950 border border-zinc-800 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-right duration-500 mb-20 lg:mb-0">
       {/* Profile Header */}
-      <div className="relative h-48 md:h-64">
-        <img src={building.imageUrl} className="w-full h-full object-cover grayscale-[0.3]" />
+      <div className="relative h-48 md:h-64 bg-zinc-900">
+        {isHeaderImgLoading && (
+          <div className="absolute inset-0 bg-zinc-900 animate-pulse flex items-center justify-center">
+            <Loader2 className="w-10 h-10 text-zinc-800 animate-spin" />
+          </div>
+        )}
+        <img
+          src={building.imageUrl}
+          className={`w-full h-full object-cover transition-all duration-700 ${isHeaderImgLoading ? 'opacity-0' : 'opacity-60 grayscale-[0.3]'}`}
+          onLoad={() => setIsHeaderImgLoading(false)}
+          onError={() => setIsHeaderImgLoading(false)}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
         <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black rounded-full text-white transition-colors z-20 min-h-[44px] min-w-[44px] flex items-center justify-center">
           <X size={20} />

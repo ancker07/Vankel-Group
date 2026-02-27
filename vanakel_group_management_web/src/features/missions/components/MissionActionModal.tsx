@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, AlertCircle, FileText } from 'lucide-react';
-import { Mission } from '@/types';
+import { Mission, Document } from '@/types';
+import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
 interface MissionActionModalProps {
     type: 'APPROVE' | 'REJECT';
@@ -22,6 +23,8 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
     onConfirm,
     t
 }) => {
+    const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
+
     return (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl shadow-2xl relative z-20 overflow-hidden p-6 text-center">
@@ -45,17 +48,15 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                             <FileText size={12} /> {t.verify_docs || 'Review Documents'}
                         </label>
                         <div className="space-y-2">
-                            {mission.documents.map(doc => (
-                                <a
-                                    key={doc.id}
-                                    href={doc.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand-green group transition-all"
+                            {mission.documents.map((doc, idx) => (
+                                <button
+                                    key={doc.id || idx}
+                                    onClick={() => setViewerData({ docs: mission.documents, index: idx })}
+                                    className="w-full flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand-green group transition-all"
                                 >
                                     <span className="text-xs font-bold text-zinc-400 group-hover:text-white truncate max-w-[200px]">{doc.name}</span>
                                     <span className="text-[10px] font-black text-brand-green uppercase tracking-tighter">{t.view || 'View'}</span>
-                                </a>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -76,6 +77,15 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                     <button onClick={onConfirm} className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors ${type === 'APPROVE' ? 'bg-brand-green text-brand-black hover:bg-brand-green-light' : 'bg-red-500 text-white hover:bg-red-600'}`}>{type === 'APPROVE' ? t.confirm : t.btnReject}</button>
                 </div>
             </div>
+
+            {viewerData && (
+                <DocumentViewerModal
+                    isOpen={!!viewerData}
+                    onClose={() => setViewerData(null)}
+                    documents={viewerData.docs}
+                    initialIndex={viewerData.index}
+                />
+            )}
         </div>
     );
 };

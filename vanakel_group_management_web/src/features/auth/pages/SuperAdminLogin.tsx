@@ -6,7 +6,7 @@ import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
 
 interface SuperAdminLoginProps {
-    onLogin: (name: string, email: string) => void;
+    onLogin: (name: string, email: string, token?: string) => void;
     onBack: () => void;
     lang: Language;
 }
@@ -41,7 +41,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin, onBack, lang
             });
 
             if (data.success) {
-                onLogin(data.user?.name || 'Super Admin', email);
+                onLogin(data.user?.name || 'Super Admin', email, data.token);
             } else {
                 setError(data.message || 'Invalid Super Admin credentials');
             }

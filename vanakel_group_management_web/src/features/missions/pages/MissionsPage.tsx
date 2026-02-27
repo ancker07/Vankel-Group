@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText } from 'lucide-react';
-import { Mission, Building, Syndic, Language } from '@/types';
+import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY } from '@/utils/constants';
+import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
 
 interface MissionsPageProps {
@@ -19,6 +20,7 @@ interface MissionsPageProps {
 
 
 const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, t, role, lang }) => {
+    const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
 
     const pendingMissions = missions.filter(m => m.status === 'PENDING');
     const approvedMissions = missions.filter(m => m.status === 'APPROVED');
@@ -55,17 +57,15 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
 
                                 {m.documents && m.documents.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        {m.documents.map(doc => (
-                                            <a
-                                                key={doc.id}
-                                                href={doc.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
+                                        {m.documents.map((doc, idx) => (
+                                            <button
+                                                key={doc.id || idx}
+                                                onClick={() => setViewerData({ docs: m.documents, index: idx })}
                                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all"
                                             >
                                                 <FileText size={14} />
                                                 <span className="truncate max-w-[150px]">{doc.name}</span>
-                                            </a>
+                                            </button>
                                         ))}
                                     </div>
                                 )}
@@ -146,6 +146,15 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                     {renderMissionList(rejectedMissions, t.no_rejected || 'No rejected missions.')}
                 </section>
             </div>
+
+            {viewerData && (
+                <DocumentViewerModal
+                    isOpen={!!viewerData}
+                    onClose={() => setViewerData(null)}
+                    documents={viewerData.docs}
+                    initialIndex={viewerData.index}
+                />
+            )}
         </div>
     );
 };
