@@ -20,6 +20,7 @@ Route::post('/missions/{id}/approve', [InterventionController::class, 'approveMi
 Route::post('/missions/{id}/reject', [InterventionController::class, 'rejectMission']);
 Route::get('/interventions', [InterventionController::class, 'getInterventions']);
 Route::put('/interventions/{id}', [InterventionController::class, 'updateIntervention']);
+Route::post('/interventions/{id}/send-report', [InterventionController::class, 'sendReport']);
 Route::post('/check-status', [AuthController::class, 'checkStatus']);
 Route::post('/profile/update', [AuthController::class, 'updateProfile']);
 Route::post('/profile/details', [AuthController::class, 'getProfile']);

@@ -49,5 +49,10 @@ export const dataService = {
     rejectUser: async (id: string) => {
         const response = await apiClient.post(`/users/${id}/reject`);
         return response.data;
+    },
+    sendInterventionReport: async (id: string) => {
+        const response = await apiClient.post(`/interventions/${id}/send-report`);
+        return response.data;
     }
 };
+

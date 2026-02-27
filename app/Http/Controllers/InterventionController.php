@@ -173,5 +173,44 @@ class InterventionController extends Controller
             'intervention' => $intervention->load('documents')
         ]);
     }
+
+    public function sendReport($id)
+    {
+        try {
+            $intervention = Intervention::with(['building.syndic', 'professional', 'documents'])->findOrFail($id);
+            
+            $recipients = ['admin@vanakelgroup.com'];
+            
+            if ($intervention->on_site_contact_email) {
+                $recipients[] = $intervention->on_site_contact_email;
+            }
+            
+            if ($intervention->building->syndic && $intervention->building->syndic->email) {
+                $recipients[] = $intervention->building->syndic->email;
+            }
+            
+            if ($intervention->professional && $intervention->professional->email) {
+                $recipients[] = $intervention->professional->email;
+            }
+            
+            // Filter unique emails and valid ones
+            $recipients = array_unique(array_filter($recipients));
+
+            \Illuminate\Support\Facades\Mail::to($recipients)->send(new \App\Mail\InterventionReportMail($intervention));
+
+            return response()->json([
+                'message' => 'Report sent successfully',
+                'recipients' => $recipients
+            ]);
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Email sending failure: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send report',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
+
 
