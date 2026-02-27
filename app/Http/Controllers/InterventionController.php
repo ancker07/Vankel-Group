@@ -154,7 +154,7 @@ class InterventionController extends Controller
         
         $validated = $request->validate([
             'status' => 'sometimes|string',
-            'pro_id' => 'sometimes|string',
+            'pro_id' => 'sometimes|nullable',
             'scheduled_date' => 'sometimes|date',
             'admin_feedback' => 'sometimes|nullable|string',
             'on_site_contact_name' => 'sometimes|nullable|string',

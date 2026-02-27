@@ -201,9 +201,10 @@ const InterventionSlip: React.FC<SlipProps> = ({
       try {
         await dataService.sendInterventionReport(intervention.id);
         alert(t.emailSent || "Report sent successfully!");
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to send email:", error);
-        alert(t.sendEmailError || "Failed to send email. Please check your SMTP settings.");
+        const serverError = error.response?.data?.error || error.response?.data?.message;
+        alert(serverError ? `Email Error: ${serverError}` : (t.sendEmailError || "Failed to send email. Please check your SMTP settings."));
       } finally {
         setIsSendingEmail(false);
       }
