@@ -45,6 +45,7 @@ class InterventionController extends Controller
         if ($type === 'mission') {
             $entity = Mission::create([
                 'building_id' => $building->id,
+                'syndic_id' => $validated['syndicId'] ?? null,
                 'requested_by' => $validated['role'],
                 'title' => $validated['title'],
                 'description' => $validated['description'],
@@ -59,6 +60,7 @@ class InterventionController extends Controller
         } else {
             $entity = Intervention::create([
                 'building_id' => $building->id,
+                'syndic_id' => $validated['syndicId'] ?? null,
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'urgency' => $validated['urgency'],
@@ -119,6 +121,7 @@ class InterventionController extends Controller
         // Create an Intervention based on the mission
         $intervention = Intervention::create([
             'building_id' => $mission->building_id,
+            'syndic_id' => $mission->syndic_id,
             'title' => $mission->title ?? 'Approved Mission',
             'category' => $mission->category,
             'sector' => $mission->sector,
@@ -177,7 +180,7 @@ class InterventionController extends Controller
     public function sendReport($id)
     {
         try {
-            $intervention = Intervention::with(['building.syndic', 'professional', 'documents'])->findOrFail($id);
+            $intervention = Intervention::with(['building.syndic', 'syndic', 'professional', 'documents'])->findOrFail($id);
             
             $recipients = ['admin@vanakelgroup.com'];
             
@@ -185,7 +188,11 @@ class InterventionController extends Controller
                 $recipients[] = $intervention->on_site_contact_email;
             }
             
-            if ($intervention->building->syndic && $intervention->building->syndic->email) {
+            // Prioritize the requesting syndic if explicitly linked
+            if ($intervention->syndic && $intervention->syndic->email) {
+                $recipients[] = $intervention->syndic->email;
+            } elseif ($intervention->building->syndic && $intervention->building->syndic->email) {
+                // Fallback to building's default syndic
                 $recipients[] = $intervention->building->syndic->email;
             }
             

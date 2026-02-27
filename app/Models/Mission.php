@@ -13,6 +13,11 @@ class Mission extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function syndic()
+    {
+        return $this->belongsTo(Syndic::class);
+    }
 }
 
 

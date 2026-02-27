@@ -23,6 +23,11 @@ class Intervention extends Model
     {
         return $this->belongsTo(User::class, 'pro_id');
     }
+
+    public function syndic()
+    {
+        return $this->belongsTo(Syndic::class);
+    }
 }
 
 
