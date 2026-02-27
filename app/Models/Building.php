@@ -13,5 +13,10 @@ class Building extends Model
     {
         return $this->hasMany(Intervention::class);
     }
+
+    public function syndic()
+    {
+        return $this->belongsTo(Syndic::class);
+    }
 }
 

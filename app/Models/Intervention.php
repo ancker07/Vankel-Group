@@ -18,6 +18,11 @@ class Intervention extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function professional()
+    {
+        return $this->belongsTo(User::class, 'pro_id');
+    }
 }
 
 
