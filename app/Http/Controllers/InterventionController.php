@@ -61,6 +61,7 @@ class InterventionController extends Controller
             $entity = Intervention::create([
                 'building_id' => $building->id,
                 'syndic_id' => $validated['syndicId'] ?? null,
+                'pro_id' => $request->pro_id ?? null,
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'urgency' => $validated['urgency'],
@@ -169,6 +170,10 @@ class InterventionController extends Controller
             'completed_at' => 'sometimes|nullable|date',
         ]);
 
+        if (array_key_exists('pro_id', $validated) && ($validated['pro_id'] === 'null' || $validated['pro_id'] === '')) {
+            $validated['pro_id'] = null;
+        }
+
         $intervention->update($validated);
 
         return response()->json([
@@ -184,24 +189,36 @@ class InterventionController extends Controller
             
             $recipients = ['admin@vanakelgroup.com'];
             
+            // 1. Add On-site contact email
             if ($intervention->on_site_contact_email) {
                 $recipients[] = $intervention->on_site_contact_email;
             }
             
-            // Prioritize the requesting syndic if explicitly linked
+            // 2. Add Requesting Syndic email (from the record explicitly linked to intervention)
             if ($intervention->syndic && $intervention->syndic->email) {
                 $recipients[] = $intervention->syndic->email;
-            } elseif ($intervention->building->syndic && $intervention->building->syndic->email) {
-                // Fallback to building's default syndic
+            } 
+            
+            // 2b. ALSO check if syndic_id points to a User (as suggested by getProfile logic and user feedback)
+            if ($intervention->syndic_id) {
+                $userSyndic = User::find($intervention->syndic_id);
+                if ($userSyndic && $userSyndic->email) {
+                    $recipients[] = $userSyndic->email;
+                }
+            }
+            
+            // 3. Add Building Syndic email (fallback/extra if different)
+            if ($intervention->building->syndic && $intervention->building->syndic->email) {
                 $recipients[] = $intervention->building->syndic->email;
             }
             
+            // 4. Add Professional email
             if ($intervention->professional && $intervention->professional->email) {
                 $recipients[] = $intervention->professional->email;
             }
             
-            // Filter unique emails and valid ones
-            $recipients = array_unique(array_filter($recipients));
+            // Filter unique emails, valid ones, and trim whitespace
+            $recipients = array_unique(array_filter(array_map('trim', $recipients)));
 
             \Illuminate\Support\Facades\Mail::to($recipients)->send(new \App\Mail\InterventionReportMail($intervention));
 
