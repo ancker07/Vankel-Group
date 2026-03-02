@@ -7,9 +7,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:dio/dio.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/enums/user_role_enum.dart';
 import '../domain/mission.dart';
 import 'providers/mission_provider.dart';
 import 'providers/mission_list_provider.dart';
+import '../../intervention/presentation/providers/intervention_provider.dart';
 
 import '../../auth/presentation/providers/auth_state_provider.dart';
 
@@ -28,10 +30,18 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
   final _addressController = TextEditingController();
   MissionUrgency _urgency = MissionUrgency.normal;
   bool _isLoading = false;
+  List<dynamic> _syndics = [];
+  String? _selectedSyndicId;
 
   final List<File> _images = [];
   final List<File> _documents = [];
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSyndics();
+  }
 
   @override
   void dispose() {
@@ -39,6 +49,24 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     _descriptionController.dispose();
     _addressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchSyndics() async {
+    try {
+      final syndics = await ref
+          .read(interventionRepositoryProvider)
+          .getSyndics();
+      setState(() {
+        _syndics = syndics;
+        // Pre-select first syndic if user is syndic and syndics are available
+        final authState = ref.read(authStateProvider);
+        if (authState.user?.role == UserRole.syndic && syndics.isNotEmpty) {
+          _selectedSyndicId = syndics[0]['id'].toString();
+        }
+      });
+    } catch (e) {
+      debugPrint('Error fetching syndics: $e');
+    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -97,25 +125,26 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
         final formDataMap = {
           'title': _titleController.text,
           'description': _descriptionController.text,
-          'building_id': 4, // Default building ID as seen in screenshot
-          'requested_by': user?.id,
+          'addressFull': _addressController.text,
           'urgency': _urgency.name.toUpperCase(),
+          'role': user?.role.name.toUpperCase() ?? 'SYNDIC',
+          'syndicId': _selectedSyndicId,
           'status': 'PENDING',
           'category': 'GENERAL',
           'sector': 'GENERAL',
-          'on_site_contact_name': user?.name ?? 'Unknown',
-          'on_site_contact_phone': user?.phone ?? '+123456789',
-          'on_site_contact_email': user?.email ?? '',
+          'onSiteContactName': user?.name ?? 'Unknown',
+          'onSiteContactPhone': user?.phone ?? '+123456789',
+          'onSiteContactEmail': user?.email ?? '',
           'type': 'mission',
         };
 
         final formData = FormData.fromMap(formDataMap);
 
-        // Add images
+        // Add images as files[]
         for (var i = 0; i < _images.length; i++) {
           formData.files.add(
             MapEntry(
-              'images[]',
+              'files[]',
               await MultipartFile.fromFile(
                 _images[i].path,
                 filename: path.basename(_images[i].path),
@@ -124,11 +153,11 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           );
         }
 
-        // Add documents
+        // Add documents as files[]
         for (var i = 0; i < _documents.length; i++) {
           formData.files.add(
             MapEntry(
-              'documents[]',
+              'files[]',
               await MultipartFile.fromFile(
                 _documents[i].path,
                 filename: path.basename(_documents[i].path),
@@ -197,6 +226,49 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                         value == null || value.isEmpty ? 'Required' : null,
                   ),
                   const SizedBox(height: 20),
+
+                  // Syndic selection (only show if user is not a syndic)
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final authState = ref.watch(authStateProvider);
+                      if (authState.user?.role != UserRole.syndic &&
+                          _syndics.isNotEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel('Syndic'),
+                            DropdownButtonFormField<String>(
+                              initialValue: _selectedSyndicId,
+                              dropdownColor: AppTheme.zinc900,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: _buildInputDecoration(
+                                'Select syndic...',
+                              ),
+                              items: _syndics.map((syndic) {
+                                return DropdownMenuItem<String>(
+                                  value: syndic['id'].toString(),
+                                  child: Text(
+                                    syndic['company_name'] ?? 'Unknown Syndic',
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedSyndicId = value;
+                                });
+                              },
+                              validator: (value) =>
+                                  value == null || value.isEmpty
+                                  ? 'Required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
 
                   _buildLabel('Description'),
                   TextFormField(

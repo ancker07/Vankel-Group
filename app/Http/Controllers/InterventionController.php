@@ -7,6 +7,7 @@ use App\Models\Intervention;
 use App\Models\Mission;
 use App\Models\Document;
 use App\Models\Syndic;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
