@@ -3,18 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../data/user_provider.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../../l10n/app_localizations.dart';
+import 'providers/auth_state_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userState = ref.watch(userProvider);
+    final authState = ref.watch(authStateProvider);
+    final user = authState.user;
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
@@ -56,16 +61,13 @@ class ProfileScreen extends ConsumerWidget {
                           child: CircleAvatar(
                             radius: 45,
                             backgroundColor: AppTheme.zinc800,
-                            backgroundImage: userState.profileImageUrl != null
-                                ? NetworkImage(userState.profileImageUrl!)
-                                : null,
-                            child: userState.profileImageUrl == null
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: AppTheme.zinc500,
-                                  )
-                                : null,
+                            backgroundImage:
+                                null, // No profile image in User entity yet
+                            child: const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: AppTheme.zinc500,
+                            ),
                           ),
                         ),
                       ).animate().scale(
@@ -75,14 +77,14 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        userState.name,
+                        user.name,
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ).animate().fadeIn(delay: 400.ms),
                       const SizedBox(height: 4),
-                      _buildRoleBadge(userState.role),
+                      _buildRoleBadge(user.role),
                     ],
                   ),
                 ),
@@ -98,28 +100,24 @@ class ProfileScreen extends ConsumerWidget {
                   _buildSectionTitle(l10n.information),
                   const SizedBox(height: 16),
                   _buildInfoCard([
+                    _buildInfoTile(Icons.email_outlined, 'Email', user.email),
+                    _buildInfoTile(Icons.phone_outlined, 'Phone', user.phone),
                     _buildInfoTile(
-                      Icons.email_outlined,
-                      'Email',
-                      userState.email,
+                      Icons.info_outline,
+                      'Bio',
+                      user.bio ?? 'No bio provided.',
                     ),
-                    _buildInfoTile(
-                      Icons.phone_outlined,
-                      'Phone',
-                      userState.phone,
-                    ),
-                    _buildInfoTile(Icons.info_outline, 'Bio', userState.bio),
                   ]),
                   const SizedBox(height: 24),
 
-                  if (userState.role == UserRole.admin) ...[
+                  if (user.role == UserRole.admin) ...[
                     _buildSectionTitle(l10n.businessDetails),
                     const SizedBox(height: 16),
                     _buildInfoCard([
                       _buildInfoTile(
                         Icons.business_outlined,
                         l10n.companyName,
-                        userState.companyName ?? 'N/A',
+                        user.companyName ?? 'Vanakel Group',
                       ),
                     ]),
                   ] else ...[
@@ -129,7 +127,7 @@ class ProfileScreen extends ConsumerWidget {
                       _buildInfoTile(
                         Icons.apartment_outlined,
                         l10n.managedProperties,
-                        '${userState.propertyCount ?? 0} ${l10n.activeAssets}',
+                        '${user.propertyCount ?? 0} ${l10n.activeAssets}',
                       ),
                     ]),
                   ],
@@ -144,7 +142,7 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
-                      _showEditProfileSheet(context, ref, userState);
+                      // TODO: Implement edit profile
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandGreen,
@@ -155,8 +153,11 @@ class ProfileScreen extends ConsumerWidget {
                   ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
                   const SizedBox(height: 16),
                   OutlinedButton(
-                    onPressed: () {
-                      context.go('/login');
+                    onPressed: () async {
+                      await ref.read(authStateProvider.notifier).logout();
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.redAccent,
@@ -281,189 +282,10 @@ class ProfileScreen extends ConsumerWidget {
     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1);
   }
 
-  void _showEditProfileSheet(
-    BuildContext context,
-    WidgetRef ref,
-    UserState userState,
-  ) {
-    final nameController = TextEditingController(text: userState.name);
-    final emailController = TextEditingController(text: userState.email);
-    final phoneController = TextEditingController(text: userState.phone);
-    final bioController = TextEditingController(text: userState.bio);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppTheme.zinc950,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 24,
-          right: 24,
-          top: 24,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.editProfile,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              _buildEditField('Full Name', nameController),
-              const SizedBox(height: 16),
-              _buildEditField('Email', emailController),
-              const SizedBox(height: 16),
-              _buildEditField('Phone', phoneController),
-              const SizedBox(height: 16),
-              _buildEditField('Bio', bioController, maxLines: 3),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () {
-                  ref
-                      .read(userProvider.notifier)
-                      .updateProfile(
-                        userState.copyWith(
-                          name: nameController.text,
-                          email: emailController.text,
-                          phone: phoneController.text,
-                          bio: bioController.text,
-                        ),
-                      );
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.profileUpdated,
-                      ),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.brandGreen,
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                child: Text(AppLocalizations.of(context)!.saveChanges),
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showChangePasswordDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final l10n = AppLocalizations.of(context)!;
-        return AlertDialog(
-          backgroundColor: AppTheme.zinc950,
-          title: Text(
-            l10n.changePassword,
-            style: const TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildEditField(
-                'Current Password',
-                TextEditingController(),
-                obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              _buildEditField(
-                'New Password',
-                TextEditingController(),
-                obscureText: true,
-              ),
-              const SizedBox(height: 16),
-              _buildEditField(
-                'Confirm New Password',
-                TextEditingController(),
-                obscureText: true,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                l10n.cancel,
-                style: const TextStyle(color: AppTheme.zinc500),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(l10n.passwordUpdated)));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandGreen,
-                foregroundColor: Colors.black,
-              ),
-              child: Text(l10n.update),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildEditField(
-    String label,
-    TextEditingController controller, {
-    int maxLines = 1,
-    bool obscureText = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: AppTheme.zinc500, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          obscureText: obscureText,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppTheme.brandBlack,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.zinc800),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.zinc800),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.brandGreen),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-          ),
-        ),
-      ],
+    // TODO: Implement change password with API
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Change password feature coming soon')),
     );
   }
 }

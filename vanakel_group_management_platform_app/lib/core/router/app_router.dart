@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/auth/presentation/providers/auth_state_provider.dart';
+import '../enums/user_role_enum.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
@@ -21,9 +23,57 @@ final _adminShellNavigatorKey = GlobalKey<NavigatorState>();
 final _syndicShellNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateProvider);
+
+  // Helper to convert Riverpod provider to Listenable for GoRouter
+  final refreshListenable = ValueNotifier<AuthState>(authState);
+  ref.listen(authStateProvider, (_, next) {
+    refreshListenable.value = next;
+  });
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
+    refreshListenable: refreshListenable,
+    redirect: (context, state) {
+      final isSplashScreen = state.uri.path == '/splash';
+      final isOnboarding = state.uri.path == '/onboarding';
+      final isLoginPage = state.uri.path == '/login';
+      final isRegisterPage = state.uri.path == '/register';
+      final isForgotPasswordPage = state.uri.path == '/forgot-password';
+
+      final isAuthPage =
+          isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage;
+
+      // 1. Initial State: Always stay on Splash Screen
+      if (authState.status == AuthStatus.initial) {
+        return isSplashScreen ? null : '/splash';
+      }
+
+      // 2. Authenticated: Move away from Auth/Splash pages to Dashboard
+      if (authState.status == AuthStatus.authenticated) {
+        if (isAuthPage || isSplashScreen) {
+          if (authState.user?.role == UserRole.admin) {
+            return '/admin/dashboard';
+          } else if (authState.user?.role == UserRole.syndic) {
+            return '/syndic/dashboard';
+          } else if (authState.user?.role == UserRole.technician) {
+            return '/technician/dashboard';
+          }
+        }
+        return null;
+      }
+
+      // 3. Unauthenticated/Error: Move away from Dashboard/Splash to Onboarding
+      if (authState.status == AuthStatus.unauthenticated ||
+          authState.status == AuthStatus.error) {
+        if (!isAuthPage) {
+          return '/onboarding';
+        }
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/splash',

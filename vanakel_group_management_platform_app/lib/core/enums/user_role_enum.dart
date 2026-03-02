@@ -1,1 +1,1 @@
-enum UserRole { admin, syndic }
+enum UserRole { admin, syndic, technician }

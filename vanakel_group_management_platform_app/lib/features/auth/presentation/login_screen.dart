@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/data/user_provider.dart';
+import '../../../features/auth/presentation/providers/auth_state_provider.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -16,10 +16,53 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _selectedRole;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty || _selectedRole == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    await ref
+        .read(authStateProvider.notifier)
+        .login(email, password, _selectedRole!);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final authState = ref.watch(authStateProvider);
+
+    // Listen for state changes to navigate
+    ref.listen(authStateProvider, (previous, next) {
+      if (next.status == AuthStatus.authenticated && next.user != null) {
+        if (next.user!.role == UserRole.admin) {
+          context.go('/admin/dashboard');
+        } else if (next.user!.role == UserRole.syndic) {
+          context.go('/syndic/dashboard');
+        }
+      } else if (next.status == AuthStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage ?? 'Login failed')),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
       body: SafeArea(
@@ -138,7 +181,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         errorBuilder: (context, error, stackTrace) => Icon(
                           Icons.lock_person_outlined,
                           size: 60,
-                          color: AppTheme.brandGreen.withOpacity(0.5),
+                          color: AppTheme.brandGreen.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -148,6 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 48),
 
                 TextFormField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: l10n.email,
                     prefixIcon: const Icon(Icons.email_outlined),
@@ -157,10 +201,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
 
                 TextFormField(
-                  obscureText: true,
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: l10n.password,
                     prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: AppTheme.zinc500,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
                   ),
                 ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
 
@@ -177,20 +232,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 32),
 
                 ElevatedButton(
-                  onPressed: () {
-                    if (_selectedRole == 'ADMIN') {
-                      ref.read(userProvider.notifier).setRole(UserRole.admin);
-                      context.go('/admin/dashboard');
-                    } else if (_selectedRole == 'SYNDIC') {
-                      ref.read(userProvider.notifier).setRole(UserRole.syndic);
-                      context.go('/syndic/dashboard');
-                    }
-                  },
+                  onPressed: authState.status == AuthStatus.authenticating
+                      ? null
+                      : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.brandGreen,
                     foregroundColor: Colors.black,
                   ),
-                  child: Text(l10n.login),
+                  child: authState.status == AuthStatus.authenticating
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                      : Text(l10n.login),
                 ).animate().fadeIn(delay: 400.ms).scale(),
               ],
 
@@ -248,7 +306,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppTheme.brandGreen.withOpacity(0.1),
+                color: AppTheme.brandGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: AppTheme.brandGreen, size: 30),

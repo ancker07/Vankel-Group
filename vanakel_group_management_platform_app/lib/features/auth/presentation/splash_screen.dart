@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/enums/user_role_enum.dart';
+import 'providers/auth_state_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go('/onboarding');
-      }
-    });
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Wait for animation or a minimum splash time
+    await Future.delayed(const Duration(seconds: 2));
+
+    // The GoRouter redirect will handle navigation once authState changes
+    // We don't need manual navigation here anymore
   }
 
   @override
@@ -43,7 +50,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 ],
               ),
               child: ClipOval(
-                
                 child: Image.asset(
                   'assets/images/splash_logo.png',
                   fit: BoxFit.cover,

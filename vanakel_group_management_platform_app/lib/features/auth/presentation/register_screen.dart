@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/enums/user_role_enum.dart';
+import 'providers/auth_state_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   final String? initialRole;
   const RegisterScreen({super.key, this.initialRole});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -32,9 +35,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  Future<void> _handleSignup() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    final userData = {
+      'name': name,
+      'email': email,
+      'password': password,
+      'role': _selectedRole,
+    };
+
+    await ref.read(authStateProvider.notifier).signup(userData);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final authState = ref.watch(authStateProvider);
+
+    // Listen for state changes to navigate
+    ref.listen(authStateProvider, (previous, next) {
+      if (next.status == AuthStatus.authenticated && next.user != null) {
+        if (next.user!.role == UserRole.admin) {
+          context.go('/admin/dashboard');
+        } else if (next.user!.role == UserRole.syndic) {
+          context.go('/syndic/dashboard');
+        }
+      } else if (next.status == AuthStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage ?? 'Registration failed')),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
       body: SafeArea(
@@ -165,15 +207,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 32),
 
               ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement registration logic
-                  context.go('/login');
-                },
+                onPressed: authState.status == AuthStatus.authenticating
+                    ? null
+                    : _handleSignup,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.brandGreen,
                   foregroundColor: Colors.black,
                 ),
-                child: Text(l10n.signUp),
+                child: authState.status == AuthStatus.authenticating
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black,
+                        ),
+                      )
+                    : Text(l10n.signUp),
               ).animate().fadeIn(delay: 700.ms).scale(),
 
               const SizedBox(height: 24),

@@ -1,0 +1,9 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/api/dio_client.dart';
+import '../../domain/intervention_repository.dart';
+import '../../data/repositories/intervention_repository_impl.dart';
+
+final interventionRepositoryProvider = Provider<InterventionRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return InterventionRepositoryImpl(dio);
+});

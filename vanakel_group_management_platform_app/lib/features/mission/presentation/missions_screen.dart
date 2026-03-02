@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
-import '../data/mission_repository.dart';
+import 'providers/mission_list_provider.dart';
 
 class MissionsScreen extends ConsumerWidget {
   final bool isAdmin;
@@ -13,55 +13,84 @@ class MissionsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final missions = ref.watch(missionRepositoryProvider);
-    // Filter missions based on role if needed.
-    // For now, Admin sees all pending/approved. Syndic sees their own (mocked as all for now).
-    // Let's filter: Admin sees 'pending' primarily in the Inbox.
-
-    final displayMissions = isAdmin
-        ? missions.where((m) => m.status == MissionStatus.pending).toList()
-        : missions; // Syndic sees all history
+    final missionsAsync = ref.watch(missionListProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isAdmin ? 'Missions Inbox' : 'My Requests'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.read(missionListProvider.notifier).refresh(),
+          ),
           if (!isAdmin)
             IconButton(
               icon: const Icon(Icons.add),
               onPressed: () {
-                // TODO: Create Mission
+                context.push('/syndic/missions/create');
               },
             ),
         ],
       ),
-      body: displayMissions.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.check_circle_outline,
-                    size: 64,
-                    color: AppTheme.zinc800,
+      body: missionsAsync.when(
+        data: (missions) {
+          final displayMissions = isAdmin
+              ? missions
+                    .where((m) => m.status == MissionStatus.pending)
+                    .toList()
+              : missions;
+
+          return displayMissions.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 64,
+                        color: AppTheme.zinc800,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        isAdmin ? 'All caught up!' : 'No requests yet',
+                        style: const TextStyle(color: AppTheme.zinc500),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isAdmin ? 'All caught up!' : 'No requests yet',
-                    style: const TextStyle(color: AppTheme.zinc500),
+                )
+              : RefreshIndicator(
+                  onRefresh: () =>
+                      ref.read(missionListProvider.notifier).refresh(),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: displayMissions.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final mission = displayMissions[index];
+                      return _MissionCard(mission: mission, isAdmin: isAdmin);
+                    },
                   ),
-                ],
+                );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error: ${error.toString()}'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () =>
+                    ref.read(missionListProvider.notifier).refresh(),
+                child: const Text('Retry'),
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: displayMissions.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final mission = displayMissions[index];
-                return _MissionCard(mission: mission, isAdmin: isAdmin);
-              },
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -80,11 +109,11 @@ class _MissionCard extends ConsumerWidget {
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.endToStart) {
           // Reject
-          return await showDialog(
+          final confirmed = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Reject Mission?'),
-              content: const Text('This will delete the mission permanently.'),
+              content: const Text('This will reject the mission request.'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -100,15 +129,28 @@ class _MissionCard extends ConsumerWidget {
               ],
             ),
           );
+          if (confirmed == true) {
+            await ref
+                .read(missionListProvider.notifier)
+                .rejectMission(mission.id);
+            if (context.mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Mission Rejected')));
+            }
+          }
+          return confirmed ?? false;
         } else {
           // Approve
-          ref
-              .read(missionRepositoryProvider.notifier)
-              .updateMissionStatus(mission.id, MissionStatus.approved);
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Mission Approved')));
-          return false; // Don't dismiss from list visually immediately if we want to animate, but here we just update status which removes it from filter
+          await ref
+              .read(missionListProvider.notifier)
+              .approveMission(mission.id);
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Mission Approved')));
+          }
+          return false; // Don't dismiss from list visually immediately
         }
       },
       background: Container(

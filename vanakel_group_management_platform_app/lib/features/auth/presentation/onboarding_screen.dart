@@ -6,6 +6,8 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/locale_provider.dart';
+import '../../../core/enums/user_role_enum.dart';
+import 'providers/auth_state_provider.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -50,33 +52,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.zinc800,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
               Text(
                 l10n.selectLanguage,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               _buildLanguageOption(
                 context,
                 l10n.english,
                 const Locale('en'),
                 '🇺🇸',
               ),
+              const SizedBox(height: 12),
               _buildLanguageOption(
                 context,
                 l10n.french,
                 const Locale('fr'),
                 '🇫🇷',
               ),
+              const SizedBox(height: 12),
               _buildLanguageOption(
                 context,
                 l10n.dutch,
                 const Locale('nl'),
                 '🇳🇱',
               ),
+              const SizedBox(height: 24),
             ],
           ),
         );
@@ -93,22 +107,42 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final currentLocale = ref.watch(localeProvider);
     final isSelected = currentLocale.languageCode == locale.languageCode;
 
-    return ListTile(
-      leading: Text(flag, style: const TextStyle(fontSize: 24)),
-      title: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? AppTheme.brandGreen : Colors.white,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: AppTheme.brandGreen)
-          : null,
+    return InkWell(
       onTap: () {
         ref.read(localeProvider.notifier).setLocale(locale);
         Navigator.pop(context);
       },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.brandGreen.withValues(alpha: 0.1)
+              : AppTheme.zinc900,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppTheme.brandGreen : AppTheme.zinc800,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.zinc400,
+                fontSize: 16,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              const Icon(Icons.check_circle, color: AppTheme.brandGreen),
+          ],
+        ),
+      ),
     );
   }
 
@@ -116,6 +150,33 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final contents = _getContents(l10n);
+    final currentLocale = ref.watch(localeProvider);
+
+    String getLanguageName(String code) {
+      switch (code) {
+        case 'en':
+          return l10n.english;
+        case 'fr':
+          return l10n.french;
+        case 'nl':
+          return l10n.dutch;
+        default:
+          return l10n.english;
+      }
+    }
+
+    String getFlag(String code) {
+      switch (code) {
+        case 'en':
+          return '🇺🇸';
+        case 'fr':
+          return '🇫🇷';
+        case 'nl':
+          return '🇳🇱';
+        default:
+          return '🇺🇸';
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.zinc950,
@@ -123,19 +184,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.language, color: AppTheme.zinc400),
-                    onPressed: () => _showLanguageSelector(context),
+                  GestureDetector(
+                    onTap: () => _showLanguageSelector(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.zinc900,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.zinc800),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            getFlag(currentLocale.languageCode),
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            getLanguageName(currentLocale.languageCode),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: AppTheme.zinc400,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   TextButton(
                     onPressed: () => context.go('/login'),
                     child: Text(
                       l10n.skip,
-                      style: const TextStyle(color: AppTheme.zinc400),
+                      style: const TextStyle(
+                        color: AppTheme.zinc400,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],

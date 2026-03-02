@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
-import '../data/intervention_repository.dart';
+import 'providers/intervention_list_provider.dart';
 
 class InterventionsScreen extends ConsumerWidget {
   final bool isAdmin;
@@ -13,12 +13,17 @@ class InterventionsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final interventions = ref.watch(interventionRepositoryProvider);
+    final interventionsAsync = ref.watch(interventionListProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isAdmin ? 'Active Interventions' : 'Intervention History'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () =>
+                ref.read(interventionListProvider.notifier).refresh(),
+          ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () {
@@ -27,35 +32,59 @@ class InterventionsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: interventions.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.assignment_turned_in_outlined,
-                    size: 64,
-                    color: AppTheme.zinc800,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No interventions found',
-                    style: TextStyle(color: AppTheme.zinc500),
-                  ),
-                ],
+      body: interventionsAsync.when(
+        data: (interventions) => interventions.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.assignment_turned_in_outlined,
+                      size: 64,
+                      color: AppTheme.zinc800,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No interventions found',
+                      style: TextStyle(color: AppTheme.zinc500),
+                    ),
+                  ],
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: () =>
+                    ref.read(interventionListProvider.notifier).refresh(),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: interventions.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    return _InterventionCard(
+                      intervention: interventions[index],
+                      isAdmin: isAdmin,
+                    );
+                  },
+                ),
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: interventions.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                return _InterventionCard(
-                  intervention: interventions[index],
-                  isAdmin: isAdmin,
-                );
-              },
-            ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error: ${error.toString()}'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () =>
+                    ref.read(interventionListProvider.notifier).refresh(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -150,7 +179,15 @@ class _InterventionCard extends StatelessWidget {
                   ),
                 TextButton(
                   onPressed: () {
-                    // TODO: Navigate to Details
+                    if (isAdmin) {
+                      context.push(
+                        '/admin/interventions/details/${intervention.id}',
+                      );
+                    } else {
+                      context.push(
+                        '/syndic/interventions/details/${intervention.id}',
+                      );
+                    }
                   },
                   child: const Text('View Details'),
                 ),

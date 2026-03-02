@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
-import '../data/intervention_repository.dart';
+import 'providers/intervention_list_provider.dart';
 
 class InterventionDetailsScreen extends ConsumerWidget {
   final String interventionId;
@@ -13,10 +13,8 @@ class InterventionDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final interventions = ref.watch(interventionRepositoryProvider);
-    final intervention = interventions.firstWhere(
-      (i) => i.id == interventionId,
-      orElse: () => throw Exception('Intervention not found'),
+    final interventionAsync = ref.watch(
+      interventionDetailProvider(interventionId),
     );
 
     return Scaffold(
@@ -31,41 +29,64 @@ class InterventionDetailsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildStatusSection(context, ref, intervention),
-            const SizedBox(height: 24),
-            _buildInfoCard(intervention),
-            const SizedBox(height: 24),
-            _buildCodesCard(intervention),
-            const SizedBox(height: 24),
-            _buildContactCard(intervention),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Generate Report
-                },
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Generate Report'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.brandGreen,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+      body: interventionAsync.when(
+        data: (intervention) => SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusSection(context, ref, intervention),
+              const SizedBox(height: 24),
+              _buildInfoCard(intervention),
+              const SizedBox(height: 24),
+              _buildCodesCard(intervention),
+              const SizedBox(height: 24),
+              _buildContactCard(intervention),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Generate Report
+                  },
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: const Text('Generate Report'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandGreen,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error: ${error.toString()}'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () =>
+                    ref.invalidate(interventionDetailProvider(interventionId)),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusSection(BuildContext context, WidgetRef ref, Intervention intervention) {
+  Widget _buildStatusSection(
+    BuildContext context,
+    WidgetRef ref,
+    Intervention intervention,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -78,7 +99,10 @@ class InterventionDetailsScreen extends ConsumerWidget {
         children: [
           const Text(
             'Status',
-            style: TextStyle(color: AppTheme.zinc500, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppTheme.zinc500,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -88,10 +112,17 @@ class InterventionDetailsScreen extends ConsumerWidget {
                   value: intervention.status,
                   dropdownColor: AppTheme.zinc900,
                   decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     border: OutlineInputBorder(),
-                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.zinc800)),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.brandGreen)),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppTheme.zinc800),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppTheme.brandGreen),
+                    ),
                   ),
                   items: InterventionStatus.values.map((status) {
                     return DropdownMenuItem(
@@ -104,7 +135,9 @@ class InterventionDetailsScreen extends ConsumerWidget {
                   }).toList(),
                   onChanged: (newStatus) {
                     if (newStatus != null) {
-                      ref.read(interventionRepositoryProvider.notifier).updateStatus(intervention.id, newStatus);
+                      ref
+                          .read(interventionListProvider.notifier)
+                          .updateStatus(intervention.id, newStatus);
                     }
                   },
                 ),
@@ -122,7 +155,11 @@ class InterventionDetailsScreen extends ConsumerWidget {
       children: [
         Text(
           intervention.title,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 8),
         Row(
@@ -141,7 +178,9 @@ class InterventionDetailsScreen extends ConsumerWidget {
             Icon(Icons.calendar_today, color: AppTheme.zinc500, size: 20),
             const SizedBox(width: 8),
             Text(
-              DateFormat('EEEE, MMM d, y - HH:mm').format(intervention.scheduledDate),
+              DateFormat(
+                'EEEE, MMM d, y - HH:mm',
+              ).format(intervention.scheduledDate),
               style: const TextStyle(fontSize: 14, color: AppTheme.zinc500),
             ),
           ],
@@ -149,12 +188,20 @@ class InterventionDetailsScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         const Text(
           'Description',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           intervention.description,
-          style: const TextStyle(fontSize: 16, color: AppTheme.zinc300, height: 1.5),
+          style: const TextStyle(
+            fontSize: 16,
+            color: AppTheme.zinc300,
+            height: 1.5,
+          ),
         ),
       ],
     );
@@ -177,27 +224,40 @@ class InterventionDetailsScreen extends ConsumerWidget {
               const SizedBox(width: 8),
               const Text(
                 'Access Codes & Keys',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           if (intervention.codes.isEmpty)
-            const Text('No codes available', style: TextStyle(color: AppTheme.zinc500))
+            const Text(
+              'No codes available',
+              style: TextStyle(color: AppTheme.zinc500),
+            )
           else
-            ...intervention.codes.map((code) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.key, size: 16, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Text(
-                        code,
-                        style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+            ...intervention.codes.map(
+              (code) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.key, size: 16, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      code,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                )),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -216,7 +276,11 @@ class InterventionDetailsScreen extends ConsumerWidget {
         children: [
           const Text(
             'Contact Info',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
