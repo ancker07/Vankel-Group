@@ -171,93 +171,105 @@ class _MissionCard extends ConsumerWidget {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.zinc950,
-          border: Border.all(color: AppTheme.zinc800),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (mission.isAiDetected)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.purple.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          size: 12,
-                          color: Colors.purple[200],
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'AI Detected',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.purple[200],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                _buildUrgencyBadge(mission.urgency),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              mission.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              mission.address,
-              style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              mission.description,
-              style: const TextStyle(fontSize: 14, color: AppTheme.zinc300),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (!isAdmin) ...[
-              const SizedBox(height: 12),
+      child: InkWell(
+        onTap: () {
+          if (isAdmin) {
+            context.push('/admin/missions/details/${mission.id}');
+          } else {
+            context.push('/syndic/missions/details/${mission.id}');
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.zinc950,
+            border: Border.all(color: AppTheme.zinc800),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    mission.status.name.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: mission.status == MissionStatus.approved
-                          ? AppTheme.brandGreen
-                          : AppTheme.zinc500,
+                  if (mission.isAiDetected)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.purple.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome,
+                            size: 12,
+                            color: Colors.purple[200],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'AI Detected',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.purple[200],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  _buildUrgencyBadge(mission.urgency),
                 ],
               ),
+              const SizedBox(height: 12),
+              Text(
+                mission.title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                mission.address,
+                style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                mission.description,
+                style: const TextStyle(fontSize: 14, color: AppTheme.zinc300),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (!isAdmin) ...[
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      mission.status.name.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: mission.status == MissionStatus.approved
+                            ? AppTheme.brandGreen
+                            : AppTheme.zinc500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     ).animate().fadeIn().slideX();

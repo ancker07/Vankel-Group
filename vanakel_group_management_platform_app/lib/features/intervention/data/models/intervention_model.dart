@@ -1,4 +1,5 @@
 import '../../domain/intervention.dart';
+import '../../domain/document.dart';
 
 class InterventionModel extends Intervention {
   const InterventionModel({
@@ -10,6 +11,7 @@ class InterventionModel extends Intervention {
     required super.scheduledDate,
     super.tenantContact,
     super.codes = const [],
+    super.documents = const [],
   });
 
   factory InterventionModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,22 @@ class InterventionModel extends Intervention {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      documents:
+          (json['documents'] as List<dynamic>?)
+              ?.map(
+                (doc) => Document(
+                  id: doc['id'].toString(),
+                  fileName: doc['file_name'] as String? ?? 'Unknown',
+                  filePath: doc['file_path'] as String? ?? '',
+                  fileType:
+                      doc['file_type'] as String? ?? 'application/octet-stream',
+                  createdAt: doc['created_at'] != null
+                      ? DateTime.parse(doc['created_at'] as String)
+                      : null,
+                ),
+              )
+              .toList() ??
+          [],
     );
   }
 
@@ -41,6 +59,17 @@ class InterventionModel extends Intervention {
       'scheduled_at': scheduledDate.toIso8601String(),
       'tenant_contact': tenantContact,
       'codes': codes,
+      'documents': documents
+          .map(
+            (doc) => {
+              'id': doc.id,
+              'file_name': doc.fileName,
+              'file_path': doc.filePath,
+              'file_type': doc.fileType,
+              'created_at': doc.createdAt?.toIso8601String(),
+            },
+          )
+          .toList(),
     };
   }
 

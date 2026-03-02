@@ -12,6 +12,7 @@ import '../../features/dashboard/admin_dashboard/admin_dashboard.dart';
 import '../../features/dashboard/syndic_dashboard/syndic_dashboard.dart';
 import '../../features/mission/presentation/missions_screen.dart';
 import '../../features/mission/presentation/create_mission_screen.dart';
+import '../../features/mission/presentation/mission_details_screen.dart';
 import '../../features/intervention/presentation/interventions_screen.dart';
 import '../../features/intervention/presentation/intervention_details_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
@@ -115,6 +116,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/admin/missions',
                 builder: (context, state) =>
                     const MissionsScreen(isAdmin: true),
+                routes: [
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return MissionDetailsScreen(missionId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -170,6 +180,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'create',
                     builder: (context, state) => const CreateMissionScreen(),
+                  ),
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return MissionDetailsScreen(missionId: id);
+                    },
                   ),
                 ],
               ),

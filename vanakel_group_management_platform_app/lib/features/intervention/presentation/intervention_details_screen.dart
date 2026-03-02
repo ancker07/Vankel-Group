@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
+import '../domain/document.dart';
 import 'providers/intervention_list_provider.dart';
 
 class InterventionDetailsScreen extends ConsumerWidget {
@@ -37,7 +38,7 @@ class InterventionDetailsScreen extends ConsumerWidget {
             children: [
               _buildStatusSection(context, ref, intervention),
               const SizedBox(height: 24),
-              _buildInfoCard(intervention),
+              _buildInfoCard(intervention, context),
               const SizedBox(height: 24),
               _buildCodesCard(intervention),
               const SizedBox(height: 24),
@@ -149,7 +150,7 @@ class InterventionDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoCard(Intervention intervention) {
+  Widget _buildInfoCard(Intervention intervention, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -203,6 +204,8 @@ class InterventionDetailsScreen extends ConsumerWidget {
             height: 1.5,
           ),
         ),
+        const SizedBox(height: 16),
+        _buildDocumentsSection(intervention, context),
       ],
     );
   }
@@ -308,6 +311,97 @@ class InterventionDetailsScreen extends ConsumerWidget {
                 ],
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentsSection(
+    Intervention intervention,
+    BuildContext context,
+  ) {
+    if (intervention.documents.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Attachments',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...intervention.documents.map(
+            (document) => _buildDocumentItem(document, context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentItem(Document document, BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc900,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            document.isImage
+                ? Icons.image
+                : document.isPdf
+                ? Icons.picture_as_pdf
+                : Icons.insert_drive_file,
+            color: AppTheme.brandGreen,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  document.fileName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  document.fileType,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.open_in_new, color: AppTheme.brandGreen),
+            onPressed: () {
+              // TODO: Open document viewer or download
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Opening ${document.fileName}...')),
+              );
+            },
           ),
         ],
       ),

@@ -1,3 +1,5 @@
+import 'document.dart';
+
 enum InterventionStatus { scheduled, in_progress, delayed, completed }
 
 class Intervention {
@@ -9,6 +11,7 @@ class Intervention {
   final DateTime scheduledDate;
   final String? tenantContact;
   final List<String> codes;
+  final List<Document> documents;
 
   const Intervention({
     required this.id,
@@ -19,6 +22,7 @@ class Intervention {
     required this.scheduledDate,
     this.tenantContact,
     this.codes = const [],
+    this.documents = const [],
   });
 
   Intervention copyWith({
@@ -30,6 +34,7 @@ class Intervention {
     DateTime? scheduledDate,
     String? tenantContact,
     List<String>? codes,
+    List<Document>? documents,
   }) {
     return Intervention(
       id: id ?? this.id,
@@ -40,6 +45,7 @@ class Intervention {
       scheduledDate: scheduledDate ?? this.scheduledDate,
       tenantContact: tenantContact ?? this.tenantContact,
       codes: codes ?? this.codes,
+      documents: documents ?? this.documents,
     );
   }
 }
