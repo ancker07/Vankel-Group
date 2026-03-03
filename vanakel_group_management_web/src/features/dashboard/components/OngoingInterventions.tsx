@@ -1,8 +1,8 @@
-
-import React from 'react';
-import { Clock, MapPin, ShieldCheck, User, ChevronRight } from 'lucide-react';
-import { Intervention, Building, Syndic, Language } from '@/types';
+import React, { useState } from 'react';
+import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye } from 'lucide-react';
+import { Intervention, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY } from '@/utils/constants';
+import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
 
 interface OngoingInterventionsProps {
@@ -15,6 +15,7 @@ interface OngoingInterventionsProps {
 }
 
 const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang }) => {
+    const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
 
     const ongoingItems = interventions.filter(i => i.status === 'PENDING' || i.status === 'DELAYED');
 
@@ -43,7 +44,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                             <div
                                 key={i.id}
                                 onClick={() => onSelect(i.id)}
-                                className={`bg-zinc-950 border ${isMaintenance ? 'border-orange-500/30' : 'border-zinc-800'} hover:border-brand-green/30 p-5 rounded-2xl cursor-pointer group transition-all flex flex-col`}
+                                className={`bg-zinc-950 border ${isMaintenance ? 'border-orange-500/30' : 'border-zinc-800'} hover:border-brand-green/30 p-5 rounded-2xl cursor-pointer group transition-all flex flex-col h-full`}
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${i.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
@@ -65,6 +66,39 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
 
                                 <h4 className="font-bold text-white mb-1 truncate" title={i.title}>{i.title}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
                                 <p className="text-xs text-zinc-500 mb-4 line-clamp-2 min-h-[32px]">{i.description}</p>
+
+                                {i.documents && i.documents.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {i.documents.slice(0, 4).map((doc, idx) => {
+                                            const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url);
+                                            return (
+                                                <div
+                                                    key={doc.id || idx}
+                                                    className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden shrink-0 relative group/file"
+                                                    title={doc.name}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setViewerData({ docs: i.documents, index: idx });
+                                                    }}
+                                                >
+                                                    {isImg ? (
+                                                        <img src={doc.url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
+                                                    ) : (
+                                                        <FileText size={16} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                                                    )}
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-opacity">
+                                                        <Eye size={12} className="text-white" />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {i.documents.length > 4 && (
+                                            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-600 uppercase tracking-tighter">
+                                                +{i.documents.length - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900">
                                     <div className="flex items-center gap-2 text-xs text-zinc-400">
@@ -93,6 +127,15 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                         );
                     })}
                 </div>
+            )}
+
+            {viewerData && (
+                <DocumentViewerModal
+                    isOpen={!!viewerData}
+                    onClose={() => setViewerData(null)}
+                    documents={viewerData.docs}
+                    initialIndex={viewerData.index}
+                />
             )}
         </div>
     );

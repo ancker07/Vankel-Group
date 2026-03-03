@@ -150,26 +150,35 @@ const App: React.FC = () => {
         ]);
 
         if (apiBuildings) {
-          const mappedBuildings: Building[] = apiBuildings.map((b: any) => ({
-            id: String(b.id),
-            address: b.address,
-            city: b.city,
-            imageUrl: b.image_url
-              ? (b.image_url.startsWith('http') ? b.image_url : `${STORAGE_BASE_URL}/${b.image_url}`)
-              : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop',
-            tenants: (b.tenants || []).map((t: any) => ({
-              firstName: t.first_name,
-              lastName: t.last_name,
-              email: t.email,
-              phone: t.phone
-            })),
-            phone: b.phone || '',
-            linkedProfessionalId: b.pro_id ? String(b.pro_id) : undefined,
-            linkedSyndicId: b.syndic_id ? String(b.syndic_id) : undefined,
-            adminNote: b.admin_note || '',
-            installationDate: b.created_at,
-            devices: b.devices || []
-          }));
+          const mappedBuildings: Building[] = apiBuildings.map((b: any) => {
+            let img = b.image_url;
+            if (img) {
+              if (img.includes('localhost')) {
+                img = img.replace(/http:\/\/localhost(:\d+)?\/storage\//, '');
+              }
+              if (!img.startsWith('http')) {
+                img = `${STORAGE_BASE_URL}/${img}`;
+              }
+            }
+            return {
+              id: String(b.id),
+              address: b.address,
+              city: b.city,
+              imageUrl: img || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop',
+              tenants: (b.tenants || []).map((t: any) => ({
+                firstName: t.first_name,
+                lastName: t.last_name,
+                email: t.email,
+                phone: t.phone
+              })),
+              phone: b.phone || '',
+              linkedProfessionalId: b.pro_id ? String(b.pro_id) : undefined,
+              linkedSyndicId: b.syndic_id ? String(b.syndic_id) : undefined,
+              adminNote: b.admin_note || '',
+              installationDate: b.created_at,
+              devices: b.devices || []
+            };
+          });
           setBuildings(mappedBuildings);
         }
 
@@ -189,14 +198,20 @@ const App: React.FC = () => {
             onSiteContactPhone: m.on_site_contact_phone,
             onSiteContactEmail: m.on_site_contact_email,
             syndicId: String(m.syndic_id || ''),
-            documents: (m.documents || []).map((d: any) => ({
-              id: String(d.id),
-              name: d.file_name,
-              type: 'OTHER',
-              status: 'APPROVED',
-              url: `${STORAGE_BASE_URL}/${d.file_path}`,
-              timestamp: d.created_at
-            }))
+            documents: (m.documents || []).map((d: any) => {
+              let path = d.file_path;
+              if (path && path.includes('localhost')) {
+                path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
+              }
+              return {
+                id: String(d.id),
+                name: d.file_name,
+                type: 'OTHER',
+                status: 'APPROVED',
+                url: path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`,
+                timestamp: d.created_at
+              };
+            })
           }));
           setMissions(mappedMissions);
         }
@@ -213,15 +228,27 @@ const App: React.FC = () => {
             createdAt: i.created_at,
             status: i.status as InterventionStatus,
             notes: i.notes || [],
-            photos: (i.photos || []).map((p: string) => p.startsWith('http') ? p : `${STORAGE_BASE_URL}/${p}`),
-            documents: (i.documents || []).map((d: any) => ({
-              id: String(d.id),
-              name: d.file_name,
-              type: 'OTHER',
-              status: 'APPROVED',
-              url: d.url || (d.file_path.startsWith('http') ? d.file_path : `${STORAGE_BASE_URL}/${d.file_path}`),
-              timestamp: d.created_at
-            })),
+            photos: (i.photos || []).map((p: string) => {
+              let path = p;
+              if (path && path.includes('localhost')) {
+                path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
+              }
+              return path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`;
+            }),
+            documents: (i.documents || []).map((d: any) => {
+              let path = d.file_path;
+              if (path && path.includes('localhost')) {
+                path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
+              }
+              return {
+                id: String(d.id),
+                name: d.file_name,
+                type: 'OTHER',
+                status: 'APPROVED',
+                url: d.url || (path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`),
+                timestamp: d.created_at
+              };
+            }),
             proId: String(i.professional_id || ''),
             urgency: i.urgency as Urgency,
             onSiteContactName: i.on_site_contact_name,

@@ -30,4 +30,19 @@ class ApiConstants {
   static const String missions = '/missions';
   static const String approveMission = '/missions/{id}/approve';
   static const String rejectMission = '/missions/{id}/reject';
+
+  static String getStorageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) {
+      // If it contains localhost, replace it with the live host
+      if (path.contains('localhost')) {
+        final relativePath = path
+            .replaceFirst(RegExp(r'http://localhost(:\d+)?/storage/'), '')
+            .replaceFirst(RegExp(r'http://localhost(:\d+)?/'), '');
+        return 'https://api.vanakelgroup.com/storage/$relativePath';
+      }
+      return path;
+    }
+    return 'https://api.vanakelgroup.com/storage/$path';
+  }
 }

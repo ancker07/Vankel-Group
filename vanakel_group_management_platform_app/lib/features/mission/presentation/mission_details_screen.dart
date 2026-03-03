@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/api/api_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
+import '../../intervention/domain/document.dart';
 import '../domain/mission.dart';
 import './providers/mission_detail_provider.dart';
 
@@ -40,6 +43,10 @@ class MissionDetailsScreen extends ConsumerWidget {
               _buildInfoCard(mission),
               const SizedBox(height: 24),
               _buildDescriptionCard(mission),
+              if (mission.documents.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _buildDocumentsSection(mission, context),
+              ],
               const SizedBox(height: 32),
               // Only show approve/reject buttons for non-syndic users with pending missions
               if (mission.status == MissionStatus.pending &&
@@ -302,6 +309,107 @@ class MissionDetailsScreen extends ConsumerWidget {
           fontWeight: FontWeight.bold,
           color: color,
         ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentsSection(Mission mission, BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Attachments',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...mission.documents.map(
+            (document) => _buildDocumentItem(document, context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentItem(Document document, BuildContext context) {
+    final fullUrl = ApiConstants.getStorageUrl(document.filePath);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc900,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            document.isImage
+                ? Icons.image
+                : document.isPdf
+                ? Icons.picture_as_pdf
+                : Icons.insert_drive_file,
+            color: AppTheme.brandGreen,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  document.fileName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  document.fileType,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.open_in_new, color: AppTheme.brandGreen),
+            onPressed: () async {
+              final uri = Uri.parse(fullUrl);
+              try {
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Could not open ${document.fileName}'),
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
+            },
+          ),
+        ],
       ),
     );
   }

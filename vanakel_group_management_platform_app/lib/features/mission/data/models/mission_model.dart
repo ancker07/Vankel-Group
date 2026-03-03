@@ -1,3 +1,4 @@
+import '../../../intervention/domain/document.dart';
 import '../../domain/mission.dart';
 
 class MissionModel extends Mission {
@@ -10,6 +11,7 @@ class MissionModel extends Mission {
     required super.urgency,
     required super.createdAt,
     super.isAiDetected = false,
+    super.documents = const [],
   });
 
   factory MissionModel.fromJson(Map<String, dynamic> json) {
@@ -20,10 +22,27 @@ class MissionModel extends Mission {
       address: json['building']?['address'] as String? ?? 'No Address',
       status: _parseStatus(json['status'] as String?),
       urgency: _parseUrgency(json['urgency'] as String?),
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at'] as String) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
-      isAiDetected: json['is_ai_detected'] == 1 || json['is_ai_detected'] == true,
+      isAiDetected:
+          json['is_ai_detected'] == 1 || json['is_ai_detected'] == true,
+      documents:
+          (json['documents'] as List<dynamic>?)
+              ?.map(
+                (doc) => Document(
+                  id: doc['id'].toString(),
+                  fileName: doc['file_name'] as String? ?? 'Unknown',
+                  filePath: doc['file_path'] as String? ?? '',
+                  fileType:
+                      doc['file_type'] as String? ?? 'application/octet-stream',
+                  createdAt: doc['created_at'] != null
+                      ? DateTime.parse(doc['created_at'] as String)
+                      : null,
+                ),
+              )
+              .toList() ??
+          [],
     );
   }
 
@@ -36,6 +55,17 @@ class MissionModel extends Mission {
       'urgency': urgency.name,
       'created_at': createdAt.toIso8601String(),
       'is_ai_detected': isAiDetected,
+      'documents': documents
+          .map(
+            (doc) => {
+              'id': doc.id,
+              'file_name': doc.fileName,
+              'file_path': doc.filePath,
+              'file_type': doc.fileType,
+              'created_at': doc.createdAt?.toIso8601String(),
+            },
+          )
+          .toList(),
     };
   }
 

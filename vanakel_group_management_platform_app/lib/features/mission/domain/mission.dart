@@ -1,4 +1,7 @@
+import '../../intervention/domain/document.dart';
+
 enum MissionStatus { pending, approved, rejected, completed }
+
 enum MissionUrgency { low, normal, urgent }
 
 class Mission {
@@ -10,6 +13,7 @@ class Mission {
   final MissionUrgency urgency;
   final DateTime createdAt;
   final bool isAiDetected;
+  final List<Document> documents;
 
   const Mission({
     required this.id,
@@ -20,6 +24,7 @@ class Mission {
     required this.urgency,
     required this.createdAt,
     this.isAiDetected = false,
+    this.documents = const [],
   });
 
   Mission copyWith({

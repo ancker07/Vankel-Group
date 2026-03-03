@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/api/api_constants.dart';
 import '../domain/intervention.dart';
 import '../domain/document.dart';
 import 'providers/intervention_list_provider.dart';
@@ -353,6 +354,7 @@ class InterventionDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildDocumentItem(Document document, BuildContext context) {
+    final fullUrl = ApiConstants.getStorageUrl(document.filePath);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -396,11 +398,27 @@ class InterventionDetailsScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.open_in_new, color: AppTheme.brandGreen),
-            onPressed: () {
-              // TODO: Open document viewer or download
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Opening ${document.fileName}...')),
-              );
+            onPressed: () async {
+              final uri = Uri.parse(fullUrl);
+              try {
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Could not open ${document.fileName}'),
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
             },
           ),
         ],
