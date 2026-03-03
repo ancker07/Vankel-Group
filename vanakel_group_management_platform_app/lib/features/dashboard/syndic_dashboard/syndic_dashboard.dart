@@ -132,76 +132,83 @@ class SyndicDashboard extends ConsumerWidget {
                     separatorBuilder: (c, i) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final item = interventions[index];
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.zinc950,
-                          border: Border.all(color: AppTheme.zinc800),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.zinc900,
-                                borderRadius: BorderRadius.circular(8),
+                      return GestureDetector(
+                        onTap: () {
+                          context.go(
+                            '/syndic/interventions/details/${item.id}',
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.zinc950,
+                            border: Border.all(color: AppTheme.zinc800),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.zinc900,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.build_outlined,
+                                  color: AppTheme.zinc500,
+                                  size: 20,
+                                ),
                               ),
-                              child: Icon(
-                                Icons.build_outlined,
-                                color: AppTheme.zinc500,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    item.address,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppTheme.zinc500,
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.address,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.zinc500,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(
-                                  item.status,
-                                ).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
                                   color: _getStatusColor(
                                     item.status,
-                                  ).withOpacity(0.2),
+                                  ).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: _getStatusColor(
+                                      item.status,
+                                    ).withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Text(
+                                  item.status.name.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getStatusColor(item.status),
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                item.status.name.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStatusColor(item.status),
-                                ),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },

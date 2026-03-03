@@ -425,11 +425,47 @@ const InterventionSlip: React.FC<SlipProps> = ({
         </div>
 
         {/* Description Section */}
-        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8">
+        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 mb-6">
           <h4 className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-4">{t.description}</h4>
           {/* Replaced raw description with formatted component */}
           <FormattedExtractedContent text={intervention.description} />
         </div>
+
+        {/* Original Attachments Display prominently below description */}
+        {intervention.documents && intervention.documents.length > 0 && (
+          <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 mb-6">
+            <h4 className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-4">{t.attachDocuments || 'PIÈCES JOINTES (ATTACHMENTS)'}</h4>
+            <div className="flex flex-wrap gap-3">
+              {intervention.documents.map((doc: any, idx: number) => {
+                const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url);
+                return (
+                  <div
+                    key={`orig-doc-${doc.id || idx}`}
+                    className="group relative flex items-center gap-3 p-3 bg-zinc-900 border border-zinc-800 hover:border-brand-green/50 rounded-xl cursor-pointer transition-all overflow-hidden"
+                    onClick={() => {
+                      setViewerData({ docs: intervention.documents || [], index: idx });
+                    }}
+                  >
+                    {isImg ? (
+                      <div className="w-10 h-10 rounded overflow-hidden shrink-0 border border-zinc-800 bg-black">
+                        <img src={doc.url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded shrink-0 border border-zinc-800 bg-zinc-800/50 flex items-center justify-center text-zinc-500">
+                        <FileText size={20} />
+                      </div>
+                    )}
+                    <div className="flex flex-col max-w-[150px] sm:max-w-[200px]">
+                      <span className="text-xs font-bold text-zinc-200 truncate" title={doc.name}>{doc.name}</span>
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{isImg ? 'Photo' : 'Document'}</span>
+                    </div>
+                    <div className="absolute inset-0 bg-brand-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Controls Section */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-10">

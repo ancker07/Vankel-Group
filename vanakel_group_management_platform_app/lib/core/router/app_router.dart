@@ -205,6 +205,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/syndic/interventions',
                 builder: (context, state) =>
                     const InterventionsScreen(isAdmin: false),
+                routes: [
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return InterventionDetailsScreen(interventionId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

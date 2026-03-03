@@ -19,11 +19,7 @@ export const dataService = {
         return response.data;
     },
     createIntervention: async (formData: FormData) => {
-        const response = await apiClient.post('/interventions', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
+        const response = await apiClient.post('/interventions', formData);
         return response.data;
     },
     approveMission: async (id: string, scheduledDate?: string) => {

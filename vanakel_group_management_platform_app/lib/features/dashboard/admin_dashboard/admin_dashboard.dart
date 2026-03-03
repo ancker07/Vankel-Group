@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../mission/presentation/providers/mission_list_provider.dart';
@@ -63,6 +64,8 @@ class AdminDashboard extends ConsumerWidget {
             final allActivity = [
               ...missions.map(
                 (m) => _ActivityItem(
+                  id: m.id,
+                  type: 'mission',
                   title: m.title,
                   subtitle: m.address,
                   date: m.createdAt,
@@ -72,6 +75,8 @@ class AdminDashboard extends ConsumerWidget {
               ),
               ...interventions.map(
                 (i) => _ActivityItem(
+                  id: i.id,
+                  type: 'intervention',
                   title: i.title,
                   subtitle: i.address,
                   date: i
@@ -163,59 +168,72 @@ class AdminDashboard extends ConsumerWidget {
                         separatorBuilder: (c, i) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final item = recentActivity[index];
-                          return Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.zinc950,
-                              border: Border.all(color: AppTheme.zinc800),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.zinc900,
-                                    borderRadius: BorderRadius.circular(8),
+                          return GestureDetector(
+                            onTap: () {
+                              if (item.type == 'mission') {
+                                context.go(
+                                  '/admin/missions/details/${item.id}',
+                                );
+                              } else {
+                                context.go(
+                                  '/admin/interventions/details/${item.id}',
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.zinc950,
+                                border: Border.all(color: AppTheme.zinc800),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.zinc900,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      item.icon,
+                                      color: item.iconColor,
+                                      size: 20,
+                                    ),
                                   ),
-                                  child: Icon(
-                                    item.icon,
-                                    color: item.iconColor,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.title,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.title,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        item.subtitle,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.zinc500,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          item.subtitle,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppTheme.zinc500,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  _formatTimeAgo(item.date),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppTheme.zinc500,
+                                  Text(
+                                    _formatTimeAgo(item.date),
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppTheme.zinc500,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -285,6 +303,8 @@ class AdminDashboard extends ConsumerWidget {
 }
 
 class _ActivityItem {
+  final String id;
+  final String type;
   final String title;
   final String subtitle;
   final DateTime date;
@@ -292,6 +312,8 @@ class _ActivityItem {
   final IconData icon;
 
   _ActivityItem({
+    required this.id,
+    required this.type,
     required this.title,
     required this.subtitle,
     required this.date,

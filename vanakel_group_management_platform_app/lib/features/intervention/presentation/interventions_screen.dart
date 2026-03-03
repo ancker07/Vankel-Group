@@ -97,104 +97,116 @@ class _InterventionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.zinc950,
-        border: Border.all(color: AppTheme.zinc800),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStatusBadge(intervention.status),
-              Text(
-                DateFormat('MMM d, y').format(intervention.scheduledDate),
-                style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            intervention.title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                Icons.location_on_outlined,
-                size: 14,
-                color: AppTheme.zinc500,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  intervention.address,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            intervention.description,
-            style: const TextStyle(fontSize: 14, color: AppTheme.zinc300),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (isAdmin) ...[
-            const SizedBox(height: 16),
-            const Divider(color: AppTheme.zinc800),
-            const SizedBox(height: 8),
+    return GestureDetector(
+      onTap: () {
+        if (isAdmin) {
+          context.push('/admin/interventions/details/${intervention.id}');
+        } else {
+          context.push('/syndic/interventions/details/${intervention.id}');
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.zinc950,
+          border: Border.all(color: AppTheme.zinc800),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (intervention.codes.isNotEmpty)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.lock_outline,
-                        size: 14,
-                        color: AppTheme.zinc500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${intervention.codes.length} codes',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.zinc500,
-                        ),
-                      ),
-                    ],
-                  ),
-                TextButton(
-                  onPressed: () {
-                    if (isAdmin) {
-                      context.push(
-                        '/admin/interventions/details/${intervention.id}',
-                      );
-                    } else {
-                      context.push(
-                        '/syndic/interventions/details/${intervention.id}',
-                      );
-                    }
-                  },
-                  child: const Text('View Details'),
+                _buildStatusBadge(intervention.status),
+                Text(
+                  DateFormat('MMM d, y').format(intervention.scheduledDate),
+                  style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            Text(
+              intervention.title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 14,
+                  color: AppTheme.zinc500,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    intervention.address,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.zinc500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              intervention.description,
+              style: const TextStyle(fontSize: 14, color: AppTheme.zinc300),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (isAdmin) ...[
+              const SizedBox(height: 16),
+              const Divider(color: AppTheme.zinc800),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (intervention.codes.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.lock_outline,
+                          size: 14,
+                          color: AppTheme.zinc500,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${intervention.codes.length} codes',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.zinc500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  TextButton(
+                    onPressed: () {
+                      if (isAdmin) {
+                        context.push(
+                          '/admin/interventions/details/${intervention.id}',
+                        );
+                      } else {
+                        context.push(
+                          '/syndic/interventions/details/${intervention.id}',
+                        );
+                      }
+                    },
+                    child: const Text('View Details'),
+                  ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

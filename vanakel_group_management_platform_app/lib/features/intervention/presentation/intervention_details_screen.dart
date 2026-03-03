@@ -44,6 +44,10 @@ class InterventionDetailsScreen extends ConsumerWidget {
               _buildCodesCard(intervention),
               const SizedBox(height: 24),
               _buildContactCard(intervention),
+              if (intervention.documents.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _buildDocumentsSection(intervention, context),
+              ],
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,

@@ -110,9 +110,21 @@ class InterventionController extends Controller
         return response()->json(Mission::with('documents')->get());
     }
 
+    public function getMissionById($id)
+    {
+        $mission = Mission::with('documents')->findOrFail($id);
+        return response()->json($mission);
+    }
+
     public function getInterventions()
     {
         return response()->json(Intervention::with('documents')->get());
+    }
+
+    public function getInterventionById($id)
+    {
+        $intervention = Intervention::with('documents')->findOrFail($id);
+        return response()->json($intervention);
     }
 
     public function approveMission(Request $request, $id)
