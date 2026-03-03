@@ -115,10 +115,21 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<User> updateProfile(Map<String, dynamic> updateData) async {
     try {
-      final response = await _dio.post(
-        ApiConstants.profileUpdate,
-        data: updateData,
-      );
+      dynamic data = updateData;
+
+      // Handle image upload if path is provided
+      if (updateData.containsKey('image_path')) {
+        final Map<String, dynamic> map = Map.from(updateData);
+        final String imagePath = map.remove('image_path');
+
+        final formData = FormData.fromMap(map);
+        formData.files.add(
+          MapEntry('image', await MultipartFile.fromFile(imagePath)),
+        );
+        data = formData;
+      }
+
+      final response = await _dio.post(ApiConstants.profileUpdate, data: data);
       final user = UserModel.fromJson(response.data['user']).toEntity();
       // If email was updated, save it
       if (updateData.containsKey('email')) {

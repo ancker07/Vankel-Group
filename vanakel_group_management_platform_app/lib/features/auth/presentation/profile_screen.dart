@@ -61,13 +61,16 @@ class ProfileScreen extends ConsumerWidget {
                           child: CircleAvatar(
                             radius: 45,
                             backgroundColor: AppTheme.zinc800,
-                            backgroundImage:
-                                null, // No profile image in User entity yet
-                            child: const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: AppTheme.zinc500,
-                            ),
+                            backgroundImage: user.profileImageUrl != null
+                                ? NetworkImage(user.profileImageUrl!)
+                                : null,
+                            child: user.profileImageUrl == null
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: AppTheme.zinc500,
+                                  )
+                                : null,
                           ),
                         ),
                       ).animate().scale(
@@ -142,7 +145,10 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: Implement edit profile
+                      final rolePath = user.role == UserRole.admin
+                          ? '/admin'
+                          : '/syndic';
+                      context.push('$rolePath/profile/edit');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandGreen,

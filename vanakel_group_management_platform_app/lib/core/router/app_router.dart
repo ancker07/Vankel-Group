@@ -16,6 +16,7 @@ import '../../features/mission/presentation/mission_details_screen.dart';
 import '../../features/intervention/presentation/interventions_screen.dart';
 import '../../features/intervention/presentation/intervention_details_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
+import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../shared/layout/admin_layout.dart';
 import '../../shared/layout/syndic_layout.dart';
 
@@ -151,6 +152,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/admin/profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) => const EditProfileScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -206,6 +213,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/syndic/profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) => const EditProfileScreen(),
+                  ),
+                ],
               ),
             ],
           ),

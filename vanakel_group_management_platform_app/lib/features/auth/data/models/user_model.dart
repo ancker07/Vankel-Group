@@ -23,7 +23,8 @@ class UserModel extends User {
       phone: json['phone'] as String? ?? '',
       role: _parseRole(json['role'] as String?),
       bio: json['bio'] as String?,
-      profileImageUrl: json['profile_image_url'] as String?,
+      profileImageUrl:
+          json['profile_image_url'] as String? ?? json['image_url'] as String?,
       companyName: json['company_name'] as String?,
       propertyCount: json['property_count'] as int?,
       isApproved: json['is_approved'] == 1 || json['is_approved'] == true,
@@ -57,7 +58,8 @@ class UserModel extends User {
       default:
         // Try case-insensitive fallback for safety
         final lowerRole = role?.toLowerCase();
-        if (lowerRole == 'admin' || lowerRole == 'superadmin') return UserRole.admin;
+        if (lowerRole == 'admin' || lowerRole == 'superadmin')
+          return UserRole.admin;
         if (lowerRole == 'syndic') return UserRole.syndic;
         if (lowerRole == 'technician') return UserRole.technician;
         return UserRole.technician; // Default role

@@ -217,9 +217,9 @@ class AuthController extends Controller
 
         if ($request->has('name')) $user->name = $request->name;
         if ($request->has('phone')) $user->phone = $request->phone;
+        if ($request->has('bio')) $user->bio = $request->bio;
         
-        // Let's assume there is a bio and image field. If not, they might fail on save, but we try.
-        // We will just update what we can. 
+        // Handle profile image upload
         try {
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store('profiles', 'public');
