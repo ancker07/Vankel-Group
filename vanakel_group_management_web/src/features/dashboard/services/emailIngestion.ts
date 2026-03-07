@@ -27,7 +27,8 @@ export const runEmailIngestion = async (
   interventions: Intervention[],
   existingMissions: Mission[],
   processedIds: string[],
-  lang: Language
+  lang: Language,
+  emails: IncomingEmail[] = []
 ): Promise<{ newBuildings: Building[], newMissions: Mission[], logs: EmailIngestionLog[] }> => {
 
   const logs: EmailIngestionLog[] = [];
@@ -35,37 +36,24 @@ export const runEmailIngestion = async (
   const newBuildings: Building[] = [];
 
   // --- DEDUPLICATION PREPARATION ---
-  // Build a set of signatures from existing records to prevent duplicates
-  // Signature format: "REF:<code>" or "CONTENT:<subject>|<from>"
   const existingSignatures = new Set<string>();
-
   const generateSignatures = (item: Intervention | Mission) => {
     const sigs = [];
-    // Priority 1: Reference Number
-    if (item.interventionNumber) {
-      sigs.push(`REF:${item.interventionNumber.toLowerCase().trim()}`);
-    }
-    // Priority 2: Source Content (Subject + Sender) - only for email-sourced items to avoid manual false positives
+    if (item.interventionNumber) sigs.push(`REF:${item.interventionNumber.toLowerCase().trim()}`);
     if (item.sourceDetails && item.sourceDetails.subject && item.sourceDetails.from) {
       sigs.push(`CONTENT:${item.sourceDetails.subject.toLowerCase().trim()}|${item.sourceDetails.from.toLowerCase().trim()}`);
     }
     return sigs;
   };
-
   [...interventions, ...existingMissions].forEach(item => {
     generateSignatures(item).forEach(sig => existingSignatures.add(sig));
   });
 
-  // Filter unprocessed emails
-  let emailsToProcess = mockEmails.filter(e => !processedIds.includes(e.messageId));
+  // Use provided emails or fall back to mocks for demo
+  let emailsToProcess = emails.length > 0 ? emails : mockEmails;
 
-  // SIMULATION LOGIC: If all emails processed, process them all again to allow demo to work
-  if (emailsToProcess.length === 0) {
-    emailsToProcess = mockEmails.map(e => ({
-      ...e,
-      messageId: `${e.messageId}_${Date.now()}` // Unique ID for this run
-    }));
-  }
+  // Filter unprocessed emails
+  emailsToProcess = emailsToProcess.filter(e => !processedIds.includes(e.messageId));
 
   for (const email of emailsToProcess) {
     let status: 'PROCESSED' | 'IGNORED' | 'ERROR' | 'NEEDS_REVIEW' = 'IGNORED';
@@ -195,6 +183,7 @@ export const runEmailIngestion = async (
                   onSiteContactPhone: aiResult.mission?.contactOnSite?.phone || undefined,
                   onSiteContactEmail: aiResult.mission?.contactOnSite?.email || undefined,
                   interventionNumber: aiResult.mission?.reference || undefined,
+                  documents: []
                 };
 
                 newMissions.push(newMission);
@@ -234,3 +223,4 @@ export const runEmailIngestion = async (
 
   return { newBuildings, newMissions, logs };
 };
+

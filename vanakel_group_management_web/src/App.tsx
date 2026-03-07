@@ -55,7 +55,9 @@ import {
   AdminUser,
   Urgency,
   InterventionStatus,
-  Sector
+  Sector,
+  IncomingEmail,
+  Email
 } from '@/types';
 
 
@@ -431,7 +433,24 @@ const App: React.FC = () => {
   const handleEmailIngestion = async () => {
     setIsIngesting(true);
     try {
-      const result = await runEmailIngestion(buildings, interventions, missions, processedEmailIds, lang);
+      let emailsToProcess: IncomingEmail[] = [];
+      try {
+        const response = await dataService.getEmails();
+        if (response && response.emails && response.emails.length > 0) {
+          emailsToProcess = response.emails.map((e: Email) => ({
+            messageId: e.message_id,
+            from: e.from_address,
+            subject: e.subject || '(No Subject)',
+            body: e.body_text || '',
+            receivedAt: e.received_at,
+            attachments: [] // Attachments mapping can be added if backend supports it
+          }));
+        }
+      } catch (err) {
+        console.warn("Could not fetch real emails, using mocks for demo.", err);
+      }
+
+      const result = await runEmailIngestion(buildings, interventions, missions, processedEmailIds, lang, emailsToProcess);
       setBuildings(prev => [...prev, ...result.newBuildings]);
       setMissions(prev => [...prev, ...result.newMissions]);
       setEmailLogs(prev => [...prev, ...result.logs]);
