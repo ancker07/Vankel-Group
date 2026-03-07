@@ -7,6 +7,8 @@ import '../../../../core/api/api_constants.dart';
 import '../domain/intervention.dart';
 import '../domain/document.dart';
 import 'providers/intervention_list_provider.dart';
+import '../../auth/presentation/providers/auth_state_provider.dart';
+import '../../../../core/enums/user_role_enum.dart';
 
 class InterventionDetailsScreen extends ConsumerWidget {
   final String interventionId;
@@ -15,6 +17,9 @@ class InterventionDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+    final isAdmin = authState.user?.role == UserRole.admin;
+
     final interventionAsync = ref.watch(
       interventionDetailProvider(interventionId),
     );
@@ -23,12 +28,13 @@ class InterventionDetailsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Intervention Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Edit Intervention
-            },
-          ),
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                // TODO: Edit Intervention
+              },
+            ),
         ],
       ),
       body: interventionAsync.when(
@@ -37,7 +43,7 @@ class InterventionDetailsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildStatusSection(context, ref, intervention),
+              _buildStatusSection(context, ref, intervention, isAdmin),
               const SizedBox(height: 24),
               _buildInfoCard(intervention, context),
               const SizedBox(height: 24),
@@ -48,22 +54,24 @@ class InterventionDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 _buildDocumentsSection(intervention, context),
               ],
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Generate Report
-                  },
-                  icon: const Icon(Icons.picture_as_pdf),
-                  label: const Text('Generate Report'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandGreen,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              if (isAdmin) ...[
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // TODO: Generate Report
+                    },
+                    icon: const Icon(Icons.picture_as_pdf),
+                    label: const Text('Generate Report'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.brandGreen,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -92,6 +100,7 @@ class InterventionDetailsScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Intervention intervention,
+    bool isAdmin,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -139,13 +148,15 @@ class InterventionDetailsScreen extends ConsumerWidget {
                       ),
                     );
                   }).toList(),
-                  onChanged: (newStatus) {
-                    if (newStatus != null) {
-                      ref
-                          .read(interventionListProvider.notifier)
-                          .updateStatus(intervention.id, newStatus);
-                    }
-                  },
+                  onChanged: isAdmin
+                      ? (newStatus) {
+                          if (newStatus != null) {
+                            ref
+                                .read(interventionListProvider.notifier)
+                                .updateStatus(intervention.id, newStatus);
+                          }
+                        }
+                      : null,
                 ),
               ),
             ],

@@ -49,6 +49,10 @@ export const dataService = {
     sendInterventionReport: async (id: string) => {
         const response = await apiClient.post(`/interventions/${id}/send-report`);
         return response.data;
+    },
+    getEmails: async () => {
+        const response = await apiClient.get('/emails');
+        return response.data;
     }
 };
 

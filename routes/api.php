@@ -4,7 +4,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\EmailController;
 
+Route::get('/emails', [EmailController::class, 'index']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/send-otp', [AuthController::class, 'sendOtp']);
@@ -26,5 +28,10 @@ Route::post('/interventions/{id}/send-report', [InterventionController::class, '
 Route::post('/check-status', [AuthController::class, 'checkStatus']);
 Route::post('/profile/update', [AuthController::class, 'updateProfile']);
 Route::post('/profile/details', [AuthController::class, 'getProfile']);
+
+
+
+
+
 
 

@@ -30,4 +30,3 @@ class Intervention extends Model
     }
 }
 
-

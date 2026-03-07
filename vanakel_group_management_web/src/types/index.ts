@@ -285,3 +285,18 @@ export interface EmailIngestionLog {
   };
   createdAt: string;
 }
+
+export interface Email {
+  id: number;
+  message_id: string;
+  from_address: string;
+  from_name: string | null;
+  to_address: string | null;
+  subject: string | null;
+  body_text: string | null;
+  body_html: string | null;
+  received_at: string;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+}

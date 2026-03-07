@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Users,
     ShieldCheck,
@@ -11,10 +11,13 @@ import {
     Mail,
     Phone,
     Building2,
-    AlertCircle
+    AlertCircle,
+    Calendar,
+    MessageSquare
 } from 'lucide-react';
-import { SignupRequest, AdminUser, Language } from '@/types';
+import { SignupRequest, AdminUser, Language, Email } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
+import { dataService } from '@/services/dataService';
 
 interface SuperAdminDashboardProps {
     requests: SignupRequest[];
@@ -34,14 +37,36 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     lang
 }) => {
     const t = TRANSLATIONS[lang];
-    const [activeTab, setActiveTab] = useState<'requests' | 'admins'>('requests');
+    const [activeTab, setActiveTab] = useState<'requests' | 'admins' | 'emails'>('requests');
     const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
+    const [emails, setEmails] = useState<Email[]>([]);
+    const [isLoadingEmails, setIsLoadingEmails] = useState(false);
     const [newAdmin, setNewAdmin] = useState({
         firstName: '',
         lastName: '',
         email: '',
         phone: ''
     });
+
+    useEffect(() => {
+        if (activeTab === 'emails') {
+            fetchEmails();
+        }
+    }, [activeTab]);
+
+    const fetchEmails = async () => {
+        setIsLoadingEmails(true);
+        try {
+            const response = await dataService.getEmails();
+            if (response && response.emails) {
+                setEmails(response.emails);
+            }
+        } catch (error) {
+            console.error("Error fetching emails:", error);
+        } finally {
+            setIsLoadingEmails(false);
+        }
+    };
 
     const handleCreateSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -69,6 +94,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'admins' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
                         {t.adminList} ({admins.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('emails')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'emails' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        {t.email_logs_title || 'Emails Fetched'}
                     </button>
                 </div>
             </div>
@@ -178,6 +209,69 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         </div>
                     </div>
                 )}
+
+                {activeTab === 'emails' && (
+                    <div className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden flex flex-col h-full">
+                        <div className="p-6 border-b border-zinc-900 bg-zinc-950/50 flex justify-between items-center">
+                            <h3 className="font-bold text-white flex items-center gap-2">
+                                <Mail className="text-brand-green" size={18} />
+                                {t.email_logs_title || 'Emails Fetched'}
+                            </h3>
+                            <button
+                                onClick={fetchEmails}
+                                className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:text-brand-green-light transition-colors"
+                            >
+                                Refresh
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                            {isLoadingEmails ? (
+                                <div className="py-20 text-center">
+                                    <div className="w-8 h-8 border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin mx-auto mb-4"></div>
+                                    <p className="text-zinc-500 text-sm">Fetching emails from server...</p>
+                                </div>
+                            ) : emails.length === 0 ? (
+                                <div className="py-20 text-center space-y-4">
+                                    <Mail size={48} className="mx-auto text-zinc-800" />
+                                    <p className="text-zinc-500">No emails fetched yet.</p>
+                                </div>
+                            ) : (
+                                emails.map(email => (
+                                    <div key={email.id} className="p-6 bg-zinc-900/50 rounded-2xl border border-zinc-800/50 space-y-4 hover:border-zinc-700 transition-colors">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex gap-4">
+                                                <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center border border-zinc-800 shrink-0">
+                                                    <Mail className="text-zinc-500" size={20} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-white text-sm">{email.subject}</h4>
+                                                    <p className="text-xs text-zinc-500 mt-1">
+                                                        From: <span className="text-zinc-300">{email.from_name || email.from_address}</span> ({email.from_address})
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-mono">
+                                                    <Calendar size={12} />
+                                                    {new Date(email.received_at).toLocaleString()}
+                                                </div>
+                                                <span className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase mt-2 inline-block bg-zinc-800 text-zinc-500">
+                                                    ID: {email.message_id.substring(0, 15)}...
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-zinc-950/50 rounded-xl border border-zinc-900 p-4">
+                                            <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">
+                                                {email.body_text}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {showCreateAdminModal && (
@@ -218,3 +312,4 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
 };
 
 export default SuperAdminDashboard;
+

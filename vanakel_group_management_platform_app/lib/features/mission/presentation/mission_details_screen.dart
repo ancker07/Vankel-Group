@@ -24,12 +24,13 @@ class MissionDetailsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Mission Details'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Edit Mission
-            },
-          ),
+          if (authState.user?.role == UserRole.admin)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                // TODO: Edit Mission
+              },
+            ),
         ],
       ),
       body: missionAsync.when(
