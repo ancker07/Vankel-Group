@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Building, Syndic, Intervention, Professional, Language } from '@/types';
+import { Building, Syndic, Intervention, Mission, Professional, Language } from '@/types';
 import { Search, Filter, Briefcase, ChevronDown } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
 import GestionPropertyCard from '../components/GestionPropertyCard';
@@ -10,11 +10,12 @@ interface GestionPageProps {
   buildings: Building[];
   syndics: Syndic[];
   interventions: Intervention[];
+  missions: Mission[];
   professionals: Professional[];
   lang: Language;
 }
 
-const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, interventions, professionals, lang }) => {
+const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, interventions, missions, professionals, lang }) => {
   const t = TRANSLATIONS[lang];
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
@@ -22,26 +23,31 @@ const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, intervent
   // Syndic Filter State
   const [selectedSyndicId, setSelectedSyndicId] = useState<string>('ALL');
 
-  // Group completed interventions by building
-  const completedInterventions = useMemo(() => {
-    return interventions.filter(i => i.status === 'COMPLETED');
-  }, [interventions]);
+  // Group all activity (interventions + missions) by building
+  const buildingActivityMap = useMemo(() => {
+    const map: Record<string, (Intervention | Mission)[]> = {};
 
-  const buildingInterventionMap = useMemo(() => {
-    const map: Record<string, Intervention[]> = {};
-    completedInterventions.forEach(i => {
+    // Add all interventions
+    interventions.forEach(i => {
       if (!map[i.buildingId]) map[i.buildingId] = [];
       map[i.buildingId].push(i);
     });
-    return map;
-  }, [completedInterventions]);
 
-  // Filter buildings: Must have at least one completed intervention + match search + match syndic filter
+    // Add all missions
+    missions.forEach(m => {
+      if (!map[m.buildingId]) map[m.buildingId] = [];
+      map[m.buildingId].push(m);
+    });
+
+    return map;
+  }, [interventions, missions]);
+
+  // Filter buildings: Must have at least one entry + match search + match syndic filter
   const filteredBuildings = useMemo(() => {
     return buildings.filter(b => {
-      // 1. Must have completed interventions
-      const hasCompleted = buildingInterventionMap[b.id] && buildingInterventionMap[b.id].length > 0;
-      if (!hasCompleted) return false;
+      // 1. Must have activity
+      const hasActivity = buildingActivityMap[b.id] && buildingActivityMap[b.id].length > 0;
+      if (!hasActivity) return false;
 
       // 2. Syndic Filter
       if (selectedSyndicId !== 'ALL' && b.linkedSyndicId !== selectedSyndicId) {
@@ -59,12 +65,16 @@ const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, intervent
 
       return matchesSearch;
     });
-  }, [buildings, buildingInterventionMap, searchQuery, syndics, selectedSyndicId]);
+  }, [buildings, buildingActivityMap, searchQuery, syndics, selectedSyndicId]);
 
   const selectedBuilding = selectedBuildingId ? buildings.find(b => b.id === selectedBuildingId) : null;
   const selectedBuildingSyndic = selectedBuilding ? syndics.find(s => s.id === selectedBuilding.linkedSyndicId) : undefined;
-  const selectedBuildingInterventions = selectedBuildingId
-    ? (buildingInterventionMap[selectedBuildingId] || []).sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime())
+  const selectedBuildingEntries = selectedBuildingId
+    ? (buildingActivityMap[selectedBuildingId] || []).sort((a, b) => {
+      const dateA = new Date((a as any).createdAt || (a as any).timestamp || (a as any).scheduledDate).getTime();
+      const dateB = new Date((b as any).createdAt || (b as any).timestamp || (b as any).scheduledDate).getTime();
+      return dateB - dateA;
+    })
     : [];
 
   return (
@@ -111,7 +121,7 @@ const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, intervent
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
           {filteredBuildings.map(building => {
             const syndic = syndics.find(s => s.id === building.linkedSyndicId);
-            const count = buildingInterventionMap[building.id]?.length || 0;
+            const count = buildingActivityMap[building.id]?.length || 0;
             return (
               <GestionPropertyCard
                 key={building.id}
@@ -138,7 +148,7 @@ const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, intervent
         <GestionDetailsModal
           building={selectedBuilding}
           syndic={selectedBuildingSyndic}
-          interventions={selectedBuildingInterventions}
+          entries={selectedBuildingEntries}
           onClose={() => setSelectedBuildingId(null)}
           lang={lang}
         />

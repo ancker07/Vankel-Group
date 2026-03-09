@@ -114,6 +114,8 @@ const App: React.FC = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [signupRequests, setSignupRequests] = useState<SignupRequest[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [superAdminStats, setSuperAdminStats] = useState<any>(null);
 
   // Feature State
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -291,6 +293,39 @@ const App: React.FC = () => {
           status: u.status
         }));
         setSignupRequests(mappedUsers);
+      }
+
+      if (role === 'SUPERADMIN') {
+        try {
+          const stats = await dataService.getSuperAdminStats();
+          setSuperAdminStats(stats);
+
+          const users = await dataService.getAllUsers();
+          setAllUsers(users.map((u: any) => ({
+            id: String(u.id),
+            firstName: u.name.split(' ')[0] || '',
+            lastName: u.name.split(' ').slice(1).join(' ') || '',
+            email: u.email,
+            phone: u.phone || '',
+            role: u.role,
+            status: u.status,
+            createdAt: u.created_at,
+            companyName: u.company_name
+          })));
+
+          // Update admins list from allUsers where role is ADMIN and status is APPROVED
+          setAdmins(users.filter((u: any) => u.role === 'ADMIN' && u.status === 'APPROVED').map((u: any) => ({
+            id: String(u.id),
+            firstName: u.name.split(' ')[0] || '',
+            lastName: u.name.split(' ').slice(1).join(' ') || '',
+            email: u.email,
+            phone: u.phone || '',
+            createdAt: u.created_at
+          })));
+
+        } catch (err) {
+          console.error("Failed to fetch superadmin specific data:", err);
+        }
       }
 
     } catch (error) {
@@ -926,12 +961,31 @@ const App: React.FC = () => {
                       } />
                       <Route index element={<Navigate to="dashboard" replace />} />
 
-                      <Route path="super_admin" element={role === 'SUPERADMIN' ? <SuperAdminDashboard requests={signupRequests} admins={admins} onApprove={handleApproveRequest} onReject={handleRejectRequest} onCreateAdmin={handleCreateAdmin} lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="super_admin" element={
+                        role === 'SUPERADMIN' ? (
+                          <SuperAdminDashboard
+                            requests={signupRequests}
+                            admins={admins}
+                            allUsers={allUsers}
+                            stats={superAdminStats}
+                            interventions={allInterventions}
+                            missions={missions}
+                            buildings={buildings}
+                            onApprove={handleApproveRequest}
+                            onReject={handleRejectRequest}
+                            onCreateAdmin={handleCreateAdmin}
+                            onRefresh={() => refreshGlobalData()}
+                            lang={lang}
+                          />
+                        ) : (
+                          <Navigate to="dashboard" replace />
+                        )
+                      } />
                       <Route path="management" element={
                         role === 'SYNDIC' ? (
                           <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} />
                         ) : (
-                          <GestionPage buildings={buildings} interventions={interventions} syndics={syndics} professionals={professionals} lang={lang} />
+                          <GestionPage buildings={buildings} interventions={allInterventions} missions={missions} syndics={syndics} professionals={professionals} lang={lang} />
                         )
                       } />
                       <Route path="reports" element={role !== 'SYNDIC' ? <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} /> : <Navigate to="/syndic/management" replace />} />

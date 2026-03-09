@@ -37,7 +37,11 @@ class EmailIngestionService
             $aiData = $this->aiService->extractEmailData($content);
 
             if ($aiData['classification'] === 'NON_MISSION') {
-                $email->update(['ingested_at' => now()]);
+                $email->update([
+                    'ingested_at' => now(),
+                    'ingestion_status' => 'IGNORED',
+                    'ingestion_reason' => $aiData['reasons'][0] ?? 'Classified as non-mission'
+                ]);
                 return [
                     'success' => true,
                     'status' => 'IGNORED',
@@ -79,11 +83,18 @@ class EmailIngestionService
                     ]);
                 }
 
-                $email->update(['ingested_at' => now()]);
+                $status = $mission ? 'PROCESSED' : ($aiData['classification'] === 'NEEDS_REVIEW' ? 'NEEDS_REVIEW' : 'IGNORED');
+                
+                $email->update([
+                    'ingested_at' => now(),
+                    'ingestion_status' => $status,
+                    'ingestion_reason' => $aiData['reasons'][0] ?? null,
+                    'extracted_data' => $aiData
+                ]);
 
                 return [
                     'success' => true,
-                    'status' => $mission ? 'PROCESSED' : ($aiData['classification'] === 'NEEDS_REVIEW' ? 'NEEDS_REVIEW' : 'IGNORED'),
+                    'status' => $status,
                     'mission_id' => $mission ? $mission->id : null,
                     'building_id' => $building ? $building->id : null,
                     'extracted_data' => $aiData

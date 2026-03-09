@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+use App\Models\Email;
+use App\Models\Building;
+use App\Models\Intervention;
+
 class AuthController extends Controller
 {
     public function signup(Request $request)
@@ -161,6 +165,28 @@ class AuthController extends Controller
         $users = User::where('status', 'PENDING')
                      ->where('role', 'ADMIN')
                      ->get();
+        return response()->json($users);
+    }
+
+    public function getSuperAdminStats()
+    {
+        return response()->json([
+            'total_admins' => User::where('role', 'ADMIN')->where('status', 'APPROVED')->count(),
+            'total_syndics' => User::where('role', 'SYNDIC')->where('status', 'APPROVED')->count(),
+            'total_professionals' => User::where('role', 'PROFESSIONAL')->where('status', 'APPROVED')->count(),
+            'pending_registrations' => User::where('status', 'PENDING')->count(),
+            'total_emails' => Email::count(),
+            'total_buildings' => Building::count(),
+            'total_interventions' => Intervention::count(),
+        ]);
+    }
+
+    public function getAllUsers()
+    {
+        $users = User::where('role', '!=', 'SUPERADMIN')
+                     ->orderBy('created_at', 'desc')
+                     ->get();
+        
         return response()->json($users);
     }
 

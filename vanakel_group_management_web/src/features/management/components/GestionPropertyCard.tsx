@@ -60,14 +60,14 @@ const GestionPropertyCard: React.FC<GestionPropertyCardProps> = ({ building, syn
         <div className="mt-auto pt-4 border-t border-zinc-900 flex items-center justify-between gap-3">
           <div className="bg-brand-green/10 text-brand-green border border-brand-green/20 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
             <ClipboardList size={12} />
-            <span>{interventionCount} Interventions</span>
+            <span>{interventionCount} Activités</span>
           </div>
 
           <button
             onClick={onClick}
             className="bg-zinc-100 text-zinc-950 hover:bg-white hover:scale-105 transition-all text-[10px] font-black uppercase tracking-wide px-3 py-2 rounded-lg shadow-xl shadow-white/5"
           >
-            Interventions effectuées
+            Historique complet
           </button>
         </div>
       </div>

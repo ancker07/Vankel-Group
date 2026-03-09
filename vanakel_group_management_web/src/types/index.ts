@@ -307,6 +307,9 @@ export interface Email {
   body_html: string | null;
   received_at: string;
   ingested_at: string | null;
+  ingestion_status?: 'PENDING' | 'PROCESSED' | 'IGNORED' | 'ERROR' | 'NEEDS_REVIEW';
+  ingestion_reason?: string;
+  extracted_data?: any;
   is_read: boolean;
   created_at: string;
   updated_at: string;

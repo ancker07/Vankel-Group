@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Mail, Clock, CheckCircle, AlertCircle, Play, PlayCircle, Loader2 } from 'lucide-react';
+import { Mail, Clock, CheckCircle, AlertCircle, Play, PlayCircle, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { Email, Language } from '@/types';
 
@@ -143,15 +143,20 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                             {formatDate(email.received_at)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            {email.ingested_at ? (
+                                            {email.ingestion_status === 'PROCESSED' || email.ingested_at ? (
                                                 <div className="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1 rounded-full w-fit">
-                                                    <CheckCircle size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">{t.ingested_at}</span>
+                                                    <CheckCircle2 size={14} />
+                                                    <span className="text-[10px] font-black uppercase tracking-wider">PROCESSED</span>
+                                                </div>
+                                            ) : email.ingestion_status === 'IGNORED' ? (
+                                                <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit border border-zinc-800">
+                                                    <XCircle size={14} />
+                                                    <span className="text-[10px] font-black uppercase tracking-wider">IGNORED</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit">
                                                     <Clock size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">{t.pending_ingestion}</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-wider">{t.pending_ingestion || 'PENDING'}</span>
                                                 </div>
                                             )}
                                         </td>

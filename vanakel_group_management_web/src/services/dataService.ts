@@ -82,6 +82,14 @@ export const dataService = {
     ingestAllEmails: async () => {
         const response = await apiClient.post('/emails/ingest-all');
         return response.data;
+    },
+    getSuperAdminStats: async () => {
+        const response = await apiClient.get('/superadmin/stats');
+        return response.data;
+    },
+    getAllUsers: async () => {
+        const response = await apiClient.get('/users/all');
+        return response.data;
     }
 };
 

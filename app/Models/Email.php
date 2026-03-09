@@ -15,6 +15,7 @@ class Email extends Model
         'received_at' => 'datetime',
         'ingested_at' => 'datetime',
         'is_read' => 'boolean',
+        'extracted_data' => 'array',
     ];
 
     public function attachments()

@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { SignupRequest, AdminUser, Language, Email, Intervention, Mission, Building } from '@/types';
 import {
     Users,
     ShieldCheck,
@@ -13,31 +13,49 @@ import {
     Building2,
     AlertCircle,
     Calendar,
-    MessageSquare
+    MessageSquare,
+    History,
+    Clock,
+    FileText,
+    ChevronRight,
+    RefreshCw,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react';
-import { SignupRequest, AdminUser, Language, Email } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import { dataService } from '@/services/dataService';
 
 interface SuperAdminDashboardProps {
     requests: SignupRequest[];
     admins: AdminUser[];
+    allUsers: any[];
+    stats: any;
+    interventions: Intervention[];
+    missions: Mission[];
+    buildings: Building[];
     onApprove: (request: SignupRequest) => void;
     onReject: (requestId: string) => void;
     onCreateAdmin: (admin: Omit<AdminUser, 'id' | 'createdAt'>) => void;
+    onRefresh: () => void;
     lang: Language;
 }
 
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     requests,
     admins,
+    allUsers,
+    stats,
+    interventions,
+    missions,
+    buildings,
     onApprove,
     onReject,
     onCreateAdmin,
+    onRefresh,
     lang
 }) => {
     const t = TRANSLATIONS[lang];
-    const [activeTab, setActiveTab] = useState<'requests' | 'admins' | 'emails'>('requests');
+    const [activeTab, setActiveTab] = useState<'requests' | 'admins' | 'all_users' | 'history' | 'emails'>('requests');
     const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
     const [emails, setEmails] = useState<Email[]>([]);
     const [isLoadingEmails, setIsLoadingEmails] = useState(false);
@@ -96,11 +114,78 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         {t.adminList} ({admins.length})
                     </button>
                     <button
+                        onClick={() => setActiveTab('all_users')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'all_users' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        {t.allUsers || 'All Users'} ({allUsers.length})
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('history')}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        {t.tabs_history || 'History'} ({interventions.length + missions.length})
+                    </button>
+                    <button
                         onClick={() => setActiveTab('emails')}
                         className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'emails' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                     >
-                        {t.email_logs_title || 'Emails Fetched'}
+                        {t.email_logs_title || 'Emails'}
                     </button>
+                </div>
+            </div>
+
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-zinc-950 p-6 rounded-[2rem] border border-zinc-900 shadow-xl group hover:border-brand-green/30 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center border border-brand-green/20 group-hover:scale-110 transition-transform">
+                            <ShieldCheck className="text-brand-green" size={24} />
+                        </div>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">System</span>
+                    </div>
+                    <div className="space-y-1">
+                        <h3 className="text-3xl font-black text-white">{stats?.total_admins || 0}</h3>
+                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-tight">{t.adminList || 'Administrators'}</p>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-950 p-6 rounded-[2rem] border border-zinc-900 shadow-xl group hover:border-blue-500/30 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
+                            <Users className="text-blue-500" size={24} />
+                        </div>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">Active</span>
+                    </div>
+                    <div className="space-y-1">
+                        <h3 className="text-3xl font-black text-white">{(stats?.total_syndics || 0) + (stats?.total_professionals || 0)}</h3>
+                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-tight">{t.allUsers || 'Total Users'}</p>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-950 p-6 rounded-[2rem] border border-zinc-900 shadow-xl group hover:border-orange-500/30 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center border border-orange-500/20 group-hover:scale-110 transition-transform">
+                            <AlertCircle className="text-orange-500" size={24} />
+                        </div>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">Pending</span>
+                    </div>
+                    <div className="space-y-1">
+                        <h3 className="text-3xl font-black text-white">{stats?.pending_registrations || 0}</h3>
+                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-tight">{t.pendingRequests || 'Pending Requests'}</p>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-950 p-6 rounded-[2rem] border border-zinc-900 shadow-xl group hover:border-zinc-500/30 transition-all">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-zinc-500/10 rounded-2xl flex items-center justify-center border border-zinc-500/20 group-hover:scale-110 transition-transform">
+                            <Mail className="text-zinc-400" size={24} />
+                        </div>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">Logs</span>
+                    </div>
+                    <div className="space-y-1">
+                        <h3 className="text-3xl font-black text-white">{stats?.total_emails || 0}</h3>
+                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-tight">{t.email_logs_title || 'Emails Fetched'}</p>
+                    </div>
                 </div>
             </div>
 
@@ -166,8 +251,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                 )}
 
                 {activeTab === 'admins' && (
-                    <div className="space-y-6 flex flex-col h-full">
-                        <div className="flex justify-end">
+                    <div className="space-y-6 flex flex-col h-full animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex justify-between items-center">
+                            <h3 className="font-bold text-white flex items-center gap-2 px-2">
+                                <ShieldCheck className="text-brand-green" size={20} />
+                                {t.adminList}
+                            </h3>
                             <button
                                 onClick={() => setShowCreateAdminModal(true)}
                                 className="bg-brand-green text-brand-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-lg flex items-center gap-2"
@@ -176,36 +265,232 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             </button>
                         </div>
 
-                        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden flex-1 flex flex-col">
-                            <table className="w-full text-left">
-                                <thead className="bg-zinc-900/50 border-b border-zinc-800">
-                                    <tr>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.contact_name}</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.email}</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.gsm}</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.created_at}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-zinc-900">
-                                    {admins.map(admin => (
-                                        <tr key={admin.id} className="hover:bg-zinc-900/30 transition-colors group">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 group-hover:bg-brand-green group-hover:text-brand-black transition-colors">
-                                                        {admin.firstName[0]}{admin.lastName[0]}
-                                                    </div>
-                                                    <span className="font-bold text-white">{admin.firstName} {admin.lastName}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-xs text-zinc-400">{admin.email}</td>
-                                            <td className="px-6 py-4 text-xs text-zinc-400">{admin.phone}</td>
-                                            <td className="px-6 py-4 text-[10px] text-zinc-600 font-mono capitalize">
-                                                {new Date(admin.createdAt).toLocaleDateString()}
-                                            </td>
+                        <div className="bg-zinc-950 rounded-[2rem] border border-zinc-900 overflow-hidden flex-1 flex flex-col shadow-2xl">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-zinc-900/50 border-b border-zinc-900">
+                                        <tr>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.contact_name}</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.email}</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.gsm}</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.created_at}</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-900">
+                                        {admins.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={4} className="px-8 py-20 text-center">
+                                                    <ShieldCheck size={32} className="mx-auto text-zinc-800 mb-4" />
+                                                    <p className="text-zinc-500 text-sm">No administrators found.</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            admins.map(admin => (
+                                                <tr key={admin.id} className="hover:bg-zinc-900/30 transition-colors group">
+                                                    <td className="px-8 py-5">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-xs font-bold text-zinc-400 group-hover:bg-brand-green group-hover:text-brand-black border border-zinc-800 group-hover:border-brand-green transition-all">
+                                                                {(admin.firstName?.[0] || '')}{(admin.lastName?.[0] || '')}
+                                                            </div>
+                                                            <span className="font-bold text-white group-hover:text-brand-green transition-colors">{admin.firstName} {admin.lastName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-sm text-zinc-400 font-medium">{admin.email}</td>
+                                                    <td className="px-8 py-5 text-sm text-zinc-400 font-medium">{admin.phone}</td>
+                                                    <td className="px-8 py-5 text-[10px] text-zinc-600 font-mono tracking-tighter uppercase tabular-nums">
+                                                        {new Date(admin.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'all_users' && (
+                    <div className="space-y-6 flex flex-col h-full animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex justify-between items-center">
+                            <h3 className="font-bold text-white flex items-center gap-2 px-2">
+                                <Users className="text-blue-500" size={20} />
+                                {t.allUsers || 'System Participants'}
+                            </h3>
+                        </div>
+
+                        <div className="bg-zinc-950 rounded-[2rem] border border-zinc-900 overflow-hidden flex-1 flex flex-col shadow-2xl">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-zinc-900/50 border-b border-zinc-900">
+                                        <tr>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Participant</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Role</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Status</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Company / Org</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Contact Info</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-900">
+                                        {allUsers.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-8 py-20 text-center">
+                                                    <Users size={32} className="mx-auto text-zinc-800 mb-4" />
+                                                    <p className="text-zinc-500 text-sm">No users found in the system.</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            allUsers.map(user => (
+                                                <tr key={user.id} className="hover:bg-zinc-900/30 transition-colors group">
+                                                    <td className="px-8 py-5">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className={`w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-xs font-bold border transition-all ${user.role === 'ADMIN' ? 'text-brand-green border-brand-green/20' :
+                                                                user.role === 'SYNDIC' ? 'text-blue-400 border-blue-400/20' :
+                                                                    'text-purple-400 border-purple-400/20'
+                                                                }`}>
+                                                                {(user.firstName?.[0] || '')}{(user.lastName?.[0] || '')}
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-bold text-white block">{user.firstName} {user.lastName}</span>
+                                                                <span className="text-[10px] text-zinc-600 font-mono tracking-widest uppercase tabular-nums">Joined {new Date(user.createdAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <span className={`text-[9px] font-black px-2 py-1 rounded-lg border uppercase tracking-widest ${user.role === 'ADMIN' ? 'bg-brand-green/10 text-brand-green border-brand-green/20' :
+                                                            user.role === 'SYNDIC' ? 'bg-blue-400/10 text-blue-400 border-blue-400/20' :
+                                                                'bg-purple-400/10 text-purple-400 border-purple-400/20'
+                                                            }`}>
+                                                            {user.role}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${user.status === 'APPROVED' ? 'bg-brand-green' : 'bg-orange-500 animate-pulse'}`}></div>
+                                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${user.status === 'APPROVED' ? 'text-zinc-400' : 'text-orange-500'}`}>
+                                                                {user.status}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <span className="text-sm text-zinc-400 font-medium italic">{user.companyName || '---'}</span>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <div className="space-y-1">
+                                                            <p className="text-xs text-zinc-400 flex items-center gap-2">
+                                                                <Mail size={12} className="text-zinc-600" /> {user.email}
+                                                            </p>
+                                                            <p className="text-xs text-zinc-400 flex items-center gap-2">
+                                                                <Phone size={12} className="text-zinc-600" /> {user.phone}
+                                                            </p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'history' && (
+                    <div className="space-y-6 flex flex-col h-full animate-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex justify-between items-center">
+                            <h3 className="font-bold text-white flex items-center gap-2 px-2">
+                                <History className="text-brand-green" size={20} />
+                                {t.tabs_history || 'System-Wide History'}
+                            </h3>
+                            <button
+                                onClick={onRefresh}
+                                className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-all text-xs font-bold"
+                            >
+                                <RefreshCw size={14} />
+                                {t.refresh || 'Refresh Data'}
+                            </button>
+                        </div>
+
+                        <div className="bg-zinc-950 rounded-[2rem] border border-zinc-900 overflow-hidden flex-1 flex flex-col shadow-2xl">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-zinc-900/50 border-b border-zinc-900">
+                                        <tr>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Entry</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Type</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Building / Location</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Status</th>
+                                            <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-900">
+                                        {[
+                                            ...interventions.map(i => ({ ...i, entryType: 'INTERVENTION' })),
+                                            ...missions.map(m => ({ ...m, entryType: 'MISSION' }))
+                                        ].sort((a, b) => {
+                                            const dateA = new Date(a.createdAt || (a as any).timestamp || (a as any).scheduledDate).getTime();
+                                            const dateB = new Date(b.createdAt || (b as any).timestamp || (b as any).scheduledDate).getTime();
+                                            return dateB - dateA;
+                                        }).length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-8 py-20 text-center">
+                                                    <History size={32} className="mx-auto text-zinc-800 mb-4" />
+                                                    <p className="text-zinc-500 text-sm">No historical entries found.</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            [
+                                                ...interventions.map(i => ({ ...i, entryType: 'INTERVENTION' })),
+                                                ...missions.map(m => ({ ...m, entryType: 'MISSION' }))
+                                            ].sort((a, b) => {
+                                                const dateA = new Date(a.createdAt || (a as any).timestamp || (a as any).scheduledDate).getTime();
+                                                const dateB = new Date(b.createdAt || (b as any).timestamp || (b as any).scheduledDate).getTime();
+                                                return dateB - dateA;
+                                            }).map(entry => {
+                                                const building = buildings.find(b => b.id === (entry as any).buildingId);
+                                                return (
+                                                    <tr key={entry.id} className="hover:bg-zinc-900/30 transition-colors group">
+                                                        <td className="px-8 py-5">
+                                                            <div>
+                                                                <span className="font-bold text-white block truncate max-w-[200px]" title={entry.title}>{entry.title || 'Untitled Entry'}</span>
+                                                                <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-tighter">ID: {entry.id}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-8 py-5">
+                                                            <span className={`text-[9px] font-black px-2 py-1 rounded-lg border uppercase tracking-widest ${entry.entryType === 'INTERVENTION' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-brand-green/10 text-brand-green border-brand-green/20'
+                                                                }`}>
+                                                                {entry.entryType}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-8 py-5">
+                                                            <div className="flex items-center gap-2">
+                                                                <FileText size={14} className="text-zinc-600 shrink-0" />
+                                                                <div className="min-w-0">
+                                                                    <span className="text-sm text-zinc-300 font-medium truncate block">{building?.address || 'Standalone Site'}</span>
+                                                                    <span className="text-[10px] text-zinc-600 block">{building?.city || 'Address unknown'}</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-8 py-5">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-tight ${entry.status === 'COMPLETED' || entry.status === 'APPROVED' ? 'text-brand-green' :
+                                                                entry.status === 'REJECTED' || entry.status === 'DELAYED' ? 'text-red-400' : 'text-orange-400'
+                                                                }`}>
+                                                                {entry.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-8 py-5 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2 text-zinc-500">
+                                                                <Clock size={12} />
+                                                                <span className="text-xs font-medium">{new Date((entry as any).createdAt || (entry as any).timestamp || (entry as any).scheduledDate).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -236,38 +521,85 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                     <p className="text-zinc-500">No emails fetched yet.</p>
                                 </div>
                             ) : (
-                                emails.map(email => (
-                                    <div key={email.id} className="p-6 bg-zinc-900/50 rounded-2xl border border-zinc-800/50 space-y-4 hover:border-zinc-700 transition-colors">
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex gap-4">
-                                                <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center border border-zinc-800 shrink-0">
-                                                    <Mail className="text-zinc-500" size={20} />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-white text-sm">{email.subject}</h4>
-                                                    <p className="text-xs text-zinc-500 mt-1">
-                                                        From: <span className="text-zinc-300">{email.from_name || email.from_address}</span> ({email.from_address})
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-mono">
-                                                    <Calendar size={12} />
-                                                    {new Date(email.received_at).toLocaleString()}
-                                                </div>
-                                                <span className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase mt-2 inline-block bg-zinc-800 text-zinc-500">
-                                                    ID: {email.message_id.substring(0, 15)}...
-                                                </span>
-                                            </div>
-                                        </div>
+                                emails.map(email => {
+                                    const isProcessed = email.ingestion_status === 'PROCESSED' || email.ingested_at;
+                                    const isIgnored = email.ingestion_status === 'IGNORED';
+                                    const isNeedsReview = email.ingestion_status === 'NEEDS_REVIEW';
+                                    const isError = email.ingestion_status === 'ERROR';
 
-                                        <div className="bg-zinc-950/50 rounded-xl border border-zinc-900 p-4">
-                                            <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed">
-                                                {email.body_text}
-                                            </p>
+                                    const extractedData = email.extracted_data?.mission || {};
+                                    const address = typeof extractedData.address === 'string' ? extractedData.address : extractedData.address?.raw || '';
+                                    const contact = extractedData.contactOnSite?.name || '';
+
+                                    return (
+                                        <div key={email.id} className="p-6 bg-zinc-900/50 rounded-3xl border border-zinc-800/50 space-y-6 hover:border-zinc-700 transition-all group overflow-hidden relative">
+                                            <div className="flex items-start gap-4">
+                                                <div className="shrink-0 mt-1">
+                                                    {isProcessed ? (
+                                                        <CheckCircle2 className="text-brand-green" size={20} />
+                                                    ) : isIgnored ? (
+                                                        <XCircle className="text-zinc-600" size={20} />
+                                                    ) : (
+                                                        <Clock className="text-zinc-500" size={20} />
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 space-y-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest ${isProcessed ? 'bg-brand-green/10 text-brand-green' :
+                                                                        isIgnored ? 'bg-zinc-800 text-zinc-500' :
+                                                                            'bg-zinc-800 text-zinc-400'
+                                                                    }`}>
+                                                                    {email.ingestion_status || (email.ingested_at ? 'PROCESSED' : 'PENDING')}
+                                                                </span>
+                                                                <span className="text-[10px] font-mono text-zinc-600">
+                                                                    {new Date(email.received_at).toLocaleTimeString()}
+                                                                </span>
+                                                            </div>
+                                                            <h4 className={`font-black text-lg tracking-tight ${isIgnored ? 'text-zinc-600' : 'text-white'}`}>
+                                                                {email.subject}
+                                                            </h4>
+                                                            <p className={`text-xs ${isIgnored ? 'text-zinc-700' : 'text-zinc-500'}`}>
+                                                                From: {email.from_address}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {isProcessed && (address || contact) && (
+                                                        <div className="bg-zinc-950/80 rounded-2xl border border-zinc-800/80 p-5 space-y-3">
+                                                            <div className="flex items-center gap-2 text-brand-green mb-1">
+                                                                <FileText size={14} />
+                                                                <span className="text-[10px] font-black uppercase tracking-widest">Extracted Data</span>
+                                                            </div>
+                                                            <div className="grid gap-2">
+                                                                {address && (
+                                                                    <div className="flex gap-2 text-xs">
+                                                                        <span className="text-zinc-600 font-bold shrink-0">Addr:</span>
+                                                                        <span className="text-zinc-400 leading-tight">{address}</span>
+                                                                    </div>
+                                                                )}
+                                                                {contact && (
+                                                                    <div className="flex gap-2 text-xs">
+                                                                        <span className="text-zinc-600 font-bold shrink-0">Contact:</span>
+                                                                        <span className="text-zinc-400">{contact}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {isIgnored && email.ingestion_reason && (
+                                                        <p className="text-xs italic text-zinc-700 leading-relaxed font-medium">
+                                                            {email.ingestion_reason}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </div>

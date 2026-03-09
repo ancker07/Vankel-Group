@@ -1,18 +1,18 @@
 
 import React from 'react';
-import { Building, Syndic, Intervention, Language } from '@/types';
-import { X, MapPin, Phone, Mail, User, ShieldCheck, Download, FileText, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Building, Syndic, Intervention, Mission, Language } from '@/types';
+import { X, MapPin, Phone, Mail, User, ShieldCheck, Download, FileText, Calendar, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
 
 interface GestionDetailsModalProps {
   building: Building;
   syndic?: Syndic;
-  interventions: Intervention[];
+  entries: (Intervention | Mission)[];
   onClose: () => void;
   lang: Language;
 }
 
-const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syndic, interventions, onClose, lang }) => {
+const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syndic, entries, onClose, lang }) => {
   const t = TRANSLATIONS[lang];
 
   const handleDownload = (docName: string) => {
@@ -116,52 +116,69 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
             </div>
           </div>
 
-          {/* Intervention History */}
-          <div>
+          {/* Activity History */}
+          <div className="space-y-6">
             <h3 className="text-lg font-black text-white mb-4 md:mb-6 flex items-center gap-2">
               <CheckCircle2 className="text-brand-green" size={20} />
-              {t.history_title}
+              {t.history_title || 'Activity History'}
             </h3>
 
             <div className="space-y-4">
-              {interventions.length === 0 && (
+              {entries.length === 0 && (
                 <div className="p-8 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20">
                   <p className="text-zinc-500 text-sm">{t.no_history_found}</p>
                 </div>
               )}
 
-              {interventions.map((intervention) => {
+              {entries.map((entry) => {
+                const isMission = (entry as any).requestedBy !== undefined; // Quick check for Mission type
+                const entryType = isMission ? 'MISSION' : 'INTERVENTION';
+
                 const contactParts = [
-                  intervention.onSiteContactName,
-                  intervention.onSiteContactPhone,
-                  intervention.onSiteContactEmail
+                  (entry as any).onSiteContactName,
+                  (entry as any).onSiteContactPhone,
+                  (entry as any).onSiteContactEmail
                 ].filter(Boolean);
 
                 const contactString = contactParts.length > 0 ? contactParts.join(' · ') : t.notProvided;
                 const hasContact = contactParts.length > 0;
 
+                const date = new Date((entry as any).createdAt || (entry as any).timestamp || (entry as any).scheduledDate);
+
                 return (
-                  <div key={intervention.id} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 md:p-5 hover:border-zinc-700 transition-all flex flex-col md:flex-row gap-4 md:gap-6">
+                  <div key={entry.id} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 md:p-5 hover:border-zinc-700 transition-all flex flex-col md:flex-row gap-4 md:gap-6">
                     {/* Status & Date */}
-                    <div className="flex flex-row md:flex-col justify-between items-center md:items-start md:w-48 shrink-0 gap-2">
-                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${intervention.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
-                          intervention.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
+                    <div className="flex flex-row md:flex-col justify-between items-center md:items-start md:w-48 shrink-0 gap-3">
+                      <div className="flex flex-col gap-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border self-start ${entryType === 'INTERVENTION' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-brand-green/10 text-brand-green border-brand-green/20'
+                          }`}>
+                          {entryType}
+                        </span>
+
+                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${entry.status === 'COMPLETED' || entry.status === 'APPROVED' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
+                          entry.status === 'REJECTED' || entry.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
                             'bg-zinc-700/20 text-zinc-500 border border-zinc-700/20'
-                        }`}>
-                        {intervention.status === 'COMPLETED' ? <CheckCircle2 size={12} /> :
-                          intervention.status === 'DELAYED' ? <AlertCircle size={12} /> : <CheckCircle2 size={12} />}
-                        {intervention.status === 'PENDING' ? t.status_pending : intervention.status === 'DELAYED' ? t.status_delayed : t.status_completed}
+                          }`}>
+                          {entry.status === 'COMPLETED' || entry.status === 'APPROVED' ? <CheckCircle2 size={12} /> :
+                            entry.status === 'REJECTED' || entry.status === 'DELAYED' ? <AlertCircle size={12} /> : <Clock size={12} />}
+                          {entry.status === 'PENDING' ? t.status_pending :
+                            entry.status === 'DELAYED' ? t.status_delayed :
+                              entry.status === 'REJECTED' ? t.status_rejected :
+                                entry.status === 'APPROVED' ? t.status_accepted :
+                                  t.status_completed}
+                        </div>
                       </div>
+
                       <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium">
                         <Calendar size={14} />
-                        {new Date(intervention.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                       </div>
                     </div>
 
                     {/* Details */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm md:text-base font-bold text-white mb-1.5 break-words">{intervention.title}</h4>
-                      <p className="text-xs md:text-sm text-zinc-400 leading-relaxed mb-3 line-clamp-2">{intervention.description}</p>
+                      <h4 className="text-sm md:text-base font-bold text-white mb-1.5 break-words">{entry.title || (isMission ? 'Mission Request' : 'Manual Intervention')}</h4>
+                      <p className="text-xs md:text-sm text-zinc-400 leading-relaxed mb-3 line-clamp-2">{entry.description}</p>
 
                       <div className="flex items-center gap-2 text-xs">
                         <User size={12} className="text-zinc-500 shrink-0" />
@@ -172,26 +189,29 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
                       </div>
                     </div>
 
-                    {/* Documents Action Area */}
+                    {/* Action Area */}
                     <div className="w-full md:w-64 shrink-0 flex flex-col gap-2 justify-center border-t md:border-t-0 md:border-l border-zinc-900 pt-4 md:pt-0 md:pl-6">
-                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">{t.docs}</p>
+                      {entryType === 'INTERVENTION' && (
+                        <>
+                          <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">{t.docs}</p>
+                          <button
+                            onClick={() => {
+                              const cleanAddr = building.address.replace(/[\/\\:*?"<>|]/g, "-").trim();
+                              const cleanSyndic = syndic ? syndic.companyName.replace(/[\/\\:*?"<>|]/g, "-").trim() : 'NoSyndic';
+                              const filename = `Bon_INT - ${cleanAddr} - ${cleanSyndic}.pdf`;
+                              handleDownload(filename);
+                            }}
+                            className="flex items-center justify-between w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg group transition-all text-xs font-bold text-zinc-300 hover:text-white"
+                          >
+                            <span className="flex items-center gap-2">
+                              <FileText size={14} className="text-brand-green" /> {t.intervention_slip_doc}
+                            </span>
+                            <Download size={14} className="text-zinc-600 group-hover:text-brand-green" />
+                          </button>
+                        </>
+                      )}
 
-                      <button
-                        onClick={() => {
-                          const cleanAddr = building.address.replace(/[\/\\:*?"<>|]/g, "-").trim();
-                          const cleanSyndic = syndic ? syndic.companyName.replace(/[\/\\:*?"<>|]/g, "-").trim() : 'NoSyndic';
-                          const filename = `Bon_INT - ${cleanAddr} - ${cleanSyndic}.pdf`;
-                          handleDownload(filename);
-                        }}
-                        className="flex items-center justify-between w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg group transition-all text-xs font-bold text-zinc-300 hover:text-white"
-                      >
-                        <span className="flex items-center gap-2">
-                          <FileText size={14} className="text-brand-green" /> {t.intervention_slip_doc}
-                        </span>
-                        <Download size={14} className="text-zinc-600 group-hover:text-brand-green" />
-                      </button>
-
-                      {intervention.documents.map(doc => (
+                      {(entry.documents || []).map(doc => (
                         <button
                           key={doc.id}
                           onClick={() => handleDownload(doc.name)}
@@ -203,6 +223,10 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
                           <Download size={14} className="text-zinc-600 group-hover:text-brand-green shrink-0" />
                         </button>
                       ))}
+
+                      {entryType === 'MISSION' && entry.documents.length === 0 && (
+                        <p className="text-[10px] text-zinc-600 italic text-center">No documents attached.</p>
+                      )}
                     </div>
                   </div>
                 );
@@ -212,7 +236,7 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
 
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
