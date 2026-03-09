@@ -4,6 +4,7 @@ import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCc
 
 import SidebarItem from './SidebarItem';
 import { Role } from '@/types';
+import logo from '@/assets/vankel_bg_2.png';
 
 interface SidebarProps {
     role: Role | null;
@@ -47,11 +48,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <aside className="hidden md:flex w-64 flex-col bg-zinc-950 border-r border-zinc-800 shrink-0">
-            <div className="p-6 flex items-center gap-3">
-                <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center">
-                    <Building2 className="text-brand-black" size={20} />
-                </div>
-                <span className="font-black text-lg tracking-tight text-white">VANAKEL</span>
+            <div className="py-8 flex items-center justify-center">
+                <img src={logo} alt="Vankel Logo" className="h-12 w-auto object-contain" />
             </div>
 
             <nav className="flex-1 px-4 space-y-2 overflow-y-auto">

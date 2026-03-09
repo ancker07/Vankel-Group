@@ -4,6 +4,7 @@ import { ShieldCheck, ArrowLeft, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, 
 import { Language, Role } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
+import logo from '@/assets/vankel_bg_2.png';
 
 interface LoginPageProps {
     onLogin: (name: string, email: string, token?: string) => void;
@@ -84,14 +85,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
                 <div className={`absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/40 to-transparent lg:bg-gradient-to-r`}></div>
 
                 <div className="absolute inset-x-8 bottom-8 lg:inset-x-12 lg:bottom-12 z-20">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className={`w-12 h-12 ${bgColor} rounded-2xl flex items-center justify-center shadow-2xl ${shadowColor}`}>
-                            <Building2 className="text-brand-black" size={28} />
-                        </div>
-                        <div>
-                            <span className="text-2xl font-black tracking-tighter text-white block leading-none">VANAKEL</span>
-                            <span className={`${accentColor} font-bold text-xs uppercase tracking-[0.3em] block`}>Group</span>
-                        </div>
+                    <div className="flex items-center mb-6">
+                        <img src={logo} alt="Vankel Logo" className={`h-16 w-auto object-contain shadow-2xl ${shadowColor}`} />
                     </div>
                     <h1 className="text-3xl lg:text-5xl font-black text-white leading-[0.9] tracking-tighter max-w-lg mb-4">
                         Modern Management, <br />

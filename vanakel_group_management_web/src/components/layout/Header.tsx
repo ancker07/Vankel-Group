@@ -3,6 +3,7 @@ import React from 'react';
 import { Bell } from 'lucide-react';
 import { Role, Language as LangType, AppNotification } from '@/types';
 import NotificationPanel from '@/components/common/NotificationPanel';
+import logo from '@/assets/vankel_bg_2.png';
 
 interface HeaderProps {
     role: Role | null;
@@ -35,8 +36,8 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
     return (
         <header className="h-16 md:h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-zinc-950/80 backdrop-blur-xl shrink-0 z-20 sticky top-0">
-            <div className="flex items-center gap-4">
-                <span className="font-black text-lg text-white md:hidden">VANAKEL</span>
+            <div className="flex items-center">
+                <img src={logo} alt="Vankel Logo" className="h-10 md:h-12 w-auto object-contain" />
             </div>
 
             <div className="hidden md:flex items-center gap-2">

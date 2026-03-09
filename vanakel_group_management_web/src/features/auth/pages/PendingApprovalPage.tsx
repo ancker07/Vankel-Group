@@ -4,6 +4,7 @@ import { Clock, ShieldCheck, Mail, ArrowLeft, LogOut } from 'lucide-react';
 import { Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
+import logo from '@/assets/vankel_bg_2.png';
 
 interface PendingApprovalPageProps {
     lang: Language;
@@ -58,9 +59,7 @@ const PendingApprovalPage: React.FC<PendingApprovalPageProps> = ({ lang, onLogou
 
             <div className="max-w-md w-full z-10 text-center space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
                 <div className="relative inline-block">
-                    <div className="w-24 h-24 bg-zinc-900 border border-zinc-800 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl relative z-10">
-                        <Clock className="text-brand-green animate-pulse" size={40} />
-                    </div>
+                    <img src={logo} alt="Vankel Logo" className="h-24 w-auto bg-zinc-950 border border-zinc-800 rounded-[2rem] object-contain mx-auto shadow-2xl relative z-10" />
                     <div className="absolute inset-0 bg-brand-green/20 blur-2xl rounded-full scale-110"></div>
                 </div>
 
@@ -119,10 +118,8 @@ const PendingApprovalPage: React.FC<PendingApprovalPageProps> = ({ lang, onLogou
             </div>
 
             {/* Brand Watermark */}
-            <div className="absolute bottom-12 flex items-center gap-2 opacity-20">
-                <span className="text-sm font-black tracking-tighter text-white">VANAKEL</span>
-                <div className="w-1 h-1 bg-brand-green rounded-full"></div>
-                <span className="text-brand-green font-bold text-[8px] uppercase tracking-[0.3em]">Management</span>
+            <div className="absolute bottom-12 flex items-center opacity-20 filter grayscale">
+                <img src={logo} alt="Vankel Logo" className="h-10 w-auto object-contain" />
             </div>
         </div>
     );

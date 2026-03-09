@@ -21,6 +21,7 @@ import {
 import { Role, Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import RoleSelectionModal from '@/components/common/RoleSelectionModal';
+import logo from '@/assets/vankel_bg_2.png';
 
 interface HomePageProps {
     onSelect: (role: Role) => void;
@@ -65,14 +66,8 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
             <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-black/80 backdrop-blur-md border-b border-zinc-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-brand-green rounded-xl flex items-center justify-center shadow-lg shadow-brand-green/20">
-                                <Building2 className="text-brand-black w-6 h-6" />
-                            </div>
-                            <div>
-                                <span className="text-xl font-black tracking-tighter leading-none block">VANAKEL</span>
-                                <span className="text-brand-green font-bold text-[10px] uppercase tracking-[0.3em] block">Group</span>
-                            </div>
+                        <div className="flex items-center">
+                            <img src={logo} alt="Vankel Logo" className="h-16 w-auto object-contain shadow-lg shadow-brand-green/20" />
                         </div>
 
                         <div className="hidden md:flex items-center gap-8">
@@ -340,11 +335,8 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
             {/* Footer */}
             <footer className="py-12 bg-brand-black border-t border-zinc-900">
                 <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-                            <Building2 className="text-zinc-400 w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-zinc-500 tracking-tight">VANAKEL GROUP</span>
+                    <div className="flex items-center">
+                        <img src={logo} alt="Vankel Logo" className="h-10 w-auto object-contain grayscale opacity-50" />
                     </div>
 
                     <div className="flex gap-8 text-sm font-medium text-zinc-500">

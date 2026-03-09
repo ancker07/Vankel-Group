@@ -4,6 +4,7 @@ import { ShieldCheck, ArrowLeft, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff }
 import { Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
+import logo from '@/assets/vankel_bg_2.png';
 
 interface SuperAdminLoginProps {
     onLogin: (name: string, email: string, token?: string) => void;
@@ -68,9 +69,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin, onBack, lang
                 </button>
 
                 <div className="bg-zinc-950 border border-zinc-900 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative">
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-brand-green rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-green/20">
-                        <ShieldCheck className="text-brand-black" size={40} />
-                    </div>
+                    <img src={logo} alt="Vankel Logo" className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 bg-zinc-950 rounded-3xl object-cover shadow-2xl shadow-brand-green/20 border border-zinc-900" />
 
                     <div className="text-center mt-10 mb-8">
                         <h2 className="text-2xl font-black text-white tracking-tight uppercase">{t.superAdmin}</h2>
