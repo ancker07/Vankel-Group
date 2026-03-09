@@ -34,7 +34,7 @@ class EmailIngestionService
                 $content .= "\nAttachment: {$attachment->file_name}";
             }
 
-            $aiData = $this->aiService.extractEmailData($content);
+            $aiData = $this->aiService->extractEmailData($content);
 
             if ($aiData['classification'] === 'NON_MISSION') {
                 $email->update(['ingested_at' => now()]);

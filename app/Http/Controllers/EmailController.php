@@ -1,3 +1,7 @@
+<?php
+
+namespace App\Http\Controllers;
+
 use App\Http\Controllers\Controller;
 use App\Models\Email;
 use App\Services\EmailIngestionService;
@@ -13,6 +17,7 @@ class EmailController extends Controller
     {
         $this->ingestionService = $ingestionService;
     }
+
     public function index()
     {
         return response()->json([
@@ -87,6 +92,8 @@ class EmailController extends Controller
                 'error' => 'Failed to sync emails: ' . $e->getMessage()
             ], 500);
         }
+    }
+
     public function ingest($id)
     {
         $email = Email::with('attachments')->findOrFail($id);
@@ -116,3 +123,4 @@ class EmailController extends Controller
             'results' => $results
         ]);
     }
+}

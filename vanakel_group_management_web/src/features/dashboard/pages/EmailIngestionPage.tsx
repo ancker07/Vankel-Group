@@ -3,7 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Clock, CheckCircle, AlertCircle, Play, PlayCircle, Loader2 } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { Email, Language } from '@/types';
-import { format } from 'date-fns';
+
+const formatDate = (dateString: string) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(new Date(dateString));
+};
 
 interface EmailIngestionPageProps {
     lang: Language;
@@ -131,7 +140,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                             <div className="text-[10px] text-zinc-500">{email.from_address}</div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-zinc-400">
-                                            {format(new Date(email.received_at), 'dd/MM/yyyy HH:mm')}
+                                            {formatDate(email.received_at)}
                                         </td>
                                         <td className="px-6 py-4">
                                             {email.ingested_at ? (
