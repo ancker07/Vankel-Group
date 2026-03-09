@@ -5,10 +5,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\SettingController;
 
 Route::get('/emails', [EmailController::class, 'index']);
 Route::get('/emails/{id}', [EmailController::class, 'show']);
 Route::delete('/emails/{id}', [EmailController::class, 'destroy']);
+
+Route::get('/settings/ai', [SettingController::class, 'getAiSettings']);
+Route::post('/settings/ai', [SettingController::class, 'updateAiSettings']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/send-otp', [AuthController::class, 'sendOtp']);

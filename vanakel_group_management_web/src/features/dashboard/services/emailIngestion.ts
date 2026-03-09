@@ -2,7 +2,7 @@
 import { IncomingEmail, EmailIngestionLog, Intervention, Mission, Building, Syndic, ExtractionField, Sector, Language } from '@/types';
 import { mockEmails, mockSyndics, mockBuildings } from '@/utils/mockData';
 import { TRANSLATIONS } from '@/utils/constants';
-import { extractEmailData, EmailExtractionResult } from '@/services/gemini';
+import { extractEmailData, EmailExtractionResult } from '@/services/aiService';
 
 // --- Helper: Text Extraction ---
 

@@ -7,7 +7,7 @@ import {
   X, Mail, MessageCircle, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2
 } from 'lucide-react';
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
-import { improveNote } from '@/services/gemini';
+import { improveNote, optimizeIntervention } from '@/services/aiService';
 import { dataService } from '@/services/dataService';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, HelpCircle, LogOut, User } from 'lucide-react';
+import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, HelpCircle, LogOut, User, Sparkles } from 'lucide-react';
 
 import SidebarItem from './SidebarItem';
 import { Role } from '@/types';
@@ -80,6 +80,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 label="Inbox"
                                 active={activeTab === 'emails'}
                                 onClick={() => handleTabClick('emails')}
+                            />
+                            <SidebarItem
+                                icon={<Sparkles size={20} className="text-purple-400" />}
+                                label="AI Settings"
+                                active={activeTab === 'ai-settings'}
+                                onClick={() => handleTabClick('ai-settings')}
                             />
                             <div id="header-settings">
                                 <SidebarItem icon={<Settings size={20} />} label={t.settings} active={activeTab === 'settings'} onClick={() => handleTabClick('settings')} />

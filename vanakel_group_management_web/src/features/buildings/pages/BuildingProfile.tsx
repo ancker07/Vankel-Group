@@ -9,7 +9,7 @@ import {
   ChevronRight, Bell, Briefcase, ShieldCheck, Loader2, Calendar as CalendarIcon, RotateCcw
 } from 'lucide-react';
 import { TRANSLATIONS, CATEGORIES, SECTORS } from '@/utils/constants';
-import { improveNote, optimizeIntervention } from '@/services/gemini';
+import { improveNote, optimizeIntervention } from '@/services/aiService';
 import DatePickerModal from '@/components/common/DatePickerModal';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 
