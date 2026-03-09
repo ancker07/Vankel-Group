@@ -126,6 +126,7 @@ const App: React.FC = () => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [toastMessages, setToastMessages] = useState<{ id: string, title: string, message: string }[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isIngesting, setIsIngesting] = useState(false);
   const lastErrorRef = useRef<{ hash: string, time: number } | null>(null);
 
@@ -143,161 +144,164 @@ const App: React.FC = () => {
   const [isTourActive, setIsTourActive] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [apiBuildings, apiMissions, apiInterventions, apiSyndics, apiPendingUsers] = await Promise.all([
-          dataService.getBuildings(),
-          dataService.getMissions(),
-          dataService.getInterventions(),
-          dataService.getSyndics(),
-          dataService.getPendingUsers()
-        ]);
+  const refreshGlobalData = async (silent = false) => {
+    if (!silent) setIsRefreshing(true);
+    try {
+      const [apiBuildings, apiMissions, apiInterventions, apiSyndics, apiPendingUsers] = await Promise.all([
+        dataService.getBuildings(),
+        dataService.getMissions(),
+        dataService.getInterventions(),
+        dataService.getSyndics(),
+        dataService.getPendingUsers()
+      ]);
 
-        if (apiBuildings) {
-          const mappedBuildings: Building[] = apiBuildings.map((b: any) => {
-            let img = b.image_url;
-            if (img) {
-              if (img.includes('localhost')) {
-                img = img.replace(/http:\/\/localhost(:\d+)?\/storage\//, '');
-              }
-              if (!img.startsWith('http')) {
-                img = `${STORAGE_BASE_URL}/${img}`;
-              }
+      if (apiBuildings) {
+        const mappedBuildings: Building[] = apiBuildings.map((b: any) => {
+          let img = b.image_url;
+          if (img) {
+            if (img.includes('localhost')) {
+              img = img.replace(/http:\/\/localhost(:\d+)?\/storage\//, '');
+            }
+            if (!img.startsWith('http')) {
+              img = `${STORAGE_BASE_URL}/${img}`;
+            }
+          }
+          return {
+            id: String(b.id),
+            address: b.address,
+            city: b.city,
+            imageUrl: img || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop',
+            tenants: (b.tenants || []).map((t: any) => ({
+              firstName: t.first_name,
+              lastName: t.last_name,
+              email: t.email,
+              phone: t.phone
+            })),
+            phone: b.phone || '',
+            linkedProfessionalId: b.pro_id ? String(b.pro_id) : undefined,
+            linkedSyndicId: b.syndic_id ? String(b.syndic_id) : undefined,
+            adminNote: b.admin_note || '',
+            installationDate: b.created_at,
+            devices: b.devices || []
+          };
+        });
+        setBuildings(mappedBuildings);
+      }
+
+      if (apiMissions) {
+        const mappedMissions: Mission[] = apiMissions.map((m: any) => ({
+          id: String(m.id),
+          buildingId: String(m.building_id),
+          requestedBy: m.requested_by,
+          title: m.title,
+          category: m.category,
+          sector: m.sector as Sector,
+          description: m.description,
+          status: m.status,
+          timestamp: m.created_at,
+          urgency: m.urgency as Urgency,
+          onSiteContactName: m.on_site_contact_name,
+          onSiteContactPhone: m.on_site_contact_phone,
+          onSiteContactEmail: m.on_site_contact_email,
+          syndicId: String(m.syndic_id || ''),
+          documents: (m.documents || []).map((d: any) => {
+            let path = d.file_path;
+            if (path && path.includes('localhost')) {
+              path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
             }
             return {
-              id: String(b.id),
-              address: b.address,
-              city: b.city,
-              imageUrl: img || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=1000&auto=format&fit=crop',
-              tenants: (b.tenants || []).map((t: any) => ({
-                firstName: t.first_name,
-                lastName: t.last_name,
-                email: t.email,
-                phone: t.phone
-              })),
-              phone: b.phone || '',
-              linkedProfessionalId: b.pro_id ? String(b.pro_id) : undefined,
-              linkedSyndicId: b.syndic_id ? String(b.syndic_id) : undefined,
-              adminNote: b.admin_note || '',
-              installationDate: b.created_at,
-              devices: b.devices || []
+              id: String(d.id),
+              name: d.file_name,
+              type: 'OTHER',
+              status: 'APPROVED',
+              url: path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`,
+              timestamp: d.created_at
             };
-          });
-          setBuildings(mappedBuildings);
-        }
-
-        if (apiMissions) {
-          const mappedMissions: Mission[] = apiMissions.map((m: any) => ({
-            id: String(m.id),
-            buildingId: String(m.building_id),
-            requestedBy: m.requested_by,
-            title: m.title,
-            category: m.category,
-            sector: m.sector as Sector,
-            description: m.description,
-            status: m.status,
-            timestamp: m.created_at,
-            urgency: m.urgency as Urgency,
-            onSiteContactName: m.on_site_contact_name,
-            onSiteContactPhone: m.on_site_contact_phone,
-            onSiteContactEmail: m.on_site_contact_email,
-            syndicId: String(m.syndic_id || ''),
-            documents: (m.documents || []).map((d: any) => {
-              let path = d.file_path;
-              if (path && path.includes('localhost')) {
-                path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
-              }
-              return {
-                id: String(d.id),
-                name: d.file_name,
-                type: 'OTHER',
-                status: 'APPROVED',
-                url: path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`,
-                timestamp: d.created_at
-              };
-            })
-          }));
-          setMissions(mappedMissions);
-        }
-
-        if (apiInterventions) {
-          const mappedInterventions: Intervention[] = apiInterventions.map((i: any) => ({
-            id: String(i.id),
-            buildingId: String(i.building_id),
-            title: i.title,
-            category: i.category,
-            sector: i.sector as Sector,
-            description: i.description,
-            scheduledDate: i.scheduled_date || i.created_at,
-            createdAt: i.created_at,
-            status: i.status as InterventionStatus,
-            notes: i.notes || [],
-            photos: (i.photos || []).map((p: string) => {
-              let path = p;
-              if (path && path.includes('localhost')) {
-                path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
-              }
-              return path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`;
-            }),
-            documents: (i.documents || []).map((d: any) => {
-              let path = d.file_path;
-              if (path && path.includes('localhost')) {
-                path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
-              }
-              return {
-                id: String(d.id),
-                name: d.file_name,
-                type: 'OTHER',
-                status: 'APPROVED',
-                url: d.url || (path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`),
-                timestamp: d.created_at
-              };
-            }),
-            proId: String(i.professional_id || ''),
-            urgency: i.urgency as Urgency,
-            onSiteContactName: i.on_site_contact_name,
-            onSiteContactPhone: i.on_site_contact_phone,
-            onSiteContactEmail: i.on_site_contact_email,
-            sourceType: i.source_type || 'MANUAL'
-          }));
-          setInterventions(mappedInterventions);
-        }
-
-        if (apiSyndics) {
-          const mappedSyndics: Syndic[] = apiSyndics.map((s: any) => ({
-            id: String(s.id),
-            companyName: s.company_name,
-            contactPerson: s.contact_person,
-            phone: s.phone,
-            email: s.email,
-            landline: s.landline || '',
-            address: s.address || ''
-          }));
-          setSyndics(mappedSyndics);
-        }
-
-        if (apiPendingUsers) {
-          const mappedUsers: SignupRequest[] = apiPendingUsers.map((u: any) => ({
-            id: String(u.id),
-            role: u.role,
-            firstName: u.name.split(' ')[0] || '',
-            lastName: u.name.split(' ').slice(1).join(' ') || '',
-            email: u.email,
-            phone: u.phone || '',
-            companyName: u.company_name || '',
-            timestamp: u.created_at,
-            status: u.status
-          }));
-          setSignupRequests(mappedUsers);
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch dynamic data:", error);
+          })
+        }));
+        setMissions(mappedMissions);
       }
-    };
 
-    fetchData();
+      if (apiInterventions) {
+        const mappedInterventions: Intervention[] = apiInterventions.map((i: any) => ({
+          id: String(i.id),
+          buildingId: String(i.building_id),
+          title: i.title,
+          category: i.category,
+          sector: i.sector as Sector,
+          description: i.description,
+          scheduledDate: i.scheduled_date || i.created_at,
+          createdAt: i.created_at,
+          status: i.status as InterventionStatus,
+          notes: i.notes || [],
+          photos: (i.photos || []).map((p: string) => {
+            let path = p;
+            if (path && path.includes('localhost')) {
+              path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
+            }
+            return path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`;
+          }),
+          documents: (i.documents || []).map((d: any) => {
+            let path = d.file_path;
+            if (path && path.includes('localhost')) {
+              path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
+            }
+            return {
+              id: String(d.id),
+              name: d.file_name,
+              type: 'OTHER',
+              status: 'APPROVED',
+              url: d.url || (path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`),
+              timestamp: d.created_at
+            };
+          }),
+          proId: String(i.professional_id || ''),
+          urgency: i.urgency as Urgency,
+          onSiteContactName: i.on_site_contact_name,
+          onSiteContactPhone: i.on_site_contact_phone,
+          onSiteContactEmail: i.on_site_contact_email,
+          sourceType: i.source_type || 'MANUAL'
+        }));
+        setInterventions(mappedInterventions);
+      }
+
+      if (apiSyndics) {
+        const mappedSyndics: Syndic[] = apiSyndics.map((s: any) => ({
+          id: String(s.id),
+          companyName: s.company_name,
+          contactPerson: s.contact_person,
+          phone: s.phone,
+          email: s.email,
+          landline: s.landline || '',
+          address: s.address || ''
+        }));
+        setSyndics(mappedSyndics);
+      }
+
+      if (apiPendingUsers) {
+        const mappedUsers: SignupRequest[] = apiPendingUsers.map((u: any) => ({
+          id: String(u.id),
+          role: u.role,
+          firstName: u.name.split(' ')[0] || '',
+          lastName: u.name.split(' ').slice(1).join(' ') || '',
+          email: u.email,
+          phone: u.phone || '',
+          companyName: u.company_name || '',
+          timestamp: u.created_at,
+          status: u.status
+        }));
+        setSignupRequests(mappedUsers);
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch dynamic data:", error);
+    } finally {
+      if (!silent) setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshGlobalData(true);
   }, []);
 
 
@@ -947,7 +951,18 @@ const App: React.FC = () => {
                       } />
 
 
-                      <Route path="ongoing" element={<OngoingInterventions interventions={allInterventions} buildings={buildings} syndics={syndics} onSelect={setSelectedInterventionId} t={t} lang={lang} />} />
+                      <Route path="ongoing" element={
+                        <OngoingInterventions
+                          interventions={allInterventions}
+                          buildings={buildings}
+                          syndics={syndics}
+                          onSelect={setSelectedInterventionId}
+                          t={t}
+                          lang={lang}
+                          onRefresh={() => refreshGlobalData()}
+                          isRefreshing={isRefreshing}
+                        />
+                      } />
 
                       <Route path="missions" element={
                         <MissionsPage
@@ -960,6 +975,8 @@ const App: React.FC = () => {
                           t={t}
                           role={role || 'SYNDIC'}
                           lang={lang}
+                          onRefresh={() => refreshGlobalData()}
+                          isRefreshing={isRefreshing}
                         />
 
                       } />

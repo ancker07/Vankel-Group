@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye } from 'lucide-react';
+import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw } from 'lucide-react';
 import { Intervention, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -12,20 +12,37 @@ interface OngoingInterventionsProps {
     onSelect: (id: string) => void;
     t: any;
     lang: Language;
+    onRefresh: () => void;
+    isRefreshing: boolean;
 }
 
-const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang }) => {
+const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang, onRefresh, isRefreshing }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
 
     const ongoingItems = interventions.filter(i => i.status === 'PENDING' || i.status === 'DELAYED');
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-12">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.ongoing}</h2>
-                <span className="bg-zinc-900 text-zinc-500 px-3 py-1 rounded-full text-xs font-bold border border-zinc-800">
-                    {ongoingItems.length} Items
-                </span>
+            <div className="flex justify-between items-center bg-zinc-950 p-6 rounded-3xl border border-zinc-900 shadow-xl mb-8">
+                <div className="flex items-center gap-4">
+                    <div>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.ongoing}</h2>
+                        <p className="text-zinc-600 text-xs mt-1">{t.ongoing_subtitle || 'Track your active maintenance and repair tasks'}</p>
+                    </div>
+                    <button
+                        onClick={onRefresh}
+                        disabled={isRefreshing}
+                        className={`p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-green hover:border-brand-green/30 transition-all ${isRefreshing ? 'animate-spin' : ''}`}
+                        title="Refresh Data"
+                    >
+                        <RotateCcw size={18} />
+                    </button>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                    <span className="bg-zinc-900 text-zinc-500 px-3 py-1 rounded-full text-xs font-bold border border-zinc-800">
+                        {ongoingItems.length} {t.items || 'Items'}
+                    </span>
+                </div>
             </div>
 
             {ongoingItems.length === 0 ? (
