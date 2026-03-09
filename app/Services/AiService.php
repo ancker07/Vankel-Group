@@ -10,17 +10,17 @@ class AiService
 {
     public function extractEmailData(string $content)
     {
-        $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini';
+        $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini-1.5-flash-latest';
         $apiKey = Setting::where('key', 'ai_api_key')->value('value');
 
         if (!$apiKey) {
             throw new \Exception("AI API Key not configured.");
         }
 
-        if ($model === 'gpt-3.5-turbo' || $model === 'gpt-4') {
+        if (str_contains($model, 'gpt')) {
             return $this->callOpenAi($content, $model, $apiKey);
         } else {
-            return $this->callGemini($content, $apiKey);
+            return $this->callGemini($content, $model, $apiKey);
         }
     }
 
@@ -37,20 +37,21 @@ class AiService
 
         if ($response->failed()) {
             Log::error("OpenAI API Error: " . $response->body());
-            throw new \Exception("AI Extraction failed.");
+            throw new \Exception("AI Extraction failed (OpenAI: " . ($response->json('error.message') ?? 'Unknown error') . ")");
         }
 
         return json_decode($response->json('choices.0.message.content'), true);
     }
 
-    protected function callGemini(string $content, string $apiKey)
+    protected function callGemini(string $content, string $model, string $apiKey)
     {
-        // Gemini 1.5 Flash or Pro
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+        // Use v1 for more stability if available, but v1beta allows recent models
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
 
         $response = Http::post($url, [
             'contents' => [
                 [
+                    'role' => 'user',
                     'parts' => [
                         ['text' => $this->getSystemPrompt() . "\n\nEmail Content:\n" . $content]
                     ]
@@ -62,12 +63,25 @@ class AiService
         ]);
 
         if ($response->failed()) {
-            Log::error("Gemini API Error: " . $response->body());
-            throw new \Exception("AI Extraction failed.");
+            $errorMsg = $response->json('error.message') ?? 'Unknown Gemini Error';
+            Log::error("Gemini API Error [" . $model . "]: " . $response->body());
+            throw new \Exception("AI Extraction failed (Gemini: " . $errorMsg . ")");
         }
 
         $resultText = $response->json('candidates.0.content.parts.0.text');
-        return json_decode($resultText, true);
+        
+        if (!$resultText) {
+             Log::error("Gemini Empty Response: " . $response->body());
+             throw new \Exception("AI Extraction failed (Gemini returned empty response).");
+        }
+
+        $data = json_decode($resultText, true);
+        if (!$data) {
+            Log::error("Gemini JSON parse failed: " . $resultText);
+            throw new \Exception("AI Extraction failed (Invalid JSON output).");
+        }
+
+        return $data;
     }
 
     protected function getSystemPrompt()
