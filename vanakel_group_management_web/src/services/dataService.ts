@@ -53,6 +53,10 @@ export const dataService = {
     getEmails: async () => {
         const response = await apiClient.get('/emails');
         return response.data;
+    },
+    getEmailById: async (id: number) => {
+        const response = await apiClient.get(`/emails/${id}`);
+        return response.data;
     }
 };
 

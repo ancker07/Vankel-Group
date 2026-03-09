@@ -286,6 +286,16 @@ export interface EmailIngestionLog {
   createdAt: string;
 }
 
+export interface EmailAttachment {
+  id: number;
+  email_id: number;
+  file_name: string;
+  file_path: string;
+  mime_type: string | null;
+  file_size: number | null;
+  created_at: string;
+}
+
 export interface Email {
   id: number;
   message_id: string;
@@ -299,4 +309,5 @@ export interface Email {
   is_read: boolean;
   created_at: string;
   updated_at: string;
+  attachments?: EmailAttachment[];
 }

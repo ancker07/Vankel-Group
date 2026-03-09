@@ -15,6 +15,8 @@ import MissionsPage from '@/features/missions/pages/MissionsPage';
 import MaintenancePage from '@/features/maintenance/pages/MaintenancePage';
 import ReportsPage from '@/features/reports/pages/ReportsPage';
 import EmailIngestionPage from '@/features/dashboard/pages/EmailIngestionPage';
+import EmailsPage from '@/features/dashboard/pages/EmailsPage';
+import EmailDetailPage from '@/features/dashboard/pages/EmailDetailPage';
 import SuperAdminDashboard from '@/features/dashboard/pages/SuperAdminDashboard';
 import SuperAdminLogin from '@/features/auth/pages/SuperAdminLogin';
 import LoginPage from '@/features/auth/pages/LoginPage';
@@ -929,6 +931,8 @@ const App: React.FC = () => {
                       } />
                       <Route path="reports" element={role !== 'SYNDIC' ? <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} /> : <Navigate to="/syndic/management" replace />} />
                       <Route path="email_ingestion" element={role !== 'SYNDIC' ? <EmailIngestionPage isIngesting={isIngesting} onIngestClick={handleEmailIngestion} emailLogs={emailLogs} lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="emails" element={role !== 'SYNDIC' ? <EmailsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="emails/:id" element={role !== 'SYNDIC' ? <EmailDetailPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="notifications" element={
                         <SyndicNotificationsPage
                           notifications={notifications}

@@ -7,6 +7,7 @@ use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\EmailController;
 
 Route::get('/emails', [EmailController::class, 'index']);
+Route::get('/emails/{id}', [EmailController::class, 'show']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/send-otp', [AuthController::class, 'sendOtp']);

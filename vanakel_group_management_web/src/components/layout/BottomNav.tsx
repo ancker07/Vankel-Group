@@ -54,9 +54,14 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                         className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'email_ingestion' ? 'text-brand-green' : 'text-zinc-500'}`}
                     >
                         <Mail size={20} />
-                        <span className="text-[9px] font-bold">{t.emails_short || 'Emails'}</span>
-
-
+                        <span className="text-[9px] font-bold">Ingestion</span>
+                    </button>
+                    <button
+                        onClick={() => handleTabClick('emails')}
+                        className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'emails' ? 'text-brand-green' : 'text-zinc-500'}`}
+                    >
+                        <Mail size={20} className="text-blue-400" />
+                        <span className="text-[9px] font-bold">Inbox</span>
                     </button>
                     <button
                         onClick={() => handleTabClick('settings')}

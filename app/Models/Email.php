@@ -15,4 +15,9 @@ class Email extends Model
         'received_at' => 'datetime',
         'is_read' => 'boolean',
     ];
+
+    public function attachments()
+    {
+        return $this->hasMany(EmailAttachment::class);
+    }
 }
