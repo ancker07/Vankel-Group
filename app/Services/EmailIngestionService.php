@@ -54,21 +54,22 @@ class EmailIngestionService
                     $building = $this->findOrCreateBuilding($missionData['address']);
                 }
 
-                if (!$building && $aiData['classification'] === 'MISSION') {
-                     // If it's a mission but no building found/created, maybe it needs review
+                if (!$building && ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW')) {
+                     // If it's a mission but no building found/created, it needs review
                      $aiData['classification'] = 'NEEDS_REVIEW';
                 }
 
                 $mission = null;
-                if ($building) {
+                if ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW') {
                     $mission = Mission::create([
-                        'building_id' => $building->id,
-                        'syndic_id' => $building->syndic_id,
+                        'building_id' => $building ? $building->id : null,
+                        'syndic_id' => $building ? $building->syndic_id : null,
+                        'extracted_address' => $building ? null : $rawAddress,
                         'requested_by' => 'SYNDIC', // Defaulting to SYNDIC if from email
                         'title' => $missionData['title'] ?? $email->subject,
                         'description' => $missionData['description'] ?? $email->body_text,
                         'urgency' => 'MEDIUM',
-                        'status' => $aiData['classification'] === 'MISSION' ? 'PENDING' : 'NEEDS_REVIEW',
+                        'status' => ($aiData['classification'] === 'MISSION' && $building) ? 'PENDING' : 'NEEDS_REVIEW',
                         'source_type' => 'EMAIL',
                         'source_message_id' => $email->message_id,
                         'reference' => $missionData['reference'] ?? null,

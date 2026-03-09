@@ -81,11 +81,10 @@ class EmailController extends Controller
     {
         try {
             \Illuminate\Support\Facades\Artisan::call('emails:fetch');
-            $output = \Illuminate\Support\Facades\Artisan::output();
+            $this->ingestAll(); // Automatically ingest after fetching
             
             return response()->json([
-                'message' => 'Email synchronization completed.',
-                'output' => $output
+                'message' => 'Email synchronization and ingestion completed.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
