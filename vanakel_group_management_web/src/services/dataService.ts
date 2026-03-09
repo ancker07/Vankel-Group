@@ -74,6 +74,14 @@ export const dataService = {
     syncEmails: async () => {
         const response = await apiClient.post('/emails/sync');
         return response.data;
+    },
+    ingestEmail: async (id: number) => {
+        const response = await apiClient.post(`/emails/${id}/ingest`);
+        return response.data;
+    },
+    ingestAllEmails: async () => {
+        const response = await apiClient.post('/emails/ingest-all');
+        return response.data;
     }
 };
 

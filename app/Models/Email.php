@@ -13,6 +13,7 @@ class Email extends Model
 
     protected $casts = [
         'received_at' => 'datetime',
+        'ingested_at' => 'datetime',
         'is_read' => 'boolean',
     ];
 

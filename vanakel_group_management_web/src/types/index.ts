@@ -306,6 +306,7 @@ export interface Email {
   body_text: string | null;
   body_html: string | null;
   received_at: string;
+  ingested_at: string | null;
   is_read: boolean;
   created_at: string;
   updated_at: string;

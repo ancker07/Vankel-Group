@@ -1,14 +1,18 @@
-<?php
-
-namespace App\Http\Controllers;
-
+use App\Http\Controllers\Controller;
 use App\Models\Email;
+use App\Services\EmailIngestionService;
 use Illuminate\Http\Request;
 use Webklex\IMAP\Facades\Client;
 use Illuminate\Support\Facades\Storage;
 
 class EmailController extends Controller
 {
+    protected $ingestionService;
+
+    public function __construct(EmailIngestionService $ingestionService)
+    {
+        $this->ingestionService = $ingestionService;
+    }
     public function index()
     {
         return response()->json([
@@ -83,5 +87,32 @@ class EmailController extends Controller
                 'error' => 'Failed to sync emails: ' . $e->getMessage()
             ], 500);
         }
+    public function ingest($id)
+    {
+        $email = Email::with('attachments')->findOrFail($id);
+        $result = $this->ingestionService->ingest($email);
+
+        if (!$result['success']) {
+            return response()->json($result, 500);
+        }
+
+        return response()->json($result);
     }
-}
+
+    public function ingestAll()
+    {
+        $emails = Email::whereNull('ingested_at')->with('attachments')->get();
+        $results = [];
+
+        foreach ($emails as $email) {
+            $results[] = [
+                'email_id' => $email->id,
+                'result' => $this->ingestionService->ingest($email)
+            ];
+        }
+
+        return response()->json([
+            'message' => 'Bulk ingestion processed.',
+            'results' => $results
+        ]);
+    }
