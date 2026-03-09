@@ -72,7 +72,8 @@ class EmailIngestionService
                         'requested_by' => 'SYNDIC', // Defaulting to SYNDIC if from email
                         'title' => $missionData['title'] ?? $email->subject,
                         'description' => $missionData['description'] ?? $email->body_text,
-                        'urgency' => 'MEDIUM',
+                        'sector' => $missionData['sector'] ?? 'GENERAL',
+                        'urgency' => $missionData['urgency'] ?? 'MEDIUM',
                         'status' => ($aiData['classification'] === 'MISSION' && $building) ? 'PENDING' : 'NEEDS_REVIEW',
                         'source_type' => 'EMAIL',
                         'source_message_id' => $email->message_id,

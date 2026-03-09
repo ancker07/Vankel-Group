@@ -89,28 +89,30 @@ class AiService
         return <<<PROMPT
 You are an AI assistant for a building management company called Vanakel Group.
 Extract mission-critical details from the following email content.
-Output MUST be a valid JSON object with the following structure:
-{
-  "classification": "MISSION" | "NON_MISSION" | "NEEDS_REVIEW",
-  "reasons": ["short reason why"],
-  "mission": {
-    "title": "Short title",
-    "description": "Detailed description of the issue",
-    "reference": "Reference number from email if any",
-    "address": {
-      "raw": "Full address mentioned",
-      "street": "Street name",
-      "number": "House/Building number",
-      "postalCode": "Zip code",
-      "city": "City"
-    },
-    "contactOnSite": {
-      "name": "Contact name",
-      "phone": "Contact phone",
-      "email": "Contact email"
-    }
-  }
-}
+
+### Classification Rules:
+- "MISSION": Use if the email is a request for repair, maintenance, intervention, or reports a problem (e.g., "leak", "breakage", "not working", "intervention", "fuite", "panne").
+- "NON_MISSION": Use for spam, newsletters, or emails unrelated to building issues.
+- "NEEDS_REVIEW": Use if it's a mission but keywords or details are ambiguous.
+
+### Extracted Fields:
+1. "classification": "MISSION" | "NON_MISSION" | "NEEDS_REVIEW"
+2. "reasons": ["short reason why"]
+3. "mission":
+   - "title": Short descriptive title (e.g., "Water Leak at [Address]")
+   - "description": Detailed technical description of the problem.
+   - "sector": MUST be one of: ELECTRICITE, CARRELAGE, SANITAIRE, CHAUFFAGE, PLOMBERIE, PEINTURE, MENUISERIE, GENERAL, AUTRE.
+   - "urgency": MUST be one of: LOW, MEDIUM, HIGH, CRITICAL.
+   - "reference": Reference number if present in email.
+   - "address": { "raw": "Full address", "street": "", "number": "", "postalCode": "", "city": "" }
+   - "contactOnSite": { "name": "", "phone": "", "email": "" }
+
+### Critical Instructions:
+- Heavily favor "MISSION" if keywords like "intervention", "repair", "leak", "broken", or "fuite" are present, even in conversational tone.
+- Extract contact persons even if they are described (e.g., "The concierge Edward at 0489...").
+- For location, favor Belgian patterns (e.g., "Rue de la Loi 155, 1000 Bruxelles").
+
+Output MUST be a valid JSON object.
 PROMPT;
     }
 }
