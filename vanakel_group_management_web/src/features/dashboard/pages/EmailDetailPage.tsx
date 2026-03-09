@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Mail, Calendar, ArrowLeft, Paperclip, Download, User, Info, Clock } from 'lucide-react';
+import { Mail, Calendar, ArrowLeft, Paperclip, Download, Clock, Trash2 } from 'lucide-react';
 import { Email, Language } from '@/types';
 import { dataService } from '@/services/dataService';
 import { STORAGE_BASE_URL } from '@/lib/apiClient';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 
 interface EmailDetailPageProps {
     lang: Language;
@@ -15,6 +16,8 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
     const navigate = useNavigate();
     const [email, setEmail] = useState<Email | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const fetchEmail = async () => {
@@ -35,6 +38,20 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
 
     const handleBack = () => {
         navigate(-1);
+    };
+
+    const handleDelete = async () => {
+        if (!id) return;
+        setIsDeleting(true);
+        try {
+            await dataService.deleteEmail(parseInt(id));
+            const pathParts = window.location.pathname.split('/');
+            const prefix = pathParts[1] || 'admin';
+            navigate(`/${prefix}/emails`, { replace: true });
+        } catch (error) {
+            console.error("Error deleting email:", error);
+            setIsDeleting(false);
+        }
     };
 
     if (isLoading) {
@@ -80,6 +97,13 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                 </button>
 
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/5 group"
+                    >
+                        <Trash2 size={16} className="group-hover:animate-pulse" />
+                        Delete Email
+                    </button>
                     <div className="px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] font-black uppercase tracking-widest text-zinc-500">
                         {email.is_read ? 'Read' : 'New Email'}
                     </div>
@@ -135,7 +159,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                 <div className="p-8">
                     <div className="flex flex-col space-y-8">
                         {/* Body Text / HTML */}
-                        <div className="bg-zinc-900/30 rounded-2xl border border-zinc-800/50 p-6 min-h-[300px]">
+                        <div className="bg-zinc-900/30 rounded-2xl border border-zinc-800/50 p-6 min-h-[300px] overflow-x-auto">
                             {email.body_html ? (
                                 <div
                                     className="email-content text-zinc-300 text-sm leading-relaxed"
@@ -200,6 +224,17 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDelete}
+                title="Delete Email"
+                message="Are you sure you want to delete this email? This action will permanently remove it from the system and the mail server."
+                confirmLabel={isDeleting ? "Deleting..." : "Yes, Delete"}
+                cancelLabel="Cancel"
+                isDanger={true}
+            />
         </div>
     );
 };

@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Calendar, Search, RefreshCcw, Paperclip, Download, ChevronRight } from 'lucide-react';
+import { Mail, Calendar, Search, RefreshCcw, Paperclip, Download, ChevronRight, Trash2 } from 'lucide-react';
 import { Email, Language } from '@/types';
 import { dataService } from '@/services/dataService';
 import { TRANSLATIONS } from '@/utils/constants';
 import { STORAGE_BASE_URL } from '@/lib/apiClient';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 
 interface EmailsPageProps {
     lang: Language;
@@ -17,6 +18,8 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
     const [emails, setEmails] = useState<Email[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [emailToDelete, setEmailToDelete] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchEmails = async () => {
         setIsLoading(true);
@@ -35,6 +38,20 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
     useEffect(() => {
         fetchEmails();
     }, []);
+
+    const handleDelete = async () => {
+        if (emailToDelete === null) return;
+        setIsDeleting(true);
+        try {
+            await dataService.deleteEmail(emailToDelete);
+            setEmails(prev => prev.filter(e => e.id !== emailToDelete));
+        } catch (error) {
+            console.error("Error deleting email:", error);
+        } finally {
+            setIsDeleting(false);
+            setEmailToDelete(null);
+        }
+    };
 
     const filteredEmails = emails.filter(email =>
         email.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -127,7 +144,19 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                                                 minute: '2-digit'
                                             })}
                                         </div>
-                                        <ChevronRight size={16} className="text-zinc-700 group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEmailToDelete(email.id);
+                                                }}
+                                                className="p-1.5 rounded-lg text-zinc-600 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                                title="Delete email"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                            <ChevronRight size={16} className="text-zinc-700 group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -181,6 +210,17 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                     )}
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={emailToDelete !== null}
+                onClose={() => setEmailToDelete(null)}
+                onConfirm={handleDelete}
+                title="Delete Email"
+                message="Are you sure you want to delete this email? This will permanently remove it from the system and the mail server."
+                confirmLabel={isDeleting ? "Deleting..." : "Yes, Delete"}
+                cancelLabel="Cancel"
+                isDanger={true}
+            />
         </div>
     );
 };
