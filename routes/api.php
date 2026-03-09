@@ -10,6 +10,7 @@ use App\Http\Controllers\SettingController;
 Route::get('/emails', [EmailController::class, 'index']);
 Route::get('/emails/{id}', [EmailController::class, 'show']);
 Route::delete('/emails/{id}', [EmailController::class, 'destroy']);
+Route::post('/emails/sync', [EmailController::class, 'sync']);
 
 Route::get('/settings/ai', [SettingController::class, 'getAiSettings']);
 Route::post('/settings/ai', [SettingController::class, 'updateAiSettings']);

@@ -20,6 +20,7 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [emailToDelete, setEmailToDelete] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const fetchEmails = async () => {
         setIsLoading(true);
@@ -32,6 +33,19 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
             console.error("Error fetching emails:", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleSync = async () => {
+        setIsSyncing(true);
+        try {
+            await dataService.syncEmails();
+            await fetchEmails();
+            // Show success toast or message if available in the app context
+        } catch (error) {
+            console.error("Error syncing emails:", error);
+        } finally {
+            setIsSyncing(false);
         }
     };
 
@@ -80,8 +94,25 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                         />
                     </div>
                     <button
+                        onClick={handleSync}
+                        disabled={isSyncing || isLoading}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-green text-brand-black font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all disabled:opacity-50 shadow-lg shadow-brand-green/10"
+                    >
+                        {isSyncing ? (
+                            <>
+                                <RefreshCcw size={16} className="animate-spin" />
+                                Syncing...
+                            </>
+                        ) : (
+                            <>
+                                <Download size={16} />
+                                Fetch Emails
+                            </>
+                        )}
+                    </button>
+                    <button
                         onClick={fetchEmails}
-                        disabled={isLoading}
+                        disabled={isLoading || isSyncing}
                         className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all disabled:opacity-50"
                     >
                         <RefreshCcw size={20} className={isLoading ? "animate-spin" : ""} />

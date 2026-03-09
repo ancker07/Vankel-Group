@@ -67,4 +67,21 @@ class EmailController extends Controller
             ], 500);
         }
     }
+
+    public function sync()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('emails:fetch');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            
+            return response()->json([
+                'message' => 'Email synchronization completed.',
+                'output' => $output
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to sync emails: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

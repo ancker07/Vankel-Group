@@ -69,6 +69,11 @@ export const dataService = {
     updateAiSettings: async (settings: { model: string, apiKey: string }) => {
         const response = await apiClient.post('/settings/ai', settings);
         return response.data;
+    },
+
+    syncEmails: async () => {
+        const response = await apiClient.post('/emails/sync');
+        return response.data;
     }
 };
 
