@@ -610,9 +610,11 @@ const App: React.FC = () => {
         completed_at: updated.completedAt
       });
       setInterventions(prev => prev.map(i => i.id === updated.id ? updated : i));
+      addToast(t.updated || 'Success', t.updateSuccess || 'Intervention mise à jour.');
     } catch (error) {
       console.error('Failed to update intervention:', error);
       addToast('Error', 'Failed to update intervention on server. Action aborted.');
+      throw error;
     }
   };
 

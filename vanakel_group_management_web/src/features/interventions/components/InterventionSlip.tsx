@@ -18,7 +18,7 @@ interface SlipProps {
   syndic?: Syndic;
   lang: Language;
   onClose: () => void;
-  onUpdate: (i: Intervention) => void;
+  onUpdate: (i: Intervention) => Promise<void>;
   onOpenMaintenance?: (buildingId: string) => void;
   role?: Role;
 }
@@ -98,6 +98,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
+  // Sync internal status with prop if it changes from outside
+  useEffect(() => {
+    setStatus(intervention.status);
+  }, [intervention.status]);
+
   // Auto-fill logic from description if fields are empty
   useEffect(() => {
     // Only run if fields are empty and we have a description
@@ -176,25 +181,33 @@ const InterventionSlip: React.FC<SlipProps> = ({
       return;
     }
 
-    onUpdate({
-      ...intervention,
-      status,
-      adminFeedback: adminNote,
-      delayedRescheduleDate: status === 'DELAYED' ? delayedDate : undefined,
-      completedAt: status === 'COMPLETED' ? new Date().toISOString() : intervention.completedAt,
+    try {
+      await onUpdate({
+        ...intervention,
+        status,
+        adminFeedback: adminNote,
+        delayedRescheduleDate: status === 'DELAYED' ? delayedDate : undefined,
+        completedAt: status === 'COMPLETED' ? new Date().toISOString() : intervention.completedAt,
 
-      // Save Delay Info
-      delayReason: status === 'DELAYED' ? delayReason : undefined,
-      delayDetails: status === 'DELAYED' ? delayDetails : undefined,
-      delayedAt: status === 'DELAYED' && !intervention.delayedAt ? new Date().toISOString() : (status === 'DELAYED' ? intervention.delayedAt : undefined),
+        // Save Delay Info
+        delayReason: status === 'DELAYED' ? delayReason : undefined,
+        delayDetails: status === 'DELAYED' ? delayDetails : undefined,
+        delayedAt: status === 'DELAYED' && !intervention.delayedAt ? new Date().toISOString() : (status === 'DELAYED' ? intervention.delayedAt : undefined),
 
-      // Save Contact Sur Place
-      onSiteContactName: contactName,
-      onSiteContactPhone: contactPhone,
-      onSiteContactEmail: contactEmail,
-      photos,
-      documents
-    });
+        // Save Contact Sur Place
+        onSiteContactName: contactName,
+        onSiteContactPhone: contactPhone,
+        onSiteContactEmail: contactEmail,
+        photos,
+        documents
+      });
+
+      if (status === 'COMPLETED') onClose();
+      else setIsEditable(false);
+    } catch (err) {
+      // Error handled by parent toast, but we stop UI progression here
+      return;
+    }
 
     if (mode === 'EMAIL') {
       setIsSendingEmail(true);
@@ -211,9 +224,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
     }
 
     if (mode === 'WHATSAPP') handleSendWhatsApp();
-
-    if (status === 'COMPLETED') onClose();
-    else setIsEditable(false);
 
     setShowSavePrompt(false);
   };
