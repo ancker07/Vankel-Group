@@ -56,26 +56,28 @@ class FetchEmails extends Command
             $client->connect();
 
             $folders = $client->getFolders();
-            $inbox = null;
+            $targetFolders = [];
 
             foreach ($folders as $folder) {
-                if (strtolower($folder->name) === 'inbox') {
-                    $inbox = $folder;
-                    break;
+                $name = strtolower($folder->name);
+                if ($name === 'inbox' || $name === 'junk' || $name === 'spam' || str_contains($name, 'junk') || str_contains($name, 'spam')) {
+                    $targetFolders[] = $folder;
                 }
             }
 
-            if (!$inbox) {
-                $this->error('Inbox not found.');
+            if (empty($targetFolders)) {
+                $this->error('No suitable mail folders (Inbox/Junk) found.');
                 return;
             }
 
-            $messages = $inbox->query()->unseen()->get();
-            
-            if ($messages->count() > 0) {
-                $this->info('Found ' . $messages->count() . ' new message(s).');
+            foreach ($targetFolders as $folder) {
+                $this->info("Scanning folder: {$folder->name}");
+                $messages = $folder->query()->unseen()->get();
+                
+                if ($messages->count() > 0) {
+                    $this->info('Found ' . $messages->count() . ' new message(s) in ' . $folder->name);
 
-                foreach ($messages as $message) {
+                    foreach ($messages as $message) {
                     $messageId = $message->getMessageId() ? (string) $message->getMessageId() : (string) $message->getUid();
 
                     // Skip if we already saved this email
@@ -132,8 +134,9 @@ class FetchEmails extends Command
                     $this->info("Saved and marked as seen: " . $message->getSubject());
                 }
             } else {
-                $this->line('No new emails found.');
+                $this->line("No new emails found in {$folder->name}.");
             }
+        }
 
             // Disconnect to avoid keeping stale connections in long loops
             $client->disconnect();
