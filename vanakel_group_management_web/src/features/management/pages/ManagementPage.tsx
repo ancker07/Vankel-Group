@@ -27,14 +27,14 @@ const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, intervent
   const buildingActivityMap = useMemo(() => {
     const map: Record<string, (Intervention | Mission)[]> = {};
 
-    // Add all interventions
-    interventions.forEach(i => {
+    // Add completed interventions
+    interventions.filter(i => i.status === 'COMPLETED').forEach(i => {
       if (!map[i.buildingId]) map[i.buildingId] = [];
       map[i.buildingId].push(i);
     });
 
-    // Add all missions
-    missions.forEach(m => {
+    // Add approved missions (deployed)
+    missions.filter(m => m.status === 'APPROVED').forEach(m => {
       if (!map[m.buildingId]) map[m.buildingId] = [];
       map[m.buildingId].push(m);
     });
@@ -129,6 +129,7 @@ const GestionPage: React.FC<GestionPageProps> = ({ buildings, syndics, intervent
                 syndic={syndic}
                 interventionCount={count}
                 onClick={() => setSelectedBuildingId(building.id)}
+                lang={lang}
               />
             );
           })}

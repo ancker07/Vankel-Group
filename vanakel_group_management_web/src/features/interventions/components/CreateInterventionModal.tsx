@@ -3,8 +3,9 @@ import React, { useState, useMemo } from 'react';
 import { X, Plus, MapPin, Search } from 'lucide-react';
 import { Building, Syndic, Language, InterventionStatus, Sector, Urgency } from '@/types';
 import { TRANSLATIONS, SECTORS, URGENCY } from '@/utils/constants';
-import { Upload, Paperclip } from 'lucide-react';
+import { Upload, Paperclip, Sparkles, Loader2 } from 'lucide-react';
 import CreateSyndicModal from '@/features/management/components/CreateSyndicModal';
+import { improveNote } from '@/services/aiService';
 
 interface CreateInterventionPayload {
   title: string;
@@ -56,6 +57,21 @@ const CreateInterventionModal: React.FC<CreateInterventionModalProps> = ({
   // Contact Sur Place (Hidden/Defaulted)
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');
+
+  const [isImproving, setIsImproving] = useState(false);
+
+  const handleImproveDescription = async () => {
+    if (!description) return;
+    setIsImproving(true);
+    try {
+      const improved = await improveNote(description);
+      setDescription(improved);
+    } catch (error) {
+      console.error("Improvement failed", error);
+    } finally {
+      setIsImproving(false);
+    }
+  };
 
 
   // Sub-modal state
@@ -197,7 +213,18 @@ const CreateInterventionModal: React.FC<CreateInterventionModalProps> = ({
             {/* Description */}
             {/* Description */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.description} *</label>
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.description} *</label>
+                <button
+                  type="button"
+                  onClick={handleImproveDescription}
+                  disabled={isImproving || !description}
+                  className="flex items-center gap-1.5 text-brand-green text-[9px] font-black uppercase tracking-widest hover:bg-brand-green/10 px-2 py-1 rounded transition-all disabled:opacity-50 min-h-[30px]"
+                >
+                  {isImproving ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  {isImproving ? t.working : t.improveAI_text}
+                </button>
+              </div>
               <textarea
                 required
                 value={description}

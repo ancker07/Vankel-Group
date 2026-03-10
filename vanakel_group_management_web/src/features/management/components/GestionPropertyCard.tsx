@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Building, Syndic } from '@/types';
+import { Building, Syndic, Language } from '@/types';
 import { MapPin, ShieldCheck, ClipboardList } from 'lucide-react';
+import { TRANSLATIONS } from '@/utils/constants';
 
 interface GestionPropertyCardProps {
   building: Building;
   syndic?: Syndic;
   interventionCount: number;
   onClick: () => void;
+  lang: Language;
 }
 
-const GestionPropertyCard: React.FC<GestionPropertyCardProps> = ({ building, syndic, interventionCount, onClick }) => {
+const GestionPropertyCard: React.FC<GestionPropertyCardProps> = ({ building, syndic, interventionCount, onClick, lang }) => {
+  const t = TRANSLATIONS[lang];
   const [isImgLoading, setIsImgLoading] = useState(true);
 
   return (
@@ -50,24 +53,24 @@ const GestionPropertyCard: React.FC<GestionPropertyCardProps> = ({ building, syn
       {/* Info Content */}
       <div className="p-5 flex-1 flex flex-col">
         <div className="mb-4">
-          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Syndic</p>
+          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">{t.syndic}</p>
           <div className="flex items-center gap-2 text-sm text-zinc-300 font-medium">
             <ShieldCheck size={16} className="text-zinc-500" />
-            <span className="truncate">{syndic?.companyName || 'Not provided'}</span>
+            <span className="truncate">{syndic?.companyName || t.notProvided}</span>
           </div>
         </div>
 
         <div className="mt-auto pt-4 border-t border-zinc-900 flex items-center justify-between gap-3">
           <div className="bg-brand-green/10 text-brand-green border border-brand-green/20 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
             <ClipboardList size={12} />
-            <span>{interventionCount} Activités</span>
+            <span>{interventionCount} {t.tabs_history}</span>
           </div>
 
           <button
             onClick={onClick}
             className="bg-zinc-100 text-zinc-950 hover:bg-white hover:scale-105 transition-all text-[10px] font-black uppercase tracking-wide px-3 py-2 rounded-lg shadow-xl shadow-white/5"
           >
-            Historique complet
+            {t.full_history}
           </button>
         </div>
       </div>

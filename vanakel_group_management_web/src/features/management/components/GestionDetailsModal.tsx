@@ -161,11 +161,7 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
                           }`}>
                           {entry.status === 'COMPLETED' || entry.status === 'APPROVED' ? <CheckCircle2 size={12} /> :
                             entry.status === 'REJECTED' || entry.status === 'DELAYED' ? <AlertCircle size={12} /> : <Clock size={12} />}
-                          {entry.status === 'PENDING' ? t.status_pending :
-                            entry.status === 'DELAYED' ? t.status_delayed :
-                              entry.status === 'REJECTED' ? t.status_rejected :
-                                entry.status === 'APPROVED' ? t.status_accepted :
-                                  t.status_completed}
+                          {entry.status === 'APPROVED' ? t.status_completed : t.status_completed}
                         </div>
                       </div>
 

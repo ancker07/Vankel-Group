@@ -68,7 +68,8 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                             type="date"
                             value={missionDate}
                             onChange={e => setMissionDate(e.target.value)}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-brand-green outline-none transition-all"
+                            onClick={(e) => (e.target as any).showPicker?.()}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-brand-green outline-none cursor-pointer transition-all"
                         />
                     </div>
                 )}

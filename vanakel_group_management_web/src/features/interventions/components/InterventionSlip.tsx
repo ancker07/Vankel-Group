@@ -134,7 +134,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
     const improved = await improveNote(delayDetails);
     setDelayDetails(improved);
     setIsImprovingDetails(false);
-    alert(t.textImproved); // Simple feedback as requested
   };
 
   const handleStatusChange = (newStatus: InterventionStatus) => {
@@ -530,7 +529,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                           disabled={isImprovingDetails || !delayDetails}
                           className="flex items-center gap-1.5 text-brand-green text-[9px] font-black uppercase tracking-widest hover:bg-brand-green/10 px-2 py-1 rounded transition-all disabled:opacity-50 min-h-[30px]"
                         >
-                          <Sparkles size={12} /> {isImprovingDetails ? t.working : t.improveAI_text}
+                          {isImprovingDetails ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} {isImprovingDetails ? t.working : t.improveAI_text}
                         </button>
                       )}
                     </div>
@@ -551,8 +550,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
                         type="date"
                         value={delayedDate}
                         onChange={(e) => setDelayedDate(e.target.value)}
+                        onClick={(e) => (e.target as any).showPicker?.()}
                         disabled={!isEditable}
-                        className="w-full bg-zinc-950 border border-zinc-800 px-10 py-2.5 rounded-xl text-sm outline-none focus:border-orange-500 transition-all text-white"
+                        className="w-full bg-zinc-950 border border-zinc-800 px-10 py-2.5 rounded-xl text-sm outline-none focus:border-orange-500 transition-all text-white cursor-pointer"
                       />
                     </div>
                   </div>
@@ -569,7 +569,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                     disabled={isImproving || !adminNote}
                     className="flex items-center gap-1.5 text-brand-green text-[9px] font-black uppercase tracking-widest hover:bg-brand-green/10 px-2 py-1 rounded transition-all disabled:opacity-50 min-h-[30px]"
                   >
-                    <Sparkles size={14} /> {isImproving ? t.working : t.improveAI}
+                    {isImproving ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} {isImproving ? t.working : t.improveAI}
                   </button>
                 )}
               </div>
