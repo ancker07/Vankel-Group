@@ -138,6 +138,7 @@ export interface Intervention {
   // Intervention Number (e.g. OS-123)
   interventionNumber?: string;
   urgency?: Urgency;
+  syndicId?: string;
 }
 
 

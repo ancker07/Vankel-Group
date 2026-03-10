@@ -362,7 +362,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
             <div>
               <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.syndic}</p>
               <p className="font-bold text-brand-green text-sm md:text-lg">{syndic ? syndic.companyName : t.unassigned}</p>
-              <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{syndic ? syndic.contactPerson : '-'}</p>
+              <div className="flex flex-col md:items-end gap-1 mt-1">
+                <p className="text-zinc-400 text-[10px] font-bold uppercase">{syndic ? syndic.contactPerson : '-'}</p>
+                {syndic?.phone && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Smartphone size={10} /> {syndic.phone}</p>}
+                {syndic?.email && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Mail size={10} /> {syndic.email}</p>}
+              </div>
             </div>
           </div>
           <div className="space-y-5 md:space-y-6 md:text-right border-t md:border-t-0 border-zinc-800 pt-5 md:pt-0">
@@ -448,6 +452,35 @@ const InterventionSlip: React.FC<SlipProps> = ({
               />
             </div>
           </div>
+
+          {syndic && (
+            <div className="mt-8 pt-6 border-t border-zinc-900/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green border border-brand-green/20">
+                    <User size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / Manager</p>
+                    <p className="text-xs font-black text-white">{syndic.companyName}</p>
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{syndic.contactPerson}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col md:items-end justify-center gap-1.5">
+                  {syndic.phone && (
+                    <a href={`tel:${syndic.phone}`} className="text-xs font-bold text-zinc-300 hover:text-brand-green transition-colors flex items-center gap-2">
+                      <Smartphone size={12} className="text-brand-green" /> {syndic.phone}
+                    </a>
+                  )}
+                  {syndic.email && (
+                    <a href={`mailto:${syndic.email}`} className="text-xs font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
+                      <Mail size={12} /> {syndic.email}
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Description Section */}

@@ -262,7 +262,8 @@ const App: React.FC = () => {
           onSiteContactName: i.on_site_contact_name,
           onSiteContactPhone: i.on_site_contact_phone,
           onSiteContactEmail: i.on_site_contact_email,
-          sourceType: i.source_type || 'MANUAL'
+          sourceType: i.source_type || 'MANUAL',
+          syndicId: i.syndic_id ? String(i.syndic_id) : undefined
         }));
         setInterventions(mappedInterventions);
       }
@@ -829,7 +830,9 @@ const App: React.FC = () => {
   const selectedIntervention = selectedInterventionId ? allInterventions.find(i => i.id === selectedInterventionId) : null;
   const selectedIntBuilding = selectedIntervention ? buildings.find(b => b.id === selectedIntervention.buildingId) : undefined;
   const selectedIntPro = selectedIntBuilding?.linkedProfessionalId ? professionals.find(p => p.id === selectedIntBuilding.linkedProfessionalId) : undefined;
-  const selectedIntSyndic = selectedIntBuilding?.linkedSyndicId ? syndics.find(s => s.id === selectedIntBuilding.linkedSyndicId) : undefined;
+  const selectedIntSyndic = selectedIntervention?.syndicId
+    ? syndics.find(s => s.id === selectedIntervention.syndicId)
+    : (selectedIntBuilding?.linkedSyndicId ? syndics.find(s => s.id === selectedIntBuilding.linkedSyndicId) : undefined);
 
   return (
     <>
