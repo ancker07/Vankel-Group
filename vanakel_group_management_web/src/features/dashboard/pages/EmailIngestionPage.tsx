@@ -143,7 +143,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                             {formatDate(email.received_at)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            {email.ingestion_status === 'PROCESSED' || email.ingested_at ? (
+                                            {email.ingestion_status === 'PROCESSED' ? (
                                                 <div className="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1 rounded-full w-fit">
                                                     <CheckCircle2 size={14} />
                                                     <span className="text-[10px] font-black uppercase tracking-wider">PROCESSED</span>

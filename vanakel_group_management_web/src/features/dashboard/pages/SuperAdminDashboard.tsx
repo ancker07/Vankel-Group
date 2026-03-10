@@ -522,7 +522,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                 </div>
                             ) : (
                                 emails.map(email => {
-                                    const isProcessed = email.ingestion_status === 'PROCESSED' || email.ingested_at;
+                                    const isProcessed = email.ingestion_status === 'PROCESSED';
                                     const isIgnored = email.ingestion_status === 'IGNORED';
                                     const isNeedsReview = email.ingestion_status === 'NEEDS_REVIEW';
                                     const isError = email.ingestion_status === 'ERROR';
@@ -549,10 +549,10 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                         <div className="space-y-1">
                                                             <div className="flex items-center gap-3">
                                                                 <span className={`text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest ${isProcessed ? 'bg-brand-green/10 text-brand-green' :
-                                                                        isIgnored ? 'bg-zinc-800 text-zinc-500' :
-                                                                            'bg-zinc-800 text-zinc-400'
+                                                                    isIgnored ? 'bg-zinc-800 text-zinc-500' :
+                                                                        'bg-zinc-800 text-zinc-400'
                                                                     }`}>
-                                                                    {email.ingestion_status || (email.ingested_at ? 'PROCESSED' : 'PENDING')}
+                                                                    {email.ingestion_status || 'PENDING'}
                                                                 </span>
                                                                 <span className="text-[10px] font-mono text-zinc-600">
                                                                     {new Date(email.received_at).toLocaleTimeString()}
