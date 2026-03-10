@@ -19,7 +19,7 @@ interface OngoingInterventionsProps {
 const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang, onRefresh, isRefreshing }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
 
-    const ongoingItems = interventions.filter(i => i.status === 'PENDING' || i.status === 'DELAYED');
+    const ongoingItems = interventions.filter(i => i.status === 'PENDING');
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-12">

@@ -120,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     <SidebarItem icon={<ClipboardList size={20} />} label={t.missions} active={activeTab === 'missions'} onClick={() => handleTabClick('missions')} badge={stats.missions} />
                                 </div>
                                 <div id="nav-ongoing">
-                                    <SidebarItem icon={<Clock size={20} />} label={t.interventions || 'Interventions'} active={activeTab === 'ongoing'} onClick={() => handleTabClick('ongoing')} badge={stats.ongoing + stats.delayed} />
+                                    <SidebarItem icon={<Clock size={20} />} label={t.interventions || 'Interventions'} active={activeTab === 'ongoing'} onClick={() => handleTabClick('ongoing')} badge={stats.ongoing} />
                                 </div>
                                 <div id="nav-management">
                                     <SidebarItem icon={<FileText size={20} />} label={t.management || 'History & Documents'} active={activeTab === 'management'} onClick={() => handleTabClick('management')} />
@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     <SidebarItem icon={<Building2 size={20} />} label={t.management} active={activeTab === 'management'} onClick={() => handleTabClick('management')} />
                                 </div>
                                 <div id="nav-ongoing">
-                                    <SidebarItem icon={<Clock size={20} />} label={t.ongoing} active={activeTab === 'ongoing'} onClick={() => handleTabClick('ongoing')} badge={stats.ongoing + stats.delayed} />
+                                    <SidebarItem icon={<Clock size={20} />} label={t.ongoing} active={activeTab === 'ongoing'} onClick={() => handleTabClick('ongoing')} badge={stats.ongoing} />
                                 </div>
                                 <div id="nav-missions">
                                     <SidebarItem icon={<ClipboardList size={20} />} label={t.missions} active={activeTab === 'missions'} onClick={() => handleTabClick('missions')} badge={stats.missions} />

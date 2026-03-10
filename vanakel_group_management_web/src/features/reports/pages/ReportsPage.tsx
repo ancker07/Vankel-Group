@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Intervention, Building, Professional, Syndic, Language } from '@/types';
-import { Search, Download, Eye, ChevronRight, FileText, Calendar, CheckCircle2, MapPin } from 'lucide-react';
+import { Search, Download, Eye, ChevronRight, FileText, Calendar, CheckCircle2, MapPin, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
 
 interface ReportsPageProps {
@@ -28,14 +28,14 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
     });
   }, [interventions]);
 
-  // Latest Slips (Top 10) - Filtered for COMPLETED only
-  const latestSlips = sortedInterventions.filter(i => i.status === 'COMPLETED').slice(0, 10);
+  // Latest Slips (Top 10) - Filtered for COMPLETED and DELAYED
+  const latestSlips = sortedInterventions.filter(i => i.status === 'COMPLETED' || i.status === 'DELAYED').slice(0, 10);
 
-  // Filtered History - ONLY COMPLETED
+  // Filtered History - COMPLETED and DELAYED
   const filteredHistory = useMemo(() => {
     return sortedInterventions.filter(i => {
-      // STRICT RULE: ONLY COMPLETED
-      if (i.status !== 'COMPLETED') return false;
+      // STRICT RULE: ONLY COMPLETED AND DELAYED
+      if (i.status !== 'COMPLETED' && i.status !== 'DELAYED') return false;
 
       const b = buildings.find(build => build.id === i.buildingId);
       const searchLower = filterSearch.toLowerCase();
@@ -54,7 +54,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
   // Stats - Show counts relative to the History view (Completed)
   const stats = {
     total: interventions.length,
-    completed: interventions.filter(i => i.status === 'COMPLETED').length,
+    completed: interventions.filter(i => i.status === 'COMPLETED' || i.status === 'DELAYED').length,
   };
 
   const handleDownloadPDF = () => {
@@ -124,8 +124,16 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                       <p className="text-[10px] text-zinc-500 font-mono mb-1">{slip.id}</p>
                       <h4 className="font-bold text-sm text-white truncate" title={slip.title}>{slip.title}</h4>
                     </div>
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
-                      <CheckCircle2 size={10} /> {t.status_completed}
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${slip.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+                      {slip.status === 'DELAYED' ? (
+                        <>
+                          <Clock size={10} /> {t.status_delayed}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={10} /> {t.status_completed}
+                        </>
+                      )}
                     </span>
                   </div>
 
@@ -207,8 +215,16 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                       {new Date(item.createdAt || item.scheduledDate).toLocaleDateString()}
                     </div>
                     <div className="col-span-2 flex justify-end gap-3 items-center">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
-                        <CheckCircle2 size={10} /> {t.status_completed}
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${item.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+                        {item.status === 'DELAYED' ? (
+                          <>
+                            <Clock size={10} /> {t.status_delayed}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={10} /> {t.status_completed}
+                          </>
+                        )}
                       </span>
                       <button onClick={() => onViewIntervention(item.id)} className="p-1.5 text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.view}>
                         <Eye size={14} />
@@ -226,8 +242,16 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                         <span className="text-[10px] font-mono text-zinc-500 block mb-1">{item.id}</span>
                         <h4 className="font-bold text-white text-sm">{item.title}</h4>
                       </div>
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
-                        <CheckCircle2 size={10} /> {t.status_completed}
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${item.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+                        {item.status === 'DELAYED' ? (
+                          <>
+                            <Clock size={10} /> {t.status_delayed}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={10} /> {t.status_completed}
+                          </>
+                        )}
                       </span>
                     </div>
                     <div className="text-xs text-zinc-400">
