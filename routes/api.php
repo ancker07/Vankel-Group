@@ -10,6 +10,7 @@ use App\Http\Controllers\SettingController;
 Route::get('/emails', [EmailController::class, 'index']);
 Route::get('/emails/{id}', [EmailController::class, 'show']);
 Route::delete('/emails/{id}', [EmailController::class, 'destroy']);
+Route::post('/emails/{id}/reply', [EmailController::class, 'reply']);
 Route::post('/emails/sync', [EmailController::class, 'sync']);
 Route::post('/emails/{id}/ingest', [EmailController::class, 'ingest']);
 Route::post('/emails/ingest-all', [EmailController::class, 'ingestAll']);

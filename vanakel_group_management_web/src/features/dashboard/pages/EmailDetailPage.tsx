@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Mail, Calendar, ArrowLeft, Paperclip, Download, Clock, Trash2 } from 'lucide-react';
+import { Mail, Calendar, ArrowLeft, Paperclip, Download, Clock, Trash2, Send, CheckCircle2, X } from 'lucide-react';
 import { Email, Language } from '@/types';
 import { dataService } from '@/services/dataService';
 import { STORAGE_BASE_URL } from '@/lib/apiClient';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import EmailReplyForm from '../components/EmailReplyForm';
 
 interface EmailDetailPageProps {
     lang: Language;
@@ -18,6 +19,8 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showReplyForm, setShowReplyForm] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchEmail = async () => {
@@ -35,6 +38,13 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
 
         fetchEmail();
     }, [id]);
+
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => setSuccessMessage(null), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMessage]);
 
     const handleBack = () => {
         navigate(-1);
@@ -84,6 +94,14 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
 
     return (
         <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto space-y-6 pb-12">
+            {/* Success Message Banner */}
+            {successMessage && (
+                <div className="flex items-center gap-3 p-4 bg-brand-green/10 border border-brand-green/20 rounded-2xl text-brand-green text-sm animate-in slide-in-from-top-4 duration-300">
+                    <CheckCircle2 size={18} />
+                    <span className="font-bold">{successMessage}</span>
+                </div>
+            )}
+
             {/* Header / Actions */}
             <div className="flex items-center justify-between">
                 <button
@@ -98,6 +116,17 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
 
                 <div className="flex items-center gap-3">
                     <button
+                        onClick={() => setShowReplyForm(!showReplyForm)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg group ${showReplyForm
+                            ? 'bg-zinc-800 text-white border border-zinc-700'
+                            : 'bg-brand-green text-black border border-brand-green shadow-brand-green/10 hover:bg-white hover:border-white'
+                            }`}
+                    >
+                        {showReplyForm ? <X size={16} /> : <Send size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />}
+                        {showReplyForm ? 'Close Reply' : 'Reply Email'}
+                    </button>
+
+                    <button
                         onClick={() => setShowDeleteModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:scale-95 shadow-lg shadow-red-500/5 group"
                     >
@@ -109,6 +138,15 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Reply Form Section */}
+            {showReplyForm && (
+                <EmailReplyForm
+                    emailId={email.id}
+                    onClose={() => setShowReplyForm(false)}
+                    onSuccess={(msg) => setSuccessMessage(msg)}
+                />
+            )}
 
             {/* Email Main Card */}
             <div className="bg-zinc-950 rounded-3xl border border-zinc-800 overflow-hidden shadow-2xl">

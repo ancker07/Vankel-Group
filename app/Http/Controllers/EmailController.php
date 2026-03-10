@@ -8,6 +8,9 @@ use App\Services\EmailIngestionService;
 use Illuminate\Http\Request;
 use Webklex\IMAP\Facades\Client;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReplyEmail;
+use Carbon\Carbon;
 
 class EmailController extends Controller
 {
@@ -121,5 +124,45 @@ class EmailController extends Controller
             'message' => 'Bulk ingestion processed.',
             'results' => $results
         ]);
+    }
+
+    public function reply(Request $request, $id)
+    {
+        $request->validate([
+            'body' => 'required|string',
+            'account' => 'required|in:no-reply,redirection',
+        ]);
+
+        $email = Email::findOrFail($id);
+        
+        $subject = str_starts_with(strtolower($email->subject), 're:') 
+            ? $email->subject 
+            : 'Re: ' . $email->subject;
+
+        // Determine which mailer to use
+        $mailerName = ($request->account === 'redirection') ? 'redirection' : 'smtp';
+        $fromAddress = ($request->account === 'redirection') 
+            ? 'Redirection@vanakelgroup.com' 
+            : env('MAIL_FROM_ADDRESS', 'no-reply@vanakelgroup.com');
+
+        try {
+            Mail::mailer($mailerName)->to($email->from_address)->send(
+                new ReplyEmail(
+                    $request->body, 
+                    $subject, 
+                    $email->message_id, 
+                    $email->message_id // Simple references/in-reply-to for now
+                )
+            );
+
+            return response()->json([
+                'message' => 'Reply sent successfully from ' . $fromAddress
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to send reply: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

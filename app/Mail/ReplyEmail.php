@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Mail;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+
+class ReplyEmail extends Mailable
+{
+    public $replyBody;
+    public $replySubject;
+    public $messageId;
+    public $references;
+
+    /**
+     * Create a new message instance.
+     */
+    public function __construct($replyBody, $replySubject, $messageId = null, $references = null)
+    {
+        $this->replyBody = $replyBody;
+        $this->replySubject = $replySubject;
+        $this->messageId = $messageId;
+        $this->references = $references;
+    }
+
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        $headers = [];
+        if ($this->messageId) {
+            $headers['In-Reply-To'] = $this->messageId;
+        }
+        if ($this->references) {
+            $headers['References'] = $this->references;
+        }
+
+        return new Envelope(
+            subject: $this->replySubject,
+            tags: ['reply'],
+            metadata: $headers,
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.reply',
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
+    }
+}

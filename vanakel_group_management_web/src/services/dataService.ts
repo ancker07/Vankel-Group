@@ -73,6 +73,10 @@ export const dataService = {
         const response = await apiClient.delete(`/emails/${id}`);
         return response.data;
     },
+    replyToEmail: async (id: number, body: string, account: 'no-reply' | 'redirection') => {
+        const response = await apiClient.post(`/emails/${id}/reply`, { body, account });
+        return response.data;
+    },
     getAiSettings: async () => {
         const response = await apiClient.get('/settings/ai');
         return response.data;

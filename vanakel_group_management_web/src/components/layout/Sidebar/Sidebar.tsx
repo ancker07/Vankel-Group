@@ -74,6 +74,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 onClick={() => handleTabClick('email_ingestion')}
                             />
                             <SidebarItem
+                                icon={<Building2 size={20} className="text-cyan-400" />}
+                                label={t.management || 'Management'}
+                                active={activeTab === 'management'}
+                                onClick={() => handleTabClick('management')}
+                            />
+                            <SidebarItem
                                 icon={<Clock size={20} className="text-brand-green" />}
                                 label={t.ongoing || 'Interventions'}
                                 active={activeTab === 'ongoing'}
