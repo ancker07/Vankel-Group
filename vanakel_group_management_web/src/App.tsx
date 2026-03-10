@@ -608,7 +608,8 @@ const App: React.FC = () => {
         delay_reason: updated.delayReason,
         delay_details: updated.delayDetails,
         delayed_reschedule_date: updated.delayedRescheduleDate,
-        completed_at: updated.completedAt
+        completed_at: updated.completedAt,
+        syndic_id: updated.syndicId
       };
 
       // Check for new files added in UI
@@ -681,6 +682,7 @@ const App: React.FC = () => {
           onSiteContactName: serverData.on_site_contact_name,
           onSiteContactPhone: serverData.on_site_contact_phone,
           onSiteContactEmail: serverData.on_site_contact_email,
+          syndicId: serverData.syndic_id ? String(serverData.syndic_id) : undefined,
           documents: (serverData.documents || []).map((d: any) => ({
             id: String(d.id),
             name: d.file_name,
@@ -718,6 +720,7 @@ const App: React.FC = () => {
           onSiteContactName: serverData.on_site_contact_name,
           onSiteContactPhone: serverData.on_site_contact_phone,
           onSiteContactEmail: serverData.on_site_contact_email,
+          syndicId: serverData.syndic_id ? String(serverData.syndic_id) : undefined,
           sourceType: 'MANUAL'
         };
         setInterventions(prev => [newInt, ...prev]);
@@ -1090,6 +1093,7 @@ const App: React.FC = () => {
                     building={buildings.find(b => b.id === selectedIntervention.buildingId)!}
                     professional={professionals.find(p => p.id === selectedIntervention.professionalId)}
                     syndic={selectedIntSyndic}
+                    syndics={syndics}
                     lang={lang}
                     onClose={() => setSelectedInterventionId(null)}
                     onUpdate={handleInterventionUpdate}

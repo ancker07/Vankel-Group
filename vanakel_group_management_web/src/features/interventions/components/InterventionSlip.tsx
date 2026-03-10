@@ -16,6 +16,7 @@ interface SlipProps {
   building: Building;
   professional?: Professional;
   syndic?: Syndic;
+  syndics?: Syndic[];
   lang: Language;
   onClose: () => void;
   onUpdate: (i: Intervention) => Promise<void>;
@@ -65,7 +66,7 @@ const FormattedExtractedContent: React.FC<{ text: string }> = ({ text }) => {
 // --- Main Component ---
 
 const InterventionSlip: React.FC<SlipProps> = ({
-  intervention, building, professional, syndic, lang, onClose, onUpdate, onOpenMaintenance, role
+  intervention, building, professional, syndic, syndics = [], lang, onClose, onUpdate, onOpenMaintenance, role
 }) => {
 
   const t = TRANSLATIONS[lang];
@@ -81,6 +82,10 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [contactName, setContactName] = useState(intervention.onSiteContactName || '');
   const [contactPhone, setContactPhone] = useState(intervention.onSiteContactPhone || '');
   const [contactEmail, setContactEmail] = useState(intervention.onSiteContactEmail || '');
+  const [internalSyndicId, setInternalSyndicId] = useState(intervention.syndicId || building.linkedSyndicId || '');
+
+  // Derived syndic for display
+  const currentSyndic = syndics.find(s => s.id === internalSyndicId) || syndic;
 
   const [photos, setPhotos] = useState<{ url: string, file?: File }[]>(
     (intervention.photos || []).map(url => ({ url }))
@@ -211,6 +216,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         onSiteContactName: contactName,
         onSiteContactPhone: contactPhone,
         onSiteContactEmail: contactEmail,
+        syndicId: internalSyndicId,
         photos: photos.map(p => p.url),
         documents: documents.map(d => ({ ...d })),
         // Pass new actual files to parent
@@ -357,20 +363,20 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 <p className="text-zinc-300 text-sm md:text-base font-medium flex items-center gap-1.5 md:gap-2">
                   <MapPin size={14} className="text-brand-green" /> {building.city}, BE
                 </p>
-                {syndic && (
+                {currentSyndic && (
                   <p className="bg-brand-green/20 text-brand-green px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border border-brand-green/30">
-                    {t.syndic}: {syndic.companyName}
+                    {t.syndic}: {currentSyndic.companyName}
                   </p>
                 )}
               </div>
             </div>
             <div>
               <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.syndic}</p>
-              <p className="font-bold text-brand-green text-sm md:text-lg">{syndic ? syndic.companyName : t.unassigned}</p>
+              <p className="font-bold text-brand-green text-sm md:text-lg">{currentSyndic ? currentSyndic.companyName : t.unassigned}</p>
               <div className="flex flex-col md:items-end gap-1 mt-1">
-                <p className="text-zinc-400 text-[10px] font-bold uppercase">{syndic ? syndic.contactPerson : '-'}</p>
-                {syndic?.phone && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Smartphone size={10} /> {syndic.phone}</p>}
-                {syndic?.email && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Mail size={10} /> {syndic.email}</p>}
+                <p className="text-zinc-400 text-[10px] font-bold uppercase">{currentSyndic ? currentSyndic.contactPerson : '-'}</p>
+                {currentSyndic?.phone && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Smartphone size={10} /> {currentSyndic.phone}</p>}
+                {currentSyndic?.email && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Mail size={10} /> {currentSyndic.email}</p>}
               </div>
             </div>
           </div>
@@ -458,32 +464,86 @@ const InterventionSlip: React.FC<SlipProps> = ({
             </div>
           </div>
 
-          {syndic && (
+          {/* Syndic / Manager / Customer Footer */}
+          {(currentSyndic || (isEditable && !isSyndic)) && (
             <div className="mt-8 pt-6 border-t border-zinc-900/50">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green border border-brand-green/20">
-                    <User size={18} />
+              {isEditable && !isSyndic ? (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{t.syndic} / Customer Info</label>
+                    {internalSyndicId && (
+                      <button
+                        onClick={() => setInternalSyndicId('')}
+                        className="text-[9px] font-bold text-red-500 uppercase hover:underline"
+                      >
+                        {t.cancel}
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / Manager</p>
-                    <p className="text-xs font-black text-white">{syndic.companyName}</p>
-                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{syndic.contactPerson}</p>
+                  <select
+                    value={internalSyndicId}
+                    onChange={(e) => setInternalSyndicId(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-bold text-white focus:border-brand-green outline-none transition-all"
+                  >
+                    <option value="">{t.selectOrCreateSyndic || 'Select Customer...'}</option>
+                    {syndics.map(s => (
+                      <option key={s.id} value={s.id}>{s.companyName} ({s.contactPerson})</option>
+                    ))}
+                  </select>
+
+                  {currentSyndic && (
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-brand-green/5 p-4 rounded-xl border border-brand-green/20 mt-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green border border-brand-green/20">
+                          <User size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / Manager</p>
+                          <p className="text-xs font-black text-white">{currentSyndic.companyName}</p>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentSyndic.contactPerson}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col md:items-end justify-center gap-1.5">
+                        {currentSyndic.phone && (
+                          <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-2">
+                            <Smartphone size={12} className="text-brand-green" /> {currentSyndic.phone}
+                          </p>
+                        )}
+                        {currentSyndic.email && (
+                          <p className="text-[10px] font-medium text-zinc-500 flex items-center gap-2">
+                            <Mail size={12} /> {currentSyndic.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : currentSyndic ? (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-green/10 flex items-center justify-center text-brand-green border border-brand-green/20">
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / Manager</p>
+                      <p className="text-xs font-black text-white">{currentSyndic.companyName}</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentSyndic.contactPerson}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:items-end justify-center gap-1.5">
+                    {currentSyndic.phone && (
+                      <a href={`tel:${currentSyndic.phone}`} className="text-xs font-bold text-zinc-300 hover:text-brand-green transition-colors flex items-center gap-2">
+                        <Smartphone size={12} className="text-brand-green" /> {currentSyndic.phone}
+                      </a>
+                    )}
+                    {currentSyndic.email && (
+                      <a href={`mailto:${currentSyndic.email}`} className="text-xs font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
+                        <Mail size={12} /> {currentSyndic.email}
+                      </a>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-col md:items-end justify-center gap-1.5">
-                  {syndic.phone && (
-                    <a href={`tel:${syndic.phone}`} className="text-xs font-bold text-zinc-300 hover:text-brand-green transition-colors flex items-center gap-2">
-                      <Smartphone size={12} className="text-brand-green" /> {syndic.phone}
-                    </a>
-                  )}
-                  {syndic.email && (
-                    <a href={`mailto:${syndic.email}`} className="text-xs font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
-                      <Mail size={12} /> {syndic.email}
-                    </a>
-                  )}
-                </div>
-              </div>
+              ) : null}
             </div>
           )}
         </div>

@@ -28,6 +28,7 @@ class InterventionController extends Controller
             'onSiteContactPhone' => 'required|string',
             'onSiteContactEmail' => 'nullable|string',
             'files.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
+            'photos.*' => 'nullable|file|image|max:10240',
         ]);
 
         // 1. Find or create building
@@ -79,6 +80,17 @@ class InterventionController extends Controller
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
                 $path = $file->store('documents', 'public');
+                $entity->documents()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+            }
+        }
+
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $file) {
+                $path = $file->store('photos', 'public');
                 $entity->documents()->create([
                     'file_path' => $path,
                     'file_name' => $file->getClientOriginalName(),
@@ -181,9 +193,14 @@ class InterventionController extends Controller
             'delay_details' => 'sometimes|nullable|string',
             'delayed_reschedule_date' => 'sometimes|nullable|date',
             'completed_at' => 'sometimes|nullable|date',
+            'syndic_id' => 'sometimes|nullable|string',
             'files.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
             'photos.*' => 'nullable|file|image|max:10240',
         ]);
+
+        if (array_key_exists('syndic_id', $validated) && ($validated['syndic_id'] === 'null' || $validated['syndic_id'] === '')) {
+            $validated['syndic_id'] = null;
+        }
 
         if (array_key_exists('pro_id', $validated) && ($validated['pro_id'] === 'null' || $validated['pro_id'] === '')) {
             $validated['pro_id'] = null;
