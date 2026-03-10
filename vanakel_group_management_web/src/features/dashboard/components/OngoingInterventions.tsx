@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw } from 'lucide-react';
+import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar } from 'lucide-react';
 import { Intervention, Building, Syndic, Language, Document } from '@/types';
-import { URGENCY } from '@/utils/constants';
+import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
 
@@ -19,7 +19,35 @@ interface OngoingInterventionsProps {
 const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang, onRefresh, isRefreshing }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
 
-    const ongoingItems = interventions.filter(i => i.status === 'PENDING');
+    // Filter States
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedSector, setSelectedSector] = useState('');
+    const [selectedUrgency, setSelectedUrgency] = useState('');
+    const [selectedBuilding, setSelectedBuilding] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+    const sortedInterventions = [...interventions].sort((a, b) =>
+        new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()
+    );
+
+    const filteredInterventions = sortedInterventions.filter(i => {
+        const matchesSearch = !searchQuery ||
+            i.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            i.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesSector = !selectedSector || i.sector === selectedSector;
+        const matchesUrgency = !selectedUrgency || i.urgency === selectedUrgency;
+        const matchesBuilding = !selectedBuilding || String(i.buildingId) === String(selectedBuilding);
+
+        const intDate = new Date(i.scheduledDate);
+        const matchesStartDate = !startDate || intDate >= new Date(startDate);
+        const matchesEndDate = !endDate || intDate <= new Date(endDate + 'T23:59:59');
+
+        return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesStartDate && matchesEndDate;
+    });
+
+    const ongoingItems = filteredInterventions.filter(i => i.status === 'PENDING');
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-12">
@@ -42,6 +70,98 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                     <span className="bg-zinc-900 text-zinc-500 px-3 py-1 rounded-full text-xs font-bold border border-zinc-800">
                         {ongoingItems.length} {t.items || 'Items'}
                     </span>
+                </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl shadow-lg flex flex-wrap items-center gap-4 mb-6">
+                <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                    <input
+                        type="text"
+                        placeholder={t.search_placeholder || "Search interventions..."}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors"
+                    />
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <Filter size={14} className="text-zinc-500" />
+                        <select
+                            value={selectedSector}
+                            onChange={(e) => setSelectedSector(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                        >
+                            <option value="">{t.all_sectors || "All Sectors"}</option>
+                            {SECTORS.map(s => (
+                                <option key={s.id} value={s.id}>{s.label[lang]}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <select
+                            value={selectedUrgency}
+                            onChange={(e) => setSelectedUrgency(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                        >
+                            <option value="">{t.all_urgency || "All Urgency"}</option>
+                            {URGENCY.map(u => (
+                                <option key={u.id} value={u.id}>{u.label[lang]}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <select
+                            value={selectedBuilding}
+                            onChange={(e) => setSelectedBuilding(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer max-w-[150px]"
+                        >
+                            <option value="">{t.all_buildings || "All Buildings"}</option>
+                            {buildings.map(b => (
+                                <option key={b.id} value={b.id}>{b.address}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <Calendar size={14} className="text-zinc-500" />
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                            title="Start Date"
+                        />
+                        <span className="text-zinc-700 mx-1">-</span>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                            title="End Date"
+                        />
+                    </div>
+
+                    {(searchQuery || selectedSector || selectedUrgency || selectedBuilding || startDate || endDate) && (
+                        <button
+                            onClick={() => {
+                                setSearchQuery('');
+                                setSelectedSector('');
+                                setSelectedUrgency('');
+                                setSelectedBuilding('');
+                                setStartDate('');
+                                setEndDate('');
+                            }}
+                            className="p-2 text-zinc-500 hover:text-red-500 transition-colors"
+                            title="Reset Filters"
+                        >
+                            <RotateCcw size={16} />
+                        </button>
+                    )}
                 </div>
             </div>
 

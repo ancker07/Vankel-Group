@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight } from 'lucide-react';
+import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Search, Filter, Calendar } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document } from '@/types';
-import { URGENCY } from '@/utils/constants';
+import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 import MissionDetailsModal from '../components/MissionDetailsModal';
 
@@ -26,9 +26,37 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
-    const pendingMissions = missions.filter(m => m.status === 'PENDING');
-    const approvedMissions = missions.filter(m => m.status === 'APPROVED');
-    const rejectedMissions = missions.filter(m => m.status === 'REJECTED');
+    // Filter States
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedSector, setSelectedSector] = useState('');
+    const [selectedUrgency, setSelectedUrgency] = useState('');
+    const [selectedBuilding, setSelectedBuilding] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+    const sortedMissions = [...missions].sort((a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    const filteredMissions = sortedMissions.filter(m => {
+        const matchesSearch = !searchQuery ||
+            m.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            m.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesSector = !selectedSector || m.sector === selectedSector;
+        const matchesUrgency = !selectedUrgency || m.urgency === selectedUrgency;
+        const matchesBuilding = !selectedBuilding || String(m.buildingId) === String(selectedBuilding);
+
+        const missionDate = new Date(m.timestamp);
+        const matchesStartDate = !startDate || missionDate >= new Date(startDate);
+        const matchesEndDate = !endDate || missionDate <= new Date(endDate + 'T23:59:59');
+
+        return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesStartDate && matchesEndDate;
+    });
+
+    const pendingMissions = filteredMissions.filter(m => m.status === 'PENDING');
+    const approvedMissions = filteredMissions.filter(m => m.status === 'APPROVED');
+    const rejectedMissions = filteredMissions.filter(m => m.status === 'REJECTED');
 
     const renderMissionList = (list: Mission[], emptyMsg: string) => (
         <div className="space-y-4">
@@ -168,7 +196,98 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                 >
                     <Plus size={16} strokeWidth={3} /> {t.create_request || 'Create Request'}
                 </button>
+            </div>
 
+            {/* Filter Bar */}
+            <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl shadow-lg flex flex-wrap items-center gap-4">
+                <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                    <input
+                        type="text"
+                        placeholder={t.search_placeholder || "Search missions..."}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-brand-green/50 transition-colors"
+                    />
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <Filter size={14} className="text-zinc-500" />
+                        <select
+                            value={selectedSector}
+                            onChange={(e) => setSelectedSector(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                        >
+                            <option value="">{t.all_sectors || "All Sectors"}</option>
+                            {SECTORS.map(s => (
+                                <option key={s.id} value={s.id}>{s.label[lang]}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <select
+                            value={selectedUrgency}
+                            onChange={(e) => setSelectedUrgency(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                        >
+                            <option value="">{t.all_urgency || "All Urgency"}</option>
+                            {URGENCY.map(u => (
+                                <option key={u.id} value={u.id}>{u.label[lang]}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <select
+                            value={selectedBuilding}
+                            onChange={(e) => setSelectedBuilding(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer max-w-[150px]"
+                        >
+                            <option value="">{t.all_buildings || "All Buildings"}</option>
+                            {buildings.map(b => (
+                                <option key={b.id} value={b.id}>{b.address}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl shrink-0">
+                        <Calendar size={14} className="text-zinc-500" />
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                            title="Start Date"
+                        />
+                        <span className="text-zinc-700 mx-1">-</span>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
+                            title="End Date"
+                        />
+                    </div>
+
+                    {(searchQuery || selectedSector || selectedUrgency || selectedBuilding || startDate || endDate) && (
+                        <button
+                            onClick={() => {
+                                setSearchQuery('');
+                                setSelectedSector('');
+                                setSelectedUrgency('');
+                                setSelectedBuilding('');
+                                setStartDate('');
+                                setEndDate('');
+                            }}
+                            className="p-2 text-zinc-500 hover:text-red-500 transition-colors"
+                            title="Reset Filters"
+                        >
+                            <RotateCcw size={16} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="space-y-12">
@@ -197,28 +316,32 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                 </section>
             </div>
 
-            {selectedMission && (
-                <MissionDetailsModal
-                    mission={selectedMission}
-                    onClose={() => setSelectedMission(null)}
-                    building={buildings.find(b => String(b.id) === String(selectedMission.buildingId))}
-                    syndic={syndics.find(s => String(s.id) === String(selectedMission.syndicId || buildings.find(b => String(b.id) === String(selectedMission.buildingId))?.linkedSyndicId))}
-                    lang={lang}
-                    onApprove={onApprove}
-                    onReject={onReject}
-                    role={role}
-                />
-            )}
+            {
+                selectedMission && (
+                    <MissionDetailsModal
+                        mission={selectedMission}
+                        onClose={() => setSelectedMission(null)}
+                        building={buildings.find(b => String(b.id) === String(selectedMission.buildingId))}
+                        syndic={syndics.find(s => String(s.id) === String(selectedMission.syndicId || buildings.find(b => String(b.id) === String(selectedMission.buildingId))?.linkedSyndicId))}
+                        lang={lang}
+                        onApprove={onApprove}
+                        onReject={onReject}
+                        role={role}
+                    />
+                )
+            }
 
-            {viewerData && (
-                <DocumentViewerModal
-                    isOpen={!!viewerData}
-                    onClose={() => setViewerData(null)}
-                    documents={viewerData.docs}
-                    initialIndex={viewerData.index}
-                />
-            )}
-        </div>
+            {
+                viewerData && (
+                    <DocumentViewerModal
+                        isOpen={!!viewerData}
+                        onClose={() => setViewerData(null)}
+                        documents={viewerData.docs}
+                        initialIndex={viewerData.index}
+                    />
+                )
+            }
+        </div >
     );
 };
 
