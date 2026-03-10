@@ -358,7 +358,16 @@ const InterventionSlip: React.FC<SlipProps> = ({
           <div className="space-y-5 md:space-y-6">
             <div>
               <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.building_header}</p>
-              <h3 className="text-lg md:text-2xl font-black text-white leading-tight mb-3">{building.address}</h3>
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-lg md:text-2xl font-black text-white leading-tight">{building.address}</h3>
+                <button
+                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building.address}, ${building.city}`)}`, '_blank')}
+                  className="p-1.5 bg-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green transition-colors border border-zinc-700 shrink-0"
+                  title={t.viewOnMaps}
+                >
+                  <MapPin size={16} />
+                </button>
+              </div>
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-zinc-300 text-sm md:text-base font-medium flex items-center gap-1.5 md:gap-2">
                   <MapPin size={14} className="text-brand-green" /> {building.city}, BE

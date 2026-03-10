@@ -120,7 +120,16 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                 <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900">
                                     <div className="flex items-center gap-2 text-xs text-zinc-400">
                                         <MapPin size={12} className="text-brand-green" />
-                                        <span className="truncate">{b?.address}, {b?.city}</span>
+                                        <a
+                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="truncate hover:text-brand-green hover:underline transition-colors"
+                                            title={t.viewOnMaps}
+                                        >
+                                            {b?.address}, {b?.city}
+                                        </a>
                                     </div>
                                     <div className="flex items-center gap-2 text-xs text-zinc-400">
                                         <ShieldCheck size={12} className="text-zinc-600" />
