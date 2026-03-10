@@ -181,6 +181,8 @@ class InterventionController extends Controller
             'delay_details' => 'sometimes|nullable|string',
             'delayed_reschedule_date' => 'sometimes|nullable|date',
             'completed_at' => 'sometimes|nullable|date',
+            'files.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
+            'photos.*' => 'nullable|file|image|max:10240',
         ]);
 
         if (array_key_exists('pro_id', $validated) && ($validated['pro_id'] === 'null' || $validated['pro_id'] === '')) {
