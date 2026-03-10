@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class AiService
 {
-    public function extractEmailData(string $content)
+    public function extractEmailData(string $content, array $attachments = [])
     {
         $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini-1.5-flash-latest';
         $apiKey = Setting::where('key', 'ai_api_key')->value('value');
@@ -18,20 +18,35 @@ class AiService
         }
 
         if (str_contains($model, 'gpt')) {
-            return $this->callOpenAi($content, $model, $apiKey);
+            return $this->callOpenAi($content, $attachments, $model, $apiKey);
         } else {
-            return $this->callGemini($content, $model, $apiKey);
+            return $this->callGemini($content, $attachments, $model, $apiKey);
         }
     }
 
-    protected function callOpenAi(string $content, string $model, string $apiKey)
+    protected function callOpenAi(string $content, array $attachments, string $model, string $apiKey)
     {
+        $messages = [
+            ['role' => 'system', 'content' => $this->getSystemPrompt()],
+            ['role' => 'user', 'content' => $content],
+        ];
+
+        // Basic support for vision if model supports it (optional, focusing on Gemini as primary)
+        foreach ($attachments as $att) {
+            if (str_starts_with($att['mime_type'], 'image/')) {
+                 $messages[] = [
+                     'role' => 'user',
+                     'content' => [
+                         ['type' => 'text', 'text' => "Attachment: {$att['name']}"],
+                         ['type' => 'image_url', 'image_url' => ['url' => "data:{$att['mime_type']};base64,{$att['data']}"]]
+                     ]
+                 ];
+            }
+        }
+
         $response = Http::withToken($apiKey)->post('https://api.openai.com/v1/chat/completions', [
             'model' => $model,
-            'messages' => [
-                ['role' => 'system', 'content' => $this->getSystemPrompt()],
-                ['role' => 'user', 'content' => $content],
-            ],
+            'messages' => $messages,
             'response_format' => ['type' => 'json_object'],
         ]);
 
@@ -43,18 +58,33 @@ class AiService
         return json_decode($response->json('choices.0.message.content'), true);
     }
 
-    protected function callGemini(string $content, string $model, string $apiKey)
+    protected function callGemini(string $content, array $attachments, string $model, string $apiKey)
     {
         // Use v1 for more stability if available, but v1beta allows recent models
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
+
+        $parts = [
+            ['text' => $this->getSystemPrompt() . "\n\nEmail Content:\n" . $content]
+        ];
+
+        foreach ($attachments as $att) {
+            // Gemini supports images and PDF in multimodal
+            if (str_starts_with($att['mime_type'], 'image/') || $att['mime_type'] === 'application/pdf') {
+                $parts[] = [
+                    'inline_data' => [
+                        'mime_type' => $att['mime_type'],
+                        'data' => $att['data']
+                    ]
+                ];
+                $parts[] = ['text' => "Enclosed attachment: " . $att['name']];
+            }
+        }
 
         $response = Http::post($url, [
             'contents' => [
                 [
                     'role' => 'user',
-                    'parts' => [
-                        ['text' => $this->getSystemPrompt() . "\n\nEmail Content:\n" . $content]
-                    ]
+                    'parts' => $parts
                 ]
             ],
             'generationConfig' => [

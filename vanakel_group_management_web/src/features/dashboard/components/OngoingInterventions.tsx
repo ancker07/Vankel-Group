@@ -24,8 +24,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
     const [selectedSector, setSelectedSector] = useState('');
     const [selectedUrgency, setSelectedUrgency] = useState('');
     const [selectedBuilding, setSelectedBuilding] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [selectedDate, setSelectedDate] = useState('');
 
     const sortedInterventions = [...interventions].sort((a, b) =>
         new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()
@@ -40,11 +39,10 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
         const matchesUrgency = !selectedUrgency || i.urgency === selectedUrgency;
         const matchesBuilding = !selectedBuilding || String(i.buildingId) === String(selectedBuilding);
 
-        const intDate = new Date(i.scheduledDate);
-        const matchesStartDate = !startDate || intDate >= new Date(startDate);
-        const matchesEndDate = !endDate || intDate <= new Date(endDate + 'T23:59:59');
+        const intDate = new Date(i.scheduledDate).toISOString().split('T')[0];
+        const matchesDate = !selectedDate || intDate === selectedDate;
 
-        return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesStartDate && matchesEndDate;
+        return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesDate;
     });
 
     const ongoingItems = filteredInterventions.filter(i => i.status === 'PENDING');
@@ -131,30 +129,21 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                         <Calendar size={14} className="text-zinc-500" />
                         <input
                             type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
                             className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
-                            title="Start Date"
-                        />
-                        <span className="text-zinc-700 mx-1">-</span>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
-                            title="End Date"
+                            title="Filter by Date"
                         />
                     </div>
 
-                    {(searchQuery || selectedSector || selectedUrgency || selectedBuilding || startDate || endDate) && (
+                    {(searchQuery || selectedSector || selectedUrgency || selectedBuilding || selectedDate) && (
                         <button
                             onClick={() => {
                                 setSearchQuery('');
                                 setSelectedSector('');
                                 setSelectedUrgency('');
                                 setSelectedBuilding('');
-                                setStartDate('');
-                                setEndDate('');
+                                setSelectedDate('');
                             }}
                             className="p-2 text-zinc-500 hover:text-red-500 transition-colors"
                             title="Reset Filters"

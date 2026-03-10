@@ -206,6 +206,9 @@ const App: React.FC = () => {
           onSiteContactPhone: m.on_site_contact_phone,
           onSiteContactEmail: m.on_site_contact_email,
           syndicId: String(m.syndic_id || ''),
+          sourceType: m.source_type,
+          sourceMessageId: m.source_message_id,
+          sourceDetails: m.source_details,
           documents: (m.documents || []).map((d: any) => {
             let path = d.file_path;
             if (path && path.includes('localhost')) {

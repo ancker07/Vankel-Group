@@ -30,11 +30,25 @@ class EmailIngestionService
 
         try {
             $content = "Subject: {$email->subject}\n\nBody:\n{$email->body_text}\n";
+            $attachmentsForAi = [];
+            
             foreach ($email->attachments as $attachment) {
                 $content .= "\nAttachment: {$attachment->file_name}";
+                
+                // Prepare for AI if it's an image or PDF
+                if (str_starts_with($attachment->mime_type, 'image/') || $attachment->mime_type === 'application/pdf') {
+                    $filePath = storage_path('app/public/' . $attachment->file_path);
+                    if (file_exists($filePath)) {
+                        $attachmentsForAi[] = [
+                            'name' => $attachment->file_name,
+                            'mime_type' => $attachment->mime_type,
+                            'data' => base64_encode(file_get_contents($filePath))
+                        ];
+                    }
+                }
             }
 
-            $aiData = $this->aiService->extractEmailData($content);
+            $aiData = $this->aiService->extractEmailData($content, $attachmentsForAi);
 
             if ($aiData['classification'] === 'NON_MISSION') {
                 $email->update([
@@ -82,6 +96,15 @@ class EmailIngestionService
                         'on_site_contact_phone' => $missionData['contactOnSite']['phone'] ?? null,
                         'on_site_contact_email' => $missionData['contactOnSite']['email'] ?? null,
                     ]);
+
+                    // Link attachments to mission as documents
+                    foreach ($email->attachments as $attachment) {
+                        $mission->documents()->create([
+                            'file_path' => $attachment->file_path,
+                            'file_name' => $attachment->file_name,
+                            'file_type' => $attachment->mime_type,
+                        ]);
+                    }
                 }
 
                 $status = $mission ? 'PROCESSED' : ($aiData['classification'] === 'NEEDS_REVIEW' ? 'NEEDS_REVIEW' : 'IGNORED');
