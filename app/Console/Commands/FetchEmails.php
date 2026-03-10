@@ -57,10 +57,19 @@ class FetchEmails extends Command
 
             $folders = $client->getFolders();
             $targetFolders = [];
+            $blacklist = ['sent', 'trash', 'drafts', 'bin', 'corbeille', 'messages envoyés', 'brouillons'];
 
             foreach ($folders as $folder) {
                 $name = strtolower($folder->name);
-                if ($name === 'inbox' || $name === 'junk' || $name === 'spam' || str_contains($name, 'junk') || str_contains($name, 'spam')) {
+                $isBlacklisted = false;
+                foreach ($blacklist as $term) {
+                    if (str_contains($name, $term)) {
+                        $isBlacklisted = true;
+                        break;
+                    }
+                }
+                
+                if (!$isBlacklisted) {
                     $targetFolders[] = $folder;
                 }
             }
