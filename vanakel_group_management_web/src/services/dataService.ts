@@ -31,7 +31,18 @@ export const dataService = {
         return response.data;
     },
     updateIntervention: async (id: string, payload: any) => {
-        const response = await apiClient.put(`/interventions/${id}`, payload);
+        let method = 'PUT';
+        let body = payload;
+
+        if (payload instanceof FormData) {
+            payload.append('_method', 'PUT');
+            method = 'POST';
+        }
+
+        const response = await (method === 'POST'
+            ? apiClient.post(`/interventions/${id}`, body)
+            : apiClient.put(`/interventions/${id}`, body));
+
         return response.data;
     },
     getPendingUsers: async () => {

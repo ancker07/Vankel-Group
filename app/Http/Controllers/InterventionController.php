@@ -190,6 +190,30 @@ class InterventionController extends Controller
         }
 
         $intervention->update($validated);
+        
+        // Handle Photo Uploads (Stored as Documents with image type)
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $file) {
+                $path = $file->store('photos', 'public');
+                $intervention->documents()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+            }
+        }
+
+        // Handle File Uploads (General Documents)
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $path = $file->store('documents', 'public');
+                $intervention->documents()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'Intervention updated successfully',

@@ -82,8 +82,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [contactPhone, setContactPhone] = useState(intervention.onSiteContactPhone || '');
   const [contactEmail, setContactEmail] = useState(intervention.onSiteContactEmail || '');
 
-  const [photos, setPhotos] = useState<string[]>(intervention.photos || []);
-  const [documents, setDocuments] = useState<any[]>(intervention.documents || []);
+  const [photos, setPhotos] = useState<{ url: string, file?: File }[]>(
+    (intervention.photos || []).map(url => ({ url }))
+  );
+  const [documents, setDocuments] = useState<{ id: string, name: string, url: string, file?: File, type?: any, status?: any, timestamp?: any }[]>(
+    (intervention.documents || []).map(d => ({ ...d }))
+  );
 
   const photoInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +106,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
   useEffect(() => {
     setStatus(intervention.status);
   }, [intervention.status]);
+
+  // Sync photos and documents from props
+  useEffect(() => {
+    setPhotos((intervention.photos || []).map(url => ({ url })));
+    setDocuments((intervention.documents || []).map(d => ({ ...d })));
+  }, [intervention.photos, intervention.documents]);
 
   // Auto-fill logic from description if fields are empty
   useEffect(() => {
@@ -151,25 +161,27 @@ const InterventionSlip: React.FC<SlipProps> = ({
     const files = e.target.files;
     if (!files) return;
 
-    // In a real app, you'd upload to S3/Server and get a URL.
-    // Here we'll use URL.createObjectURL for simulation.
-    const newPhotos = Array.from(files).map((file: File) => URL.createObjectURL(file));
-    setPhotos(prev => [...prev, ...newPhotos]);
+    const newFiles = (Array.from(files) as File[]).map(file => ({
+      url: URL.createObjectURL(file),
+      file
+    }));
+    setPhotos(prev => [...prev, ...newFiles]);
   };
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newDocs = Array.from(files).map((file: File) => ({
-      id: Math.random().toString(36).substr(2, 9),
+    const newFiles = (Array.from(files) as File[]).map(file => ({
+      id: `new-${Math.random().toString(36).substr(2, 9)}`,
       name: file.name,
       type: 'OTHER',
       status: 'PENDING',
       url: URL.createObjectURL(file),
+      file,
       timestamp: new Date().toISOString()
     }));
-    setDocuments(prev => [...prev, ...newDocs]);
+    setDocuments(prev => [...prev, ...newFiles]);
   };
 
   const executeSave = async (mode: 'NONE' | 'EMAIL' | 'WHATSAPP') => {
@@ -197,12 +209,17 @@ const InterventionSlip: React.FC<SlipProps> = ({
         onSiteContactName: contactName,
         onSiteContactPhone: contactPhone,
         onSiteContactEmail: contactEmail,
-        photos,
-        documents
-      });
+        photos: photos.map(p => p.url),
+        documents: documents.map(d => ({ ...d })),
+        // Pass new actual files to parent
+        addedPhotos: photos.filter(p => !!p.file).map(p => p.file),
+        addedDocuments: documents.filter(d => !!d.file).map(d => d.file)
+      } as any);
 
       if (status === 'COMPLETED') onClose();
-      else setIsEditable(false);
+      else {
+        setIsEditable(false);
+      }
     } catch (err) {
       // Error handled by parent toast, but we stop UI progression here
       return;
@@ -630,15 +647,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
                     <div className="space-y-2">
                       <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t.photos} ({photos.length})</p>
                       <div className="flex flex-wrap gap-2">
-                        {photos.map((url, idx) => (
+                        {photos.map((photo, idx) => (
                           <div key={idx} className="relative group w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900">
                             <img
-                              src={url}
+                              src={photo.url}
                               alt={`upload-${idx}`}
                               className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform"
                               onClick={() => {
                                 // Prepare unified list: Photos first, then Docs
-                                const photoDocs = photos.map((p, i) => ({ id: `photo-${i}`, name: `Photo ${i + 1}`, url: p, type: 'OTHER', status: 'APPROVED', timestamp: '' } as any));
+                                const photoDocs = photos.map((p, i) => ({ id: `photo-${i}`, name: `Photo ${i + 1}`, url: p.url, type: 'OTHER', status: 'APPROVED', timestamp: '' } as any));
                                 const unifiedDocs = [...photoDocs, ...documents];
                                 setViewerData({ docs: unifiedDocs, index: idx });
                               }}
@@ -670,7 +687,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  const photoDocs = photos.map((p, i) => ({ id: `photo-${i}`, name: `Photo ${i + 1}`, url: p, type: 'OTHER', status: 'APPROVED', timestamp: '' } as any));
+                                  const photoDocs = photos.map((p, i) => ({ id: `photo-${i}`, name: `Photo ${i + 1}`, url: p.url, type: 'OTHER', status: 'APPROVED', timestamp: '' } as any));
                                   const unifiedDocs = [...photoDocs, ...documents];
                                   setViewerData({ docs: unifiedDocs, index: photos.length + idx });
                                 }}

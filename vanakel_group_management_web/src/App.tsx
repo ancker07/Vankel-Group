@@ -594,9 +594,9 @@ const App: React.FC = () => {
     addToast(t.createAdmin, t.createAdminSuccess);
   };
 
-  const handleInterventionUpdate = async (updated: Intervention) => {
+  const handleInterventionUpdate = async (updated: any) => {
     try {
-      await dataService.updateIntervention(updated.id, {
+      let payload: any = {
         status: updated.status,
         pro_id: updated.proId,
         scheduled_date: updated.scheduledDate,
@@ -608,8 +608,31 @@ const App: React.FC = () => {
         delay_details: updated.delayDetails,
         delayed_reschedule_date: updated.delayedRescheduleDate,
         completed_at: updated.completedAt
-      });
-      setInterventions(prev => prev.map(i => i.id === updated.id ? updated : i));
+      };
+
+      // Check for new files added in UI
+      const hasFiles = (updated.addedPhotos && updated.addedPhotos.length > 0) ||
+        (updated.addedDocuments && updated.addedDocuments.length > 0);
+
+      if (hasFiles) {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value as string);
+          }
+        });
+
+        if (updated.addedPhotos) {
+          updated.addedPhotos.forEach((file: File) => formData.append('photos[]', file));
+        }
+        if (updated.addedDocuments) {
+          updated.addedDocuments.forEach((file: File) => formData.append('files[]', file));
+        }
+        payload = formData;
+      }
+
+      await dataService.updateIntervention(updated.id, payload);
+      setInterventions(prev => prev.map(i => i.id === updated.id ? { ...updated } : i));
       addToast(t.updated || 'Success', t.updateSuccess || 'Intervention mise à jour.');
     } catch (error) {
       console.error('Failed to update intervention:', error);
