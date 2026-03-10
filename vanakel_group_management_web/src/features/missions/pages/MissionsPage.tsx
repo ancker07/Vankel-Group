@@ -4,6 +4,7 @@ import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, Rot
 import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
+import MissionDetailsModal from '../components/MissionDetailsModal';
 
 
 interface MissionsPageProps {
@@ -23,6 +24,7 @@ interface MissionsPageProps {
 
 const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, t, role, lang, onRefresh, isRefreshing }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
+    const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
     const pendingMissions = missions.filter(m => m.status === 'PENDING');
     const approvedMissions = missions.filter(m => m.status === 'APPROVED');
@@ -38,7 +40,11 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                     const s = syndics.find(syn => String(syn.id) === String(b?.linkedSyndicId || m.syndicId));
 
                     return (
-                        <div key={m.id} className="bg-zinc-950 border border-zinc-800 p-5 rounded-2xl flex flex-col md:flex-row gap-6 hover:border-zinc-700 transition-all group">
+                        <div
+                            key={m.id}
+                            onClick={() => setSelectedMission(m)}
+                            className="bg-zinc-950 border border-zinc-800 p-5 rounded-2xl flex flex-col md:flex-row gap-6 hover:border-brand-green/30 hover:bg-zinc-900/40 transition-all group cursor-pointer"
+                        >
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${m.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' :
@@ -54,15 +60,32 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     )}
                                     <span className="text-[10px] text-zinc-500 font-mono">{new Date(m.timestamp).toLocaleDateString()}</span>
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2">{m.title || t.mission_request}</h4>
-                                <p className="text-sm text-zinc-400 leading-relaxed mb-4">{m.description}</p>
+                                <h4 className="text-lg font-bold text-white mb-2 group-hover:text-brand-green transition-colors">{m.title || t.mission_request}</h4>
+                                <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
+
+                                {/* Email Source Banner */}
+                                {m.sourceType === 'EMAIL' && m.sourceDetails && (
+                                    <div className="mb-4 p-3 bg-brand-green/5 border border-brand-green/10 rounded-xl flex flex-col gap-1">
+                                        <div className="flex items-center gap-1.5 text-brand-green">
+                                            <Mail size={10} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest">{t.automatic_import || 'Automatic Import'}</span>
+                                        </div>
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-zinc-500">
+                                            <span className="truncate max-w-[200px]"><span className="font-bold text-zinc-600 mr-1">FROM:</span> {m.sourceDetails.from}</span>
+                                            <span className="truncate max-w-[250px]"><span className="font-bold text-zinc-600 mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {m.documents && m.documents.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-4">
                                         {m.documents.map((doc, idx) => (
                                             <button
                                                 key={doc.id || idx}
-                                                onClick={() => setViewerData({ docs: m.documents, index: idx })}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setViewerData({ docs: m.documents, index: idx });
+                                                }}
                                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all"
                                             >
                                                 <FileText size={14} />
@@ -75,7 +98,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
                                     <div className="flex items-center gap-1.5">
                                         <MapPin size={12} className="text-zinc-600" />
-                                        <span>{b?.address}</span>
+                                        <span>{b?.address || 'Standalone Request'}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <ShieldCheck size={12} className="text-zinc-600" />
@@ -87,13 +110,19 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                             {role !== 'SYNDIC' && m.status === 'PENDING' && (
                                 <div className="flex md:flex-col gap-2 justify-center shrink-0 min-w-[140px] border-t md:border-t-0 md:border-l border-zinc-900 pt-4 md:pt-0 md:pl-6">
                                     <button
-                                        onClick={() => onApprove(m)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onApprove(m);
+                                        }}
                                         className="flex-1 md:flex-none py-3 px-4 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
                                     >
                                         <Check size={14} /> {t.approve}
                                     </button>
                                     <button
-                                        onClick={() => onReject(m)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onReject(m);
+                                        }}
                                         className="flex-1 md:flex-none py-3 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
                                     >
                                         <X size={14} /> {t.reject}
@@ -158,6 +187,19 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                     {renderMissionList(rejectedMissions, t.no_rejected || 'No rejected missions.')}
                 </section>
             </div>
+
+            {selectedMission && (
+                <MissionDetailsModal
+                    mission={selectedMission}
+                    onClose={() => setSelectedMission(null)}
+                    building={buildings.find(b => String(b.id) === String(selectedMission.buildingId))}
+                    syndic={syndics.find(s => String(s.id) === String(selectedMission.syndicId || buildings.find(b => String(b.id) === String(selectedMission.buildingId))?.linkedSyndicId))}
+                    lang={lang}
+                    onApprove={onApprove}
+                    onReject={onReject}
+                    role={role}
+                />
+            )}
 
             {viewerData && (
                 <DocumentViewerModal
