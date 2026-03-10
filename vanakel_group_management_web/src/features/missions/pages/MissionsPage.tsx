@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw } from 'lucide-react';
+import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -42,9 +42,15 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                     return (
                         <div
                             key={m.id}
-                            onClick={() => setSelectedMission(m)}
-                            className="bg-zinc-950 border border-zinc-800 p-5 rounded-2xl flex flex-col md:flex-row gap-6 hover:border-brand-green/30 hover:bg-zinc-900/40 transition-all group cursor-pointer"
+                            onClick={(e) => {
+                                // Prevent modal if clicking buttons or specific file attachments
+                                if ((e.target as HTMLElement).closest('button')) return;
+                                setSelectedMission(m);
+                            }}
+                            className="bg-zinc-950 border border-zinc-800 p-5 rounded-2xl flex flex-col md:flex-row gap-6 hover:border-brand-green/30 hover:bg-zinc-900/60 transition-all group cursor-pointer relative overflow-hidden"
                         >
+                            {/* Hover Highlight Overlay */}
+                            <div className="absolute inset-0 bg-brand-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${m.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' :
@@ -65,14 +71,14 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
 
                                 {/* Email Source Banner */}
                                 {m.sourceType === 'EMAIL' && m.sourceDetails && (
-                                    <div className="mb-4 p-3 bg-brand-green/5 border border-brand-green/10 rounded-xl flex flex-col gap-1">
+                                    <div className="mb-4 p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl flex flex-col gap-1.5 shadow-inner">
                                         <div className="flex items-center gap-1.5 text-brand-green">
-                                            <Mail size={10} />
-                                            <span className="text-[8px] font-black uppercase tracking-widest">{t.automatic_import || 'Automatic Import'}</span>
+                                            <Mail size={12} className="animate-pulse" />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.automatic_import || 'Automatic Import'}</span>
                                         </div>
-                                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-zinc-500">
-                                            <span className="truncate max-w-[200px]"><span className="font-bold text-zinc-600 mr-1">FROM:</span> {m.sourceDetails.from}</span>
-                                            <span className="truncate max-w-[250px]"><span className="font-bold text-zinc-600 mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
+                                        <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
+                                            <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>
+                                            <span className="truncate"><span className="text-zinc-600 font-bold mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
                                         </div>
                                     </div>
                                 )}
@@ -103,6 +109,9 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     <div className="flex items-center gap-1.5">
                                         <ShieldCheck size={12} className="text-zinc-600" />
                                         <span>{s?.companyName || t.no_syndic}</span>
+                                    </div>
+                                    <div className="ml-auto flex items-center gap-1 text-brand-green font-black uppercase text-[10px] tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                        {t.view || 'View Details'} <ChevronRight size={14} />
                                     </div>
                                 </div>
                             </div>

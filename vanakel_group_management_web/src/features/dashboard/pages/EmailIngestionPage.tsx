@@ -149,9 +149,28 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                                     <span className="text-[10px] font-black uppercase tracking-wider">PROCESSED</span>
                                                 </div>
                                             ) : email.ingestion_status === 'IGNORED' ? (
-                                                <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit border border-zinc-800">
-                                                    <XCircle size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">IGNORED</span>
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit border border-zinc-800">
+                                                        <XCircle size={14} />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">IGNORED</span>
+                                                    </div>
+                                                    {email.ingestion_reason && (
+                                                        <p className="text-[9px] text-zinc-600 italic font-bold leading-tight max-w-[150px]">
+                                                            {email.ingestion_reason}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            ) : email.ingestion_status === 'ERROR' || email.ingestion_status === 'NEEDS_REVIEW' ? (
+                                                <div className="space-y-1.5">
+                                                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit border ${email.ingestion_status === 'ERROR' ? 'text-red-500 bg-red-500/10 border-red-500/20' : 'text-orange-500 bg-orange-500/10 border-orange-500/20'}`}>
+                                                        <AlertCircle size={14} />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider">{email.ingestion_status}</span>
+                                                    </div>
+                                                    {email.ingestion_reason && (
+                                                        <p className="text-[9px] text-zinc-600 italic font-bold leading-tight max-w-[150px]">
+                                                            {email.ingestion_reason}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit">

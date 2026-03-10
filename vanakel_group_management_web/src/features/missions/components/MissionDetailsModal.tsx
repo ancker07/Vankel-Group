@@ -26,13 +26,13 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
     onReject,
     role
 }) => {
-    const t = TRANSLATIONS[lang];
+    const t = TRANSLATIONS[lang] || TRANSLATIONS.EN;
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
 
     const isPending = mission.status === 'PENDING';
     const showActions = isPending && role !== 'SYNDIC';
 
-    const urgencyInfo = mission.urgency ? URGENCY.find(u => u.id === mission.urgency) : null;
+    const urgencyInfo = mission.urgency ? (URGENCY.find(u => u.id === mission.urgency) || URGENCY[0]) : null;
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
