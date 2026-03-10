@@ -17,8 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
-        $schedule->command('emails:fetch')->everyFiveMinutes()->withoutOverlapping();
-        $schedule->command('emails:ingest')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('emails:fetch --ingest')->everyFiveMinutes()->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
