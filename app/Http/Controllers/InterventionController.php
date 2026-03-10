@@ -10,6 +10,7 @@ use App\Models\Syndic;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class InterventionController extends Controller
 {
@@ -207,6 +208,18 @@ class InterventionController extends Controller
         }
 
         $updateData = array_diff_key($validated, array_flip(['files', 'photos']));
+        
+        // Parse date fields if they exist as ISO strings
+        foreach (['scheduled_date', 'completed_at', 'delayed_reschedule_date'] as $field) {
+            if (isset($updateData[$field]) && !empty($updateData[$field])) {
+                try {
+                    $updateData[$field] = Carbon::parse($updateData[$field])->toDateTimeString();
+                } catch (\Exception $e) {
+                    // Fallback to original if parse fails
+                }
+            }
+        }
+        
         $intervention->update($updateData);
         
         // Handle Photo Uploads (Stored as Documents with image type)
