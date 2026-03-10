@@ -206,7 +206,8 @@ class InterventionController extends Controller
             $validated['pro_id'] = null;
         }
 
-        $intervention->update($validated);
+        $updateData = array_diff_key($validated, array_flip(['files', 'photos']));
+        $intervention->update($updateData);
         
         // Handle Photo Uploads (Stored as Documents with image type)
         if ($request->hasFile('photos')) {
