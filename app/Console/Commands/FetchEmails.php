@@ -16,7 +16,7 @@ class FetchEmails extends Command
      *
      * @var string
      */
-    protected $signature = 'emails:fetch {--loop : Run the command continuously}';
+    protected $signature = 'emails:fetch {--loop : Run the command continuously} {--ingest : Automatically ingest after fetching}';
 
     /**
      * The console command description.
@@ -149,6 +149,12 @@ class FetchEmails extends Command
 
             // Disconnect to avoid keeping stale connections in long loops
             $client->disconnect();
+
+            // Auto-trigger ingestion if option is set
+            if ($this->option('ingest')) {
+                $this->info('Starting automatic AI ingestion...');
+                $this->call('emails:ingest');
+            }
 
         } catch (\Exception $e) {
             $this->error('Error fetching emails: ' . $e->getMessage());
