@@ -11,7 +11,6 @@ export const STORAGE_BASE_URL = `${API_HOST}/storage`;
 export const apiClient = axios.create({
     baseURL: BASE_URL,
     headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
 });

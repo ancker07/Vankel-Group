@@ -96,8 +96,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [isImprovingDetails, setIsImprovingDetails] = useState(false);
   const isSyndic = role === 'SYNDIC';
   const [isEditable, setIsEditable] = useState(intervention.status !== 'COMPLETED' && !isSyndic);
-  const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [viewerData, setViewerData] = useState<{ docs: any[], index: number } | null>(null);
 
   const [showEditConfirm, setShowEditConfirm] = useState(false);
@@ -177,7 +178,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
       name: file.name,
       type: 'OTHER',
       status: 'PENDING',
-      url: URL.createObjectURL(file),
+      url: URL.createObjectURL(file), // Used for internal preview only
       file,
       timestamp: new Date().toISOString()
     }));
@@ -192,6 +193,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
       return;
     }
 
+    setIsSaving(true);
     try {
       await onUpdate({
         ...intervention,
@@ -220,28 +222,31 @@ const InterventionSlip: React.FC<SlipProps> = ({
       else {
         setIsEditable(false);
       }
-    } catch (err) {
-      // Error handled by parent toast, but we stop UI progression here
-      return;
-    }
 
-    if (mode === 'EMAIL') {
-      setIsSendingEmail(true);
-      try {
-        await dataService.sendInterventionReport(intervention.id);
-        alert(t.emailSent || "Report sent successfully!");
-      } catch (error: any) {
-        console.error("Failed to send email:", error);
-        const serverError = error.response?.data?.error || error.response?.data?.message;
-        alert(serverError ? `Email Error: ${serverError}` : (t.sendEmailError || "Failed to send email. Please check your SMTP settings."));
-      } finally {
-        setIsSendingEmail(false);
+      // Handle Email/WhatsApp after successful save
+      if (mode === 'EMAIL') {
+        setIsSendingEmail(true);
+        try {
+          await dataService.sendInterventionReport(intervention.id);
+          alert(t.emailSent || "Report sent successfully!");
+        } catch (error: any) {
+          console.error("Failed to send email:", error);
+          const serverError = error.response?.data?.error || error.response?.data?.message;
+          alert(serverError ? `Email Error: ${serverError}` : (t.sendEmailError || "Failed to send email. Please check your SMTP settings."));
+        } finally {
+          setIsSendingEmail(false);
+        }
       }
+
+      if (mode === 'WHATSAPP') handleSendWhatsApp();
+
+    } catch (err) {
+      // Error handled by parent toast
+      console.error("Save failed:", err);
+    } finally {
+      setIsSaving(false);
+      setShowSavePrompt(false);
     }
-
-    if (mode === 'WHATSAPP') handleSendWhatsApp();
-
-    setShowSavePrompt(false);
   };
 
   const handleSendEmail = () => {
@@ -781,10 +786,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
               <div className="space-y-3 pt-6 border-t border-zinc-800" id="slip-save">
                 <button
                   onClick={() => setShowSavePrompt(true)}
-                  disabled={!isEditable}
+                  disabled={!isEditable || isSaving}
                   className="w-full py-4 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-xl shadow-brand-green/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 min-h-[50px]"
                 >
-                  <Save size={16} /> {t.saveRegister}
+                  {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                  {isSaving ? t.saving || "Enregistrement..." : t.saveRegister}
                 </button>
 
                 {showSavePrompt && (
@@ -795,14 +801,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
                       <p className="text-zinc-500 text-xs text-center mb-6">{t.saveMode}</p>
 
                       <div className="space-y-3">
-                        <button onClick={() => executeSave('NONE')} disabled={isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                          <Save size={16} /> {t.saveOnly}
+                        <button onClick={() => executeSave('NONE')} disabled={isSaving || isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                          {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                          {isSaving ? t.saving || "Enregistrement..." : t.saveOnly}
                         </button>
-                        <button onClick={() => executeSave('EMAIL')} disabled={isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                        <button onClick={() => executeSave('EMAIL')} disabled={isSaving || isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                           {isSendingEmail ? <Loader2 className="animate-spin" size={16} /> : <Mail size={16} />}
                           {isSendingEmail ? t.sending || "Envoi..." : t.saveEmail}
                         </button>
-                        <button onClick={() => executeSave('WHATSAPP')} disabled={isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                        <button onClick={() => executeSave('WHATSAPP')} disabled={isSaving || isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                           <MessageCircle size={16} /> {t.saveWhatsapp}
                         </button>
                       </div>
