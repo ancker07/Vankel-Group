@@ -125,58 +125,64 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
             latestSlips.map(slip => {
               const building = buildings.find(b => b.id === slip.buildingId);
               return (
-                <div key={slip.id} className="bg-zinc-900/30 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-all group flex flex-col gap-3 relative overflow-hidden h-full min-h-[160px]">
-                  {/* Subtle Map Background */}
-                  <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      style={{ border: 0 }}
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&z=14&output=embed`}
-                      className="grayscale"
-                    ></iframe>
-                  </div>
+                <div key={slip.id} className="bg-zinc-950 border border-zinc-800 rounded-xl hover:border-brand-green/30 transition-all group flex flex-col relative overflow-hidden h-full">
+                  {/* Top Thumbnail Map Area */}
+                  <div className="h-32 relative shrink-0">
+                    <div className="absolute inset-0 z-0 opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        style={{ border: 0 }}
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&z=14&output=embed`}
+                        className="grayscale"
+                      ></iframe>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-black/30 z-0 pointer-events-none"></div>
 
-                  <div className="relative z-10 p-4 flex flex-col h-full gap-3">
-                    <div className="flex justify-between items-start">
-                      <div className="min-w-0">
-                        <p className="text-[10px] text-zinc-500 font-mono mb-1">{slip.id}</p>
-                        <h4 className="font-bold text-sm text-white truncate" title={slip.title}>{slip.title}</h4>
+                    <div className="relative z-10 p-4 h-full flex flex-col justify-between">
+                      <div className="flex justify-between items-start">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg ${slip.status === 'DELAYED' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' : 'bg-green-500/20 text-green-500 border border-green-500/30'}`}>
+                          {slip.status === 'DELAYED' ? (
+                            <>
+                              <Clock size={10} /> {t.status_delayed}
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 size={10} /> {t.status_completed}
+                            </>
+                          )}
+                        </span>
                       </div>
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${slip.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
-                        {slip.status === 'DELAYED' ? (
-                          <>
-                            <Clock size={10} /> {t.status_delayed}
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 size={10} /> {t.status_completed}
-                          </>
-                        )}
-                      </span>
+
+                      <div className="pr-10">
+                        <h4 className="font-bold text-sm text-white truncate drop-shadow-md" title={slip.title}>{slip.title}</h4>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building?.address}, ${building?.city}`)}`, '_blank');
+                      }}
+                      className="absolute bottom-4 right-4 p-1.5 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all z-20 shadow-lg backdrop-blur-md"
+                      title={t.viewOnMaps}
+                    >
+                      <MapPin size={12} />
+                    </button>
+                  </div>
+
+                  <div className="p-4 flex flex-col flex-1 bg-zinc-950 relative z-10">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400 mb-3">
                       <MapPin size={12} className="shrink-0 text-brand-green" />
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span className="truncate">{building?.address || 'Unknown Address'}</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building?.address}, ${building?.city}`)}`, '_blank');
-                          }}
-                          className="p-1 bg-zinc-950 border border-zinc-800 rounded text-zinc-500 hover:text-brand-green transition-all shadow-lg"
-                          title={t.viewOnMaps}
-                        >
-                          <MapPin size={10} />
-                        </button>
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-3 border-t border-zinc-800/50 flex items-center justify-between">
-                      <span className="text-[10px] text-zinc-600 font-medium">
-                        {new Date(slip.createdAt || slip.scheduledDate).toLocaleDateString()}
+                    <div className="mt-auto pt-3 border-t border-zinc-900/50 flex items-center justify-between">
+                      <span className="text-[10px] text-zinc-500 font-mono">
+                        {slip.id} • {new Date(slip.createdAt || slip.scheduledDate).toLocaleDateString()}
                       </span>
                       <button
                         onClick={() => onViewIntervention(slip.id)}
