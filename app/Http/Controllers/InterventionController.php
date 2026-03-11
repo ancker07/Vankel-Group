@@ -248,7 +248,7 @@ class InterventionController extends Controller
 
         return response()->json([
             'message' => 'Intervention updated successfully',
-            'intervention' => $intervention->load('documents')
+            'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic'])
         ]);
     }
 

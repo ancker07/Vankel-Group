@@ -9,6 +9,8 @@ import {
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote, optimizeIntervention } from '@/services/aiService';
 import { dataService } from '@/services/dataService';
+import { generateInterventionPDF } from '@/utils/pdfGenerator';
+import vankerLogo from '@/assets/logo_vankel.jpeg';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
 interface SlipProps {
@@ -200,29 +202,67 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
     setIsSaving(true);
     try {
-      await onUpdate({
+      let updatedInterventionData = {
         ...intervention,
         status,
         adminFeedback: adminNote,
         delayedRescheduleDate: status === 'DELAYED' ? delayedDate : undefined,
         completedAt: status === 'COMPLETED' ? new Date().toISOString() : intervention.completedAt,
-
-        // Save Delay Info
         delayReason: status === 'DELAYED' ? delayReason : undefined,
         delayDetails: status === 'DELAYED' ? delayDetails : undefined,
         delayedAt: status === 'DELAYED' && !intervention.delayedAt ? new Date().toISOString() : (status === 'DELAYED' ? intervention.delayedAt : undefined),
-
-        // Save Contact Sur Place
         onSiteContactName: contactName,
         onSiteContactPhone: contactPhone,
         onSiteContactEmail: contactEmail,
         syndicId: internalSyndicId,
-        photos: photos.map(p => p.url),
-        documents: documents.map(d => ({ ...d })),
-        // Pass new actual files to parent
-        addedPhotos: photos.filter(p => !!p.file).map(p => p.file),
-        addedDocuments: documents.filter(d => !!d.file).map(d => d.file)
-      } as any);
+      };
+
+      const formData = new FormData();
+      Object.keys(updatedInterventionData).forEach(key => {
+        const val = (updatedInterventionData as any)[key];
+        if (val !== undefined && val !== null) {
+          formData.append(key, val);
+        }
+      });
+
+      // Handle existing photos/documents (keeping paths)
+      // Note: Backend might need specific handling for existing vs new
+
+      // Handle New Manual Uploads
+      photos.filter(p => !!p.file).forEach(p => formData.append('photos[]', p.file!));
+      documents.filter(d => !!d.file).forEach(d => formData.append('files[]', d.file!));
+
+      // GENERATE AND APPEND PDF REPORT IF SENDING
+      if (mode === 'EMAIL' || mode === 'WHATSAPP') {
+        try {
+          const response = await fetch(vankerLogo);
+          const blobLogo = await response.blob();
+          const reader = new FileReader();
+          const logoBase64 = await new Promise<string>((resolve) => {
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blobLogo);
+          });
+
+          const pdfDoc = await generateInterventionPDF(
+            updatedInterventionData as any,
+            building,
+            professional,
+            syndic,
+            lang,
+            logoBase64,
+            false // Don't save to file automatically
+          );
+
+          const pdfBlob = pdfDoc.output('blob');
+          const pdfFile = new File([pdfBlob], `Intervention_Report_${intervention.id}.pdf`, { type: 'application/pdf' });
+          formData.append('files[]', pdfFile);
+        } catch (pdfErr) {
+          console.error("Failed to generate PDF for attachment:", pdfErr);
+        }
+      }
+
+      const result = await dataService.updateIntervention(intervention.id, formData);
+      const savedIntervention = result.intervention;
 
       if (status === 'COMPLETED') onClose();
       else {
@@ -244,10 +284,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
         }
       }
 
-      if (mode === 'WHATSAPP') handleSendWhatsApp();
+      if (mode === 'WHATSAPP') handleSendWhatsApp(savedIntervention);
 
     } catch (err) {
-      // Error handled by parent toast
       console.error("Save failed:", err);
     } finally {
       setIsSaving(false);
@@ -297,25 +336,34 @@ const InterventionSlip: React.FC<SlipProps> = ({
     }, 500);
   };
 
-  const handleSendWhatsApp = () => {
+  const handleSendWhatsApp = (updatedIntervention?: any) => {
     const targetPhone = contactPhone || syndic?.phone;
     if (!targetPhone) {
       alert(t.sendWhatsappError || "No phone number available");
       return;
     }
 
+    const currentInt = updatedIntervention || intervention;
     const reasonLabel = DELAY_REASONS.find(r => r.id === delayReason)?.[lang] || delayReason;
 
+    // Find the latest PDF report URL if it was uploaded
+    const reportDoc = currentInt.documents?.find((d: any) =>
+      (d.file_name || d.name)?.toLowerCase().includes('report') ||
+      (d.file_type || d.type) === 'application/pdf'
+    );
+    const reportUrl = reportDoc ? (reportDoc.file_path ? `${import.meta.env.VITE_API_URL}/storage/${reportDoc.file_path}` : reportDoc.url) : null;
+
     const text = encodeURIComponent(
-      `*Vanakel Group - ${t.updated}*\n\n` +
-      `*${t.email_template_title}:* ${intervention.title}\n` +
-      `*${t.address}:* ${building.address}\n` +
+      `*VANAKEL GROUP - ${t.ticketHeader.toUpperCase()}*\n\n` +
+      `*${t.email_template_title}:* ${currentInt.title}\n` +
+      `*${t.building_header}:* ${building.address}\n` +
       `*${t.status}:* ${status}\n\n` +
-      `*${t.email_template_desc}:* ${intervention.description}\n` +
+      `*${t.description}:* ${currentInt.description}\n` +
       `*${t.adminNote}:* ${adminNote || 'N/A'}\n` +
       (status === 'DELAYED' ? `\n*${t.status_delayed}:* ${reasonLabel}\n` : '') +
       (status === 'DELAYED' && delayedDate ? `*${t.email_template_new_date}:* ${new Date(delayedDate).toLocaleDateString()}\n` : '') +
-      `\nView details: [Link to App]`
+      (reportUrl ? `\n*${t.download_pdf}:* ${reportUrl}\n` : '') +
+      `\n_Powered by Vanakel Group_`
     );
 
     window.open(`https://wa.me/${targetPhone.replace(/\s+/g, '')}?text=${text}`, '_blank');

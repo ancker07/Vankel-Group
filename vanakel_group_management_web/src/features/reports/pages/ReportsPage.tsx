@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Intervention, Building, Professional, Syndic, Language } from '@/types';
 import { Search, Download, Eye, ChevronRight, FileText, Calendar, CheckCircle2, MapPin, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
+import { generateInterventionPDF } from '@/utils/pdfGenerator';
+import vankerLogo from '@/assets/logo_vankel.jpeg';
 
 interface ReportsPageProps {
   interventions: Intervention[];
@@ -57,26 +59,31 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
     completed: interventions.filter(i => i.status === 'COMPLETED' || i.status === 'DELAYED').length,
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async (intervention: Intervention) => {
     try {
-      const validPdfBase64 = "JVBERi0xLjcKCjEgMCBvYmogPDwvVHlwZS9DYXRhbG9nL1BhZ2VzIDIgMCBSPj4gZW5kb2JqCjIgMCBvYmogPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj4gZW5kb2JqCjMgMCBvYmogPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA1OTUgODQyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pi9Db250ZW50cyA0IDAgUj4+IGVuZG9iago0IDAgb2JqIDw8L0xlbmd0aCAwPj4gc3RyZWFtCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNyAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCnRyYWlsZXIgPDwvU2l6ZSA1L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMjY0CiUlRU9G";
-      const cleanBase64 = validPdfBase64.replace(/\s/g, '');
-      const byteCharacters = atob(cleanBase64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Intervention_Report_${new Date().toISOString().split('T')[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      const building = buildings.find(b => b.id === intervention.buildingId);
+      const professional = professionals.find(p => p.id === intervention.proId);
+      const syndic = syndics.find(s => s.id === intervention.syndicId);
+
+      // Convert logo to base64 for PDF
+      const response = await fetch(vankerLogo);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      const logoBase64 = await new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+
+      await generateInterventionPDF(
+        intervention,
+        building,
+        professional,
+        syndic,
+        lang,
+        logoBase64
+      );
     } catch (e) {
+      console.error(e);
       alert("PDF Generation Failed");
     }
   };
@@ -229,7 +236,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                       <button onClick={() => onViewIntervention(item.id)} className="p-1.5 text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.view}>
                         <Eye size={14} />
                       </button>
-                      <button onClick={handleDownloadPDF} className="p-1.5 text-zinc-500 hover:text-brand-green bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.download_pdf}>
+                      <button onClick={() => handleDownloadPDF(item)} className="p-1.5 text-zinc-500 hover:text-brand-green bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.download_pdf}>
                         <Download size={14} />
                       </button>
                     </div>
@@ -261,7 +268,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                     <div className="flex justify-between items-center pt-2 border-t border-zinc-800/50 mt-1">
                       <span className="text-[10px] text-zinc-600">{new Date(item.createdAt || item.scheduledDate).toLocaleDateString()}</span>
                       <div className="flex gap-2">
-                        <button onClick={handleDownloadPDF} className="p-2 bg-zinc-900 rounded-lg text-zinc-400 hover:text-white"><Download size={14} /></button>
+                        <button onClick={() => handleDownloadPDF(item)} className="p-2 bg-zinc-900 rounded-lg text-zinc-400 hover:text-white"><Download size={14} /></button>
                         <button onClick={() => onViewIntervention(item.id)} className="px-3 py-2 bg-zinc-900 rounded-lg text-xs font-bold text-white hover:bg-brand-green hover:text-black transition-colors">{t.view}</button>
                       </div>
                     </div>
