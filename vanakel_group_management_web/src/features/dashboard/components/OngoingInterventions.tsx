@@ -170,93 +170,110 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                             <div
                                 key={i.id}
                                 onClick={() => onSelect(i.id)}
-                                className={`bg-zinc-950 border ${isMaintenance ? 'border-orange-500/30' : 'border-zinc-800'} hover:border-brand-green/30 p-5 rounded-2xl cursor-pointer group transition-all flex flex-col h-full`}
+                                className={`bg-zinc-950 border ${isMaintenance ? 'border-orange-500/30' : 'border-zinc-800'} hover:border-brand-green/30 rounded-2xl cursor-pointer group transition-all flex flex-col h-full relative overflow-hidden`}
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${i.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
-                                        isMaintenance ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
-                                            'bg-zinc-800 text-zinc-400 border border-zinc-700'
-                                        }`}>
-                                        {isMaintenance ? (t.maintenance || 'Entretien') : (i.status === 'DELAYED' ? t.status_delayed : t.status_pending)}
-                                    </span>
-                                    <div className="flex flex-col items-end gap-1.5">
-                                        <span className="text-[10px] font-mono text-zinc-600">{new Date(i.scheduledDate).toLocaleDateString()}</span>
-                                        {i.urgency && (
-                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-zinc-900 border border-zinc-800 ${URGENCY.find(u => u.id === i.urgency)?.color || 'text-zinc-500'}`}>
-                                                {URGENCY.find(u => u.id === i.urgency)?.label[lang]}
-                                            </span>
-                                        )}
-                                    </div>
-
+                                {/* Subtle Map Background */}
+                                <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        frameBorder="0"
+                                        style={{ border: 0 }}
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&z=14&output=embed`}
+                                        className="grayscale"
+                                    ></iframe>
                                 </div>
 
-                                <h4 className="font-bold text-white mb-1 truncate" title={i.title}>{i.title}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
-                                <p className="text-xs text-zinc-500 mb-4 line-clamp-2 min-h-[32px]">{i.description}</p>
+                                <div className="relative z-10 p-5 flex flex-col h-full">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${i.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
+                                            isMaintenance ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
+                                                'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                                            }`}>
+                                            {isMaintenance ? (t.maintenance || 'Entretien') : (i.status === 'DELAYED' ? t.status_delayed : t.status_pending)}
+                                        </span>
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <span className="text-[10px] font-mono text-zinc-600">{new Date(i.scheduledDate).toLocaleDateString()}</span>
+                                            {i.urgency && (
+                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-zinc-900 border border-zinc-800 ${URGENCY.find(u => u.id === i.urgency)?.color || 'text-zinc-500'}`}>
+                                                    {URGENCY.find(u => u.id === i.urgency)?.label[lang]}
+                                                </span>
+                                            )}
+                                        </div>
 
-                                {i.documents && i.documents.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {i.documents.slice(0, 4).map((doc, idx) => {
-                                            const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url);
-                                            return (
-                                                <div
-                                                    key={doc.id || idx}
-                                                    className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden shrink-0 relative group/file"
-                                                    title={doc.name}
+                                    </div>
+
+                                    <h4 className="font-bold text-white mb-1 truncate" title={i.title}>{i.title}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
+                                    <p className="text-xs text-zinc-500 mb-4 line-clamp-2 min-h-[32px]">{i.description}</p>
+
+                                    {i.documents && i.documents.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {i.documents.slice(0, 4).map((doc, idx) => {
+                                                const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url);
+                                                return (
+                                                    <div
+                                                        key={doc.id || idx}
+                                                        className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden shrink-0 relative group/file"
+                                                        title={doc.name}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setViewerData({ docs: i.documents, index: idx });
+                                                        }}
+                                                    >
+                                                        {isImg ? (
+                                                            <img src={doc.url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
+                                                        ) : (
+                                                            <FileText size={16} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+                                                        )}
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-opacity">
+                                                            <Eye size={12} className="text-white" />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                            {i.documents.length > 4 && (
+                                                <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-600 uppercase tracking-tighter">
+                                                    +{i.documents.length - 4}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900">
+                                        <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                            <MapPin size={12} className="text-brand-green" />
+                                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                <span className="truncate" title={b?.address}>{b?.address}, {b?.city}</span>
+                                                <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setViewerData({ docs: i.documents, index: idx });
+                                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
                                                     }}
+                                                    className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-brand-green hover:border-brand-green/30 transition-all shrink-0 shadow-lg"
+                                                    title={t.viewOnMaps}
                                                 >
-                                                    {isImg ? (
-                                                        <img src={doc.url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="" />
-                                                    ) : (
-                                                        <FileText size={16} className="text-zinc-600 group-hover:text-zinc-400 transition-colors" />
-                                                    )}
-                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/file:opacity-100 flex items-center justify-center transition-opacity">
-                                                        <Eye size={12} className="text-white" />
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                        {i.documents.length > 4 && (
-                                            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-600 uppercase tracking-tighter">
-                                                +{i.documents.length - 4}
+                                                    <MapPin size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                            <ShieldCheck size={12} className="text-zinc-600" />
+                                            <span className="truncate">{s?.companyName || t.unassigned}</span>
+                                        </div>
+                                        {(i.onSiteContactName || (b?.tenants && b.tenants.length > 0)) && (
+                                            <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                                <User size={12} className="text-zinc-600" />
+                                                <span className="truncate">
+                                                    {i.onSiteContactName || `${b?.tenants[0].firstName} ${b?.tenants[0].lastName}`}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
-                                )}
-
-                                <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900">
-                                    <div className="flex items-center gap-2 text-xs text-zinc-400">
-                                        <MapPin size={12} className="text-brand-green" />
-                                        <a
-                                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="truncate hover:text-brand-green hover:underline transition-colors"
-                                            title={t.viewOnMaps}
-                                        >
-                                            {b?.address}, {b?.city}
-                                        </a>
+                                    <div className="pt-4 mt-2">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-brand-green flex items-center gap-1 group-hover:gap-2 transition-all">
+                                            {t.viewSlip} <ChevronRight size={12} />
+                                        </span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-zinc-400">
-                                        <ShieldCheck size={12} className="text-zinc-600" />
-                                        <span className="truncate">{s?.companyName || t.unassigned}</span>
-                                    </div>
-                                    {(i.onSiteContactName || (b?.tenants && b.tenants.length > 0)) && (
-                                        <div className="flex items-center gap-2 text-xs text-zinc-400">
-                                            <User size={12} className="text-zinc-600" />
-                                            <span className="truncate">
-                                                {i.onSiteContactName || `${b?.tenants[0].firstName} ${b?.tenants[0].lastName}`}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="pt-4 mt-2">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-brand-green flex items-center gap-1 group-hover:gap-2 transition-all">
-                                        {t.viewSlip} <ChevronRight size={12} />
-                                    </span>
                                 </div>
                             </div>
                         );

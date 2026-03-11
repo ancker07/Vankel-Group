@@ -125,40 +125,66 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
             latestSlips.map(slip => {
               const building = buildings.find(b => b.id === slip.buildingId);
               return (
-                <div key={slip.id} className="bg-zinc-900/30 border border-zinc-800 p-4 rounded-xl hover:border-zinc-700 transition-all group flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div className="min-w-0">
-                      <p className="text-[10px] text-zinc-500 font-mono mb-1">{slip.id}</p>
-                      <h4 className="font-bold text-sm text-white truncate" title={slip.title}>{slip.title}</h4>
+                <div key={slip.id} className="bg-zinc-900/30 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-all group flex flex-col gap-3 relative overflow-hidden h-full min-h-[160px]">
+                  {/* Subtle Map Background */}
+                  <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      style={{ border: 0 }}
+                      src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&z=14&output=embed`}
+                      className="grayscale"
+                    ></iframe>
+                  </div>
+
+                  <div className="relative z-10 p-4 flex flex-col h-full gap-3">
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-zinc-500 font-mono mb-1">{slip.id}</p>
+                        <h4 className="font-bold text-sm text-white truncate" title={slip.title}>{slip.title}</h4>
+                      </div>
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${slip.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+                        {slip.status === 'DELAYED' ? (
+                          <>
+                            <Clock size={10} /> {t.status_delayed}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={10} /> {t.status_completed}
+                          </>
+                        )}
+                      </span>
                     </div>
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${slip.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
-                      {slip.status === 'DELAYED' ? (
-                        <>
-                          <Clock size={10} /> {t.status_delayed}
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={10} /> {t.status_completed}
-                        </>
-                      )}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-2 text-xs text-zinc-400">
-                    <MapPin size={12} className="shrink-0" />
-                    <span className="truncate">{building?.address || 'Unknown Address'}</span>
-                  </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <MapPin size={12} className="shrink-0 text-brand-green" />
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="truncate">{building?.address || 'Unknown Address'}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building?.address}, ${building?.city}`)}`, '_blank');
+                          }}
+                          className="p-1 bg-zinc-950 border border-zinc-800 rounded text-zinc-500 hover:text-brand-green transition-all shadow-lg"
+                          title={t.viewOnMaps}
+                        >
+                          <MapPin size={10} />
+                        </button>
+                      </div>
+                    </div>
 
-                  <div className="mt-auto pt-3 border-t border-zinc-800/50 flex items-center justify-between">
-                    <span className="text-[10px] text-zinc-600 font-medium">
-                      {new Date(slip.createdAt || slip.scheduledDate).toLocaleDateString()}
-                    </span>
-                    <button
-                      onClick={() => onViewIntervention(slip.id)}
-                      className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline flex items-center gap-1"
-                    >
-                      {t.view} <ChevronRight size={10} />
-                    </button>
+                    <div className="mt-auto pt-3 border-t border-zinc-800/50 flex items-center justify-between">
+                      <span className="text-[10px] text-zinc-600 font-medium">
+                        {new Date(slip.createdAt || slip.scheduledDate).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={() => onViewIntervention(slip.id)}
+                        className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline flex items-center gap-1"
+                      >
+                        {t.view} <ChevronRight size={10} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -214,9 +240,23 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                   <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 items-center">
                     <div className="col-span-2 text-xs font-mono text-zinc-500 truncate">{item.id}</div>
                     <div className="col-span-3 font-bold text-white text-sm truncate pr-4" title={item.title}>{item.title}</div>
-                    <div className="col-span-3 text-xs text-zinc-400 truncate pr-4">
-                      <span className="block text-zinc-300 font-medium truncate">{building?.address}</span>
-                      <span className="text-[10px] text-zinc-600">{building?.city}</span>
+                    <div className="col-span-3 text-xs text-zinc-400">
+                      <div className="flex items-center gap-2 group/addr">
+                        <div className="min-w-0">
+                          <span className="block text-zinc-300 font-medium truncate">{building?.address}</span>
+                          <span className="text-[10px] text-zinc-600">{building?.city}</span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building?.address}, ${building?.city}`)}`, '_blank');
+                          }}
+                          className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-brand-green transition-all opacity-0 group-hover/addr:opacity-100"
+                          title={t.viewOnMaps}
+                        >
+                          <MapPin size={12} />
+                        </button>
+                      </div>
                     </div>
                     <div className="col-span-2 text-xs text-zinc-500">
                       {new Date(item.createdAt || item.scheduledDate).toLocaleDateString()}

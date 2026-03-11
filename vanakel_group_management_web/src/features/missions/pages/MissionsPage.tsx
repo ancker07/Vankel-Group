@@ -128,9 +128,23 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 )}
 
                                 <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
-                                    <div className="flex items-center gap-1.5">
-                                        <MapPin size={12} className="text-zinc-600" />
-                                        <span>{b?.address || 'Standalone Request'}</span>
+                                    <div className="flex items-center gap-2">
+                                        <MapPin size={12} className="text-zinc-600 shrink-0" />
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="truncate">{b?.address || 'Standalone Request'}</span>
+                                            {b?.address && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
+                                                    }}
+                                                    className="p-1 bg-zinc-900 border border-zinc-800 rounded text-zinc-500 hover:text-brand-green transition-all"
+                                                    title={t.viewOnMaps}
+                                                >
+                                                    <MapPin size={10} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <ShieldCheck size={12} className="text-zinc-600" />

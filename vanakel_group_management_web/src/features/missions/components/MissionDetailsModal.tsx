@@ -144,14 +144,27 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                     <MapPin size={14} /> Location Details
                                 </h3>
                                 <div className="space-y-3">
-                                    <div className="flex gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
-                                            <MapPin size={16} className="text-zinc-500" />
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+                                                <MapPin size={16} className="text-zinc-500" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-white">{building?.address || 'Standalone Request'}</p>
+                                                <p className="text-[10px] text-zinc-500">{building?.city || 'No city info'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-white">{building?.address || 'Standalone Request'}</p>
-                                            <p className="text-[10px] text-zinc-500">{building?.city || 'No city info'}</p>
-                                        </div>
+                                        {building?.address && (
+                                            <button
+                                                onClick={() => {
+                                                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building?.address}, ${building?.city}`)}`, '_blank');
+                                                }}
+                                                className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-brand-green hover:border-brand-green/30 transition-all shrink-0"
+                                                title={t.viewOnMaps}
+                                            >
+                                                <MapPin size={14} />
+                                            </button>
+                                        )}
                                     </div>
                                     {syndic && (
                                         <div className="flex gap-3 pt-2 border-t border-zinc-800/50">

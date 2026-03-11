@@ -18,35 +18,39 @@ const GestionPropertyCard: React.FC<GestionPropertyCardProps> = ({ building, syn
   return (
     <div className="bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col hover:border-zinc-700 transition-all group shadow-lg">
       {/* Thumbnail Section */}
-      <div className="h-40 relative overflow-hidden bg-zinc-900">
-        {building.imageUrl ? (
-          <>
-            {isImgLoading && (
-              <div className="absolute inset-0 bg-zinc-900 animate-pulse flex items-center justify-center">
-                <MapPin size={32} className="text-zinc-800 animate-bounce" />
-              </div>
-            )}
-            <img
-              src={building.imageUrl}
-              alt={building.address}
-              className={`w-full h-full object-cover transition-all duration-500 ${isImgLoading ? 'opacity-0' : 'opacity-80 group-hover:opacity-100'}`}
-              onLoad={() => setIsImgLoading(false)}
-              onError={() => setIsImgLoading(false)}
-            />
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-zinc-700">
-            <MapPin size={48} strokeWidth={1} />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-90"></div>
+      <div className="h-40 relative overflow-hidden bg-zinc-900 group">
+        <div className="absolute inset-0 z-0">
+          <iframe
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            style={{ border: 0, opacity: 0.6 }}
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building.address}, ${building.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+            allowFullScreen
+            className="pointer-events-none group-hover:opacity-80 transition-opacity duration-500"
+          ></iframe>
+        </div>
 
-        <div className="absolute bottom-3 left-4 right-4">
-          <h3 className="text-lg font-bold text-white leading-tight truncate shadow-black drop-shadow-md">{building.address}</h3>
-          <div className="flex items-center gap-1.5 mt-1 text-zinc-300 text-xs">
-            <MapPin size={12} className="text-brand-green" />
-            <span>{building.city}</span>
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent z-10"></div>
+
+        <div className="absolute bottom-3 left-4 right-4 z-20 flex justify-between items-end gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold text-white leading-tight truncate shadow-black drop-shadow-md">{building.address}</h3>
+            <div className="flex items-center gap-1.5 mt-1 text-zinc-300 text-xs">
+              <MapPin size={12} className="text-brand-green" />
+              <span>{building.city}</span>
+            </div>
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building.address}, ${building.city}`)}`, '_blank');
+            }}
+            className="p-2 bg-zinc-900/80 border border-zinc-700/50 rounded-xl text-zinc-400 hover:text-brand-green hover:border-brand-green/30 transition-all shadow-lg backdrop-blur-sm"
+            title={t.viewOnMaps}
+          >
+            <MapPin size={14} />
+          </button>
         </div>
       </div>
 
