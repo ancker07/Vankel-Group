@@ -73,123 +73,137 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 if ((e.target as HTMLElement).closest('button')) return;
                                 setSelectedMission(m);
                             }}
-                            className="bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col md:flex-row hover:border-brand-green/30 transition-all group cursor-pointer relative overflow-hidden"
+                            className="bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col hover:border-brand-green/30 transition-all group cursor-pointer overflow-hidden"
                         >
-                            {/* Subtle Map Background */}
-                            <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    frameBorder="0"
-                                    style={{ border: 0 }}
-                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&z=14&output=embed`}
-                                    className="grayscale"
-                                ></iframe>
-                            </div>
-
-                            <div className="flex-1 p-5 relative z-10 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${m.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' :
-                                            m.status === 'REJECTED' ? 'bg-red-500/10 text-red-500' :
-                                                'bg-blue-500/10 text-blue-400'
-                                            }`}>
-                                            {m.status}
-                                        </span>
-                                        {m.urgency && (
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-zinc-900 border border-zinc-800 ${URGENCY.find(u => u.id === m.urgency)?.color || 'text-zinc-500'}`}>
-                                                {URGENCY.find(u => u.id === m.urgency)?.label[lang]}
-                                            </span>
-                                        )}
-                                        <span className="text-[10px] text-zinc-500 font-mono">{new Date(m.timestamp).toLocaleDateString()}</span>
-                                    </div>
-                                    <h4 className="text-lg font-bold text-white mb-2 group-hover:text-brand-green transition-colors">{m.title || t.mission_request}</h4>
-                                    <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
-
-                                    {/* Email Source Banner */}
-                                    {m.sourceType === 'EMAIL' && m.sourceDetails && (
-                                        <div className="mb-4 p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl flex flex-col gap-1.5 shadow-inner backdrop-blur-sm">
-                                            <div className="flex items-center gap-1.5 text-brand-green">
-                                                <Mail size={12} className="animate-pulse" />
-                                                <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.automatic_import || 'Automatic Import'}</span>
-                                            </div>
-                                            <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
-                                                <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>
-                                                <span className="truncate"><span className="text-zinc-600 font-bold mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {m.documents && m.documents.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {m.documents.map((doc, idx) => (
-                                                <button
-                                                    key={doc.id || idx}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setViewerData({ docs: m.documents, index: idx });
-                                                    }}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all backdrop-blur-sm shadow-sm"
-                                                >
-                                                    <FileText size={14} />
-                                                    <span className="truncate max-w-[150px]">{doc.name}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                            {/* Top Thumbnail Map Area */}
+                            <div className="h-40 relative shrink-0">
+                                <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        frameBorder="0"
+                                        style={{ border: 0 }}
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                                    ></iframe>
                                 </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-black/30 z-0 pointer-events-none"></div>
 
-                                <div className="mt-auto pt-4 border-t border-zinc-900/50 flex flex-wrap gap-4 text-xs text-zinc-500">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin size={12} className="text-zinc-600 shrink-0" />
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <span className="truncate">{b?.address || 'Standalone Request'}</span>
-                                            {b?.address && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
-                                                    }}
-                                                    className="p-1.5 bg-zinc-950/80 border border-zinc-800/80 rounded-lg text-zinc-500 hover:text-brand-green hover:border-brand-green/30 transition-all shadow-lg backdrop-blur-sm"
-                                                    title={t.viewOnMaps}
-                                                >
-                                                    <MapPin size={12} />
-                                                </button>
+                                <div className="relative z-10 p-5 h-full flex flex-col justify-between">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg ${m.status === 'APPROVED' ? 'bg-green-500/20 text-green-500 border border-green-500/30' :
+                                                m.status === 'REJECTED' ? 'bg-red-500/20 text-red-500 border border-red-500/30' :
+                                                    'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                                }`}>
+                                                {m.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date(m.timestamp).toLocaleDateString()}</span>
+                                            {m.urgency && (
+                                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-black/50 border border-white/10 backdrop-blur-md ${URGENCY.find(u => u.id === m.urgency)?.color || 'text-zinc-500'}`}>
+                                                    {URGENCY.find(u => u.id === m.urgency)?.label[lang]}
+                                                </span>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <ShieldCheck size={12} className="text-zinc-600" />
-                                        <span>{s?.companyName || t.no_syndic}</span>
-                                    </div>
-                                    <div className="ml-auto flex items-center gap-1 text-brand-green font-black uppercase text-[10px] tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                                        {t.view || 'View Details'} <ChevronRight size={14} />
+
+                                    <div className="pr-12">
+                                        <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={m.title || t.mission_request}>{m.title || t.mission_request}</h4>
+                                        <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
+                                            <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
+                                            <span className="truncate drop-shadow-md">{b?.address || 'Standalone Request'}</span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {b?.address && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
+                                        }}
+                                        className="absolute bottom-4 right-4 p-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all z-20 shadow-lg backdrop-blur-md"
+                                        title={t.viewOnMaps}
+                                    >
+                                        <MapPin size={14} />
+                                    </button>
+                                )}
                             </div>
 
-                            {role !== 'SYNDIC' && m.status === 'PENDING' && (
-                                <div className="flex md:flex-col gap-2 justify-center shrink-0 min-w-[140px] border-t md:border-t-0 md:border-l border-zinc-900 pt-4 md:pt-0 md:pl-6">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onApprove(m);
-                                        }}
-                                        className="flex-1 md:flex-none py-3 px-4 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
-                                    >
-                                        <Check size={14} /> {t.approve}
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onReject(m);
-                                        }}
-                                        className="flex-1 md:flex-none py-3 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <X size={14} /> {t.reject}
-                                    </button>
+                            <div className="flex flex-col md:flex-row flex-1 bg-zinc-950 relative z-10">
+                                <div className={`flex-1 p-5 flex flex-col justify-between space-y-4 ${role !== 'SYNDIC' && m.status === 'PENDING' ? 'border-r border-zinc-900/50' : ''}`}>
+                                    <div>
+                                        <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
+
+                                        {/* Email Source Banner */}
+                                        {m.sourceType === 'EMAIL' && m.sourceDetails && (
+                                            <div className="mb-4 p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl flex flex-col gap-1.5 shadow-inner">
+                                                <div className="flex items-center gap-1.5 text-brand-green">
+                                                    <Mail size={12} className="animate-pulse" />
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.automatic_import || 'Automatic Import'}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
+                                                    <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>
+                                                    <span className="truncate"><span className="text-zinc-600 font-bold mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {m.documents && m.documents.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {m.documents.map((doc, idx) => (
+                                                    <button
+                                                        key={doc.id || idx}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setViewerData({ docs: m.documents, index: idx });
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all shadow-sm"
+                                                    >
+                                                        <FileText size={14} />
+                                                        <span className="truncate max-w-[150px]">{doc.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-auto pt-4 border-t border-zinc-900/50 flex flex-wrap gap-4 text-xs text-zinc-500">
+                                        <div className="flex items-center gap-1.5">
+                                            <ShieldCheck size={12} className="text-zinc-600" />
+                                            <span>{s?.companyName || t.no_syndic}</span>
+                                        </div>
+                                        <div className="ml-auto flex items-center gap-1 text-brand-green font-black uppercase text-[10px] tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                            {t.view || 'View Details'} <ChevronRight size={14} />
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+
+                                {/* Action Buttons */}
+                                {role !== 'SYNDIC' && m.status === 'PENDING' && (
+                                    <div className="flex md:flex-col gap-2 justify-center shrink-0 min-w-[160px] p-5 pt-0 md:pt-5 bg-zinc-950">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onApprove(m);
+                                            }}
+                                            className="flex-1 py-3 px-4 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
+                                        >
+                                            <Check size={14} /> {t.approve}
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onReject(m);
+                                            }}
+                                            className="flex-1 py-3 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <X size={14} /> {t.reject}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     );
                 })

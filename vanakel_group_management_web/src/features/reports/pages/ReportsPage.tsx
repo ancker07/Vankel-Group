@@ -128,14 +128,13 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                 <div key={slip.id} className="bg-zinc-950 border border-zinc-800 rounded-xl hover:border-brand-green/30 transition-all group flex flex-col relative overflow-hidden h-full">
                   {/* Top Thumbnail Map Area */}
                   <div className="h-32 relative shrink-0">
-                    <div className="absolute inset-0 z-0 opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none">
+                    <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
                       <iframe
                         width="100%"
                         height="100%"
                         frameBorder="0"
                         style={{ border: 0 }}
-                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&z=14&output=embed`}
-                        className="grayscale"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                       ></iframe>
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-black/30 z-0 pointer-events-none"></div>

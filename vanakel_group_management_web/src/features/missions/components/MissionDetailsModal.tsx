@@ -141,14 +141,13 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                             {/* Location & Syndic */}
                             <section className="bg-zinc-900/30 border border-zinc-800 rounded-2xl relative overflow-hidden group">
                                 {/* Subtle Map Background */}
-                                <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                                <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
                                     <iframe
                                         width="100%"
                                         height="100%"
                                         frameBorder="0"
                                         style={{ border: 0 }}
-                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&z=14&output=embed`}
-                                        className="grayscale"
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building?.address}, ${building?.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                                     ></iframe>
                                 </div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 to-zinc-950/20 z-0 pointer-events-none"></div>

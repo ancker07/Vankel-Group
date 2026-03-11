@@ -174,14 +174,13 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                             >
                                 {/* Top Thumbnail Map Area */}
                                 <div className="h-40 relative shrink-0">
-                                    <div className="absolute inset-0 z-0 opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none">
+                                    <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
                                         <iframe
                                             width="100%"
                                             height="100%"
                                             frameBorder="0"
                                             style={{ border: 0 }}
-                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&z=14&output=embed`}
-                                            className="grayscale"
+                                            src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                                         ></iframe>
                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-black/30 z-0 pointer-events-none"></div>

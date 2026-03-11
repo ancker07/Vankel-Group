@@ -409,9 +409,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
               height="100%"
               frameBorder="0"
               style={{ border: 0, opacity: 0.15 }}
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building.address}, ${building.city}`)}&z=14&output=embed`}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building.address}, ${building.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
               allowFullScreen
-              className="pointer-events-none group-hover:opacity-30 transition-opacity duration-500 grayscale"
+              className="pointer-events-none group-hover:opacity-30 transition-opacity duration-500"
             ></iframe>
             <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-zinc-950/40"></div>
           </div>
