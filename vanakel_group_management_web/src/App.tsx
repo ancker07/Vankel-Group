@@ -1102,6 +1102,7 @@ const App: React.FC = () => {
                     onUpdate={handleInterventionUpdate}
                     onOpenMaintenance={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }}
                     role={role || 'SYNDIC'}
+                    readOnly={location.pathname.includes('/reports') || location.pathname.includes('/management')}
                   />
                 )}
                 {showCreateModal && <CreateInterventionModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onCreate={handleCreateIntervention} onSyndicCreate={(s) => setSyndics(prev => [...prev, s])} buildings={buildings} syndics={syndics} lang={lang} role={role || 'SYNDIC'} userName={userName} />}

@@ -24,6 +24,7 @@ interface SlipProps {
   onUpdate: (i: Intervention) => Promise<void>;
   onOpenMaintenance?: (buildingId: string) => void;
   role?: Role;
+  readOnly?: boolean;
 }
 
 
@@ -68,7 +69,7 @@ const FormattedExtractedContent: React.FC<{ text: string }> = ({ text }) => {
 // --- Main Component ---
 
 const InterventionSlip: React.FC<SlipProps> = ({
-  intervention, building, professional, syndic, syndics = [], lang, onClose, onUpdate, onOpenMaintenance, role
+  intervention, building, professional, syndic, syndics = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly
 }) => {
 
   const t = TRANSLATIONS[lang];
@@ -102,7 +103,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [isImproving, setIsImproving] = useState(false);
   const [isImprovingDetails, setIsImprovingDetails] = useState(false);
   const isSyndic = role === 'SYNDIC';
-  const [isEditable, setIsEditable] = useState(intervention.status !== 'COMPLETED' && !isSyndic);
+  const [isEditable, setIsEditable] = useState(!readOnly && intervention.status !== 'COMPLETED' && !isSyndic);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
@@ -388,7 +389,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
           >
             <RotateCcw size={14} /> <span className="hidden md:inline">{t.maintenance}</span>
           </button>
-          {!isEditable && !isSyndic && (
+          {!isEditable && !isSyndic && !readOnly && (
             <button
               onClick={() => setShowEditConfirm(true)}
               className="flex-1 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-brand-green hover:text-brand-black transition-all min-h-[44px] bg-brand-green/10 text-brand-green flex items-center justify-center gap-2"
