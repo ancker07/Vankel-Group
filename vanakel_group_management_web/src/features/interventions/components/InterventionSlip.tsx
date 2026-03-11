@@ -402,79 +402,97 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 md:space-y-10 max-w-5xl mx-auto w-full pb-32">
         {/* Entity Summary */}
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-          <div className="space-y-5 md:space-y-6">
-            <div>
-              <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.building_header}</p>
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-lg md:text-2xl font-black text-white leading-tight">{building.address}</h3>
-                <button
-                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building.address}, ${building.city}`)}`, '_blank')}
-                  className="p-1.5 bg-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green transition-colors border border-zinc-700 shrink-0"
-                  title={t.viewOnMaps}
-                >
-                  <MapPin size={16} />
-                </button>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-zinc-300 text-sm md:text-base font-medium flex items-center gap-1.5 md:gap-2">
-                  <MapPin size={14} className="text-brand-green" /> {building.city}, BE
-                </p>
-                {currentSyndic && (
-                  <p className="bg-brand-green/20 text-brand-green px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border border-brand-green/30">
-                    {t.syndic}: {currentSyndic.companyName}
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden relative group">
+          <div className="absolute inset-0 z-0">
+            <iframe
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              style={{ border: 0, opacity: 0.15 }}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(`${building.address}, ${building.city}`)}&z=14&output=embed`}
+              allowFullScreen
+              className="pointer-events-none group-hover:opacity-30 transition-opacity duration-500 grayscale"
+            ></iframe>
+            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-zinc-950/40"></div>
+          </div>
+
+          <div className="relative z-10 p-5 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+            <div className="space-y-5 md:space-y-6">
+              <div>
+                <p className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">{t.building_header}</p>
+                <div className="flex items-center gap-3 mb-3">
+                  <h3 className="text-lg md:text-2xl font-black text-white leading-tight">{building.address}</h3>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building.address}, ${building.city}`)}`, '_blank');
+                    }}
+                    className="p-1.5 bg-zinc-950/80 rounded-lg text-zinc-400 hover:text-brand-green transition-colors border border-zinc-800 shrink-0 backdrop-blur-sm shadow-lg hover:border-brand-green/50"
+                    title={t.viewOnMaps}
+                  >
+                    <MapPin size={16} />
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-zinc-300 text-sm md:text-base font-medium flex items-center gap-1.5 md:gap-2">
+                    <MapPin size={14} className="text-brand-green" /> {building.city}, BE
                   </p>
+                  {currentSyndic && (
+                    <p className="bg-brand-green/10 text-brand-green px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border border-brand-green/20 backdrop-blur-sm">
+                      {t.syndic}: {currentSyndic.companyName}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">{t.syndic}</p>
+                <p className="font-bold text-brand-green text-sm md:text-lg drop-shadow-sm">{currentSyndic ? currentSyndic.companyName : t.unassigned}</p>
+                <div className="flex flex-col md:items-start gap-1 mt-1">
+                  <p className="text-zinc-400 text-[10px] font-bold uppercase">{currentSyndic ? currentSyndic.contactPerson : '-'}</p>
+                  {currentSyndic?.phone && <p className="text-zinc-500 text-[10px] flex items-center gap-1.5"><Smartphone size={10} /> {currentSyndic.phone}</p>}
+                  {currentSyndic?.email && <p className="text-zinc-500 text-[10px] flex items-center gap-1.5"><Mail size={10} /> {currentSyndic.email}</p>}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-5 md:space-y-6 md:text-right border-t md:border-t-0 border-zinc-800/50 pt-5 md:pt-0 relative z-10">
+              <div>
+                <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.pro}</p>
+                <p className="font-bold text-sm md:text-lg">{professional ? professional.companyName : t.unassigned}</p>
+                <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{professional ? professional.contactPerson : '-'}</p>
+              </div>
+              <div>
+                <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.scheduled_maintenance}</p>
+                <p className="font-bold text-zinc-400 text-sm md:text-base">{new Date(intervention.scheduledDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+
+                {/* Delayed Status Visual in Header */}
+                {intervention.status === 'DELAYED' && (
+                  <div className="mt-2 flex flex-col md:items-end gap-1 text-orange-500">
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <AlertCircle size={14} />
+                      <span className="text-xs uppercase tracking-widest">{t.status_delayed}</span>
+                    </div>
+                    {intervention.delayReason && (
+                      <p className="text-[10px] opacity-80">{DELAY_REASONS.find(r => r.id === intervention.delayReason)?.[lang] || intervention.delayReason}</p>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-            <div>
-              <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.syndic}</p>
-              <p className="font-bold text-brand-green text-sm md:text-lg">{currentSyndic ? currentSyndic.companyName : t.unassigned}</p>
-              <div className="flex flex-col md:items-end gap-1 mt-1">
-                <p className="text-zinc-400 text-[10px] font-bold uppercase">{currentSyndic ? currentSyndic.contactPerson : '-'}</p>
-                {currentSyndic?.phone && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Smartphone size={10} /> {currentSyndic.phone}</p>}
-                {currentSyndic?.email && <p className="text-zinc-500 text-[10px] flex items-center justify-end gap-1.5"><Mail size={10} /> {currentSyndic.email}</p>}
-              </div>
-            </div>
-          </div>
-          <div className="space-y-5 md:space-y-6 md:text-right border-t md:border-t-0 border-zinc-800 pt-5 md:pt-0">
-            <div>
-              <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.pro}</p>
-              <p className="font-bold text-sm md:text-lg">{professional ? professional.companyName : t.unassigned}</p>
-              <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{professional ? professional.contactPerson : '-'}</p>
-            </div>
-            <div>
-              <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.scheduled_maintenance}</p>
-              <p className="font-bold text-zinc-400 text-sm md:text-base">{new Date(intervention.scheduledDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
 
-              {/* Delayed Status Visual in Header */}
-              {intervention.status === 'DELAYED' && (
-                <div className="mt-2 flex flex-col md:items-end gap-1 text-orange-500">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <AlertCircle size={14} />
-                    <span className="text-xs uppercase tracking-widest">{t.status_delayed}</span>
+              {/* SOURCE DETAILS - ONLY FOR EMAIL INTERVENTIONS */}
+              {intervention.sourceType === 'EMAIL' && intervention.sourceDetails && (
+                <div className="bg-brand-green/5 border border-brand-green/20 p-4 rounded-xl text-left md:text-right">
+                  <div className="flex items-center md:justify-end gap-1.5 mb-2 text-brand-green">
+                    <AtSign size={14} />
+                    <span className="text-[9px] font-black uppercase tracking-widest">{t.automatic_import}</span>
                   </div>
-                  {intervention.delayReason && (
-                    <p className="text-[10px] opacity-80">{DELAY_REASONS.find(r => r.id === intervention.delayReason)?.[lang] || intervention.delayReason}</p>
-                  )}
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-white truncate" title={intervention.sourceDetails.subject}>{intervention.sourceDetails.subject}</p>
+                    <p className="text-[10px] text-zinc-400">From: {intervention.sourceDetails.from}</p>
+                    <p className="text-[10px] text-zinc-500">{new Date(intervention.sourceDetails.receivedAt).toLocaleString()}</p>
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* SOURCE DETAILS - ONLY FOR EMAIL INTERVENTIONS */}
-            {intervention.sourceType === 'EMAIL' && intervention.sourceDetails && (
-              <div className="bg-brand-green/5 border border-brand-green/20 p-4 rounded-xl text-left md:text-right">
-                <div className="flex items-center md:justify-end gap-1.5 mb-2 text-brand-green">
-                  <AtSign size={14} />
-                  <span className="text-[9px] font-black uppercase tracking-widest">{t.automatic_import}</span>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-white truncate" title={intervention.sourceDetails.subject}>{intervention.sourceDetails.subject}</p>
-                  <p className="text-[10px] text-zinc-400">From: {intervention.sourceDetails.from}</p>
-                  <p className="text-[10px] text-zinc-500">{new Date(intervention.sourceDetails.receivedAt).toLocaleString()}</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

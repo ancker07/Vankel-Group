@@ -73,61 +73,73 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 if ((e.target as HTMLElement).closest('button')) return;
                                 setSelectedMission(m);
                             }}
-                            className="bg-zinc-950 border border-zinc-800 p-5 rounded-2xl flex flex-col md:flex-row gap-6 hover:border-brand-green/30 hover:bg-zinc-900/60 transition-all group cursor-pointer relative overflow-hidden"
+                            className="bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col md:flex-row hover:border-brand-green/30 transition-all group cursor-pointer relative overflow-hidden"
                         >
-                            {/* Hover Highlight Overlay */}
-                            <div className="absolute inset-0 bg-brand-green/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${m.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' :
-                                        m.status === 'REJECTED' ? 'bg-red-500/10 text-red-500' :
-                                            'bg-blue-500/10 text-blue-400'
-                                        }`}>
-                                        {m.status}
-                                    </span>
-                                    {m.urgency && (
-                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-zinc-900 border border-zinc-800 ${URGENCY.find(u => u.id === m.urgency)?.color || 'text-zinc-500'}`}>
-                                            {URGENCY.find(u => u.id === m.urgency)?.label[lang]}
+                            {/* Subtle Map Background */}
+                            <div className="absolute inset-0 z-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    frameBorder="0"
+                                    style={{ border: 0 }}
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&z=14&output=embed`}
+                                    className="grayscale"
+                                ></iframe>
+                            </div>
+
+                            <div className="flex-1 p-5 relative z-10 flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${m.status === 'APPROVED' ? 'bg-green-500/10 text-green-500' :
+                                            m.status === 'REJECTED' ? 'bg-red-500/10 text-red-500' :
+                                                'bg-blue-500/10 text-blue-400'
+                                            }`}>
+                                            {m.status}
                                         </span>
+                                        {m.urgency && (
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-zinc-900 border border-zinc-800 ${URGENCY.find(u => u.id === m.urgency)?.color || 'text-zinc-500'}`}>
+                                                {URGENCY.find(u => u.id === m.urgency)?.label[lang]}
+                                            </span>
+                                        )}
+                                        <span className="text-[10px] text-zinc-500 font-mono">{new Date(m.timestamp).toLocaleDateString()}</span>
+                                    </div>
+                                    <h4 className="text-lg font-bold text-white mb-2 group-hover:text-brand-green transition-colors">{m.title || t.mission_request}</h4>
+                                    <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
+
+                                    {/* Email Source Banner */}
+                                    {m.sourceType === 'EMAIL' && m.sourceDetails && (
+                                        <div className="mb-4 p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl flex flex-col gap-1.5 shadow-inner backdrop-blur-sm">
+                                            <div className="flex items-center gap-1.5 text-brand-green">
+                                                <Mail size={12} className="animate-pulse" />
+                                                <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.automatic_import || 'Automatic Import'}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
+                                                <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>
+                                                <span className="truncate"><span className="text-zinc-600 font-bold mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
+                                            </div>
+                                        </div>
                                     )}
-                                    <span className="text-[10px] text-zinc-500 font-mono">{new Date(m.timestamp).toLocaleDateString()}</span>
+
+                                    {m.documents && m.documents.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {m.documents.map((doc, idx) => (
+                                                <button
+                                                    key={doc.id || idx}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setViewerData({ docs: m.documents, index: idx });
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900/80 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all backdrop-blur-sm shadow-sm"
+                                                >
+                                                    <FileText size={14} />
+                                                    <span className="truncate max-w-[150px]">{doc.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                <h4 className="text-lg font-bold text-white mb-2 group-hover:text-brand-green transition-colors">{m.title || t.mission_request}</h4>
-                                <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
 
-                                {/* Email Source Banner */}
-                                {m.sourceType === 'EMAIL' && m.sourceDetails && (
-                                    <div className="mb-4 p-3 bg-brand-green/10 border border-brand-green/20 rounded-xl flex flex-col gap-1.5 shadow-inner">
-                                        <div className="flex items-center gap-1.5 text-brand-green">
-                                            <Mail size={12} className="animate-pulse" />
-                                            <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.automatic_import || 'Automatic Import'}</span>
-                                        </div>
-                                        <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
-                                            <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>
-                                            <span className="truncate"><span className="text-zinc-600 font-bold mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {m.documents && m.documents.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {m.documents.map((doc, idx) => (
-                                            <button
-                                                key={doc.id || idx}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setViewerData({ docs: m.documents, index: idx });
-                                                }}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all"
-                                            >
-                                                <FileText size={14} />
-                                                <span className="truncate max-w-[150px]">{doc.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
+                                <div className="mt-auto pt-4 border-t border-zinc-900/50 flex flex-wrap gap-4 text-xs text-zinc-500">
                                     <div className="flex items-center gap-2">
                                         <MapPin size={12} className="text-zinc-600 shrink-0" />
                                         <div className="flex items-center gap-2 min-w-0">
@@ -138,10 +150,10 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                         e.stopPropagation();
                                                         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
                                                     }}
-                                                    className="p-1 bg-zinc-900 border border-zinc-800 rounded text-zinc-500 hover:text-brand-green transition-all"
+                                                    className="p-1.5 bg-zinc-950/80 border border-zinc-800/80 rounded-lg text-zinc-500 hover:text-brand-green hover:border-brand-green/30 transition-all shadow-lg backdrop-blur-sm"
                                                     title={t.viewOnMaps}
                                                 >
-                                                    <MapPin size={10} />
+                                                    <MapPin size={12} />
                                                 </button>
                                             )}
                                         </div>
