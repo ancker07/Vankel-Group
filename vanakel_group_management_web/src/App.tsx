@@ -655,6 +655,7 @@ const App: React.FC = () => {
         pro_id: updated.proId,
         scheduled_date: updated.scheduledDate,
         admin_feedback: updated.adminFeedback,
+        comment: updated.comment,
         on_site_contact_name: updated.onSiteContactName,
         on_site_contact_phone: updated.onSiteContactPhone,
         on_site_contact_email: updated.onSiteContactEmail,

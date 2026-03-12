@@ -187,6 +187,7 @@ class InterventionController extends Controller
             'pro_id' => 'sometimes|nullable',
             'scheduled_date' => 'sometimes|date',
             'admin_feedback' => 'sometimes|nullable|string',
+            'comment' => 'sometimes|nullable|string',
             'on_site_contact_name' => 'sometimes|nullable|string',
             'on_site_contact_phone' => 'sometimes|nullable|string',
             'on_site_contact_email' => 'sometimes|nullable|string',

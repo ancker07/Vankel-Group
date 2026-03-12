@@ -79,7 +79,60 @@ export const generateInterventionPDF = async (
     doc.setFont('helvetica', 'normal');
     const descriptionLines = doc.splitTextToSize(intervention.description, pageWidth - 30);
     doc.text(descriptionLines, 15, currentY);
-    currentY += (descriptionLines.length * 5) + 15;
+    currentY += (descriptionLines.length * 5) + 12;
+
+    // Technical / Admin Notes
+    if (intervention.adminFeedback) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(100);
+        doc.text(t.adminNote || 'Admin Note', 15, currentY);
+        currentY += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0);
+        const adminLines = doc.splitTextToSize(intervention.adminFeedback, pageWidth - 30);
+        doc.text(adminLines, 15, currentY);
+        currentY += (adminLines.length * 5) + 10;
+    }
+
+    // Project Comments
+    if (intervention.comment) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(100);
+        doc.text(t.comment || 'Commentaire', 15, currentY);
+        currentY += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0);
+        const commentLines = doc.splitTextToSize(intervention.comment, pageWidth - 30);
+        doc.text(commentLines, 15, currentY);
+        currentY += (commentLines.length * 5) + 10;
+    }
+
+    // Delay Details
+    if (intervention.status === 'DELAYED' && (intervention.delayReason || intervention.delayDetails)) {
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(230, 100, 0); // Orange-ish
+        doc.text(t.delayTitle || 'Reason for delay', 15, currentY);
+        currentY += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0);
+
+        let delayText = '';
+        if (intervention.delayReason) {
+            delayText += `${t.delayReasonLabel || 'Reason'}: ${intervention.delayReason}\n`;
+        }
+        if (intervention.delayDetails) {
+            delayText += `${intervention.delayDetails}`;
+        }
+
+        const delayLines = doc.splitTextToSize(delayText, pageWidth - 30);
+        doc.text(delayLines, 15, currentY);
+        currentY += (delayLines.length * 5) + 10;
+    }
+
+    currentY += 5;
 
     // Section: Building Information
     if (building) {

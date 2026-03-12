@@ -159,6 +159,32 @@
                     <div class="description-box">{{ $intervention->admin_feedback }}</div>
                 </div>
                 @endif
+
+                @if($intervention->comment)
+                <div style="margin-top: 15px;">
+                    <div class="section-title">Commentaire</div>
+                    <div class="description-box">{{ $intervention->comment }}</div>
+                </div>
+                @endif
+
+                @if($intervention->status === 'DELAYED' && ($intervention->delay_reason || $intervention->delay_details))
+                <div style="margin-top: 15px; border-top: 1px solid #3f3f46; pt: 15px;">
+                    <div class="section-title" style="color: #f97316;">Détails du retard</div>
+                    <div class="info-row">
+                        <div class="info-label">Motif :</div>
+                        <div class="info-value">{{ $intervention->delay_reason }}</div>
+                    </div>
+                    @if($intervention->delay_details)
+                    <div class="description-box" style="border-color: #f97316; margin-top: 10px;">{{ $intervention->delay_details }}</div>
+                    @endif
+                    @if($intervention->delayed_reschedule_date)
+                    <div class="info-row" style="margin-top: 10px;">
+                        <div class="info-label">Nouvelle date :</div>
+                        <div class="info-value">{{ \Carbon\Carbon::parse($intervention->delayed_reschedule_date)->format('d/m/Y') }}</div>
+                    </div>
+                    @endif
+                </div>
+                @endif
             </div>
 
             <div class="section">
