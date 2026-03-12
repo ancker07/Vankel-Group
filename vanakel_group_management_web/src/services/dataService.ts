@@ -70,7 +70,7 @@ export const dataService = {
         return response.data;
     },
     getEmailThread: async (threadId: string) => {
-        const response = await apiClient.get(`/emails/threads/${threadId}`);
+        const response = await apiClient.get(`/emails/threads/${encodeURIComponent(threadId)}`);
         return response.data;
     },
     deleteEmail: async (id: number) => {

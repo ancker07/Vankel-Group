@@ -3,7 +3,7 @@ import axios from 'axios';
 // The central configuration for our API
 // Local: http://localhost:8000
 // Live: https://api.vanakelgroup.com
-const API_HOST = 'https://api.vanakelgroup.com';
+const API_HOST = 'http://localhost:8000';
 
 export const BASE_URL = `${API_HOST}/api`;
 export const STORAGE_BASE_URL = `${API_HOST}/storage`;

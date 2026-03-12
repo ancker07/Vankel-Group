@@ -20,7 +20,9 @@ class Email extends Model
 
     public function thread()
     {
-        return $this->hasMany(Email::class, 'thread_id', 'thread_id')->orderBy('received_at', 'asc');
+        return $this->hasMany(Email::class, 'thread_id', 'thread_id')
+            ->whereNotNull('thread_id')
+            ->orderBy('received_at', 'asc');
     }
 
     public function attachments()
