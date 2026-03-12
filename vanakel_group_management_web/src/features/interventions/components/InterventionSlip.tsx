@@ -719,7 +719,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-10">
           <div className="space-y-8">
             <div className="space-y-3" id="slip-status">
-              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.updateStatus}</label>
+              <label className="inline-block px-2 py-0.5 bg-brand-green text-brand-black text-[10px] font-black uppercase tracking-widest rounded mb-2">{t.updateStatus}</label>
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {[
                   { id: 'PENDING', label: t.status_pending, activeColor: 'bg-zinc-600 text-white border-zinc-600', baseColor: 'border-zinc-700 text-zinc-500' },
@@ -802,15 +802,31 @@ const InterventionSlip: React.FC<SlipProps> = ({
             <div className="space-y-3" id="slip-notes">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.adminNote}</label>
-                {isEditable && (
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={handleImprove}
-                    disabled={isImproving || !adminNote}
-                    className="flex items-center gap-1.5 text-brand-green text-[9px] font-black uppercase tracking-widest hover:bg-brand-green/10 px-2 py-1 rounded transition-all disabled:opacity-50 min-h-[30px]"
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={!isEditable}
+                    className="flex items-center gap-1.5 text-zinc-500 hover:text-white text-[9px] font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-all disabled:opacity-50"
                   >
-                    {isImproving ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} {isImproving ? t.working : t.improveAI}
+                    <Camera size={12} /> {t.photos}
                   </button>
-                )}
+                  <button
+                    onClick={() => docInputRef.current?.click()}
+                    disabled={!isEditable}
+                    className="flex items-center gap-1.5 text-zinc-500 hover:text-white text-[9px] font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 px-2 py-1 rounded transition-all disabled:opacity-50"
+                  >
+                    <Upload size={12} /> {t.docs}
+                  </button>
+                  {isEditable && (
+                    <button
+                      onClick={handleImprove}
+                      disabled={isImproving || !adminNote}
+                      className="flex items-center gap-1.5 text-brand-green text-[9px] font-black uppercase tracking-widest hover:bg-brand-green/10 px-2 py-1 rounded transition-all disabled:opacity-50 min-h-[30px]"
+                    >
+                      {isImproving ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} {isImproving ? t.working : t.improveAI}
+                    </button>
+                  )}
+                </div>
               </div>
               <textarea
                 value={adminNote}
@@ -819,6 +835,21 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[160px] md:min-h-[200px] outline-none focus:border-brand-green transition-all text-sm text-zinc-300 leading-relaxed disabled:opacity-70"
                 placeholder="Technical feedback or observations..."
               />
+              {photos.filter(p => !!p.file).length > 0 && (
+                <div className="flex gap-2 overflow-x-auto py-2 scrollbar-none">
+                  {photos.filter(p => !!p.file).map((photo, idx) => (
+                    <div key={`new-p-${idx}`} className="relative shrink-0 w-16 h-16 rounded-xl border border-brand-green/30 overflow-hidden group">
+                      <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => setPhotos(prev => prev.filter(p => p.url !== photo.url))}
+                        className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={14} className="text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -847,18 +878,22 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 <button
                   onClick={() => photoInputRef.current?.click()}
                   disabled={!isEditable}
-                  className="flex flex-col items-center justify-center p-8 bg-zinc-900/30 border border-dashed border-zinc-800 rounded-2xl text-zinc-600 hover:text-brand-green hover:border-brand-green transition-all group min-h-[120px] disabled:opacity-50"
+                  className="flex flex-col items-center justify-center p-8 bg-zinc-900/30 border border-dashed border-zinc-800 rounded-2xl text-zinc-500 hover:text-brand-green hover:border-brand-green transition-all group min-h-[140px] disabled:opacity-50"
                 >
-                  <Camera size={32} className="mb-2 group-hover:scale-110 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">{t.photos}</span>
+                  <div className="w-12 h-12 rounded-full bg-zinc-950 flex items-center justify-center mb-3 border border-zinc-800 group-hover:border-brand-green/50 transition-all shadow-inner">
+                    <Camera size={24} className="group-hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t.photos}</span>
                 </button>
                 <button
                   onClick={() => docInputRef.current?.click()}
                   disabled={!isEditable}
-                  className="flex flex-col items-center justify-center p-8 bg-zinc-900/30 border border-dashed border-zinc-800 rounded-2xl text-zinc-600 hover:text-brand-green hover:border-brand-green transition-all group min-h-[120px] disabled:opacity-50"
+                  className="flex flex-col items-center justify-center p-8 bg-zinc-900/30 border border-dashed border-zinc-800 rounded-2xl text-zinc-500 hover:text-brand-green hover:border-brand-green transition-all group min-h-[140px] disabled:opacity-50"
                 >
-                  <Upload size={32} className="mb-2 group-hover:scale-110 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">{t.docs}</span>
+                  <div className="w-12 h-12 rounded-full bg-zinc-950 flex items-center justify-center mb-3 border border-zinc-800 group-hover:border-brand-green/50 transition-all shadow-inner">
+                    <Upload size={24} className="group-hover:scale-110 transition-transform" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t.docs}</span>
                 </button>
               </div>
 
@@ -943,21 +978,26 @@ const InterventionSlip: React.FC<SlipProps> = ({
               )}
             </div>
 
-            <div className="p-6 bg-brand-green/5 border border-brand-green/10 rounded-2xl space-y-3">
-              <p className="text-[9px] font-black text-brand-green uppercase tracking-[0.2em] mb-3">{t.auditTrace}</p>
-              <div className="space-y-2.5">
-                <div className="flex gap-2.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-brand-green mt-1.5"></div>
+            <div className="p-6 bg-brand-green/5 border border-brand-green/10 rounded-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-brand-green/20"></div>
+              <p className="text-[9px] font-black text-brand-green uppercase tracking-[0.2em] mb-4">{t.auditTrace}</p>
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="shrink-0 w-8 h-8 rounded-lg bg-brand-green/10 flex items-center justify-center text-brand-green text-[10px] font-black border border-brand-green/20">
+                    <CheckCircle2 size={16} />
+                  </div>
                   <div>
-                    <p className="text-xs font-bold text-zinc-300">{t.intInitialized}</p>
+                    <p className="text-xs font-black text-zinc-300 uppercase tracking-widest mb-0.5">{t.intInitialized}</p>
                     <p className="text-[10px] text-zinc-500 font-mono">{new Date(intervention.createdAt || intervention.scheduledDate).toLocaleString()}</p>
                   </div>
                 </div>
                 {intervention.status === 'COMPLETED' && intervention.completedAt && (
-                  <div className="flex gap-2.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-green mt-1.5"></div>
+                  <div className="flex gap-3">
+                    <div className="shrink-0 w-8 h-8 rounded-lg bg-brand-green flex items-center justify-center text-brand-black text-[10px] font-black border border-brand-green/20">
+                      <CheckCircle2 size={16} />
+                    </div>
                     <div>
-                      <p className="text-xs font-bold text-zinc-300">{t.status_completed}</p>
+                      <p className="text-xs font-black text-brand-green uppercase tracking-widest mb-0.5">{t.status_completed}</p>
                       <p className="text-[10px] text-zinc-500 font-mono">{new Date(intervention.completedAt).toLocaleString()}</p>
                     </div>
                   </div>
@@ -971,7 +1011,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 <button
                   onClick={() => setShowSavePrompt(true)}
                   disabled={!isEditable || isSaving}
-                  className="w-full py-4 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-xl shadow-brand-green/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 min-h-[50px]"
+                  className="w-full py-4 bg-brand-green text-brand-black rounded-xl font-black text-sm uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-xl shadow-brand-green/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 min-h-[56px]"
                 >
                   {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                   {isSaving ? t.saving || "Enregistrement..." : t.saveRegister}
