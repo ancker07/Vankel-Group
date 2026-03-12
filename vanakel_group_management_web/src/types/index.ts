@@ -106,7 +106,6 @@ export interface Intervention {
   signature?: string;
   completedAt?: string;
   adminFeedback?: string;
-  comment?: string;
 
   // Delay Management (New)
   delayedRescheduleDate?: string; // Optional rescheduling
