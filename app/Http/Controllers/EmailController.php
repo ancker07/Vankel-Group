@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Webklex\IMAP\Facades\Client;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use App\Mail\ReplyEmail;
 use Carbon\Carbon;
 
