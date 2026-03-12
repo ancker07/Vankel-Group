@@ -57,7 +57,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const rejectedMissions = filteredMissions.filter(m => m.status === 'REJECTED');
 
     const renderMissionList = (list: Mission[], emptyMsg: string) => (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {list.length === 0 ? (
                 <p className="text-center py-8 text-zinc-600 font-medium italic">{emptyMsg}</p>
             ) : (
@@ -77,7 +77,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                         >
                             {/* Top Thumbnail Map Area */}
                             <div className="h-40 relative shrink-0">
-                                <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
+                                <div className="absolute inset-0 z-0 opacity-60 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
                                     <iframe
                                         width="100%"
                                         height="100%"
@@ -86,7 +86,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                         src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                                     ></iframe>
                                 </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-black/30 z-0 pointer-events-none"></div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent z-0 pointer-events-none"></div>
 
                                 <div className="relative z-10 p-5 h-full flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
@@ -131,8 +131,8 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 )}
                             </div>
 
-                            <div className="flex flex-col md:flex-row flex-1 bg-zinc-950 relative z-10">
-                                <div className={`flex-1 p-5 flex flex-col justify-between space-y-4 ${role !== 'SYNDIC' && m.status === 'PENDING' ? 'border-r border-zinc-900/50' : ''}`}>
+                            <div className="flex flex-col flex-1 bg-zinc-950 relative z-10">
+                                <div className="flex-1 p-5 flex flex-col justify-between space-y-4">
                                     <div>
                                         <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
 
@@ -162,33 +162,33 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                         className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all shadow-sm"
                                                     >
                                                         <FileText size={14} />
-                                                        <span className="truncate max-w-[150px]">{doc.name}</span>
+                                                        <span className="truncate max-w-[100px]">{doc.name}</span>
                                                     </button>
                                                 ))}
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="mt-auto pt-4 border-t border-zinc-900/50 flex flex-wrap gap-4 text-xs text-zinc-500">
-                                        <div className="flex items-center gap-1.5">
-                                            <ShieldCheck size={12} className="text-zinc-600" />
-                                            <span>{s?.companyName || t.no_syndic}</span>
+                                    <div className="mt-auto pt-4 border-t border-zinc-900/50 flex items-center justify-between text-xs text-zinc-500">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                            <ShieldCheck size={12} className="text-zinc-600 shrink-0" />
+                                            <span className="truncate">{s?.companyName || t.no_syndic}</span>
                                         </div>
-                                        <div className="ml-auto flex items-center gap-1 text-brand-green font-black uppercase text-[10px] tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                                            {t.view || 'View Details'} <ChevronRight size={14} />
+                                        <div className="flex items-center gap-1 text-brand-green font-black uppercase text-[10px] tracking-widest shrink-0">
+                                            {t.view || 'View'} <ChevronRight size={14} />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Action Buttons */}
+                                {/* Action Buttons - Moved to bottom and stacked/row based on width */}
                                 {role !== 'SYNDIC' && m.status === 'PENDING' && (
-                                    <div className="flex md:flex-col gap-2 justify-center shrink-0 min-w-[160px] p-5 pt-0 md:pt-5 bg-zinc-950">
+                                    <div className="flex gap-2 p-4 border-t border-zinc-900/50 bg-zinc-950/50">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onApprove(m);
                                             }}
-                                            className="flex-1 py-3 px-4 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
+                                            className="flex-1 py-2.5 px-4 bg-brand-green text-brand-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
                                         >
                                             <Check size={14} /> {t.approve}
                                         </button>
@@ -197,7 +197,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                 e.stopPropagation();
                                                 onReject(m);
                                             }}
-                                            className="flex-1 py-3 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 py-2.5 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
                                         >
                                             <X size={14} /> {t.reject}
                                         </button>

@@ -174,7 +174,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                             >
                                 {/* Top Thumbnail Map Area */}
                                 <div className="h-40 relative shrink-0">
-                                    <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
+                                    <div className="absolute inset-0 z-0 opacity-60 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
                                         <iframe
                                             width="100%"
                                             height="100%"
@@ -183,7 +183,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                             src={`https://maps.google.com/maps?q=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
                                         ></iframe>
                                     </div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-black/30 z-0 pointer-events-none"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent z-0 pointer-events-none"></div>
 
                                     <div className="relative z-10 p-4 h-full flex flex-col justify-between">
                                         <div className="flex justify-between items-start">

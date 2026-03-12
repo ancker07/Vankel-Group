@@ -31,7 +31,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
     const activeTab = getActiveTab();
 
     const handleTabClick = (tab: string) => {
-        const prefix = role === 'SYNDIC' ? 'syndic' : 'admin';
+        let prefix = 'admin';
+        if (role === 'SYNDIC') prefix = 'syndic';
+        else if (role === 'SUPERADMIN') prefix = 'superadmin';
+
         if (tab === 'dashboard') navigate(`/${prefix}/dashboard`);
         else navigate(`/${prefix}/${tab}`);
     };

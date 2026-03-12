@@ -41,7 +41,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     const activeTab = getActiveTab();
 
     const handleTabClick = (tab: string) => {
-        const prefix = role === 'SYNDIC' ? 'syndic' : 'admin';
+        let prefix = 'admin';
+        if (role === 'SYNDIC') prefix = 'syndic';
+        else if (role === 'SUPERADMIN') prefix = 'superadmin';
+
         if (tab === 'dashboard') navigate(`/${prefix}/dashboard`);
         else navigate(`/${prefix}/${tab}`);
     };
@@ -90,6 +93,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 label={t.missions || 'Missions'}
                                 active={activeTab === 'missions'}
                                 onClick={() => handleTabClick('missions')}
+                            />
+                            <SidebarItem
+                                icon={<RotateCcw size={20} className="text-orange-500" />}
+                                label={t.maintenance || 'Maintenance'}
+                                active={activeTab === 'entretien_list'}
+                                onClick={() => handleTabClick('entretien_list')}
                             />
                             <SidebarItem
                                 icon={<FileText size={20} className="text-yellow-400" />}
@@ -149,15 +158,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 <div id="nav-missions">
                                     <SidebarItem icon={<ClipboardList size={20} />} label={t.missions} active={activeTab === 'missions'} onClick={() => handleTabClick('missions')} badge={stats.missions} />
                                 </div>
-                                {/* Entretien Item */}
-                                <div className="pl-4">
-                                    <SidebarItem
-                                        icon={<RotateCcw size={18} className="text-orange-500" />}
-                                        label={t.maintenance || 'Entretien'}
-                                        active={activeTab === 'entretien_list'}
-                                        onClick={() => handleTabClick('entretien_list')}
-                                    />
-                                </div>
+                                <SidebarItem
+                                    icon={<RotateCcw size={20} className="text-orange-500" />}
+                                    label={t.maintenance || 'Entretien'}
+                                    active={activeTab === 'entretien_list'}
+                                    onClick={() => handleTabClick('entretien_list')}
+                                />
                                 <div id="nav-reports">
                                     <SidebarItem icon={<FileText size={20} />} label={t.reports} active={activeTab === 'reports'} onClick={() => handleTabClick('reports')} />
                                 </div>

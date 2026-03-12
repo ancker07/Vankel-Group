@@ -141,7 +141,7 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                             {/* Location & Syndic */}
                             <section className="bg-zinc-900/30 border border-zinc-800 rounded-2xl relative overflow-hidden group">
                                 {/* Subtle Map Background */}
-                                <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
+                                <div className="absolute inset-0 z-0 opacity-60 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
                                     <iframe
                                         width="100%"
                                         height="100%"
