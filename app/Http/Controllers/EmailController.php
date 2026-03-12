@@ -163,6 +163,9 @@ class EmailController extends Controller
         try {
             // Build references list (Parent message id + its own references)
             $references = ($email->references ? $email->references . ' ' : '') . '<' . $email->message_id . '>';
+            
+            // Generate a unique Message-ID for our record
+            $sentMessageId = bin2hex(random_bytes(16)) . '@vanakelgroup.com';
 
             Mail::mailer($mailerName)->to($email->from_address)->send(
                 new ReplyEmail(
@@ -172,6 +175,23 @@ class EmailController extends Controller
                     $references
                 )
             );
+
+            // Save the sent email to our local database so it appears in the thread immediately
+            Email::create([
+                'message_id' => $sentMessageId,
+                'thread_id' => $email->thread_id ?: $email->message_id,
+                'in_reply_to' => $email->message_id,
+                'references' => $references,
+                'from_address' => $fromAddress,
+                'from_name' => 'Vankel Group',
+                'to_address' => $email->from_address,
+                'subject' => $subject,
+                'body_text' => $request->body,
+                'body_html' => nl2br(e($request->body)),
+                'received_at' => now(),
+                'is_read' => true,
+                'ingested_at' => now(), // Manual replies are already "processed"
+            ]);
 
             return response()->json([
                 'message' => 'Reply sent successfully from ' . $fromAddress

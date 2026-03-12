@@ -154,7 +154,25 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                     <EmailReplyForm
                         emailId={email.id}
                         onClose={() => setShowReplyForm(false)}
-                        onSuccess={(msg) => setSuccessMessage(msg)}
+                        onSuccess={(msg) => {
+                            setSuccessMessage(msg);
+                            // Refresh email and thread data
+                            const fetchCurrentEmail = async () => {
+                                try {
+                                    const data = await dataService.getEmailById(email.id);
+                                    setEmail(data);
+                                    if (data.thread_id) {
+                                        const threadData = await dataService.getEmailThread(data.thread_id);
+                                        setThread(threadData.emails || []);
+                                    } else {
+                                        setThread([data]);
+                                    }
+                                } catch (error) {
+                                    console.error("Error refreshing thread:", error);
+                                }
+                            };
+                            fetchCurrentEmail();
+                        }}
                     />
                 </div>
             )}
