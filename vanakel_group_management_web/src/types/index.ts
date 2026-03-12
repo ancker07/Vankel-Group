@@ -100,8 +100,8 @@ export interface Intervention {
   createdAt?: string; // New field for tracking creation time
   status: InterventionStatus;
   notes: Note[];
-  photos: string[];
-  documents: Document[];
+  photos: string[]; // Photos are stored separately and NOT included in PDF reports
+  documents: Document[]; // Documents are stored separately and NOT included in PDF reports
   proId: string;
   signature?: string;
   completedAt?: string;

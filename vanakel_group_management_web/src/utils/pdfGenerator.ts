@@ -23,6 +23,9 @@ export const generateInterventionPDF = async (
     logoBase64?: string,
     savePdf: boolean = true
 ) => {
+    // IMPORTANT: This PDF generator is designed to EXCLUDE photos/images
+    // Photos are handled as separate file uploads and should NOT be included in PDF reports
+    // This ensures PDF reports remain lightweight and professional
     const t = TRANSLATIONS[lang];
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -184,5 +187,8 @@ export const generateInterventionPDF = async (
     if (savePdf) {
         doc.save(fileName);
     }
+    
+    // NOTE: Photos are intentionally NOT included in PDF reports
+    // Photos should remain as separate file uploads for better performance and flexibility
     return doc;
 };

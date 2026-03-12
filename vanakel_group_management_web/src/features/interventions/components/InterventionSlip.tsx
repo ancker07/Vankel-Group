@@ -238,6 +238,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
       documents.filter(d => !!d.file).forEach(d => formData.append('files[]', d.file!));
 
       // GENERATE AND APPEND PDF REPORT IF SENDING
+      // IMPORTANT: PDF report does NOT include photos - photos remain as separate file uploads
       if (mode === 'EMAIL' || mode === 'WHATSAPP') {
         try {
           const response = await fetch(vankerLogo);

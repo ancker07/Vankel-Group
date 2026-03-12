@@ -66,6 +66,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
       const syndic = syndics.find(s => s.id === intervention.syndicId);
 
       // Convert logo to base64 for PDF
+      // NOTE: PDF reports do NOT include photos - photos remain as separate file uploads
       const response = await fetch(vankerLogo);
       const blob = await response.blob();
       const reader = new FileReader();
