@@ -28,5 +28,10 @@ class Intervention extends Model
     {
         return $this->belongsTo(Syndic::class);
     }
+
+    public function maintenancePlan()
+    {
+        return $this->belongsTo(MaintenancePlan::class);
+    }
 }
 

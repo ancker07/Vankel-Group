@@ -93,7 +93,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
     }
 
     return (
-        <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto space-y-6 pb-12">
+        <div className="flex flex-col min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-6xl mx-auto space-y-8 pb-20">
             {/* Success Message Banner */}
             {successMessage && (
                 <div className="flex items-center gap-3 p-4 bg-brand-green/10 border border-brand-green/20 rounded-2xl text-brand-green text-sm animate-in slide-in-from-top-4 duration-300">
@@ -141,11 +141,13 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
 
             {/* Reply Form Section */}
             {showReplyForm && (
-                <EmailReplyForm
-                    emailId={email.id}
-                    onClose={() => setShowReplyForm(false)}
-                    onSuccess={(msg) => setSuccessMessage(msg)}
-                />
+                <div className="animate-in slide-in-from-top-4 duration-500 mb-4">
+                    <EmailReplyForm
+                        emailId={email.id}
+                        onClose={() => setShowReplyForm(false)}
+                        onSuccess={(msg) => setSuccessMessage(msg)}
+                    />
+                </div>
             )}
 
             {/* Email Main Card */}
