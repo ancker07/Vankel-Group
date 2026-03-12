@@ -31,10 +31,9 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                 const data = await dataService.getEmailById(parseInt(id));
                 setEmail(data);
 
-                // If it's part of a thread, fetch the whole thread
-                if (data.thread_id) {
-                    const threadData = await dataService.getEmailThread(data.thread_id);
-                    setThread(threadData.emails || []);
+                // Use the thread provided by the backend, fallback to the email itself
+                if (data.thread && data.thread.length > 0) {
+                    setThread(data.thread);
                 } else {
                     setThread([data]);
                 }
@@ -161,9 +160,8 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                                 try {
                                     const data = await dataService.getEmailById(email.id);
                                     setEmail(data);
-                                    if (data.thread_id) {
-                                        const threadData = await dataService.getEmailThread(data.thread_id);
-                                        setThread(threadData.emails || []);
+                                    if (data.thread && data.thread.length > 0) {
+                                        setThread(data.thread);
                                     } else {
                                         setThread([data]);
                                     }

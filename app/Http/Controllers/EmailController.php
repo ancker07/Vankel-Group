@@ -23,26 +23,44 @@ class EmailController extends Controller
 
     public function index()
     {
+        // Group by thread_id, falling back to message_id for unique emails
+        // Then take the latest message from each group
+        $emails = Email::with('attachments')
+            ->select('emails.*')
+            ->join(DB::raw('(SELECT MAX(id) as max_id FROM emails GROUP BY COALESCE(thread_id, message_id)) as latest_emails'), 'emails.id', '=', 'latest_emails.max_id')
+            ->orderBy('received_at', 'desc')
+            ->get();
+
         return response()->json([
-            'emails' => Email::with('attachments')->orderBy('received_at', 'desc')->get()
+            'emails' => $emails
         ]);
     }
 
     public function show($id)
     {
-        $email = Email::with(['attachments', 'thread' => function($query) {
-            $query->with('attachments');
-        }])->findOrFail($id);
+        $email = Email::with('attachments')->findOrFail($id);
+        
+        // Use the smarter conversation discovery
+        $conversation = $email->getConversation();
+        
+        // Add the conversation to the email object for the frontend
+        $email->thread = $conversation;
         
         return response()->json($email);
     }
 
     public function getThread($threadId)
     {
-        $emails = Email::where('thread_id', $threadId)
-            ->with('attachments')
-            ->orderBy('received_at', 'asc')
-            ->get();
+        // First try finding an email that matches this thread_id or message_id
+        $email = Email::where('thread_id', $threadId)
+            ->orWhere('message_id', $threadId)
+            ->first();
+
+        if (!$email) {
+            return response()->json(['emails' => []]);
+        }
+
+        $emails = $email->getConversation();
             
         return response()->json([
             'emails' => $emails
