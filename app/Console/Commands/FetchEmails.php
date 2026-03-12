@@ -87,26 +87,66 @@ class FetchEmails extends Command
                     $this->info('Found ' . $messages->count() . ' new message(s) in ' . $folder->name);
 
                     foreach ($messages as $message) {
-                    $messageId = $message->getMessageId() ? (string) $message->getMessageId() : (string) $message->getUid();
+                        $messageId = $message->getMessageId() ? (string) $message->getMessageId() : (string) $message->getUid();
 
-                    // Skip if we already saved this email
-                    if (Email::where('message_id', $messageId)->exists()) {
-                        continue; 
-                    }
+                        // Skip if we already saved this email
+                        if (Email::where('message_id', $messageId)->exists()) {
+                            continue;
+                        }
 
-                    $from = $message->getFrom()[0] ?? null;
-                    $to = $message->getTo()[0] ?? null;
+                        $from = $message->getFrom()[0] ?? null;
+                        $to = $message->getTo()[0] ?? null;
 
-                    $email = Email::create([
-                        'message_id' => $messageId,
-                        'from_address' => $from ? $from->mail : 'unknown',
-                        'from_name' => $from ? $from->personal : null,
-                        'to_address' => $to ? $to->mail : null,
-                        'subject' => $message->getSubject() ?: '(No Subject)',
-                        'body_text' => $message->getTextBody(),
-                        'body_html' => $message->getHTMLBody(),
-                        'received_at' => Carbon::parse($message->getDate()),
-                    ]);
+                        // Threading Logic
+                        $inReplyTo = $message->getInReplyTo();
+                        $references = $message->getReferences();
+                        
+                        // Clean headers - some clients wrap IDs in <>
+                        $cleanInReplyTo = $inReplyTo ? trim($inReplyTo, '<>') : null;
+                        
+                        $threadId = null;
+                        
+                        // 1. Try to find thread by In-Reply-To
+                        if ($cleanInReplyTo) {
+                            $parent = Email::where('message_id', $cleanInReplyTo)->first();
+                            if ($parent) {
+                                $threadId = $parent->thread_id ?: $parent->message_id;
+                            }
+                        }
+                        
+                        // 2. Try to find thread by References if not found yet
+                        if (!$threadId && $references) {
+                            $refIds = preg_split('/\s+/', $references);
+                            foreach ($refIds as $refId) {
+                                $cleanRefId = trim($refId, '<>');
+                                if (!$cleanRefId) continue;
+                                
+                                $refEmail = Email::where('message_id', $cleanRefId)->first();
+                                if ($refEmail) {
+                                    $threadId = $refEmail->thread_id ?: $refEmail->message_id;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // 3. If still no threadId, this is a new thread (itself)
+                        if (!$threadId) {
+                            $threadId = $messageId;
+                        }
+
+                        $email = Email::create([
+                            'message_id' => $messageId,
+                            'thread_id' => $threadId,
+                            'in_reply_to' => $cleanInReplyTo,
+                            'references' => $references,
+                            'from_address' => $from ? $from->mail : 'unknown',
+                            'from_name' => $from ? $from->personal : null,
+                            'to_address' => $to ? $to->mail : null,
+                            'subject' => $message->getSubject() ?: '(No Subject)',
+                            'body_text' => $message->getTextBody(),
+                            'body_html' => $message->getHTMLBody(),
+                            'received_at' => Carbon::parse($message->getDate()),
+                        ]);
 
                     // Handle Attachments
                     if ($message->hasAttachments()) {

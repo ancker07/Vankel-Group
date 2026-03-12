@@ -32,18 +32,23 @@ class ReplyEmail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $headers = [];
-        if ($this->messageId) {
-            $headers['In-Reply-To'] = $this->messageId;
-        }
-        if ($this->references) {
-            $headers['References'] = $this->references;
-        }
-
         return new Envelope(
             subject: $this->replySubject,
             tags: ['reply'],
-            metadata: $headers,
+        );
+    }
+
+    /**
+     * Get the message headers.
+     */
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(
+            messageId: null,
+            references: $this->references ? [$this->references] : [],
+            text: [
+                'In-Reply-To' => $this->messageId,
+            ],
         );
     }
 

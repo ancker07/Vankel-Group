@@ -69,6 +69,10 @@ export const dataService = {
         const response = await apiClient.get(`/emails/${id}`);
         return response.data;
     },
+    getEmailThread: async (threadId: string) => {
+        const response = await apiClient.get(`/emails/threads/${threadId}`);
+        return response.data;
+    },
     deleteEmail: async (id: number) => {
         const response = await apiClient.delete(`/emails/${id}`);
         return response.data;

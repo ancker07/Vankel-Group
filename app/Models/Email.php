@@ -18,6 +18,11 @@ class Email extends Model
         'extracted_data' => 'array',
     ];
 
+    public function thread()
+    {
+        return $this->hasMany(Email::class, 'thread_id', 'thread_id')->orderBy('received_at', 'asc');
+    }
+
     public function attachments()
     {
         return $this->hasMany(EmailAttachment::class);

@@ -300,10 +300,12 @@ export interface EmailAttachment {
 export interface Email {
   id: number;
   message_id: string;
+  thread_id: string | null;
+  in_reply_to: string | null;
+  subject: string | null;
   from_address: string;
   from_name: string | null;
   to_address: string | null;
-  subject: string | null;
   body_text: string | null;
   body_html: string | null;
   received_at: string;
@@ -315,4 +317,5 @@ export interface Email {
   created_at: string;
   updated_at: string;
   attachments?: EmailAttachment[];
+  thread?: Email[];
 }

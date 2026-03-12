@@ -30,8 +30,23 @@ class EmailController extends Controller
 
     public function show($id)
     {
-        $email = Email::with('attachments')->findOrFail($id);
+        $email = Email::with(['attachments', 'thread' => function($query) {
+            $query->with('attachments');
+        }])->findOrFail($id);
+        
         return response()->json($email);
+    }
+
+    public function getThread($threadId)
+    {
+        $emails = Email::where('thread_id', $threadId)
+            ->with('attachments')
+            ->orderBy('received_at', 'asc')
+            ->get();
+            
+        return response()->json([
+            'emails' => $emails
+        ]);
     }
 
     public function destroy($id)
@@ -146,12 +161,15 @@ class EmailController extends Controller
             : env('MAIL_FROM_ADDRESS', 'no-reply@vanakelgroup.com');
 
         try {
+            // Build references list (Parent message id + its own references)
+            $references = ($email->references ? $email->references . ' ' : '') . '<' . $email->message_id . '>';
+
             Mail::mailer($mailerName)->to($email->from_address)->send(
                 new ReplyEmail(
                     $request->body, 
                     $subject, 
                     $email->message_id, 
-                    $email->message_id // Simple references/in-reply-to for now
+                    $references
                 )
             );
 
