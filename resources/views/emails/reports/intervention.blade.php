@@ -160,6 +160,13 @@
                 </div>
                 @endif
 
+                @if($intervention->comment)
+                <div style="margin-top: 15px;">
+                    <div class="section-title">Commentaire</div>
+                    <div class="description-box">{{ $intervention->comment }}</div>
+                </div>
+                @endif
+
                 @if($intervention->status === 'DELAYED' && ($intervention->delay_reason || $intervention->delay_details))
                 <div style="margin-top: 15px; border-top: 1px solid #3f3f46; pt: 15px;">
                     <div class="section-title" style="color: #f97316;">Détails du retard</div>
