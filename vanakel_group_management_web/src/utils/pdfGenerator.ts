@@ -169,60 +169,6 @@ export const generateInterventionPDF = async (
         currentY = Math.max(currentY, startY + 25) + 20;
     }
 
-    // 4. Photos (Render at the end)
-    const images = (intervention.documents || []).filter(doc => {
-        const ext = doc.name.split('.').pop()?.toLowerCase();
-        return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
-    });
-
-    if (images.length > 0) {
-        // New page for photos if running out of space
-        if (currentY > pageWidth - 60) {
-            doc.addPage();
-            currentY = 20;
-        }
-
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(t.photos || 'Intervention Photos', 15, currentY);
-        doc.line(15, currentY + 2, 55, currentY + 2);
-        currentY += 15;
-
-        const imgWidth = (pageWidth - 40) / 2;
-        const imgHeight = 60;
-        const startX = 15;
-
-        for (let idx = 0; idx < images.length; idx++) {
-            const img = images[idx];
-            const row = Math.floor(idx / 2);
-            const col = idx % 2;
-            const x = startX + (col * (imgWidth + 10));
-            const y = currentY + (row * (imgHeight + 10));
-
-            // Check for page overflow
-            if (y + imgHeight > doc.internal.pageSize.getHeight() - 20) {
-                doc.addPage();
-                currentY = 20;
-                // Re-calculate y for new page
-                // This is a simplification, ideally we'd track currentY more robustly
-            }
-
-            try {
-                // We assume these URLs are accessible. 
-                // Since this is client-side, jsPDF can try to add the URL directly 
-                // but usually it needs data or preloaded images.
-                // For simplicity and reliability in report environments, URLs might fail if cross-origin.
-                // However, the dashboard usually preloads them.
-                doc.addImage(img.url, 'JPEG', x, y, imgWidth, imgHeight);
-            } catch (e) {
-                console.warn(`Failed to add image ${img.name} to PDF`, e);
-                doc.setFontSize(8);
-                doc.setTextColor(150);
-                doc.text(`[Image: ${img.name}]`, x, y + 5);
-            }
-        }
-    }
-
     // 5. Footer
     const pageCountSource = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCountSource; i++) {

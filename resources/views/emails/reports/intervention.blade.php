@@ -185,39 +185,6 @@
                 <div class="description-box">{{ $intervention->description }}</div>
             </div>
 
-            @php
-                $images = $intervention->documents->filter(function($doc) {
-                    $ext = strtolower(pathinfo($doc->file_name, PATHINFO_EXTENSION));
-                    return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                });
-            @endphp
-
-            @if($images->count() > 0)
-            <div class="section">
-                <div class="section-title">Photos de l'intervention</div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                    @foreach($images as $img)
-                        @php
-                            $path = storage_path('app/public/' . $img->file_path);
-                        @endphp
-                        @if(file_exists($path))
-                            <div style="border-radius: 8px; overflow: hidden; border: 1px solid #18181b;">
-                                <img src="{{ $message->embed($path) }}" style="width: 100%; display: block;" alt="Photo intervention">
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            @if($intervention->documents->count() > 0)
-            <div style="padding: 0 8px;">
-                <p style="font-size: 12px; font-weight: bold; margin-bottom: 4px;">Pièces jointes incluses :</p>
-                @foreach($intervention->documents as $doc)
-                    <div style="font-size: 12px; color: #71717a; margin-bottom: 2px;">• {{ $doc->file_name }}</div>
-                @endforeach
-            </div>
-            @endif
         </div>
 
         <div class="footer">
