@@ -6,6 +6,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\MaintenanceController;
+
+Route::get('/maintenance-plans', [MaintenanceController::class, 'index']);
+Route::post('/maintenance-plans', [MaintenanceController::class, 'store']);
+Route::put('/maintenance-plans/{id}', [MaintenanceController::class, 'update']);
+Route::delete('/maintenance-plans/{id}', [MaintenanceController::class, 'destroy']);
 
 Route::get('/emails', [EmailController::class, 'index']);
 Route::get('/emails/{id}', [EmailController::class, 'show']);

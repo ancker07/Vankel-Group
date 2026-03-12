@@ -109,6 +109,22 @@ export const dataService = {
     createAdmin: async (adminData: any) => {
         const response = await apiClient.post('/superadmin/admins', adminData);
         return response.data;
+    },
+    getMaintenancePlans: async () => {
+        const response = await apiClient.get('/maintenance-plans');
+        return response.data;
+    },
+    createMaintenancePlan: async (planData: any) => {
+        const response = await apiClient.post('/maintenance-plans', planData);
+        return response.data;
+    },
+    updateMaintenancePlan: async (id: string, planData: any) => {
+        const response = await apiClient.put(`/maintenance-plans/${id}`, planData);
+        return response.data;
+    },
+    deleteMaintenancePlan: async (id: string) => {
+        const response = await apiClient.delete(`/maintenance-plans/${id}`);
+        return response.data;
     }
 };
 

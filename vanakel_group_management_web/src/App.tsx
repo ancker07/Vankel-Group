@@ -54,6 +54,7 @@ import {
   AppNotification,
   EmailIngestionLog,
   MaintenancePlan,
+  MaintenanceFrequency,
   SignupRequest,
   AdminUser,
   Urgency,
@@ -149,12 +150,13 @@ const App: React.FC = () => {
   const refreshGlobalData = async (silent = false) => {
     if (!silent) setIsRefreshing(true);
     try {
-      const [apiBuildings, apiMissions, apiInterventions, apiSyndics, apiPendingUsers] = await Promise.all([
+      const [apiBuildings, apiMissions, apiInterventions, apiSyndics, apiPendingUsers, apiMaintenancePlans] = await Promise.all([
         dataService.getBuildings(),
         dataService.getMissions(),
         dataService.getInterventions(),
         dataService.getSyndics(),
-        dataService.getPendingUsers()
+        dataService.getPendingUsers(),
+        dataService.getMaintenancePlans()
       ]);
 
       if (apiBuildings) {
@@ -297,6 +299,25 @@ const App: React.FC = () => {
           status: u.status
         }));
         setSignupRequests(mappedUsers);
+      }
+
+      if (apiMaintenancePlans) {
+        const mappedPlans: MaintenancePlan[] = apiMaintenancePlans.map((p: any) => ({
+          id: String(p.id),
+          buildingId: String(p.building_id),
+          title: p.title,
+          description: p.description,
+          recurrence: {
+            frequency: p.frequency as MaintenanceFrequency,
+            interval: p.interval || 1,
+            startDate: p.start_date,
+            endDate: p.end_date
+          },
+          createdAt: p.created_at,
+          status: p.status as 'ACTIVE' | 'CANCELLED',
+          syndicId: p.syndic_id ? String(p.syndic_id) : undefined
+        }));
+        setMaintenancePlans(mappedPlans);
       }
 
       if (role === 'SUPERADMIN' || role === 'ADMIN') {
@@ -776,16 +797,28 @@ const App: React.FC = () => {
 
 
 
-  const handleCreateMaintenance = (plan: Omit<MaintenancePlan, 'id' | 'createdAt' | 'status'>) => {
-    setMaintenancePlans(prev => [...prev, { id: `mp-${Date.now()}`, createdAt: new Date().toISOString(), status: 'ACTIVE', ...plan }]);
-    addToast(t.maintenance || 'Maintenance', 'Plan recurrent créé.');
+  const handleCreateMaintenance = async (plan: Omit<MaintenancePlan, 'id' | 'createdAt' | 'status'>) => {
+    try {
+      await dataService.createMaintenancePlan(plan);
+      addToast(t.maintenance || 'Maintenance', 'Plan recurrent créé.');
+      refreshGlobalData(true);
+    } catch (error) {
+      console.error("Failed to create maintenance plan:", error);
+      addToast('Error', 'Failed to create maintenance plan.');
+    }
   };
 
-  const handleDeleteMaintenance = () => {
+  const handleDeleteMaintenance = async () => {
     if (deletePlanId) {
-      setMaintenancePlans(prev => prev.filter(p => p.id !== deletePlanId));
-      setDeletePlanId(null);
-      addToast(t.maintenance || 'Maintenance', 'Plan supprimé.');
+      try {
+        await dataService.deleteMaintenancePlan(deletePlanId);
+        setDeletePlanId(null);
+        addToast(t.maintenance || 'Maintenance', 'Plan supprimé.');
+        refreshGlobalData(true);
+      } catch (error) {
+        console.error("Failed to delete maintenance plan:", error);
+        addToast('Error', 'Failed to delete maintenance plan.');
+      }
     }
   };
 
