@@ -22,7 +22,7 @@ interface SlipProps {
   professionals?: Professional[];
   lang: Language;
   onClose: () => void;
-  onUpdate: (i: Intervention) => Promise<void>;
+  onUpdate: (i: Intervention, skipApi?: boolean) => Promise<void>;
   onOpenMaintenance?: (buildingId: string) => void;
   role?: Role;
   readOnly?: boolean;
@@ -75,19 +75,19 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
   const t = TRANSLATIONS[lang];
   const [status, setStatus] = useState<InterventionStatus>(intervention.status);
-  const [delayedDate, setDelayedDate] = useState(intervention.delayedRescheduleDate || '');
-  const [adminNote, setAdminNote] = useState(intervention.adminFeedback || '');
+  const [delayedDate, setDelayedDate] = useState(intervention.delayedRescheduleDate || (intervention as any).delayed_reschedule_date || '');
+  const [adminNote, setAdminNote] = useState(intervention.adminFeedback || (intervention as any).admin_feedback || '');
 
   // Delay Reason State
-  const [delayReason, setDelayReason] = useState(intervention.delayReason || '');
-  const [delayDetails, setDelayDetails] = useState(intervention.delayDetails || '');
+  const [delayReason, setDelayReason] = useState(intervention.delayReason || (intervention as any).delay_reason || '');
+  const [delayDetails, setDelayDetails] = useState(intervention.delayDetails || (intervention as any).delay_details || '');
 
   // Contact Sur Place State (Per Intervention)
-  const [contactName, setContactName] = useState(intervention.onSiteContactName || '');
-  const [contactPhone, setContactPhone] = useState(intervention.onSiteContactPhone || '');
-  const [contactEmail, setContactEmail] = useState(intervention.onSiteContactEmail || '');
-  const [internalSyndicId, setInternalSyndicId] = useState(intervention.syndicId || building.linkedSyndicId || '');
-  const [internalProId, setInternalProId] = useState(intervention.proId || building.linkedProfessionalId || '');
+  const [contactName, setContactName] = useState(intervention.onSiteContactName || (intervention as any).on_site_contact_name || '');
+  const [contactPhone, setContactPhone] = useState(intervention.onSiteContactPhone || (intervention as any).on_site_contact_phone || '');
+  const [contactEmail, setContactEmail] = useState(intervention.onSiteContactEmail || (intervention as any).on_site_contact_email || '');
+  const [internalSyndicId, setInternalSyndicId] = useState(intervention.syndicId || (intervention as any).syndic_id || building.linkedSyndicId || '');
+  const [internalProId, setInternalProId] = useState(intervention.proId || (intervention as any).pro_id || building.linkedProfessionalId || '');
 
   // Derived syndic for display
   const currentSyndic = syndics.find(s => s.id === internalSyndicId) || syndic;
@@ -223,12 +223,30 @@ const InterventionSlip: React.FC<SlipProps> = ({
       };
 
       const formData = new FormData();
-      Object.keys(updatedInterventionData).forEach(key => {
-        const val = (updatedInterventionData as any)[key];
-        if (val !== undefined && val !== null) {
-          formData.append(key, val);
-        }
-      });
+
+      // Mapping for Laravel Backend (snake_case)
+      formData.append('status', status);
+      formData.append('admin_feedback', adminNote);
+      formData.append('on_site_contact_name', contactName);
+      formData.append('on_site_contact_phone', contactPhone);
+      formData.append('on_site_contact_email', contactEmail);
+      formData.append('syndic_id', internalSyndicId);
+      formData.append('pro_id', internalProId);
+
+      if (status === 'DELAYED') {
+        if (delayReason) formData.append('delay_reason', delayReason);
+        if (delayDetails) formData.append('delay_details', delayDetails);
+        if (delayedDate) formData.append('delayed_reschedule_date', delayedDate);
+      }
+
+      if (status === 'COMPLETED') {
+        formData.append('completed_at', new Date().toISOString());
+      }
+
+      // Add scheduled date if available to avoid backend validation error on missing/stale data
+      if (intervention.scheduledDate) {
+        formData.append('scheduled_date', intervention.scheduledDate);
+      }
 
       // Handle existing photos/documents (keeping paths)
       // Note: Backend might need specific handling for existing vs new
@@ -269,6 +287,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
       const result = await dataService.updateIntervention(intervention.id, formData);
       const savedIntervention = result.intervention;
+
+      if (onUpdate && savedIntervention) {
+        // We notify parent to refresh its global state
+        // Result from backend is snake_case, handleInterventionUpdate in App.tsx maps it
+        await onUpdate(savedIntervention, true); // IMPORTANT: skipApi=true to avoid double save
+      }
 
       if (status === 'COMPLETED') onClose();
       else {
@@ -829,13 +853,22 @@ const InterventionSlip: React.FC<SlipProps> = ({
                   )}
                 </div>
               </div>
-              <textarea
-                value={adminNote}
-                disabled={!isEditable}
-                onChange={e => setAdminNote(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[160px] md:min-h-[200px] outline-none focus:border-brand-green transition-all text-sm text-zinc-300 leading-relaxed disabled:opacity-70"
-                placeholder="Technical feedback or observations..."
-              />
+              {isEditable ? (
+                <textarea
+                  value={adminNote}
+                  onChange={e => setAdminNote(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[160px] md:min-h-[200px] outline-none focus:border-brand-green transition-all text-sm text-zinc-300 leading-relaxed"
+                  placeholder="Technical feedback or observations..."
+                />
+              ) : (
+                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[100px] text-sm text-zinc-300 leading-relaxed italic">
+                  {adminNote ? (
+                    <div className="whitespace-pre-wrap">{adminNote}</div>
+                  ) : (
+                    <span className="text-zinc-500">{t.no_note_yet || 'No technical observations recorded.'}</span>
+                  )}
+                </div>
+              )}
               {photos.filter(p => !!p.file).length > 0 && (
                 <div className="flex gap-2 overflow-x-auto py-2 scrollbar-none">
                   {photos.filter(p => !!p.file).map((photo, idx) => (

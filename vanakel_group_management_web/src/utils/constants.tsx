@@ -78,6 +78,7 @@ export const TRANSLATIONS = {
     verify_docs: 'Review Documents',
     slip_id: 'Slip ID',
     created_at: 'Created At',
+    no_note_yet: 'No technical observations recorded.',
 
     // ... Existing translations ...
     period: 'Period',
@@ -524,6 +525,7 @@ export const TRANSLATIONS = {
     verify_docs: 'Vérifier les documents',
     slip_id: 'Réf Bon',
     created_at: 'Créé le',
+    no_note_yet: 'Aucune observation technique enregistrée.',
 
     // ... Existing Translations ...
     period: 'Période',
@@ -971,6 +973,7 @@ export const TRANSLATIONS = {
     verify_docs: 'Documenten nakijken',
     slip_id: 'Bon Ref',
     created_at: 'Aangemaakt op',
+    no_note_yet: 'Geen technische opmerkingen genoteerd.',
 
     // ... Existing Translations ...
     period: 'Periode',

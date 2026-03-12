@@ -268,7 +268,13 @@ const App: React.FC = () => {
           onSiteContactPhone: i.on_site_contact_phone,
           onSiteContactEmail: i.on_site_contact_email,
           sourceType: i.source_type || 'MANUAL',
-          syndicId: i.syndic_id ? String(i.syndic_id) : undefined
+          syndicId: i.syndic_id ? String(i.syndic_id) : undefined,
+          adminFeedback: i.admin_feedback,
+          delayReason: i.delay_reason,
+          delayDetails: i.delay_details,
+          delayedRescheduleDate: i.delayed_reschedule_date,
+          delayedAt: i.delayed_at,
+          completedAt: i.completed_at
         }));
         setInterventions(mappedInterventions);
       }
@@ -648,22 +654,46 @@ const App: React.FC = () => {
     }
   };
 
-  const handleInterventionUpdate = async (updated: any) => {
+  const handleInterventionUpdate = async (updated: any, skipApi = false) => {
     try {
+      // If skipApi is true, we just update local state because the API was already called by the child component
+      if (skipApi) {
+        setInterventions(prev => prev.map(i => i.id === String(updated.id) ? {
+          ...i,
+          ...updated,
+          id: String(updated.id),
+          status: updated.status,
+          adminFeedback: updated.adminFeedback || updated.admin_feedback,
+          delayReason: updated.delayReason || updated.delay_reason,
+          delayDetails: updated.delayDetails || updated.delay_details,
+          onSiteContactName: updated.onSiteContactName || updated.on_site_contact_name,
+          onSiteContactPhone: updated.onSiteContactPhone || updated.on_site_contact_phone,
+          onSiteContactEmail: updated.onSiteContactEmail || updated.on_site_contact_email,
+        } : i));
+        return;
+      }
+
       let payload: any = {
         status: updated.status,
-        pro_id: updated.proId,
-        scheduled_date: updated.scheduledDate,
-        admin_feedback: updated.adminFeedback,
-        on_site_contact_name: updated.onSiteContactName,
-        on_site_contact_phone: updated.onSiteContactPhone,
-        on_site_contact_email: updated.onSiteContactEmail,
-        delay_reason: updated.delayReason,
-        delay_details: updated.delayDetails,
-        delayed_reschedule_date: updated.delayedRescheduleDate,
-        completed_at: updated.completedAt,
-        syndic_id: updated.syndicId
+        pro_id: updated.proId || updated.pro_id ? String(updated.proId || updated.pro_id) : null,
+        scheduled_date: updated.scheduledDate || updated.scheduled_date,
+        admin_feedback: updated.adminFeedback || updated.admin_feedback,
+        on_site_contact_name: updated.onSiteContactName || updated.on_site_contact_name,
+        on_site_contact_phone: updated.onSiteContactPhone || updated.on_site_contact_phone,
+        on_site_contact_email: updated.onSiteContactEmail || updated.on_site_contact_email,
+        delay_reason: updated.delayReason || updated.delay_reason,
+        delay_details: updated.delayDetails || updated.delay_details,
+        delayed_reschedule_date: updated.delayedRescheduleDate || updated.delayed_reschedule_date,
+        completed_at: updated.completedAt || updated.completed_at,
+        syndic_id: updated.syndicId || updated.syndic_id ? String(updated.syndicId || updated.syndic_id) : null
       };
+
+      // Ensure we don't send empty strings for optional date/numeric fields that should be null
+      if (payload.scheduled_date === "") payload.scheduled_date = null;
+      if (payload.delayed_reschedule_date === "") payload.delayed_reschedule_date = null;
+      if (payload.completed_at === "") payload.completed_at = null;
+      if (payload.syndic_id === "null" || payload.syndic_id === "") payload.syndic_id = null;
+      if (payload.pro_id === "null" || payload.pro_id === "") payload.pro_id = null;
 
       // Check for new files added in UI
       const hasFiles = (updated.addedPhotos && updated.addedPhotos.length > 0) ||
@@ -687,7 +717,7 @@ const App: React.FC = () => {
       }
 
       await dataService.updateIntervention(updated.id, payload);
-      setInterventions(prev => prev.map(i => i.id === updated.id ? { ...updated } : i));
+      setInterventions(prev => prev.map(i => i.id === String(updated.id) ? { ...i, ...updated, id: String(updated.id) } : i));
       addToast(t.updated || 'Success', t.updateSuccess || 'Intervention mise à jour.');
     } catch (error) {
       console.error('Failed to update intervention:', error);

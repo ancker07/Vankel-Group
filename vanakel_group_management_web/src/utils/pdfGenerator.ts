@@ -85,21 +85,38 @@ export const generateInterventionPDF = async (
     currentY += (descriptionLines.length * 5) + 12;
 
     // Technical / Admin Notes
-    if (intervention.adminFeedback) {
+    const adminNote = intervention.adminFeedback || (intervention as any).admin_feedback;
+    if (adminNote) {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(100);
+        doc.setTextColor(0, 0, 0);
         doc.text(t.adminNote || 'Admin Note', 15, currentY);
         currentY += 6;
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(0);
-        const adminLines = doc.splitTextToSize(intervention.adminFeedback, pageWidth - 30);
+        const adminLines = doc.splitTextToSize(adminNote, pageWidth - 30);
         doc.text(adminLines, 15, currentY);
         currentY += (adminLines.length * 5) + 10;
+    } else if (intervention.notes && intervention.notes.length > 0) {
+        // ... (existing notes logic)
+        const latestNote = intervention.notes[intervention.notes.length - 1];
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(t.adminNote || 'Admin Note', 15, currentY);
+        currentY += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0);
+        const noteLines = doc.splitTextToSize(latestNote.content || '', pageWidth - 30);
+        doc.text(noteLines, 15, currentY);
+        currentY += (noteLines.length * 5) + 10;
     }
 
     // Delay Details
-    if (intervention.status === 'DELAYED' && (intervention.delayReason || intervention.delayDetails)) {
+    const delayReason = intervention.delayReason || (intervention as any).delay_reason;
+    const delayDetails = intervention.delayDetails || (intervention as any).delay_details;
+
+    if (intervention.status === 'DELAYED' && (delayReason || delayDetails)) {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(230, 100, 0); // Orange-ish
@@ -109,11 +126,11 @@ export const generateInterventionPDF = async (
         doc.setTextColor(0);
 
         let delayText = '';
-        if (intervention.delayReason) {
-            delayText += `${t.delayReasonLabel || 'Reason'}: ${intervention.delayReason}\n`;
+        if (delayReason) {
+            delayText += `${t.delayReasonLabel || 'Reason'}: ${delayReason}\n`;
         }
-        if (intervention.delayDetails) {
-            delayText += `${intervention.delayDetails}`;
+        if (delayDetails) {
+            delayText += `${delayDetails}`;
         }
 
         const delayLines = doc.splitTextToSize(delayText, pageWidth - 30);
@@ -187,7 +204,7 @@ export const generateInterventionPDF = async (
     if (savePdf) {
         doc.save(fileName);
     }
-    
+
     // NOTE: Photos are intentionally NOT included in PDF reports
     // Photos should remain as separate file uploads for better performance and flexibility
     return doc;
