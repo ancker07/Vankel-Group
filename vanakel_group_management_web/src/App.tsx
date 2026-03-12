@@ -299,10 +299,12 @@ const App: React.FC = () => {
         setSignupRequests(mappedUsers);
       }
 
-      if (role === 'SUPERADMIN') {
+      if (role === 'SUPERADMIN' || role === 'ADMIN') {
         try {
-          const stats = await dataService.getSuperAdminStats();
-          setSuperAdminStats(stats);
+          if (role === 'SUPERADMIN') {
+            const stats = await dataService.getSuperAdminStats();
+            setSuperAdminStats(stats);
+          }
 
           const users = await dataService.getAllUsers();
           setAllUsers(users.map((u: any) => ({
@@ -315,6 +317,17 @@ const App: React.FC = () => {
             status: u.status,
             createdAt: u.created_at,
             companyName: u.company_name
+          })));
+
+          // Update professionals list
+          setProfessionals(users.filter((u: any) => u.role === 'PROFESSIONAL' && u.status === 'APPROVED').map((u: any) => ({
+            id: String(u.id),
+            companyName: u.company_name || u.name,
+            contactPerson: u.name,
+            phone: u.phone || '',
+            landline: '',
+            email: u.email,
+            address: ''
           })));
 
           // Update admins list from allUsers where role is ADMIN and status is APPROVED
@@ -341,7 +354,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     refreshGlobalData(true);
-  }, []);
+  }, [role]);
 
 
 
@@ -576,6 +589,7 @@ const App: React.FC = () => {
       }
       setSignupRequests(prev => prev.filter(r => r.id !== request.id));
       addToast(t.approve, t.createAdminSuccess || 'User approved successfully.');
+      refreshGlobalData(true);
     } catch (error) {
       console.error('Failed to approve user', error);
       addToast('Error', 'Failed to approve user.');
@@ -587,15 +601,30 @@ const App: React.FC = () => {
       await dataService.rejectUser(requestId);
       setSignupRequests(prev => prev.filter(r => r.id !== requestId));
       addToast('Success', 'User rejected.');
+      refreshGlobalData(true);
     } catch (error) {
       console.error('Failed to reject user', error);
       addToast('Error', 'Failed to reject user.');
     }
   };
 
-  const handleCreateAdmin = (adminData: Omit<AdminUser, 'id' | 'createdAt'>) => {
-    setAdmins(prev => [...prev, { ...adminData, id: `admin-${Date.now()}`, createdAt: new Date().toISOString() }]);
-    addToast(t.createAdmin, t.createAdminSuccess);
+  const handleCreateAdmin = async (adminData: Omit<AdminUser, 'id' | 'createdAt'>) => {
+    try {
+      const response = await dataService.createAdmin(adminData);
+      if (response && response.success) {
+        setAdmins(prev => [...prev, {
+          ...adminData,
+          id: String(response.user.id),
+          createdAt: response.user.created_at || new Date().toISOString()
+        }]);
+        addToast(t.createAdmin, t.createAdminSuccess);
+        // Refresh allUsers and stats too
+        refreshGlobalData(true);
+      }
+    } catch (error) {
+      console.error('Failed to create admin', error);
+      addToast('Error', 'Failed to create admin account.');
+    }
   };
 
   const handleInterventionUpdate = async (updated: any) => {
@@ -1097,6 +1126,7 @@ const App: React.FC = () => {
                     professional={professionals.find(p => p.id === selectedIntervention.professionalId)}
                     syndic={selectedIntSyndic}
                     syndics={syndics}
+                    professionals={professionals}
                     lang={lang}
                     onClose={() => setSelectedInterventionId(null)}
                     onUpdate={handleInterventionUpdate}

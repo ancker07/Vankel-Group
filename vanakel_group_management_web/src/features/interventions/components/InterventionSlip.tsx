@@ -4,7 +4,7 @@ import {
   Intervention, Building, Professional, Syndic, Language, Role, InterventionStatus
 } from '@/types';
 import {
-  X, Mail, MessageCircle, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2
+  X, Mail, MessageCircle, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2, Briefcase
 } from 'lucide-react';
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote, optimizeIntervention } from '@/services/aiService';
@@ -19,6 +19,7 @@ interface SlipProps {
   professional?: Professional;
   syndic?: Syndic;
   syndics?: Syndic[];
+  professionals?: Professional[];
   lang: Language;
   onClose: () => void;
   onUpdate: (i: Intervention) => Promise<void>;
@@ -69,7 +70,7 @@ const FormattedExtractedContent: React.FC<{ text: string }> = ({ text }) => {
 // --- Main Component ---
 
 const InterventionSlip: React.FC<SlipProps> = ({
-  intervention, building, professional, syndic, syndics = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly
+  intervention, building, professional, syndic, syndics = [], professionals = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly
 }) => {
 
   const t = TRANSLATIONS[lang];
@@ -86,9 +87,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [contactPhone, setContactPhone] = useState(intervention.onSiteContactPhone || '');
   const [contactEmail, setContactEmail] = useState(intervention.onSiteContactEmail || '');
   const [internalSyndicId, setInternalSyndicId] = useState(intervention.syndicId || building.linkedSyndicId || '');
+  const [internalProId, setInternalProId] = useState(intervention.proId || building.linkedProfessionalId || '');
 
   // Derived syndic for display
   const currentSyndic = syndics.find(s => s.id === internalSyndicId) || syndic;
+  const currentProfessional = professionals.find(p => p.id === internalProId) || professional;
 
   const [photos, setPhotos] = useState<{ url: string, file?: File }[]>(
     (intervention.photos || []).map(url => ({ url }))
@@ -216,6 +219,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         onSiteContactPhone: contactPhone,
         onSiteContactEmail: contactEmail,
         syndicId: internalSyndicId,
+        proId: internalProId,
       };
 
       const formData = new FormData();
@@ -458,8 +462,8 @@ const InterventionSlip: React.FC<SlipProps> = ({
             <div className="space-y-5 md:space-y-6 md:text-right border-t md:border-t-0 border-zinc-800/50 pt-5 md:pt-0 relative z-10">
               <div>
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.pro}</p>
-                <p className="font-bold text-sm md:text-lg">{professional ? professional.companyName : t.unassigned}</p>
-                <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{professional ? professional.contactPerson : '-'}</p>
+                <p className="font-bold text-sm md:text-lg">{currentProfessional ? currentProfessional.companyName : t.unassigned}</p>
+                <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{currentProfessional ? currentProfessional.contactPerson : '-'}</p>
               </div>
               <div>
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.scheduled_maintenance}</p>
@@ -620,6 +624,50 @@ const InterventionSlip: React.FC<SlipProps> = ({
                   </div>
                 </div>
               ) : null}
+            </div>
+          )}
+
+          {/* Professional Selection - ADMIN ONLY */}
+          {isEditable && !isSyndic && (
+            <div className="mt-6 pt-6 border-t border-zinc-900/50">
+              <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 block">Professional / Contractor</label>
+              <select
+                value={internalProId}
+                onChange={(e) => setInternalProId(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-bold text-white focus:border-brand-green outline-none transition-all"
+              >
+                <option value="">Select Professional...</option>
+                {professionals.map(p => (
+                  <option key={p.id} value={p.id}>{p.companyName || p.contactPerson}</option>
+                ))}
+              </select>
+
+              {currentProfessional && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/50 mt-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                      <Briefcase size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">Selected Expert</p>
+                      <p className="text-xs font-black text-white">{currentProfessional.companyName}</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentProfessional.contactPerson}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:items-end justify-center gap-1.5">
+                    {currentProfessional.phone && (
+                      <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-2">
+                        <Smartphone size={12} className="text-blue-400" /> {currentProfessional.phone}
+                      </p>
+                    )}
+                    {currentProfessional.email && (
+                      <p className="text-[10px] font-medium text-zinc-500 flex items-center gap-2">
+                        <Mail size={12} /> {currentProfessional.email}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

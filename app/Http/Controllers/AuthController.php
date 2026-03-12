@@ -204,6 +204,31 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'message' => 'User rejected', 'user' => $user]);
     }
 
+    public function storeAdmin(Request $request)
+    {
+        $validated = $request->validate([
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = User::create([
+            'name' => $request->firstName . ' ' . $request->lastName,
+            'email' => $request->email,
+            'password' => Hash::make('Vanakel2024!'), // Default password
+            'role' => 'ADMIN',
+            'phone' => $request->phone,
+            'status' => 'APPROVED',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin account created successfully.',
+            'user' => $user
+        ]);
+    }
+
     public function checkStatus(Request $request) 
     {
         $request->validate([

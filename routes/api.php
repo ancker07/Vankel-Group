@@ -24,6 +24,7 @@ Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::get('/users/pending', [AuthController::class, 'getPendingUsers']);
 Route::get('/users/all', [AuthController::class, 'getAllUsers']);
 Route::get('/superadmin/stats', [AuthController::class, 'getSuperAdminStats']);
+Route::post('/superadmin/admins', [AuthController::class, 'storeAdmin']);
 Route::post('/users/{id}/approve', [AuthController::class, 'approveUser']);
 Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser']);
 Route::post('/interventions', [InterventionController::class, 'store']);

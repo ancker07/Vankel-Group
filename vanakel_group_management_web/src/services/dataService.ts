@@ -105,6 +105,10 @@ export const dataService = {
     getAllUsers: async () => {
         const response = await apiClient.get('/users/all');
         return response.data;
+    },
+    createAdmin: async (adminData: any) => {
+        const response = await apiClient.post('/superadmin/admins', adminData);
+        return response.data;
     }
 };
 
