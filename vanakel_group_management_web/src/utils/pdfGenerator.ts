@@ -95,20 +95,6 @@ export const generateInterventionPDF = async (
         currentY += (adminLines.length * 5) + 10;
     }
 
-    // Project Comments
-    if (intervention.comment) {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(100);
-        doc.text(t.comment || 'Commentaire', 15, currentY);
-        currentY += 6;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0);
-        const commentLines = doc.splitTextToSize(intervention.comment, pageWidth - 30);
-        doc.text(commentLines, 15, currentY);
-        currentY += (commentLines.length * 5) + 10;
-    }
-
     // Delay Details
     if (intervention.status === 'DELAYED' && (intervention.delayReason || intervention.delayDetails)) {
         doc.setFontSize(10);

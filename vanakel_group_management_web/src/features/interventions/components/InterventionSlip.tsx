@@ -77,7 +77,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [status, setStatus] = useState<InterventionStatus>(intervention.status);
   const [delayedDate, setDelayedDate] = useState(intervention.delayedRescheduleDate || '');
   const [adminNote, setAdminNote] = useState(intervention.adminFeedback || '');
-  const [comment, setComment] = useState(intervention.comment || '');
 
   // Delay Reason State
   const [delayReason, setDelayReason] = useState(intervention.delayReason || '');
@@ -211,7 +210,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
         ...intervention,
         status,
         adminFeedback: adminNote,
-        comment,
         delayedRescheduleDate: status === 'DELAYED' ? delayedDate : undefined,
         completedAt: status === 'COMPLETED' ? new Date().toISOString() : intervention.completedAt,
         delayReason: status === 'DELAYED' ? delayReason : undefined,
@@ -820,17 +818,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 onChange={e => setAdminNote(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[160px] md:min-h-[200px] outline-none focus:border-brand-green transition-all text-sm text-zinc-300 leading-relaxed disabled:opacity-70"
                 placeholder="Technical feedback or observations..."
-              />
-            </div>
-
-            <div className="space-y-3" id="slip-comment">
-              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.comment || 'Commentaire'}</label>
-              <textarea
-                value={comment}
-                disabled={!isEditable}
-                onChange={e => setComment(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[120px] outline-none focus:border-brand-green transition-all text-sm text-zinc-300 leading-relaxed disabled:opacity-70"
-                placeholder="General project comments..."
               />
             </div>
           </div>
