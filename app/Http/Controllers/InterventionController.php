@@ -120,12 +120,12 @@ class InterventionController extends Controller
 
     public function getMissions()
     {
-        return response()->json(Mission::with(['documents', 'email'])->get());
+        return response()->json(Mission::with(['documents', 'email', 'building'])->latest()->get());
     }
 
     public function getMissionById($id)
     {
-        $mission = Mission::with(['documents', 'email'])->findOrFail($id);
+        $mission = Mission::with(['documents', 'email', 'building'])->findOrFail($id);
         return response()->json($mission);
     }
 
@@ -142,7 +142,7 @@ class InterventionController extends Controller
 
     public function approveMission(Request $request, $id)
     {
-        $mission = Mission::findOrFail($id);
+        $mission = Mission::with('documents')->findOrFail($id);
         $mission->update(['status' => 'APPROVED']);
 
         // Create an Intervention based on the mission
@@ -159,6 +159,15 @@ class InterventionController extends Controller
             'on_site_contact_phone' => $mission->on_site_contact_phone,
             'on_site_contact_email' => $mission->on_site_contact_email,
         ]);
+
+        // Copy documents from mission to intervention
+        foreach ($mission->documents as $doc) {
+            $intervention->documents()->create([
+                'file_path' => $doc->file_path,
+                'file_name' => $doc->file_name,
+                'file_type' => $doc->file_type,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Mission approved successfully',
