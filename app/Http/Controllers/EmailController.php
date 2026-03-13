@@ -165,6 +165,7 @@ class EmailController extends Controller
         $request->validate([
             'body' => 'required|string',
             'account' => 'required|in:no-reply,redirection',
+            'attachments.*' => 'nullable|file|max:10240', // 10MB limit
         ]);
 
         $email = Email::findOrFail($id);
@@ -186,17 +187,35 @@ class EmailController extends Controller
             // Generate a unique Message-ID for our record
             $sentMessageId = bin2hex(random_bytes(16)) . '@vanakelgroup.com';
 
+            // Handle Attachments
+            $attachmentPaths = [];
+            $savedAttachments = [];
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('attachments', 'public');
+                    $fullPath = storage_path('app/public/' . $path);
+                    $attachmentPaths[] = $fullPath;
+                    $savedAttachments[] = [
+                        'file_path' => $path,
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_type' => $file->getClientMimeType(),
+                        'file_size' => $file->getSize(),
+                    ];
+                }
+            }
+
             Mail::mailer($mailerName)->to($email->from_address)->send(
                 new ReplyEmail(
                     $request->body, 
                     $subject, 
                     $email->message_id, 
-                    $references
+                    $references,
+                    $attachmentPaths
                 )
             );
 
             // Save the sent email to our local database so it appears in the thread immediately
-            Email::create([
+            $sentEmail = Email::create([
                 'message_id' => $sentMessageId,
                 'thread_id' => $email->thread_id ?: $email->message_id,
                 'in_reply_to' => $email->message_id,
@@ -211,6 +230,11 @@ class EmailController extends Controller
                 'is_read' => true,
                 'ingested_at' => now(), // Manual replies are already "processed"
             ]);
+
+            // Save attachments to DB
+            foreach ($savedAttachments as $attData) {
+                $sentEmail->attachments()->create($attData);
+            }
 
             return response()->json([
                 'message' => 'Reply sent successfully from ' . $fromAddress

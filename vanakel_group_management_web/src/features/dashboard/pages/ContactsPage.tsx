@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, User, Calendar, MessageSquare, Trash2, Search, CheckCircle2, Clock } from 'lucide-react';
+import { Mail, User, Calendar, MessageSquare, Trash2, Search, CheckCircle2, Clock, Briefcase } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 
 interface ContactSubmission {
     id: string;
     name: string;
     email: string;
-    subject: string;
+    subject: string | null;
     message: string;
-    status: 'NEW' | 'PROCESSED' | 'ARCHIVED';
-    timestamp: string;
+    status: 'PENDING' | 'PROCESSED' | 'ARCHIVED';
+    created_at: string;
+    mission_id?: string;
+    mission?: any;
 }
 
 const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
@@ -20,29 +22,9 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
     useEffect(() => {
         const fetchContacts = async () => {
             try {
-                // In a real app, this would be an API call
-                // Using mock data for now as per instructions to be functional
-                const mockContacts: ContactSubmission[] = [
-                    {
-                        id: '1',
-                        name: 'Jean Dupont',
-                        email: 'jean.dupont@example.com',
-                        subject: 'Question sur la construction',
-                        message: 'Bonjour, je souhaiterais avoir un devis pour une extension de maison. Merci.',
-                        status: 'NEW',
-                        timestamp: new Date().toISOString()
-                    },
-                    {
-                        id: '2',
-                        name: 'Marie Leroy',
-                        email: 'marie.leroy@gmail.com',
-                        subject: 'Problème électrique',
-                        message: 'Mon tableau électrique disjoncte sans raison. Pouvez-vous intervenir?',
-                        status: 'NEW',
-                        timestamp: new Date(Date.now() - 86400000).toISOString()
-                    }
-                ];
-                setContacts(mockContacts);
+                setIsLoading(true);
+                const data = await dataService.getContacts();
+                setContacts(data);
             } catch (error) {
                 console.error('Failed to fetch contacts:', error);
             } finally {
@@ -52,10 +34,20 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
         fetchContacts();
     }, []);
 
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this contact?')) return;
+        try {
+            await dataService.deleteContact(id);
+            setContacts(prev => prev.filter(c => c.id !== id));
+        } catch (error) {
+            console.error('Failed to delete contact:', error);
+        }
+    };
+
     const filteredContacts = contacts.filter(c => 
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.subject.toLowerCase().includes(searchTerm.toLowerCase())
+        (c.subject && c.subject.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     return (
@@ -103,13 +95,13 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
                                             <div>
                                                 <h4 className="font-bold text-white flex items-center gap-2">
                                                     {contact.name}
-                                                    {contact.status === 'NEW' && <span className="w-2 h-2 rounded-full bg-brand-green animate-pulse"></span>}
+                                                    {contact.status === 'PENDING' && <span className="w-2 h-2 rounded-full bg-brand-green animate-pulse"></span>}
                                                 </h4>
                                                 <p className="text-xs text-zinc-500">{contact.email}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 tracking-widest bg-zinc-900 px-3 py-1 rounded-full">
-                                            <Calendar size={12} /> {new Date(contact.timestamp).toLocaleDateString()}
+                                            <Calendar size={12} /> {new Date(contact.created_at).toLocaleDateString()}
                                         </div>
                                     </div>
 
@@ -122,10 +114,22 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
                                 </div>
 
                                 <div className="flex md:flex-col gap-2 shrink-0 md:border-l border-zinc-900 md:pl-6">
-                                    <button className="flex-1 md:flex-none py-3 px-6 bg-zinc-900 text-zinc-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-green/10 hover:text-brand-green transition-all flex items-center justify-center gap-2 border border-zinc-800">
-                                        <CheckCircle2 size={16} /> Process
-                                    </button>
-                                    <button className="flex-1 md:flex-none py-3 px-6 bg-zinc-900 text-zinc-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center justify-center gap-2 border border-zinc-800">
+                                    {contact.mission_id ? (
+                                        <a 
+                                            href={`/superadmin/missions?id=${contact.mission_id}`}
+                                            className="flex-1 md:flex-none py-3 px-6 bg-brand-green/20 text-brand-green rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-green hover:text-brand-black transition-all flex items-center justify-center gap-2 border border-brand-green/20"
+                                        >
+                                            <Briefcase size={16} /> View Mission
+                                        </a>
+                                    ) : (
+                                        <button className="flex-1 md:flex-none py-3 px-6 bg-zinc-900 text-zinc-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-green/10 hover:text-brand-green transition-all flex items-center justify-center gap-2 border border-zinc-800">
+                                            <CheckCircle2 size={16} /> Process
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => handleDelete(contact.id)}
+                                        className="flex-1 md:flex-none py-3 px-6 bg-zinc-900 text-zinc-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center justify-center gap-2 border border-zinc-800"
+                                    >
                                         <Trash2 size={16} /> Delete
                                     </button>
                                 </div>

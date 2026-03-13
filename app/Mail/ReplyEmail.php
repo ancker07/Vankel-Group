@@ -15,16 +15,18 @@ class ReplyEmail extends Mailable
     public $replySubject;
     public $messageId;
     public $references;
+    public $attachmentsList;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($replyBody, $replySubject, $messageId = null, $references = null)
+    public function __construct($replyBody, $replySubject, $messageId = null, $references = null, $attachments = [])
     {
         $this->replyBody = $replyBody;
         $this->replySubject = $replySubject;
         $this->messageId = $messageId;
         $this->references = $references;
+        $this->attachmentsList = $attachments;
     }
 
     /**
@@ -69,6 +71,10 @@ class ReplyEmail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $mailAttachments = [];
+        foreach ($this->attachmentsList as $filePath) {
+            $mailAttachments[] = \Illuminate\Mail\Mailables\Attachment::fromPath($filePath);
+        }
+        return $mailAttachments;
     }
 }

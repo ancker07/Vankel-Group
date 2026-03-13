@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Send, X, Shield, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Send, X, Shield, Mail, AlertCircle, CheckCircle2, Sparkles, Paperclip, Trash2, Loader2 } from 'lucide-react';
 import { dataService } from '@/services/dataService';
+import { improveNote } from '@/services/aiService';
 
 interface EmailReplyFormProps {
     emailId: number;
@@ -13,7 +14,34 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
     const [body, setBody] = useState('');
     const [account, setAccount] = useState<'no-reply' | 'redirection'>('no-reply');
     const [isSending, setIsSending] = useState(false);
+    const [isImproving, setIsImproving] = useState(false);
+    const [attachments, setAttachments] = useState<File[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleImprove = async () => {
+        if (!body.trim()) return;
+        setIsImproving(true);
+        try {
+            const improved = await improveNote(body);
+            setBody(improved);
+        } catch (err) {
+            console.error("AI Improvement failed:", err);
+        } finally {
+            setIsImproving(false);
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setAttachments(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,7 +54,7 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
         setError(null);
 
         try {
-            const response = await dataService.replyToEmail(emailId, body, account);
+            const response = await dataService.replyToEmail(emailId, body, account, attachments);
             onSuccess(response.message);
             onClose();
         } catch (err: any) {
@@ -130,10 +158,57 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
                             className="relative w-full min-h-[300px] bg-black/40 border-2 border-zinc-800 rounded-[2rem] p-8 text-base text-zinc-200 placeholder:text-zinc-800 focus:outline-none focus:ring-0 focus:border-brand-green/40 transition-all resize-none shadow-[inset_0_4px_20px_rgba(0,0,0,0.4)] leading-relaxed font-medium"
                         />
                         <div className="absolute bottom-6 right-8 flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={handleImprove}
+                                disabled={isImproving || !body.trim()}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest ${
+                                    isImproving 
+                                    ? 'bg-brand-green/20 border-brand-green/30 text-brand-green' 
+                                    : 'bg-zinc-900 border-zinc-800 text-brand-green hover:bg-brand-green/10 active:scale-95 disabled:opacity-30'
+                                }`}
+                            >
+                                {isImproving ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                                {isImproving ? 'Improving...' : 'Improve AI'}
+                            </button>
                             <span className="px-3 py-1 rounded-full bg-zinc-950 border border-zinc-800 text-[9px] font-black font-mono text-zinc-600 uppercase tracking-widest">{body.length} CHARS</span>
                         </div>
                     </div>
+
+                    {/* Attachments List */}
+                    {attachments.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                            {attachments.map((file, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-2xl group animate-in slide-in-from-left-2 duration-300">
+                                    <div className="flex items-center gap-3 overflow-hidden">
+                                        <div className="w-8 h-8 rounded-lg bg-zinc-950 flex items-center justify-center text-zinc-600">
+                                            <Paperclip size={14} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-bold text-white truncate">{file.name}</p>
+                                            <p className="text-[8px] text-zinc-500 font-black">{(file.size / 1024).toFixed(1)} KB</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeAttachment(idx)}
+                                        className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500 hover:text-white"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    multiple
+                    className="hidden"
+                />
 
                 {error && (
                     <div className="flex items-center gap-4 p-5 bg-red-500/5 border border-red-500/20 rounded-2xl text-red-500 text-xs animate-in slide-in-from-left-2 duration-300">
@@ -142,32 +217,43 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
                     </div>
                 )}
 
-                <div className="flex items-center justify-end gap-5 pt-6 border-t border-zinc-900/50">
+                <div className="flex items-center justify-between pt-6 border-t border-zinc-900/50">
                     <button
                         type="button"
-                        onClick={onClose}
-                        className="px-10 py-4 text-xs font-black uppercase tracking-[0.3em] text-zinc-600 hover:text-white transition-all hover:bg-zinc-900 rounded-2xl"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-3 px-6 py-4 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 rounded-2xl transition-all text-xs font-black uppercase tracking-widest"
                     >
-                        Discard
+                        <Paperclip size={16} />
+                        Attach Files
                     </button>
-                    <button
-                        type="submit"
-                        disabled={isSending || !body.trim()}
-                        className={`flex items-center gap-4 px-12 py-5 bg-brand-green text-black font-black text-sm uppercase tracking-[0.3em] rounded-2xl transition-all shadow-[0_20px_40px_-10px_rgba(34,197,94,0.3)] active:scale-95 ${isSending || !body.trim() ? 'opacity-30 cursor-not-allowed grayscale' : 'hover:bg-white hover:shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] hover:-translate-y-1'
-                            }`}
-                    >
-                        {isSending ? (
-                            <>
-                                <div className="w-5 h-5 border-[3px] border-black/20 border-t-black rounded-full animate-spin" />
-                                Processing...
-                            </>
-                        ) : (
-                            <>
-                                <Send size={18} />
-                                Dispatch Message
-                            </>
-                        )}
-                    </button>
+                    
+                    <div className="flex items-center gap-5">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-10 py-4 text-xs font-black uppercase tracking-[0.3em] text-zinc-600 hover:text-white transition-all hover:bg-zinc-900 rounded-2xl"
+                        >
+                            Discard
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSending || !body.trim()}
+                            className={`flex items-center gap-4 px-12 py-5 bg-brand-green text-black font-black text-sm uppercase tracking-[0.3em] rounded-2xl transition-all shadow-[0_20px_40px_-10px_rgba(34,197,94,0.3)] active:scale-95 ${isSending || !body.trim() ? 'opacity-30 cursor-not-allowed grayscale' : 'hover:bg-white hover:shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)] hover:-translate-y-1'
+                                }`}
+                        >
+                            {isSending ? (
+                                <>
+                                    <div className="w-5 h-5 border-[3px] border-black/20 border-t-black rounded-full animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                <>
+                                    <Send size={18} />
+                                    Dispatch Message
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

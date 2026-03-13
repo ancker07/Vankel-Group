@@ -345,7 +345,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
             <ContactSection t={t} />
 
             {/* Footer */}
-          <Footer />
+          <Footer t={t} />
 
             <RoleSelectionModal
                 isOpen={!!roleSelectionMode}

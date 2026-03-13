@@ -77,8 +77,19 @@ export const dataService = {
         const response = await apiClient.delete(`/emails/${id}`);
         return response.data;
     },
-    replyToEmail: async (id: number, body: string, account: 'no-reply' | 'redirection') => {
-        const response = await apiClient.post(`/emails/${id}/reply`, { body, account });
+    replyToEmail: async (id: number, body: string, account: 'no-reply' | 'redirection', attachments: File[] = []) => {
+        const formData = new FormData();
+        formData.append('body', body);
+        formData.append('account', account);
+        attachments.forEach((file, index) => {
+            formData.append(`attachments[${index}]`, file);
+        });
+
+        const response = await apiClient.post(`/emails/${id}/reply`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
         return response.data;
     },
     getAiSettings: async () => {
