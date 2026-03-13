@@ -3,7 +3,7 @@ import { Intervention, Building, Professional, Syndic, Language } from '@/types'
 import { Search, Download, Eye, ChevronRight, FileText, Calendar, CheckCircle2, MapPin, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
 import { generateInterventionPDF } from '@/utils/pdfGenerator';
-import vankerLogo from '@/assets/logo_vankel.jpeg';
+import vankerLogo from '@/assets/report_logo.jpeg';
 
 interface ReportsPageProps {
   interventions: Intervention[];

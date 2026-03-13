@@ -41,13 +41,18 @@ export const generateInterventionPDF = async (
 
     doc.setFontSize(22);
     doc.setTextColor(0, 0, 0); // Black
-    doc.text('VANAKEL GROUP', 60, 25);
+    doc.setFont("helvetica", "bold");
+    doc.text("Vanakel Group", 60, 25);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor(150, 150, 150);
+    doc.text("(SRL)", 115, 25);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text('Avenue Louise 523, 1050 Bruxelles', 60, 32);
-    doc.text('+32 2 123 45 67 | info@vanakelgroup.com', 60, 37);
-    doc.text('www.vanakelgroup.com', 60, 42);
+    doc.text("Excelsiorlaan 36-38,1930 Zaventem", 60, 32);
+    doc.text('+32 475 99 99 09 | info@vanakelgroup.be', 60, 37);
+    doc.text("www.vanakelgroup.be", 60, 42);
 
     // Divider
     doc.setDrawColor(200);
@@ -189,6 +194,7 @@ export const generateInterventionPDF = async (
         currentY = Math.max(currentY, startY + 25) + 20;
     }
 
+    const currentYear = new Date().getFullYear();
     // 5. Footer
     const pageCountSource = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCountSource; i++) {
@@ -196,7 +202,7 @@ export const generateInterventionPDF = async (
         doc.setFontSize(9);
         doc.setTextColor(150);
         doc.text(`Page ${i} of ${pageCountSource}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
-        doc.text('© Vanker Group 2024', 15, doc.internal.pageSize.getHeight() - 10);
+        doc.text(`© Vanakel Group (SRL) ${currentYear}`, 15, doc.internal.pageSize.getHeight() - 10);
     }
 
     // Save the PDF

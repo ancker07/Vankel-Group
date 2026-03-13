@@ -19,15 +19,15 @@ const mockJsPDF = () => {
       },
       getNumberOfPages: () => 1
     },
-    setFontSize: () => {},
-    setTextColor: () => {},
-    setFont: () => {},
-    setDrawColor: () => {},
-    text: () => {},
-    line: () => {},
+    setFontSize: () => { },
+    setTextColor: () => { },
+    setFont: () => { },
+    setDrawColor: () => { },
+    text: () => { },
+    line: () => { },
     splitTextToSize: (text, maxWidth) => [text],
-    addImage: () => {},
-    autoTable: () => {},
+    addImage: () => { },
+    autoTable: () => { },
     save: (filename) => {
       console.log(`✓ PDF would be saved as: ${filename}`);
       return true;
@@ -38,7 +38,7 @@ const mockJsPDF = () => {
       }
       return new Blob(['mock pdf content'], { type: 'application/pdf' });
     },
-    setPage: () => {}
+    setPage: () => { }
   };
   return doc;
 };
@@ -105,30 +105,32 @@ const mockTranslations = {
 function testPDFGeneration() {
   console.log('🧪 Testing PDF Generation - Photo Exclusion Test');
   console.log('='.repeat(50));
-  
+
   try {
+
+    const currentYear = new Date().getFullYear();
     // Create mock PDF document
     const doc = mockJsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const t = mockTranslations.EN;
-    
+
     console.log('📄 Generating PDF with intervention data...');
     console.log(`   Intervention ID: ${mockIntervention.id}`);
     console.log(`   Photos in data: ${mockIntervention.photos.length} photos`);
     console.log(`   Expected: Photos should NOT appear in PDF`);
-    
+
     // Simulate PDF generation logic (simplified version of actual code)
     doc.setFontSize(22);
     doc.text('VANAKEL GROUP', 60, 25);
-    
+
     doc.setFontSize(18);
     doc.text(t.reports_title, 15, 65);
-    
+
     doc.setFontSize(10);
     doc.text(`${t.slip_id}: ${mockIntervention.id}`, 15, 75);
     doc.text(`${t.created_at}: ${new Date(mockIntervention.createdAt).toLocaleDateString()}`, 15, 80);
     doc.text(`${t.status}: ${t.status_completed}`, 15, 85);
-    
+
     // Intervention details
     doc.setFontSize(14);
     doc.text(t.interventionTitle, 15, 100);
@@ -137,7 +139,7 @@ function testPDFGeneration() {
     doc.setFontSize(10);
     const descriptionLines = doc.splitTextToSize(mockIntervention.description, pageWidth - 30);
     doc.text(descriptionLines, 15, 120);
-    
+
     // Admin note
     if (mockIntervention.adminFeedback) {
       doc.setFontSize(10);
@@ -145,7 +147,7 @@ function testPDFGeneration() {
       const adminLines = doc.splitTextToSize(mockIntervention.adminFeedback, pageWidth - 30);
       doc.text(adminLines, 15, 146);
     }
-    
+
     // Building info
     if (mockBuilding) {
       doc.setFontSize(14);
@@ -154,12 +156,12 @@ function testPDFGeneration() {
       doc.text(`${t.address}: ${mockBuilding.address}`, 15, 177);
       doc.text(`${t.city}: ${mockBuilding.city}`, 15, 184);
     }
-    
+
     // Professional/Syndic info
     if (mockProfessional || mockSyndic) {
       const leftX = 15;
       const rightX = pageWidth / 2 + 5;
-      
+
       if (mockSyndic) {
         doc.setFontSize(12);
         doc.text(t.syndic, leftX, 200);
@@ -168,7 +170,7 @@ function testPDFGeneration() {
         doc.text(mockSyndic.contactPerson, leftX, 212);
         doc.text(mockSyndic.email, leftX, 217);
       }
-      
+
       if (mockProfessional) {
         doc.setFontSize(12);
         doc.text(t.pro, rightX, 200);
@@ -178,26 +180,30 @@ function testPDFGeneration() {
         doc.text(mockProfessional.email, rightX, 217);
       }
     }
-    
+
     // Footer
+
+
+
+
     doc.setFontSize(9);
     doc.text('Page 1 of 1', pageWidth / 2, 280, { align: 'center' });
-    doc.text('© Vanker Group 2024', 15, 280);
-    
+    doc.text(`© Vanakel Group (SRL) ${currentYear}`, 15, 280);
+
     // Generate PDF output for testing
     const pdfOutput = doc.output('string');
     const filename = `Intervention_Report_${mockIntervention.id}_${new Date().toISOString().split('T')[0]}.pdf`;
-    
+
     // Test assertions
     console.log('\n🔍 Running tests...');
-    
+
     // Test 1: Check that intervention details are included
     if (pdfOutput.includes('Test Intervention')) {
       console.log('✅ Intervention title found in PDF');
     } else {
       console.log('❌ Intervention title NOT found in PDF');
     }
-    
+
     // Test assertions
     console.log('\n🔍 Running tests...');
     const results = [];
@@ -206,50 +212,50 @@ function testPDFGeneration() {
     const hasAdminNoteHeader = pdfOutput.includes('Admin Note');
     const hasAdminFeedback = pdfOutput.includes('Test admin feedback');
     results.push({
-        name: 'Admin Note Inclusion',
-        passed: hasAdminNoteHeader && hasAdminFeedback,
-        details: hasAdminNoteHeader && hasAdminFeedback ? 'Found admin note header and feedback content.' : 'Admin note or feedback missing.'
+      name: 'Admin Note Inclusion',
+      passed: hasAdminNoteHeader && hasAdminFeedback,
+      details: hasAdminNoteHeader && hasAdminFeedback ? 'Found admin note header and feedback content.' : 'Admin note or feedback missing.'
     });
 
     // Verify Building Address presence
     const hasBuildingAddress = pdfOutput.includes('123 Test Street');
     results.push({
-        name: 'Building Address Inclusion',
-        passed: hasBuildingAddress,
-        details: hasBuildingAddress ? 'Found building address: 123 Test Street' : 'Building address "123 Test Street" not found in PDF output.'
+      name: 'Building Address Inclusion',
+      passed: hasBuildingAddress,
+      details: hasBuildingAddress ? 'Found building address: 123 Test Street' : 'Building address "123 Test Street" not found in PDF output.'
     });
 
     // Verify Professional/Syndic Info presence
     const hasProInfo = pdfOutput.includes('Test Professional Company');
     const hasSyndicInfo = pdfOutput.includes('Test Syndic Company');
     results.push({
-        name: 'Professional/Syndic Info Inclusion',
-        passed: hasProInfo && hasSyndicInfo,
-        details: (hasProInfo ? 'Found Pro info. ' : 'Pro info missing. ') + (hasSyndicInfo ? 'Found Syndic info.' : 'Syndic info missing.')
+      name: 'Professional/Syndic Info Inclusion',
+      passed: hasProInfo && hasSyndicInfo,
+      details: (hasProInfo ? 'Found Pro info. ' : 'Pro info missing. ') + (hasSyndicInfo ? 'Found Syndic info.' : 'Syndic info missing.')
     });
 
     // Verify Photo Exclusion
     const photoFound = pdfOutput.includes('photo1.jpg') || pdfOutput.includes('photo2.jpg');
     results.push({
-        name: 'Photo Exclusion',
-        passed: !photoFound,
-        details: !photoFound ? 'Photos correctly excluded from PDF.' : 'ERROR: Photos found in PDF output!'
+      name: 'Photo Exclusion',
+      passed: !photoFound,
+      details: !photoFound ? 'Photos correctly excluded from PDF.' : 'ERROR: Photos found in PDF output!'
     });
 
     // Summary
     console.log('\n--- Test Results ---');
     let allPassed = true;
     results.forEach(r => {
-        console.log(`${r.passed ? '✅' : '❌'} ${r.name}: ${r.details}`);
-        if (!r.passed) allPassed = false;
+      console.log(`${r.passed ? '✅' : '❌'} ${r.name}: ${r.details}`);
+      if (!r.passed) allPassed = false;
     });
 
     if (allPassed) {
-        console.log('\n✨ All tests passed successfully!');
-        return true;
+      console.log('\n✨ All tests passed successfully!');
+      return true;
     } else {
-        console.log('\n⚠️ Some tests failed.');
-        return false;
+      console.log('\n⚠️ Some tests failed.');
+      return false;
     }
   } catch (error) {
     console.error('❌ Test failed with error:', error.message);
