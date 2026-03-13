@@ -43,12 +43,12 @@ class Mission extends Model
 
     public function getBuildingIdAttribute()
     {
-        return $this->building_id;
+        return $this->attributes['building_id'] ?? null;
     }
 
     public function getSyndicIdAttribute()
     {
-        return $this->syndic_id;
+        return $this->attributes['syndic_id'] ?? null;
     }
 
     public function getSourceDetailsAttribute()

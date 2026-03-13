@@ -15,7 +15,11 @@ interface GestionDetailsModalProps {
 const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syndic, entries, onClose, lang }) => {
   const t = TRANSLATIONS[lang];
 
-  const handleDownload = (docName: string) => {
+  const handleDownload = (docName: string, url?: string) => {
+    if (url) {
+      window.open(url, '_blank');
+      return;
+    }
     try {
       // Minimal valid PDF Base64 (Blank Page) - Single line to prevent formatting issues
       const validPdfBase64 = "JVBERi0xLjcKCjEgMCBvYmogPDwvVHlwZS9DYXRhbG9nL1BhZ2VzIDIgMCBSPj4gZW5kb2JqCjIgMCBvYmogPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj4gZW5kb2JqCjMgMCBvYmogPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA1OTUgODQyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pi9Db250ZW50cyA0IDAgUj4+IGVuZG9iago0IDAgb2JqIDw8L0xlbmd0aCAwPj4gc3RyZWFtCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNyAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCnRyYWlsZXIgPDwvU2l6ZSA1L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMjY0CiUlRU9G";
@@ -210,7 +214,7 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
                       {(entry.documents || []).map(doc => (
                         <button
                           key={doc.id}
-                          onClick={() => handleDownload(doc.name)}
+                          onClick={() => handleDownload(doc.name, doc.url)}
                           className="flex items-center justify-between w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg group transition-all text-xs font-bold text-zinc-300 hover:text-white"
                         >
                           <span className="flex items-center gap-2 truncate pr-2">
