@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { Role, Language as LangType, AppNotification } from '@/types';
 import NotificationPanel from '@/components/common/NotificationPanel';
 import logo from '@/assets/vankel_bg_2.png';
@@ -12,8 +12,8 @@ interface HeaderProps {
     notifications: AppNotification[];
     setNotifications: React.Dispatch<React.SetStateAction<AppNotification[]>>;
     showNotifications: boolean;
-    setShowNotifications: (show: boolean) => void;
     setSelectedInterventionId: (id: string | null) => void;
+    onToggleMobileMenu?: () => void;
     t: any;
     userName?: string;
     userImageUrl?: string | null;
@@ -30,13 +30,20 @@ const Header: React.FC<HeaderProps> = ({
     showNotifications,
     setShowNotifications,
     setSelectedInterventionId,
+    onToggleMobileMenu,
     t,
     userName = 'Vanakel User',
     userImageUrl
 }) => {
     return (
         <header className="h-16 md:h-20 border-b border-zinc-800 flex items-center justify-between px-4 md:px-8 bg-zinc-950/80 backdrop-blur-xl shrink-0 z-20 sticky top-0">
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
+                <button 
+                    onClick={onToggleMobileMenu}
+                    className="md:hidden p-2 rounded-xl bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+                >
+                    <Menu size={20} />
+                </button>
                 <img src={logo} alt="Vankel Logo" className="h-10 md:h-12 w-auto object-contain" />
             </div>
 

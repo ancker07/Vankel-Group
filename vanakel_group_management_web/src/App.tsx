@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import HomePage from '@/features/home/pages/HomePage';
 import Header from '@/components/layout/Header';
 import Sidebar from '@/components/layout/Sidebar/Sidebar';
+import MobileSidebar from '@/components/layout/Sidebar/MobileSidebar';
 import BottomNav from '@/components/layout/BottomNav';
 import SyndicDashboard from '@/features/dashboard/pages/SyndicDashboard';
 import AdminDashboard from '@/features/dashboard/pages/AdminDashboard';
@@ -72,6 +73,8 @@ import { runEmailIngestion } from '@/features/dashboard/services/emailIngestion'
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Global State
   const [role, setRole] = useState<Role | null>(() => {
@@ -1047,9 +1050,34 @@ const App: React.FC = () => {
                     showNotifications={showNotifications}
                     setShowNotifications={setShowNotifications}
                     setSelectedInterventionId={setSelectedInterventionId}
+                    onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
                     t={t}
                     userName={userName}
                     userImageUrl={fullUserData?.image_url}
+                  />
+
+                  <MobileSidebar
+                    isOpen={isMobileMenuOpen}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                    role={role}
+                    stats={stats}
+                    t={t}
+                    isIngesting={isIngesting}
+                    setIsTourActive={setIsTourActive}
+                    setRole={handleLogout}
+                    activeTab={(() => {
+                      const path = location.pathname;
+                      const parts = path.split('/');
+                      if (parts.length > 2 && parts[2] === 'dashboard') return 'dashboard';
+                      return parts.pop() || 'dashboard';
+                    })()}
+                    handleTabClick={(tab) => {
+                      let prefix = 'admin';
+                      if (role === 'SYNDIC') prefix = 'syndic';
+                      else if (role === 'SUPERADMIN') prefix = 'superadmin';
+                      if (tab === 'dashboard') navigate(`/${prefix}/dashboard`);
+                      else navigate(`/${prefix}/${tab}`);
+                    }}
                   />
 
                   <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 relative scroll-smooth">

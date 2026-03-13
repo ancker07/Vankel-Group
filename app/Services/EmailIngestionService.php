@@ -127,6 +127,14 @@ class EmailIngestionService
 
         } catch (\Exception $e) {
             Log::error("Email Ingestion Error: " . $e->getMessage());
+            
+            // Critical Fix: Mark the email as ERROR so it doesn't get stuck in an infinite loop
+            $email->update([
+                'ingested_at' => now(),
+                'ingestion_status' => 'ERROR',
+                'ingestion_reason' => mb_substr($e->getMessage(), 0, 255) // Ensure reason fits in DB column
+            ]);
+
             return [
                 'success' => false,
                 'status' => 'ERROR',

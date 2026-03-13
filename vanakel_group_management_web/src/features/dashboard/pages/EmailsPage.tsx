@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Calendar, Search, RefreshCcw, Paperclip, Download, ChevronRight, Trash2 } from 'lucide-react';
+import { Mail, Calendar, Search, RefreshCcw, Paperclip, Download, ChevronRight, Trash2, Clock, ArrowRight } from 'lucide-react';
 import { Email, Language } from '@/types';
 import { dataService } from '@/services/dataService';
 import { TRANSLATIONS } from '@/utils/constants';
@@ -41,7 +41,6 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
         try {
             await dataService.syncEmails();
             await fetchEmails();
-            // Show success toast or message if available in the app context
         } catch (error) {
             console.error("Error syncing emails:", error);
         } finally {
@@ -75,166 +74,153 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
     );
 
     return (
-        <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto pb-32">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 px-4 md:px-0">
                 <div>
-                    <h1 className="text-3xl font-black text-white">Incoming Emails</h1>
-                    <p className="text-zinc-500 text-sm mt-1">Direct view of all emails fetched from the IMAP server.</p>
+                    <h1 className="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
+                        <Mail className="text-brand-green" size={28} />
+                        Inbox
+                    </h1>
+                    <p className="text-zinc-500 text-xs md:text-sm mt-1">Direct view of all incoming communication.</p>
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                         <input
                             type="text"
-                            placeholder="Search emails..."
+                            placeholder="Search inbox..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-all"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-xs md:text-sm text-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-all"
                         />
                     </div>
                     <button
                         onClick={handleSync}
                         disabled={isSyncing || isLoading}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-green text-brand-black font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all disabled:opacity-50 shadow-lg shadow-brand-green/10"
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl bg-brand-green text-brand-black font-black text-[10px] md:text-xs uppercase tracking-widest hover:bg-white transition-all disabled:opacity-50 shadow-lg shadow-brand-green/10 shrink-0"
                     >
                         {isSyncing ? (
-                            <>
-                                <RefreshCcw size={16} className="animate-spin" />
-                                Syncing...
-                            </>
+                            <RefreshCcw size={14} className="animate-spin" />
                         ) : (
-                            <>
-                                <Download size={16} />
-                                Fetch Emails
-                            </>
+                            <Download size={14} />
                         )}
+                        <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Fetch'}</span>
                     </button>
                     <button
                         onClick={fetchEmails}
                         disabled={isLoading || isSyncing}
-                        className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all disabled:opacity-50"
+                        className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all disabled:opacity-50 shrink-0"
                     >
-                        <RefreshCcw size={20} className={isLoading ? "animate-spin" : ""} />
+                        <RefreshCcw size={16} className={isLoading ? "animate-spin" : ""} />
                     </button>
                 </div>
             </div>
 
-            <div className="bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden flex flex-col flex-1 min-h-0">
-                <div className="p-4 border-b border-zinc-900 bg-zinc-950/50 flex justify-between items-center">
-                    <span className="text-xs font-black uppercase tracking-widest text-zinc-500">
-                        {filteredEmails.length} Emails Found
+            <div className="bg-zinc-950 md:rounded-2xl border-y md:border border-zinc-900 overflow-hidden flex flex-col flex-1 min-h-[500px]">
+                <div className="p-4 border-b border-zinc-900 bg-zinc-950/50 flex justify-between items-center px-6">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                        {filteredEmails.length} messages
                     </span>
+                    {!isSyncing && (
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse"></div>
+                            <span className="text-[10px] font-bold text-brand-green uppercase tracking-widest">Live</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3">
                     {isLoading && emails.length === 0 ? (
                         <div className="py-20 text-center">
                             <div className="w-10 h-10 border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-zinc-500">Connecting to database...</p>
+                            <p className="text-zinc-500 text-sm font-medium">Checking mail server...</p>
                         </div>
                     ) : filteredEmails.length === 0 ? (
                         <div className="py-20 text-center space-y-4">
-                            <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto border border-zinc-800">
+                            <div className="w-16 h-16 bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto border border-zinc-800">
                                 <Mail size={32} className="text-zinc-700" />
                             </div>
-                            <p className="text-zinc-500 font-medium">No emails match your search.</p>
+                            <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">No matching emails</p>
                         </div>
                     ) : (
                         filteredEmails.map(email => (
                             <div
                                 key={email.id}
                                 onClick={() => navigate(`${email.id}`)}
-                                className="group p-5 bg-zinc-900/40 rounded-2xl border border-zinc-800/50 hover:bg-zinc-900/60 hover:border-brand-green/30 transition-all cursor-pointer relative overflow-hidden"
+                                className="group p-4 md:p-5 bg-zinc-900/30 md:bg-zinc-900/40 rounded-2xl border border-zinc-800/50 hover:bg-zinc-900/60 hover:border-brand-green/30 transition-all cursor-pointer relative overflow-hidden"
                             >
                                 <div className="absolute top-0 left-0 w-1 h-full bg-brand-green opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                                <div className="flex justify-between items-start gap-4">
-                                    <div className="flex gap-4 min-w-0 flex-1">
-                                        <div className="w-12 h-12 bg-zinc-950 rounded-xl flex items-center justify-center border border-zinc-800 shrink-0 group-hover:border-brand-green/30 transition-colors shadow-inner">
-                                            <Mail className="text-zinc-500 group-hover:text-brand-green transition-colors" size={24} />
+                                
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-black text-brand-green border border-zinc-700 shrink-0">
+                                                {email.from_name ? email.from_name.charAt(0).toUpperCase() : '?'}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <h3 className={`text-sm font-bold truncate ${email.is_read ? 'text-zinc-400' : 'text-white'}`}>
+                                                        {email.from_name || 'System'}
+                                                    </h3>
+                                                    {!email.is_read && (
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-brand-green shrink-0"></span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-zinc-500 truncate">{email.from_address}</p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                            <h4 className="font-bold text-white text-base group-hover:text-brand-green transition-colors truncate pr-8">
-                                                {email.subject || '(No Subject)'}
-                                            </h4>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-sm text-zinc-300 font-medium truncate">{email.from_name || email.from_address}</span>
-                                                <span className="text-xs text-zinc-500 truncate hidden sm:inline">({email.from_address})</span>
+                                        
+                                        <div className="flex flex-col items-end gap-1 shrink-0">
+                                            <span className="text-[10px] font-black text-zinc-600 uppercase">
+                                                {new Date(email.received_at).toLocaleDateString(undefined, { 
+                                                    month: 'short', 
+                                                    day: 'numeric' 
+                                                })}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {email.attachments && email.attachments.length > 0 && (
+                                                    <Paperclip size={12} className="text-zinc-600" />
+                                                )}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEmailToDelete(email.id);
+                                                    }}
+                                                    className="p-1 rounded-lg text-zinc-700 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="text-right shrink-0 flex flex-col items-end gap-2">
-                                        <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono bg-zinc-950 px-2 py-1 rounded-lg border border-zinc-900 shadow-sm">
-                                            <Calendar size={12} className="text-zinc-600" />
-                                            {new Date(email.received_at).toLocaleString(undefined, {
-                                                day: '2-digit',
-                                                month: 'short',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEmailToDelete(email.id);
-                                                }}
-                                                className="p-1.5 rounded-lg text-zinc-600 hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                                                title="Delete email"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                            <ChevronRight size={16} className="text-zinc-700 group-hover:text-brand-green group-hover:translate-x-1 transition-all" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 bg-zinc-950/40 rounded-xl border border-zinc-900/50 p-4 group-hover:bg-zinc-950/60 transition-colors relative">
-                                    <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed whitespace-pre-wrap">
-                                        {email.body_text || 'No text content available.'}
-                                    </p>
-                                </div>
-
-                                {email.attachments && email.attachments.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t border-zinc-900/50">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-2 flex items-center gap-2">
-                                            <Paperclip size={12} />
-                                            Attachments ({email.attachments.length})
+                                    <div className="space-y-1">
+                                        <h4 className={`text-sm font-bold leading-snug line-clamp-1 ${email.is_read ? 'text-zinc-500' : 'text-zinc-200'}`}>
+                                            {email.subject || '(No Subject)'}
+                                        </h4>
+                                        <p className="text-xs text-zinc-500 line-clamp-2 md:line-clamp-1 leading-relaxed">
+                                            {email.body_text?.replace(/[\n\r]+/g, ' ')}
                                         </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {email.attachments.map(att => (
-                                                <div
-                                                    key={att.id}
-                                                    className="flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-400 group/att"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <Paperclip size={12} className="text-zinc-600" />
-                                                    <span className="truncate max-w-[150px]">{att.file_name}</span>
-                                                    <a
-                                                        href={`${STORAGE_BASE_URL}/${att.file_path}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="hover:text-brand-green transition-colors ml-1"
-                                                    >
-                                                        <Download size={12} />
-                                                    </a>
-                                                </div>
-                                            ))}
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-1.5 text-zinc-600">
+                                                <Clock size={12} />
+                                                <span className="text-[10px] font-bold">
+                                                    {new Date(email.received_at).toLocaleTimeString(undefined, { 
+                                                        hour: '2-digit', 
+                                                        minute: '2-digit' 
+                                                    })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-brand-green transition-colors">
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Details</span>
+                                            <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
-                                )}
-
-                                <div className="mt-3 flex items-center justify-between">
-                                    <span className="text-[9px] font-black uppercase tracking-tighter text-zinc-700 font-mono">
-                                        MSG_ID: {email.message_id}
-                                    </span>
-                                    {email.body_html && (
-                                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-700">
-                                            HTML Content Available
-                                        </span>
-                                    )}
                                 </div>
                             </div>
                         ))

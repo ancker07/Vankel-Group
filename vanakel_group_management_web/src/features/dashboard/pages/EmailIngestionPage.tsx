@@ -77,36 +77,38 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
         );
     }
 
-    const pendingEmails = emails.filter(e => !e.ingested_at);
+    const handledEmails = emails.filter(e => e.ingestion_status && e.ingestion_status !== 'PENDING');
+    const pendingCount = emails.filter(e => !e.ingested_at || e.ingestion_status === 'PENDING').length;
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+        <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 gap-6">
                 <div>
                     <h1 className="text-2xl font-black text-white">{t.ingestion_menu}</h1>
                     <p className="text-zinc-500 text-sm mt-1">Review and process incoming emails with AI extraction.</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                     <button
                         onClick={() => fetchEmails()}
-                        className="px-4 py-2 text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
+                        className="flex-1 sm:flex-none px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-2"
                     >
                         <Clock size={16} />
                         Refresh
                     </button>
                     <button
                         onClick={handleIngestAll}
-                        disabled={isBulkIngesting || pendingEmails.length === 0}
-                        className="bg-brand-green text-brand-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        disabled={isBulkIngesting || pendingCount === 0}
+                        className="flex-1 sm:flex-none bg-brand-green text-brand-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-brand-green-light transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-brand-green/20"
                     >
                         {isBulkIngesting ? <Loader2 size={16} className="animate-spin" /> : <PlayCircle size={16} />}
-                        {t.ingest_all} ({pendingEmails.length})
+                        {t.ingest_all} ({pendingCount})
                     </button>
                 </div>
             </div>
 
             <div className="bg-zinc-900/30 rounded-2xl border border-zinc-800 overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop View Table */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-zinc-800 bg-zinc-900/50">
@@ -118,14 +120,14 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800/50">
-                            {emails.length === 0 ? (
+                            {handledEmails.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
-                                        {t.no_emails_found}
+                                        No processed emails found.
                                     </td>
                                 </tr>
                             ) : (
-                                emails.map((email) => (
+                                handledEmails.map((email) => (
                                     <tr key={email.id} className="hover:bg-zinc-800/20 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-white truncate max-w-md">{email.subject}</div>
@@ -143,41 +145,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                             {formatDate(email.received_at)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            {email.ingestion_status === 'PROCESSED' ? (
-                                                <div className="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1 rounded-full w-fit">
-                                                    <CheckCircle2 size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">PROCESSED</span>
-                                                </div>
-                                            ) : email.ingestion_status === 'IGNORED' ? (
-                                                <div className="space-y-1.5">
-                                                    <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit border border-zinc-800">
-                                                        <XCircle size={14} />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">IGNORED</span>
-                                                    </div>
-                                                    {email.ingestion_reason && (
-                                                        <p className="text-[9px] text-zinc-600 italic font-bold leading-tight max-w-[150px]">
-                                                            {email.ingestion_reason}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            ) : email.ingestion_status === 'ERROR' || email.ingestion_status === 'NEEDS_REVIEW' ? (
-                                                <div className="space-y-1.5">
-                                                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit border ${email.ingestion_status === 'ERROR' ? 'text-red-500 bg-red-500/10 border-red-500/20' : 'text-orange-500 bg-orange-500/10 border-orange-500/20'}`}>
-                                                        <AlertCircle size={14} />
-                                                        <span className="text-[10px] font-black uppercase tracking-wider">{email.ingestion_status}</span>
-                                                    </div>
-                                                    {email.ingestion_reason && (
-                                                        <p className="text-[9px] text-zinc-600 italic font-bold leading-tight max-w-[150px]">
-                                                            {email.ingestion_reason}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit">
-                                                    <Clock size={14} />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">{t.pending_ingestion || 'PENDING'}</span>
-                                                </div>
-                                            )}
+                                            <StatusBadge status={email.ingestion_status} reason={email.ingestion_reason} t={t} />
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             {!email.ingested_at && (
@@ -197,9 +165,96 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Mobile View Cards */}
+                <div className="md:hidden divide-y divide-zinc-800/50">
+                    {handledEmails.length === 0 ? (
+                        <div className="px-6 py-12 text-center text-zinc-500">
+                            No processed emails found.
+                        </div>
+                    ) : (
+                        handledEmails.map((email) => (
+                            <div key={email.id} className="p-4 space-y-4">
+                                <div className="space-y-1">
+                                    <div className="font-bold text-white leading-tight break-words">{email.subject}</div>
+                                    <div className="flex flex-col text-xs text-zinc-500">
+                                        <span>{email.from_name || email.from_address}</span>
+                                        <span className="opacity-60">{email.from_address}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="text-[10px] text-zinc-600 font-mono">
+                                        {formatDate(email.received_at)}
+                                    </div>
+                                    <StatusBadge status={email.ingestion_status} reason={email.ingestion_reason} t={t} />
+                                </div>
+
+                                {!email.ingested_at && (
+                                    <button
+                                        onClick={() => handleIngest(email.id)}
+                                        disabled={!!ingestingId}
+                                        className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-green hover:text-brand-black transition-all"
+                                    >
+                                        {ingestingId === email.id ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                                        {t.ingest_single || 'Process Email'}
+                                    </button>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
+const StatusBadge: React.FC<{ status?: string, reason?: string, t: any }> = ({ status, reason, t }) => {
+    if (status === 'PROCESSED') {
+        return (
+            <div className="flex items-center gap-2 text-brand-green bg-brand-green/10 px-3 py-1 rounded-full w-fit">
+                <CheckCircle2 size={14} />
+                <span className="text-[10px] font-black uppercase tracking-wider">PROCESSED</span>
+            </div>
+        );
+    }
+    if (status === 'IGNORED') {
+        return (
+            <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit border border-zinc-800">
+                    <XCircle size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-wider">IGNORED</span>
+                </div>
+                {reason && (
+                    <p className="text-[9px] text-zinc-600 italic font-bold leading-tight max-w-[150px]">
+                        {reason}
+                    </p>
+                )}
+            </div>
+        );
+    }
+    if (status === 'ERROR' || status === 'NEEDS_REVIEW') {
+        return (
+            <div className="space-y-1.5">
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full w-fit border ${status === 'ERROR' ? 'text-red-500 bg-red-500/10 border-red-500/20' : 'text-orange-500 bg-orange-500/10 border-orange-500/20'}`}>
+                    <AlertCircle size={14} />
+                    <span className="text-[10px] font-black uppercase tracking-wider">{status}</span>
+                </div>
+                {reason && (
+                    <p className="text-[9px] text-zinc-600 italic font-bold leading-tight max-w-[150px]">
+                        {reason}
+                    </p>
+                )}
+            </div>
+        );
+    }
+    return (
+        <div className="flex items-center gap-2 text-zinc-500 bg-zinc-500/10 px-3 py-1 rounded-full w-fit">
+            <Clock size={14} />
+            <span className="text-[10px] font-black uppercase tracking-wider">{t.pending_ingestion || 'PENDING'}</span>
+        </div>
+    );
+};
+
 export default EmailIngestionPage;
+
