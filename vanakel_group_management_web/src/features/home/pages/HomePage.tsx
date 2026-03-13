@@ -28,6 +28,7 @@ import { TRANSLATIONS } from '@/utils/constants';
 import RoleSelectionModal from '@/components/common/RoleSelectionModal';
 import logo from '@/assets/vankel_bg_2.png';
 import { dataService } from '@/services/dataService';
+import Footer from '@/features/dashboard/components/Footer';
 
 interface HomePageProps {
     onSelect: (role: Role) => void;
@@ -344,20 +345,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
             <ContactSection t={t} />
 
             {/* Footer */}
-            <footer className="py-12 bg-brand-black border-t border-zinc-900">
-                <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center">
-                        <img src={logo} alt="Vankel Logo" className="h-10 w-auto object-contain grayscale opacity-50" />
-                    </div>
-
-                    <div className="flex gap-8 text-sm font-medium text-zinc-500">
-                        <button onClick={() => onSelect('ADMIN')} className="hover:text-white transition-colors">Admin Login</button>
-                        <button onClick={onSuperAdminLogin} className="hover:text-white transition-colors">{t.superAdmin}</button>
-                    </div>
-
-                    <p className="text-xs text-zinc-600">© 2024 Vanakel Group. All rights reserved.</p>
-                </div>
-            </footer>
+          <Footer />
 
             <RoleSelectionModal
                 isOpen={!!roleSelectionMode}
@@ -401,9 +389,9 @@ const ContactSection = ({ t }: { t: any }) => {
             <div className="max-w-7xl mx-auto px-4 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
                     <div>
-                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white">Contactez-nous</h2>
+                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white">{t.contact_us}</h2>
                         <p className="text-zinc-400 text-lg mb-12 max-w-md">
-                            Notre site web est en construction, mais nous sommes disponible pour vos interventions.
+                            {t.contact_intro}
                         </p>
 
                         <div className="space-y-8 mb-16">
@@ -411,7 +399,7 @@ const ContactSection = ({ t }: { t: any }) => {
                                 <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800 group-hover:border-brand-green transition-colors">
                                     <Mail className="text-brand-green" size={20} />
                                 </div>
-                                <a href="mailto:info@vanakelgroup.be" className="text-lg font-bold hover:text-brand-green transition-colors">info@vanakelgroup.be</a>
+                                <a href="mailto:info@vanakelgroup.be" className="text-lg font-bold hover:text-brand-green transition-colors font-sans italic tracking-tight">info@vanakelgroup.be</a>
                             </div>
                             <div className="flex items-center gap-4 group">
                                 <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800 group-hover:border-brand-green transition-colors">
@@ -424,77 +412,77 @@ const ContactSection = ({ t }: { t: any }) => {
                         <div className="space-y-12">
                             <ContactFeature
                                 num="#1"
-                                title="Construction"
-                                desc="Que ce soit pour un petit projet ou une grande construction, nous apportons des solutions adaptées à vos besoins. Notre équipe dévouée s’assure de respecter les délais tout en garantissant une qualité irréprochable."
+                                title={t.contact_feat_1_title}
+                                desc={t.contact_feat_1_desc}
                             />
                             <ContactFeature
                                 num="#2"
-                                title="Électricité"
-                                desc="Que ce soit pour des problèmes électriques courants ou des interventions sur votre tableau électrique, nous offrons des solutions rapides et fiables. Notre équipe d’experts est à votre disposition pour assurer votre sécurité et votre confort."
+                                title={t.contact_feat_2_title}
+                                desc={t.contact_feat_2_desc}
                             />
                             <ContactFeature
                                 num="#3"
-                                title="Plomberie"
-                                desc="Nous intervenons rapidement pour toutes vos missions de plomberie, garantissant des solutions efficaces en un temps record. Que ce soit pour une réparation urgente ou une petite installation, notre équipe est à votre service"
+                                title={t.contact_feat_3_title}
+                                desc={t.contact_feat_3_desc}
                             />
                         </div>
                     </div>
 
-                    <div className="bg-brand-green rounded-[40px] p-8 md:p-12 shadow-2xl shadow-brand-green/20 relative">
-                        <h3 className="text-3xl font-black text-brand-black mb-12 uppercase tracking-tight">Formulaire de contact</h3>
+                    <div className="bg-white rounded-[40px] p-8 md:p-12 shadow-2xl relative border-4 border-brand-green">
+                        <h3 className="text-3xl font-black text-brand-black mb-12 uppercase tracking-tight italic">{t.contact_form_form_title}</h3>
                         
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Name</label>
+                                <label className="text-xs font-black text-zinc-400 uppercase tracking-widest pl-1">{t.contact_form_name}</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all"
-                                    placeholder="Name"
+                                    className="w-full bg-transparent border-b-2 border-zinc-100 focus:border-brand-green outline-none py-2 text-brand-black font-bold placeholder:text-zinc-200 transition-all"
+                                    placeholder={t.contact_form_name}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Email</label>
+                                <label className="text-xs font-black text-zinc-400 uppercase tracking-widest pl-1">{t.contact_form_email}</label>
                                 <input
                                     type="email"
                                     required
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all"
-                                    placeholder="Email"
+                                    className="w-full bg-transparent border-b-2 border-zinc-100 focus:border-brand-green outline-none py-2 text-brand-black font-bold placeholder:text-zinc-200 transition-all"
+                                    placeholder={t.contact_form_email}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Subject</label>
+                                <label className="text-xs font-black text-zinc-400 uppercase tracking-widest pl-1">{t.contact_form_subject}</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.subject}
                                     onChange={e => setFormData({ ...formData, subject: e.target.value })}
-                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all"
-                                    placeholder="Subject"
+                                    className="w-full bg-transparent border-b-2 border-zinc-100 focus:border-brand-green outline-none py-2 text-brand-black font-bold placeholder:text-zinc-200 transition-all"
+                                    placeholder={t.contact_form_subject}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Your message</label>
+                                <label className="text-xs font-black text-zinc-400 uppercase tracking-widest pl-1">{t.contact_form_message}</label>
                                 <textarea
                                     required
                                     value={formData.message}
                                     onChange={e => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all min-h-[120px] resize-none"
-                                    placeholder="Your message"
+                                    className="w-full bg-transparent border-b-2 border-zinc-100 focus:border-brand-green outline-none py-2 text-brand-black font-bold placeholder:text-zinc-200 transition-all min-h-[120px] resize-none"
+                                    placeholder={t.contact_form_message}
                                 />
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={status === 'SENDING'}
-                                className="w-full md:w-auto px-10 py-4 bg-brand-black text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-zinc-900 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                className="w-full md:w-auto px-10 py-4 bg-brand-green text-brand-black rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg shadow-brand-green/20"
                             >
-                                {status === 'SENDING' ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
-                                {status === 'SENDING' ? 'Sending...' : status === 'SUCCESS' ? 'Message Sent!' : 'Send a message'}
+                                {status === 'SENDING' ? <Loader2 className="animate-spin" size={20} /> : status === 'SUCCESS' ? <CheckCircle2 size={20} /> : <Send size={20} />}
+                                {status === 'SENDING' ? t.contact_form_sending : status === 'SUCCESS' ? t.contact_form_success : t.contact_form_send}
                             </button>
                         </form>
                     </div>
