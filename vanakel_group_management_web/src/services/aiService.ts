@@ -19,6 +19,8 @@ export interface EmailExtractionResult {
     mission: {
         title: string | null;
         description: string | null;
+        sector: string | null;
+        urgency: string | null;
         address: {
             raw: string | null;
             street: string | null;
@@ -202,13 +204,45 @@ export const generateAnnualSummary = async (buildingData: any, interventions: an
 export const extractEmailData = async (emailContent: string): Promise<EmailExtractionResult> => {
     const systemPrompt = `
     SYSTEM:
-    You are an information extraction engine for property management intervention emails. 
-    Return ONLY valid JSON matching the schema provided. 
-    
-    CLASSIFICATION RULES:
-    - "MISSION": an actionable intervention/mission request
-    - "NON_MISSION": marketing/newsletter/spam/general conversation
-    - "NEEDS_REVIEW": essential info is missing or ambiguous
+    You are an expert AI extraction engine for Vanakel Group, a Belgian building management company.
+    Your task is to extract ALL mission-critical details from the email content AND any attached documents.
+
+    ### ⚠️ CRITICAL: ATTACHMENT READING RULES
+    - If attachment content is provided, it is the PRIMARY DATA SOURCE.
+    - Attachments often contain formal intervention request forms with structured tables.
+    - Read EVERY piece of text: titles, headers, table rows, footers.
+    - If the email body is vague but attachment contains a formal request, classify as "MISSION".
+    - If there is a conflict between email body and attachment, TRUST THE ATTACHMENT.
+
+    ### DATA EXTRACTION PRIORITIES:
+    1. Syndic/Manager Name: Look for "Syndic:", "Expéditeur:", "Gestionnaire:" in both email body and attachments.
+    2. Address: Look for "Adresse d'intervention:", address tables, Belgian format addresses.
+    3. Contact Person: Look for "Personne de contact:", "Contact sur place:", names near phone numbers.
+    4. Phone/GSM: Look for "Numéro de GSM:", "GSM:", phone numbers starting with 04xx or +32.
+    5. Problem Description: Merge information from email body AND attachment.
+    6. Urgency: "urgente", "dans les plus brefs délais", "dringend" = HIGH or CRITICAL.
+
+    ### Classification Rules:
+    - "MISSION": A genuine request for repair, maintenance, intervention.
+    - "NON_MISSION": Spam, newsletters, test messages ("test", "fff", "abc"), marketing emails.
+    - "NEEDS_REVIEW": Likely a real mission but missing key information.
+
+    ### Sector Mapping:
+    - Leak, fuite, water damage → PLOMBERIE or SANITAIRE
+    - Clogged sewer, égout bouché → PLOMBERIE
+    - Heating, chauffage, boiler → CHAUFFAGE
+    - Electrical, électricité → ELECTRICITE
+    - Painting, peinture → PEINTURE
+    - Carpentry, menuiserie, door, window → MENUISERIE
+    - Tiles, carrelage → CARRELAGE
+    - If unclear → GENERAL
+
+    ### Critical Instructions:
+    - "MISSION" REQUIRES a specific, actionable building issue.
+    - Very short emails (just "fff", "hello", "test") are NEVER a "MISSION".
+    - The syndicName field is CRITICAL — always try to extract it from any mention of "Syndic" in the content.
+
+    Return ONLY valid JSON matching the schema provided.
     `;
 
     const schema = {
@@ -222,6 +256,8 @@ export const extractEmailData = async (emailContent: string): Promise<EmailExtra
                 properties: {
                     title: { type: Type.STRING, nullable: true },
                     description: { type: Type.STRING, nullable: true },
+                    sector: { type: Type.STRING, enum: ["ELECTRICITE", "CARRELAGE", "SANITAIRE", "CHAUFFAGE", "PLOMBERIE", "PEINTURE", "MENUISERIE", "GENERAL", "AUTRE"], nullable: true },
+                    urgency: { type: Type.STRING, enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"], nullable: true },
                     address: {
                         type: Type.OBJECT,
                         properties: {
@@ -266,3 +302,4 @@ export const extractEmailData = async (emailContent: string): Promise<EmailExtra
         throw e;
     }
 };
+

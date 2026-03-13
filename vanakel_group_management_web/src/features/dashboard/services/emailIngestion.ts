@@ -1,6 +1,24 @@
 
 import { IncomingEmail, EmailIngestionLog, Intervention, Mission, Building, Syndic, ExtractionField, Sector, Language } from '@/types';
 import { mockEmails, mockSyndics, mockBuildings } from '@/utils/mockData';
+
+// --- Helper: Syndic Matching ---
+const matchSyndicByName = (name: string | null | undefined, syndics: Syndic[]): string => {
+  if (!name || name.trim().length < 2) return '';
+  const normalized = name.toLowerCase().trim();
+  
+  // Exact match
+  const exact = syndics.find(s => s.companyName.toLowerCase().trim() === normalized);
+  if (exact) return exact.id;
+
+  // Contains match
+  const contains = syndics.find(s => 
+    s.companyName.toLowerCase().includes(normalized) || normalized.includes(s.companyName.toLowerCase())
+  );
+  if (contains) return contains.id;
+
+  return '';
+};
 import { TRANSLATIONS } from '@/utils/constants';
 import { extractEmailData, EmailExtractionResult } from '@/services/aiService';
 
@@ -28,7 +46,8 @@ export const runEmailIngestion = async (
   existingMissions: Mission[],
   processedIds: string[],
   lang: Language,
-  emails: IncomingEmail[] = []
+  emails: IncomingEmail[] = [],
+  syndics: Syndic[] = []
 ): Promise<{ newBuildings: Building[], newMissions: Mission[], logs: EmailIngestionLog[] }> => {
 
   const logs: EmailIngestionLog[] = [];
@@ -161,14 +180,27 @@ export const runEmailIngestion = async (
                 reason = buildingCreated ? 'New building entity created automatically.' : 'Linked to existing building.';
 
                 missionId = `miss-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+                // ========= SYNDIC MATCHING =========
+                let resolvedSyndicId = matchedBuilding.linkedSyndicId || '';
+                const extractedSyndicName = aiResult.mission?.syndicName;
+                if (extractedSyndicName) {
+                  const matchedId = matchSyndicByName(extractedSyndicName, syndics);
+                  if (matchedId) resolvedSyndicId = matchedId;
+                }
+
+                // Determine sector from AI or default
+                const resolvedSector: Sector = (aiResult.mission?.sector as Sector) || 'AUTRE';
+                const resolvedUrgency = aiResult.mission?.urgency || undefined;
+
                 const newMission: Mission = {
                   id: missionId,
                   buildingId: matchedBuilding.id,
                   requestedBy: 'SYNDIC',
-                  syndicId: matchedBuilding.linkedSyndicId,
+                  syndicId: resolvedSyndicId,
                   title: aiResult.mission?.title || email.subject,
                   category: 'General',
-                  sector: 'AUTRE',
+                  sector: resolvedSector,
                   description: aiResult.mission?.description || content,
                   status: 'PENDING',
                   timestamp: new Date().toISOString(),
@@ -183,6 +215,7 @@ export const runEmailIngestion = async (
                   onSiteContactPhone: aiResult.mission?.contactOnSite?.phone || undefined,
                   onSiteContactEmail: aiResult.mission?.contactOnSite?.email || undefined,
                   interventionNumber: aiResult.mission?.reference || undefined,
+                  urgency: resolvedUrgency as any,
                   documents: []
                 };
 

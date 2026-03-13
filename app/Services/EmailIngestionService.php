@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Email;
 use App\Models\Building;
 use App\Models\Mission;
+use App\Models\Syndic;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,14 +30,18 @@ class EmailIngestionService
         }
 
         try {
-            $content = "Subject: {$email->subject}\n\nBody:\n{$email->body_text}\n";
+            // Build content string with clear structure for AI
+            $content = "=== EMAIL METADATA ===\n";
+            $content .= "From: {$email->from_address}\n";
+            $content .= "Subject: {$email->subject}\n";
+            $content .= "Date: {$email->received_at}\n\n";
+            $content .= "=== EMAIL BODY ===\n{$email->body_text}\n";
+
             $attachmentsForAi = [];
             
             foreach ($email->attachments as $attachment) {
-                $content .= "\nAttachment: {$attachment->file_name}";
-                
                 // Prepare for AI if it's an image or PDF
-                if (str_starts_with($attachment->mime_type, 'image/') || $attachment->mime_type === 'application/pdf') {
+                if (str_starts_with($attachment->mime_type ?? '', 'image/') || ($attachment->mime_type ?? '') === 'application/pdf') {
                     $filePath = storage_path('app/public/' . $attachment->file_path);
                     if (file_exists($filePath)) {
                         $attachmentsForAi[] = [
@@ -44,7 +49,10 @@ class EmailIngestionService
                             'mime_type' => $attachment->mime_type,
                             'data' => base64_encode(file_get_contents($filePath))
                         ];
+                        $content .= "\n[ATTACHMENT: {$attachment->file_name} — READ ALL TEXT, TABLES, AND DATA FROM THIS DOCUMENT]\n";
                     }
+                } else {
+                    $content .= "\nAttachment (non-readable): {$attachment->file_name}\n";
                 }
             }
 
@@ -73,17 +81,34 @@ class EmailIngestionService
                 }
 
                 if (!$building && ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW')) {
-                     // If it's a mission but no building found/created, it needs review
                      $aiData['classification'] = 'NEEDS_REVIEW';
+                }
+
+                // ========= SYNDIC MATCHING =========
+                $syndicId = null;
+                $extractedSyndicName = $missionData['syndicName'] ?? null;
+
+                if ($extractedSyndicName) {
+                    $syndicId = $this->matchSyndic($extractedSyndicName);
+                }
+
+                // Fallback: use building's syndic if no AI match
+                if (!$syndicId && $building && $building->syndic_id) {
+                    $syndicId = $building->syndic_id;
+                }
+
+                // If we matched a syndic AND created/found a building without one, link them
+                if ($syndicId && $building && !$building->syndic_id) {
+                    $building->update(['syndic_id' => $syndicId]);
                 }
 
                 $mission = null;
                 if ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW') {
                     $mission = Mission::create([
                         'building_id' => $building ? $building->id : null,
-                        'syndic_id' => $building ? $building->syndic_id : null,
+                        'syndic_id' => $syndicId,
                         'extracted_address' => $building ? null : $rawAddress,
-                        'requested_by' => 'SYNDIC', // Defaulting to SYNDIC if from email
+                        'requested_by' => 'SYNDIC',
                         'title' => $missionData['title'] ?? $email->subject,
                         'description' => $missionData['description'] ?? $email->body_text,
                         'sector' => $missionData['sector'] ?? 'GENERAL',
@@ -121,6 +146,7 @@ class EmailIngestionService
                     'status' => $status,
                     'mission_id' => $mission ? $mission->id : null,
                     'building_id' => $building ? $building->id : null,
+                    'syndic_id' => $syndicId,
                     'extracted_data' => $aiData
                 ];
             });
@@ -135,29 +161,75 @@ class EmailIngestionService
         }
     }
 
+    /**
+     * Match an extracted syndic name to an existing syndic in the database.
+     */
+    protected function matchSyndic(string $name): ?int
+    {
+        $normalized = strtolower(trim($name));
+        
+        if (strlen($normalized) < 2) {
+            return null;
+        }
+
+        // Try exact match first
+        $syndic = Syndic::whereRaw('LOWER(company_name) = ?', [$normalized])->first();
+        
+        if ($syndic) {
+            return $syndic->id;
+        }
+
+        // Try fuzzy match (contains)
+        $syndic = Syndic::whereRaw('LOWER(company_name) LIKE ?', ["%{$normalized}%"])->first();
+        
+        if ($syndic) {
+            return $syndic->id;
+        }
+
+        // Try reverse: syndic name contains the extracted name
+        $syndics = Syndic::all();
+        foreach ($syndics as $s) {
+            if (str_contains(strtolower($s->company_name), $normalized) || str_contains($normalized, strtolower($s->company_name))) {
+                return $s->id;
+            }
+        }
+
+        return null;
+    }
+
     protected function findOrCreateBuilding(array $addressData)
     {
         $raw = $addressData['raw'];
+        $normalizedRaw = strtolower(preg_replace('/[^a-z0-9\s]/i', '', $raw));
         
-        // Simple match by address string
-        $building = Building::where('address', 'LIKE', "%{$raw}%")->first();
-        
-        if (!$building && !empty($addressData['street']) && !empty($addressData['number'])) {
-            // Try matching by street and number
+        // Try normalized match against existing buildings
+        $buildings = Building::all();
+        foreach ($buildings as $b) {
+            $normalizedExisting = strtolower(preg_replace('/[^a-z0-9\s]/i', '', $b->address));
+            if ($normalizedExisting === $normalizedRaw || str_contains($normalizedExisting, $normalizedRaw) || str_contains($normalizedRaw, $normalizedExisting)) {
+                return $b;
+            }
+        }
+
+        // Try matching by street and number separately
+        if (!empty($addressData['street']) && !empty($addressData['number'])) {
             $building = Building::where('address', 'LIKE', "%{$addressData['street']}%")
                                 ->where('address', 'LIKE', "%{$addressData['number']}%")
                                 ->first();
+            if ($building) return $building;
         }
 
-        if (!$building && !empty($addressData['street']) && !empty($addressData['number'])) {
-            // Create new building if not found but we have enough info
+        // Create new building if we have enough data
+        if (!empty($addressData['street']) && !empty($addressData['number'])) {
             $building = Building::create([
                 'address' => $raw,
                 'city' => $addressData['city'] ?? null,
                 'admin_note' => 'Automatically created from email ingestion.',
             ]);
+            return $building;
         }
 
-        return $building;
+        return null;
     }
 }
+

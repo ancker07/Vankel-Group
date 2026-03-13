@@ -542,7 +542,7 @@ const App: React.FC = () => {
         console.warn("Could not fetch real emails, using mocks for demo.", err);
       }
 
-      const result = await runEmailIngestion(buildings, interventions, missions, processedEmailIds, lang, emailsToProcess);
+      const result = await runEmailIngestion(buildings, interventions, missions, processedEmailIds, lang, emailsToProcess, syndics);
       setBuildings(prev => [...prev, ...result.newBuildings]);
       setMissions(prev => [...prev, ...result.newMissions]);
       setEmailLogs(prev => [...prev, ...result.logs]);
