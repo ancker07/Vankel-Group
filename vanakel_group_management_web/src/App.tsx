@@ -24,11 +24,13 @@ import LoginPage from '@/features/auth/pages/LoginPage';
 import SignupForm from '@/features/auth/components/SignupForm';
 import ProfilePage from '@/features/auth/pages/ProfilePage';
 import AiSettingsPage from '@/features/dashboard/pages/AiSettingsPage';
+import ContactsPage from '@/features/dashboard/pages/ContactsPage';
 
 import BuildingProfile from '@/features/buildings/pages/BuildingProfile';
 import InterventionSlip from '@/features/interventions/components/InterventionSlip';
 import CreateInterventionModal from '@/features/interventions/components/CreateInterventionModal';
 import CreateMaintenanceModal from '@/features/maintenance/components/CreateMaintenanceModal';
+import EditMaintenanceModal from '@/features/maintenance/components/EditMaintenanceModal';
 import PendingApprovalPage from '@/features/auth/pages/PendingApprovalPage';
 
 import DashboardListModal from '@/features/dashboard/components/DashboardListModal';
@@ -141,6 +143,7 @@ const App: React.FC = () => {
   const [selectedInterventionId, setSelectedInterventionId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateMaintenanceModal, setShowCreateMaintenanceModal] = useState(false);
+  const [editMaintenancePlan, setEditMaintenancePlan] = useState<MaintenancePlan | null>(null);
   const [preSelectedBuildingForMaintenance, setPreSelectedBuildingForMaintenance] = useState<string | undefined>(undefined);
   const [deletePlanId, setDeletePlanId] = useState<string | null>(null);
   const [profileInitialTab, setProfileInitialTab] = useState<'data' | 'history' | 'notes' | 'plan' | 'docs' | 'entretien'>('data');
@@ -908,6 +911,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleEditMaintenance = async (id: string, plan: Partial<MaintenancePlan>) => {
+    try {
+      await dataService.updateMaintenancePlan(id, plan);
+      addToast('Success', 'Maintenance plan updated successfully');
+      refreshGlobalData(true);
+    } catch (error) {
+      console.error('Update failed:', error);
+      addToast('Error', 'Failed to update maintenance plan.');
+    }
+  };
+
   const handleStatClick = (type: any) => {
     let title = '';
     let items: (Intervention | Mission)[] = [];
@@ -1072,6 +1086,10 @@ const App: React.FC = () => {
                       return parts.pop() || 'dashboard';
                     })()}
                     handleTabClick={(tab) => {
+                      if (tab === 'contact_us') {
+                        window.open('/#contact', '_blank');
+                        return;
+                      }
                       let prefix = 'admin';
                       if (role === 'SYNDIC') prefix = 'syndic';
                       else if (role === 'SUPERADMIN') prefix = 'superadmin';
@@ -1190,10 +1208,11 @@ const App: React.FC = () => {
                       } />
                       <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} userData={fullUserData} />} />
 
-                      <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
 
                       <Route path="settings" element={<div className="flex flex-col items-center justify-center h-full text-zinc-600">Settings Module under construction</div>} />
                       <Route path="ai-settings" element={role === 'SUPERADMIN' ? <AiSettingsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="contacts" element={<ContactsPage lang={lang} />} />
                     </Routes>
                   </main>
                 </div>
@@ -1229,6 +1248,16 @@ const App: React.FC = () => {
                 {showCreateModal && <CreateInterventionModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onCreate={handleCreateIntervention} onSyndicCreate={(s) => setSyndics(prev => [...prev, s])} buildings={buildings} syndics={syndics} lang={lang} role={role || 'SYNDIC'} userName={userName} />}
 
                 {showCreateMaintenanceModal && <CreateMaintenanceModal isOpen={showCreateMaintenanceModal} onClose={() => setShowCreateMaintenanceModal(false)} onCreate={handleCreateMaintenance} buildings={buildings} initialBuildingId={preSelectedBuildingForMaintenance} lang={lang} />}
+                {editMaintenancePlan && (
+                  <EditMaintenanceModal
+                    isOpen={!!editMaintenancePlan}
+                    onClose={() => setEditMaintenancePlan(null)}
+                    onUpdate={handleEditMaintenance}
+                    plan={editMaintenancePlan}
+                    buildings={buildings}
+                    lang={lang}
+                  />
+                )}
                 {listModal.isOpen && <DashboardListModal isOpen={listModal.isOpen} onClose={() => setListModal(prev => ({ ...prev, isOpen: false }))} title={listModal.title} items={listModal.items} buildings={buildings} syndics={syndics} onItemClick={(id, type) => { setListModal(prev => ({ ...prev, isOpen: false })); if (type === 'INTERVENTION') setSelectedInterventionId(id); }} lang={lang} />}
                 {isTourActive && (
                   <OnboardingTour

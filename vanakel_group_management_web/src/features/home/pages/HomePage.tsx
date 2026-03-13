@@ -16,12 +16,18 @@ import {
     FileText,
     LayoutDashboard,
     Menu,
-    X
+    X,
+    Send,
+    Phone,
+    MessageSquare,
+    Sparkles,
+    Loader2
 } from 'lucide-react';
 import { Role, Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import RoleSelectionModal from '@/components/common/RoleSelectionModal';
 import logo from '@/assets/vankel_bg_2.png';
+import { dataService } from '@/services/dataService';
 
 interface HomePageProps {
     onSelect: (role: Role) => void;
@@ -74,6 +80,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                             <a href="#features" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.features}</a>
                             <a href="#workflow" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.workflow}</a>
                             <a href="#portals" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.portals}</a>
+                            <a href="#contact" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.contact_us}</a>
 
                             <div className="flex items-center gap-4 ml-4">
                                 <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800">
@@ -126,6 +133,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                     <div className="md:hidden bg-zinc-950 border-b border-zinc-800 p-4 space-y-4">
                         <a href="#features" className="block text-sm font-bold text-zinc-400 hover:text-white" onClick={() => setIsMenuOpen(false)}>{t.features}</a>
                         <a href="#workflow" className="block text-sm font-bold text-zinc-400 hover:text-white" onClick={() => setIsMenuOpen(false)}>{t.workflow}</a>
+                        <a href="#contact" className="block text-sm font-bold text-zinc-400 hover:text-white" onClick={() => setIsMenuOpen(false)}>{t.contact_us}</a>
                         <div className="pt-4 border-t border-zinc-900 flex flex-col gap-3">
                             <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800 mb-2 justify-center">
                                 {['FR', 'EN', 'NL'].map(l => (
@@ -332,6 +340,9 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                 </div>
             </section>
 
+            {/* Contact Section */}
+            <ContactSection t={t} />
+
             {/* Footer */}
             <footer className="py-12 bg-brand-black border-t border-zinc-900">
                 <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8">
@@ -359,7 +370,151 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
     );
 };
 
-// Sub-components
+const ContactSection = ({ t }: { t: any }) => {
+    const [status, setStatus] = React.useState<'IDLE' | 'SENDING' | 'SUCCESS' | 'ERROR'>('IDLE');
+    const [formData, setFormData] = React.useState({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('SENDING');
+        try {
+            await dataService.submitContact(formData);
+            setStatus('SUCCESS');
+            setFormData({ name: '', email: '', subject: '', message: '' });
+            setTimeout(() => setStatus('IDLE'), 3000);
+        } catch (error) {
+            setStatus('ERROR');
+            setTimeout(() => setStatus('IDLE'), 3000);
+        }
+    };
+
+    return (
+        <section id="contact" className="py-24 bg-brand-black relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-green/5 rounded-full blur-[100px] -z-10"></div>
+            
+            <div className="max-w-7xl mx-auto px-4 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <div>
+                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6 text-white">Contactez-nous</h2>
+                        <p className="text-zinc-400 text-lg mb-12 max-w-md">
+                            Notre site web est en construction, mais nous sommes disponible pour vos interventions.
+                        </p>
+
+                        <div className="space-y-8 mb-16">
+                            <div className="flex items-center gap-4 group">
+                                <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800 group-hover:border-brand-green transition-colors">
+                                    <Mail className="text-brand-green" size={20} />
+                                </div>
+                                <a href="mailto:info@vanakelgroup.be" className="text-lg font-bold hover:text-brand-green transition-colors">info@vanakelgroup.be</a>
+                            </div>
+                            <div className="flex items-center gap-4 group">
+                                <div className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800 group-hover:border-brand-green transition-colors">
+                                    <Phone className="text-brand-green" size={20} />
+                                </div>
+                                <a href="tel:+32475999909" className="text-lg font-bold hover:text-brand-green transition-colors">+32 475 99 99 09</a>
+                            </div>
+                        </div>
+
+                        <div className="space-y-12">
+                            <ContactFeature
+                                num="#1"
+                                title="Construction"
+                                desc="Que ce soit pour un petit projet ou une grande construction, nous apportons des solutions adaptées à vos besoins. Notre équipe dévouée s’assure de respecter les délais tout en garantissant une qualité irréprochable."
+                            />
+                            <ContactFeature
+                                num="#2"
+                                title="Électricité"
+                                desc="Que ce soit pour des problèmes électriques courants ou des interventions sur votre tableau électrique, nous offrons des solutions rapides et fiables. Notre équipe d’experts est à votre disposition pour assurer votre sécurité et votre confort."
+                            />
+                            <ContactFeature
+                                num="#3"
+                                title="Plomberie"
+                                desc="Nous intervenons rapidement pour toutes vos missions de plomberie, garantissant des solutions efficaces en un temps record. Que ce soit pour une réparation urgente ou une petite installation, notre équipe est à votre service"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="bg-brand-green rounded-[40px] p-8 md:p-12 shadow-2xl shadow-brand-green/20 relative">
+                        <h3 className="text-3xl font-black text-brand-black mb-12 uppercase tracking-tight">Formulaire de contact</h3>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.name}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all"
+                                    placeholder="Name"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Email</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all"
+                                    placeholder="Email"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Subject</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.subject}
+                                    onChange={e => setFormData({ ...formData, subject: e.target.value })}
+                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all"
+                                    placeholder="Subject"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-brand-black/60 uppercase tracking-widest pl-1">Your message</label>
+                                <textarea
+                                    required
+                                    value={formData.message}
+                                    onChange={e => setFormData({ ...formData, message: e.target.value })}
+                                    className="w-full bg-transparent border-b-2 border-brand-black/20 focus:border-brand-black outline-none py-2 text-brand-black font-bold placeholder:text-brand-black/30 transition-all min-h-[120px] resize-none"
+                                    placeholder="Your message"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={status === 'SENDING'}
+                                className="w-full md:w-auto px-10 py-4 bg-brand-black text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-zinc-900 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                            >
+                                {status === 'SENDING' ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                                {status === 'SENDING' ? 'Sending...' : status === 'SUCCESS' ? 'Message Sent!' : 'Send a message'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const ContactFeature = ({ num, title, desc }: { num: string, title: string, desc: string }) => (
+    <div className="flex gap-6 group">
+        <span className="text-5xl font-black text-brand-green/20 group-hover:text-brand-green transition-colors leading-none">{num}</span>
+        <div>
+            <h4 className="text-2xl font-black text-white mb-2">{title}</h4>
+            <p className="text-zinc-500 text-sm leading-relaxed">{desc}</p>
+        </div>
+    </div>
+);
+
+// Original Sub-components RESTORED
 const FeatureCard = ({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) => (
     <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-3xl hover:bg-zinc-900 hover:border-brand-green/30 transition-all group">
         <div className="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center mb-6 border border-zinc-800 group-hover:scale-110 transition-transform duration-500">

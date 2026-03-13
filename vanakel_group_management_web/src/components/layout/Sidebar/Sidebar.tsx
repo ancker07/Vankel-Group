@@ -43,6 +43,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     const activeTab = getActiveTab();
 
     const handleTabClick = (tab: string) => {
+        if (tab === 'contact_us') {
+            window.open('/#contact', '_blank');
+            return;
+        }
         let prefix = 'admin';
         if (role === 'SYNDIC') prefix = 'syndic';
         else if (role === 'SUPERADMIN') prefix = 'superadmin';

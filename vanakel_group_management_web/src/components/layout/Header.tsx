@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bell, Menu } from 'lucide-react';
+import { Bell, Menu, MessageSquare } from 'lucide-react';
 import { Role, Language as LangType, AppNotification } from '@/types';
 import NotificationPanel from '@/components/common/NotificationPanel';
 import logo from '@/assets/vankel_bg_2.png';
@@ -54,6 +54,14 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="flex items-center gap-3 md:gap-6">
+                <button 
+                    onClick={() => window.open('/#contact', '_blank')}
+                    className="hidden lg:flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-zinc-400 hover:text-brand-green hover:border-brand-green/30 transition-all group"
+                >
+                    <MessageSquare size={16} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold uppercase tracking-widest">{t.contact_us || 'Contact Us'}</span>
+                </button>
+
                 <div className="relative">
                     <button
                         onClick={() => setShowNotifications(!showNotifications)}

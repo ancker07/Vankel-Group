@@ -652,49 +652,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
             </div>
           )}
 
-          {/* Professional Selection - ADMIN ONLY */}
-          {isEditable && !isSyndic && (
-            <div className="mt-6 pt-6 border-t border-zinc-900/50">
-              <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-3 block">Professional / Contractor</label>
-              <select
-                value={internalProId}
-                onChange={(e) => setInternalProId(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-bold text-white focus:border-brand-green outline-none transition-all"
-              >
-                <option value="">Select Professional...</option>
-                {professionals.map(p => (
-                  <option key={p.id} value={p.id}>{p.companyName || p.contactPerson}</option>
-                ))}
-              </select>
 
-              {currentProfessional && (
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/50 mt-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
-                      <Briefcase size={18} />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">Selected Expert</p>
-                      <p className="text-xs font-black text-white">{currentProfessional.companyName}</p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentProfessional.contactPerson}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:items-end justify-center gap-1.5">
-                    {currentProfessional.phone && (
-                      <p className="text-[10px] font-bold text-zinc-400 flex items-center gap-2">
-                        <Smartphone size={12} className="text-blue-400" /> {currentProfessional.phone}
-                      </p>
-                    )}
-                    {currentProfessional.email && (
-                      <p className="text-[10px] font-medium text-zinc-500 flex items-center gap-2">
-                        <Mail size={12} /> {currentProfessional.email}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Description Section */}

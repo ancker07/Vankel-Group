@@ -1,5 +1,5 @@
 
-export type Role = 'SUPERADMIN' | 'ADMIN' | 'PROFESSIONAL' | 'SYNDIC' | 'CLIENT';
+export type Role = 'SUPERADMIN' | 'ADMIN' | 'PROFESSIONAL' | 'SYNDIC' | 'CLIENT' | 'CONTACT_FORM';
 export type Language = 'EN' | 'FR' | 'NL';
 export type Urgency = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
@@ -123,7 +123,7 @@ export interface Intervention {
   onSiteContactEmail?: string;
 
   // Source Tracking for Email Automation
-  sourceType?: 'MANUAL' | 'EMAIL' | 'MAINTENANCE_PLAN'; // Added MAINTENANCE_PLAN
+  sourceType?: 'MANUAL' | 'EMAIL' | 'MAINTENANCE_PLAN' | 'CONTACT_FORM'; // Added MAINTENANCE_PLAN and CONTACT_FORM
   sourceMessageId?: string;
   sourceDetails?: {
     from: string;
@@ -183,7 +183,7 @@ export interface Mission {
   onSiteContactEmail?: string;
 
   // Source Tracking
-  sourceType?: 'MANUAL' | 'EMAIL';
+  sourceType?: 'MANUAL' | 'EMAIL' | 'CONTACT_FORM';
   sourceMessageId?: string;
   sourceDetails?: {
     from: string;

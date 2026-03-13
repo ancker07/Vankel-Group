@@ -7,6 +7,7 @@ use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/maintenance-plans', [MaintenanceController::class, 'index']);
 Route::post('/maintenance-plans', [MaintenanceController::class, 'store']);
@@ -48,6 +49,9 @@ Route::post('/interventions/{id}/send-report', [InterventionController::class, '
 Route::post('/check-status', [AuthController::class, 'checkStatus']);
 Route::post('/profile/update', [AuthController::class, 'updateProfile']);
 Route::post('/profile/details', [AuthController::class, 'getProfile']);
+Route::get('/contacts', [ContactController::class, 'index']);
+Route::post('/contacts', [ContactController::class, 'store']);
+Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
 
 
 

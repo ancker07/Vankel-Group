@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles } from 'lucide-react';
+import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { Role } from '@/types';
 
@@ -88,6 +88,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             active={activeTab === 'ai-settings'}
                             onClick={() => handleTabClick('ai-settings')}
                         />
+                         <SidebarItem
+                            icon={<MessageSquare size={20} className="text-pink-400" />}
+                            label={t.contacts || "Contacts"}
+                            active={activeTab === 'contacts'}
+                            onClick={() => handleTabClick('contacts')}
+                        />
                         <div id="header-settings">
                             <SidebarItem icon={<Settings size={20} />} label={t.settings} active={activeTab === 'settings'} onClick={() => handleTabClick('settings')} />
                         </div>
@@ -110,6 +116,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             <div id="nav-management">
                                 <SidebarItem icon={<FileText size={20} />} label={t.management || 'History & Documents'} active={activeTab === 'management'} onClick={() => handleTabClick('management')} />
                             </div>
+                            <SidebarItem
+                                icon={<MessageSquare size={20} className="text-pink-400" />}
+                                label={t.contact_us || "Contact Us"}
+                                active={activeTab === 'contact_us'}
+                                onClick={() => handleTabClick('contact_us')}
+                            />
                             <div id="nav-notifications">
                                 <SidebarItem icon={<Settings size={20} />} label={t.notifications || 'Notifications'} active={activeTab === 'notifications'} onClick={() => handleTabClick('notifications')} />
                             </div>
@@ -137,6 +149,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             <div id="nav-reports">
                                 <SidebarItem icon={<FileText size={20} />} label={t.reports} active={activeTab === 'reports'} onClick={() => handleTabClick('reports')} />
                             </div>
+                            <SidebarItem
+                                icon={<MessageSquare size={20} className="text-pink-400" />}
+                                label={t.contacts || "Contacts"}
+                                active={activeTab === 'contacts'}
+                                onClick={() => handleTabClick('contacts')}
+                            />
                         </>
                     )}
                 </>

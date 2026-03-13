@@ -26,6 +26,11 @@ class Mission extends Model
         return $this->belongsTo(Email::class, 'source_message_id', 'message_id');
     }
 
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class, 'source_message_id');
+    }
+
     public function getSourceDetailsAttribute()
     {
         if ($this->source_type === 'EMAIL' && $this->email) {
@@ -35,6 +40,15 @@ class Mission extends Model
                 'receivedAt' => $this->email->received_at,
             ];
         }
+
+        if ($this->source_type === 'CONTACT_FORM' && $this->contact) {
+            return [
+                'from' => $this->contact->name . ' (' . $this->contact->email . ')',
+                'subject' => $this->contact->subject,
+                'receivedAt' => $this->contact->created_at,
+            ];
+        }
+
         return null;
     }
 }

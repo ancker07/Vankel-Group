@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Search, Filter, Calendar } from 'lucide-react';
+import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Search, Filter, Calendar, MessageSquare } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -25,6 +25,7 @@ interface MissionsPageProps {
 const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, t, role, lang, onRefresh, isRefreshing }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+    const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
 
     // Filter States
     const [searchQuery, setSearchQuery] = useState('');
@@ -134,7 +135,16 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                             <div className="flex flex-col flex-1 bg-zinc-950 relative z-10">
                                 <div className="flex-1 p-5 flex flex-col justify-between space-y-4">
                                     <div>
-                                        <p className="text-sm text-zinc-400 leading-relaxed mb-4 line-clamp-2">{m.description}</p>
+                                        <p 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setExpandedDescIds(prev => ({ ...prev, [m.id]: !prev[m.id] }));
+                                            }}
+                                            className={`text-sm text-zinc-400 leading-relaxed mb-4 cursor-pointer hover:text-zinc-300 transition-colors ${expandedDescIds[m.id] ? '' : 'line-clamp-2'}`}
+                                            title={expandedDescIds[m.id] ? "Click to collapse" : "Click to expand"}
+                                        >
+                                            {m.description}
+                                        </p>
 
                                         {/* Email Source Banner */}
                                         {m.sourceType === 'EMAIL' && m.sourceDetails && (
@@ -142,6 +152,19 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                 <div className="flex items-center gap-1.5 text-brand-green">
                                                     <Mail size={12} className="animate-pulse" />
                                                     <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.automatic_import || 'Automatic Import'}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
+                                                    <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>
+                                                    <span className="truncate"><span className="text-zinc-600 font-bold mr-1">SUBJ:</span> {m.sourceDetails.subject}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {m.sourceType === 'CONTACT_FORM' && m.sourceDetails && (
+                                            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex flex-col gap-1.5 shadow-inner">
+                                                <div className="flex items-center gap-1.5 text-blue-400">
+                                                    <MessageSquare size={12} className="animate-pulse" />
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.1em]">{t.contact_form_import || 'Contact Form Import'}</span>
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 text-[11px] text-zinc-400">
                                                     <span className="truncate"><span className="text-zinc-600 font-bold mr-1">FROM:</span> {m.sourceDetails.from}</span>

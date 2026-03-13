@@ -129,6 +129,18 @@ export const dataService = {
     deleteMaintenancePlan: async (id: string) => {
         const response = await apiClient.delete(`/maintenance-plans/${id}`);
         return response.data;
+    },
+    submitContact: async (contact: any) => {
+        const response = await apiClient.post('/contacts', contact);
+        return response.data;
+    },
+    getContacts: async () => {
+        const response = await apiClient.get('/contacts');
+        return response.data;
+    },
+    deleteContact: async (id: string) => {
+        const response = await apiClient.delete(`/contacts/${id}`);
+        return response.data;
     }
 };
 

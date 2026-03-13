@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RotateCcw, Plus, MapPin, ShieldCheck, Trash2 } from 'lucide-react';
+import { RotateCcw, Plus, MapPin, ShieldCheck, Trash2, Edit2 } from 'lucide-react';
 import { MaintenancePlan, Building, Syndic } from '@/types';
 
 interface MaintenancePageProps {
@@ -8,11 +8,12 @@ interface MaintenancePageProps {
     buildings: Building[];
     syndics: Syndic[];
     onCreateClick: (buildingId?: string) => void;
+    onEditClick: (plan: MaintenancePlan) => void;
     onDeleteClick: (id: string) => void;
     t: any;
 }
 
-const MaintenancePage: React.FC<MaintenancePageProps> = ({ maintenancePlans, buildings, syndics, onCreateClick, onDeleteClick, t }) => {
+const MaintenancePage: React.FC<MaintenancePageProps> = ({ maintenancePlans, buildings, syndics, onCreateClick, onEditClick, onDeleteClick, t }) => {
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-12">
             <div className="flex justify-between items-center">
@@ -62,7 +63,13 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ maintenancePlans, bui
                                     </div>
                                 </div>
 
-                                <div className="flex md:flex-col gap-2 justify-center shrink-0 min-w-[100px] border-t md:border-t-0 md:border-l border-zinc-900 pt-4 md:pt-0 md:pl-6">
+                                <div className="flex flex-row md:flex-col gap-2 justify-center shrink-0 min-w-[100px] border-t md:border-t-0 md:border-l border-zinc-900 pt-4 md:pt-0 md:pl-6">
+                                    <button
+                                        onClick={() => onEditClick(mp)}
+                                        className="flex-1 md:flex-none py-3 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-500/10 hover:text-orange-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Edit2 size={14} /> {t.edit || 'Edit'}
+                                    </button>
                                     <button
                                         onClick={() => onDeleteClick(mp.id)}
                                         className="flex-1 md:flex-none py-3 px-4 bg-zinc-900 text-zinc-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"

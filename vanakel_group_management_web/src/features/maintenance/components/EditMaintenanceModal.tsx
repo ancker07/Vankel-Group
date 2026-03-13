@@ -1,30 +1,41 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, Sparkles, Loader2 } from 'lucide-react';
-import { improveNote } from '@/services/aiService';
 import { Building, MaintenancePlan, MaintenanceFrequency } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
+import { improveNote } from '@/services/aiService';
 
-interface CreateMaintenanceModalProps {
+interface EditMaintenanceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (plan: Omit<MaintenancePlan, 'id' | 'createdAt' | 'status'>) => void;
+  onUpdate: (id: string, plan: Partial<MaintenancePlan>) => void;
+  plan: MaintenancePlan | null;
   buildings: Building[];
-  initialBuildingId?: string;
   lang: string;
 }
 
-const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
-  isOpen, onClose, onCreate, buildings, initialBuildingId, lang
+const EditMaintenanceModal: React.FC<EditMaintenanceModalProps> = ({
+  isOpen, onClose, onUpdate, plan, buildings, lang
 }) => {
-  const [buildingId, setBuildingId] = useState(initialBuildingId || '');
+  const [buildingId, setBuildingId] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState('');
   const [frequency, setFrequency] = useState<MaintenanceFrequency>('YEARLY');
   const [isImproving, setIsImproving] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (plan) {
+      setBuildingId(plan.buildingId || '');
+      setTitle(plan.title || '');
+      setDescription(plan.description || '');
+      if (plan.recurrence?.startDate) {
+        setStartDate(new Date(plan.recurrence.startDate).toISOString().split('T')[0]);
+      }
+      setFrequency(plan.recurrence?.frequency || 'YEARLY');
+    }
+  }, [plan]);
+
+  if (!isOpen || !plan) return null;
 
   const handleImprove = async () => {
     if (!description) return;
@@ -39,7 +50,6 @@ const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
     }
   };
 
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!buildingId || !title || !startDate) return;
@@ -49,9 +59,9 @@ const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
     const end = new Date(start);
     end.setFullYear(start.getFullYear() + 5);
 
-    const selectedBuilding = buildings.find(b => b.id === buildingId);
+    const selectedBuilding = buildings.find(b => String(b.id) === String(buildingId));
 
-    onCreate({
+    onUpdate(plan.id, {
       buildingId,
       title,
       description,
@@ -74,7 +84,7 @@ const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
       <div className="bg-zinc-950 border border-zinc-800 w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
 
         <div className="px-6 py-5 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-          <h3 className="text-lg font-black uppercase tracking-widest text-orange-500">{t.createMaintPlan || 'Create Maintenance Plan'}</h3>
+          <h3 className="text-lg font-black uppercase tracking-widest text-orange-500">{t.editMaintPlan || 'Edit Maintenance Plan'}</h3>
           <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-500 hover:text-white">
             <X size={20} />
           </button>
@@ -154,17 +164,6 @@ const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
             />
           </div>
 
-          <div className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-xl flex items-start gap-3">
-            <Calendar className="text-orange-500 shrink-0 mt-0.5" size={16} />
-            <div>
-              <p className="text-xs font-bold text-orange-200">{t.planSummary || 'Maintenance Plan Summary'}</p>
-              <p className="text-[10px] text-zinc-400 mt-1 leading-relaxed">
-                {t.plannedDuration || 'Planned for the next 5 years'}.
-                {t.autoWeekBefore || 'Interventions will be created automatically 1 week before each due date.'}
-              </p>
-            </div>
-          </div>
-
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -177,7 +176,7 @@ const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
               type="submit"
               className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
             >
-              {t.confirm}
+              {t.confirm || 'Save'}
             </button>
           </div>
 
@@ -187,4 +186,4 @@ const CreateMaintenanceModal: React.FC<CreateMaintenanceModalProps> = ({
   );
 };
 
-export default CreateMaintenanceModal;
+export default EditMaintenanceModal;
