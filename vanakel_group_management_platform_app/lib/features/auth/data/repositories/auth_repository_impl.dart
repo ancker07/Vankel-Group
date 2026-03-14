@@ -155,6 +155,27 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> changePassword(
+    String email,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      await _dio.post(
+        ApiConstants.changePassword,
+        data: {
+          'email': email,
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'new_password_confirmation': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
   Future<void> logout() async {
     await _tokenService.clearAll();
   }

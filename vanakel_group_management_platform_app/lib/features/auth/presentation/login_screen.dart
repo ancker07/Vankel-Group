@@ -149,11 +149,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: () => setState(() => _selectedRole = null),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      _selectedRole == 'ADMIN'
-                          ? 'Admin Portal'
-                          : 'Syndic Access',
-                      style: const TextStyle(
+                      Text(
+                        _selectedRole == 'ADMIN'
+                            ? l10n.adminPortal
+                            : 'Syndic Access',
+                        style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -211,7 +211,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         _obscurePassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
-                        color: AppTheme.zinc500,
+                        color: AppTheme.zinc300,
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),

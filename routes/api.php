@@ -49,6 +49,7 @@ Route::post('/interventions/{id}/send-report', [InterventionController::class, '
 Route::post('/check-status', [AuthController::class, 'checkStatus']);
 Route::post('/profile/update', [AuthController::class, 'updateProfile']);
 Route::post('/profile/details', [AuthController::class, 'getProfile']);
+Route::post('/change-password', [AuthController::class, 'changePassword']);
 Route::get('/contacts', [ContactController::class, 'index']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);

@@ -8,5 +8,6 @@ abstract class AuthRepository {
   Future<User?> checkStatus(String email);
   Future<User> updateProfile(Map<String, dynamic> updateData);
   Future<User> getProfile(String email);
+  Future<void> changePassword(String email, String currentPassword, String newPassword);
   Future<void> logout();
 }

@@ -13,6 +13,7 @@ class ApiConstants {
   static const String checkStatus = '/check-status';
   static const String profileUpdate = '/profile/update';
   static const String profileDetails = '/profile/details';
+  static const String changePassword = '/change-password';
 
   // User Endpoints
   static const String pendingUsers = '/users/pending';

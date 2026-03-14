@@ -18,40 +18,56 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _companyController = TextEditingController();
   late String _selectedRole;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
     super.initState();
     _selectedRole = widget.initialRole ?? 'SYNDIC';
+    _companyController.text = 'Vanakel Group';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
+    _companyController.dispose();
     super.dispose();
   }
 
   Future<void> _handleSignup() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
+    final companyName = _companyController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+    if (name.isEmpty || email.isEmpty || password.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
       return;
     }
 
+    // Split name into firstName and lastName
+    final nameParts = name.split(' ');
+    final firstName = nameParts.first;
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
+
     final userData = {
-      'name': name,
+      'firstName': firstName,
+      'lastName': lastName,
       'email': email,
+      'phone': phone,
       'password': password,
       'role': _selectedRole,
+      'companyName': _selectedRole == 'ADMIN' ? 'Vanakel Group' : companyName,
     };
 
     await ref.read(authStateProvider.notifier).signup(userData);
@@ -126,7 +142,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 8),
               Text(
                 _selectedRole == 'ADMIN'
-                    ? 'Register as a contractor to manage missions and interventions.'
+                    ? 'Register to become a Vanakel Group Member.'
                     : 'Register as a syndic to oversee properties and report issues.',
                 style: Theme.of(
                   context,
@@ -173,14 +189,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
               const SizedBox(height: 16),
-              if (_selectedRole == 'ADMIN')
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: l10n.companyName,
-                    prefixIcon: const Icon(Icons.business_outlined),
-                  ),
-                ).animate().fadeIn(delay: 520.ms).slideY(begin: 0.1)
-              else
+              if (_selectedRole != 'ADMIN')
                 TextFormField(
                   decoration: InputDecoration(
                     labelText: l10n.propertyAddress,
@@ -197,11 +206,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ).animate().fadeIn(delay: 550.ms).slideY(begin: 0.1),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(
+                  labelText: l10n.phone,
+                  prefixIcon: const Icon(Icons.phone_outlined),
+                ),
+              ).animate().fadeIn(delay: 570.ms).slideY(begin: 0.1),
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: l10n.password,
                   prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppTheme.zinc300,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
                 ),
               ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1),
               const SizedBox(height: 32),

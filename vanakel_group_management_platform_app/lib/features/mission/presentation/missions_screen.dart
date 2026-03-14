@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
 import 'providers/mission_list_provider.dart';
@@ -13,11 +14,12 @@ class MissionsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final missionsAsync = ref.watch(missionListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isAdmin ? 'Missions Inbox' : 'My Requests'),
+        title: Text(isAdmin ? l10n.missionsInbox : l10n.myRequests),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -52,7 +54,7 @@ class MissionsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        isAdmin ? 'All caught up!' : 'No requests yet',
+                        isAdmin ? l10n.allCaughtUp : l10n.noRequestsYet,
                         style: const TextStyle(color: AppTheme.zinc500),
                       ),
                     ],

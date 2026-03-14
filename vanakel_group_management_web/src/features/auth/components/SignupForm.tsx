@@ -27,7 +27,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ lang, onBack, onSubmit }) => {
         email: '',
         password: '',
         phone: '',
-        companyName: ''
+        companyName: role === 'ADMIN' || role === 'SUPERADMIN' ? 'Vanakel Group' : ''
     });
 
     // ... existing OTP logic ...
@@ -336,7 +336,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ lang, onBack, onSubmit }) => {
                             </div>
                         </div>
 
-                        {role === 'SYNDIC' && (
+                        {role !== 'ADMIN' && role !== 'SUPERADMIN' && role === 'SYNDIC' && (
                             <div className="col-span-1 md:col-span-2 space-y-2 animate-in slide-in-from-top-4 duration-500">
                                 <label className="text-[10px] uppercase font-black tracking-widest text-zinc-500 ml-1">{t.companyName || 'Company Name'}</label>
                                 <div className="relative group/field">

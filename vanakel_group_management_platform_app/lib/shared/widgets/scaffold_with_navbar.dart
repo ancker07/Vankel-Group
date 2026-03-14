@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
@@ -12,6 +13,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
@@ -24,26 +26,26 @@ class ScaffoldWithNavBar extends StatelessWidget {
         },
         backgroundColor: AppTheme.zinc950,
         indicatorColor: AppTheme.brandGreen.withOpacity(0.2),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: AppTheme.brandGreen),
-            label: 'Dashboard',
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard, color: AppTheme.brandGreen),
+            label: l10n.dashboard,
           ),
           NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment, color: AppTheme.brandGreen),
-            label: 'Missions',
+            icon: const Icon(Icons.assignment_outlined),
+            selectedIcon: const Icon(Icons.assignment, color: AppTheme.brandGreen),
+            label: l10n.missions,
           ),
           NavigationDestination(
-            icon: Icon(Icons.build_outlined),
-            selectedIcon: Icon(Icons.build, color: AppTheme.brandGreen),
-            label: 'Interventions',
+            icon: const Icon(Icons.build_outlined),
+            selectedIcon: const Icon(Icons.build, color: AppTheme.brandGreen),
+            label: l10n.interventions,
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: AppTheme.brandGreen),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person, color: AppTheme.brandGreen),
+            label: l10n.profile,
           ),
         ],
       ),

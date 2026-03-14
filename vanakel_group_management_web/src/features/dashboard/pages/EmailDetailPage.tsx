@@ -189,7 +189,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                             {/* Subject Area */}
                             {index === 0 && (
                                 <div className="p-6 md:p-8 border-b border-zinc-900 bg-zinc-900/20">
-                                    <h1 className="text-xl md:text-3xl font-black text-white leading-tight break-words">
+                                    <h1 className="text-xl md:text-3xl font-bold text-white leading-tight break-words">
                                         {msg.subject || '(No Subject)'}
                                     </h1>
                                 </div>

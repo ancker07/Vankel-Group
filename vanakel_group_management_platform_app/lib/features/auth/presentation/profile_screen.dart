@@ -87,7 +87,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ).animate().fadeIn(delay: 400.ms),
                       const SizedBox(height: 4),
-                      _buildRoleBadge(user.role),
+                      _buildRoleBadge(context, user.role),
                     ],
                   ),
                 ),
@@ -182,7 +182,8 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRoleBadge(UserRole role) {
+  Widget _buildRoleBadge(BuildContext context, UserRole role) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -191,7 +192,7 @@ class ProfileScreen extends ConsumerWidget {
         border: Border.all(color: AppTheme.brandGreen.withOpacity(0.3)),
       ),
       child: Text(
-        role.name.toUpperCase(),
+        role == UserRole.admin ? l10n.admin.toUpperCase() : role.name.toUpperCase(),
         style: const TextStyle(
           color: AppTheme.brandGreen,
           fontSize: 10,
@@ -289,9 +290,209 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _showChangePasswordDialog(BuildContext context) {
-    // TODO: Implement change password with API
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Change password feature coming soon')),
+    showDialog(
+      context: context,
+      builder: (context) => const ChangePasswordDialog(),
+    );
+  }
+}
+
+class ChangePasswordDialog extends ConsumerStatefulWidget {
+  const ChangePasswordDialog({super.key});
+
+  @override
+  ConsumerState<ChangePasswordDialog> createState() =>
+      _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _obscureCurrent = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handlePasswordChange() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await ref.read(authStateProvider.notifier).changePassword(
+        _currentPasswordController.text,
+        _newPasswordController.text,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password changed successfully'),
+            backgroundColor: AppTheme.brandGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Dialog(
+      backgroundColor: AppTheme.zinc950,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.changePassword,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildDialogTextField(
+                controller: _currentPasswordController,
+                label: l10n.currentPassword,
+                obscureText: _obscureCurrent,
+                onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+              ),
+              const SizedBox(height: 16),
+              _buildDialogTextField(
+                controller: _newPasswordController,
+                label: l10n.newPassword,
+                obscureText: _obscureNew,
+                onToggle: () => setState(() => _obscureNew = !_obscureNew),
+              ),
+              const SizedBox(height: 16),
+              _buildDialogTextField(
+                controller: _confirmPasswordController,
+                label: l10n.confirmNewPassword,
+                obscureText: _obscureConfirm,
+                onToggle:
+                    () => setState(() => _obscureConfirm = !_obscureConfirm),
+                validator: (value) {
+                  if (value != _newPasswordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _handlePasswordChange,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandGreen,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child:
+                    _isLoading
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                        : Text(l10n.update),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  l10n.cancel,
+                  style: const TextStyle(color: AppTheme.zinc500),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogTextField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscureText,
+    required VoidCallback onToggle,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      style: const TextStyle(color: Colors.white, fontSize: 14),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 12),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscureText
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
+            color: AppTheme.zinc300,
+            size: 20,
+          ),
+          onPressed: onToggle,
+        ),
+        filled: true,
+        fillColor: AppTheme.zinc900,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.zinc800),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.zinc800),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppTheme.brandGreen),
+        ),
+      ),
+      validator:
+          validator ??
+          (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter $label';
+            }
+            if (value.length < 8) {
+              return 'Minimum 8 characters required';
+            }
+            return null;
+          },
     );
   }
 }
