@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/api/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/services/auth_token_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../models/user_model.dart';
@@ -25,6 +26,16 @@ class AuthRepositoryImpl implements AuthRepository {
       if (token != null) {
         await _tokenService.saveToken(token);
         await _tokenService.saveEmail(email);
+        
+        // Sync FCM token
+        try {
+          final fcmToken = await NotificationService().getToken();
+          if (fcmToken != null) {
+            await updateFcmToken(email, fcmToken);
+          }
+        } catch (e) {
+          // Non-blocking
+        }
       }
 
       return UserModel.fromJson(response.data['user']).toEntity();
@@ -47,6 +58,19 @@ class AuthRepositoryImpl implements AuthRepository {
       if (userJson != null) {
         final user = UserModel.fromJson(userJson).toEntity();
         await _tokenService.saveEmail(user.email);
+        
+        // Sync FCM token
+        if (token != null) {
+          try {
+            final fcmToken = await NotificationService().getToken();
+            if (fcmToken != null) {
+              await updateFcmToken(user.email, fcmToken);
+            }
+          } catch (e) {
+            // Non-blocking
+          }
+        }
+        
         return user;
       }
 
@@ -87,6 +111,16 @@ class AuthRepositoryImpl implements AuthRepository {
       if (token != null) {
         await _tokenService.saveToken(token);
         await _tokenService.saveEmail(email);
+
+        // Sync FCM token
+        try {
+          final fcmToken = await NotificationService().getToken();
+          if (fcmToken != null) {
+            await updateFcmToken(email, fcmToken);
+          }
+        } catch (e) {
+          // Non-blocking
+        }
       }
 
       return UserModel.fromJson(response.data['user']).toEntity();
@@ -186,6 +220,18 @@ class AuthRepositoryImpl implements AuthRepository {
           'new_password': newPassword,
           'new_password_confirmation': newPassword,
         },
+      );
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
+  Future<void> updateFcmToken(String email, String token) async {
+    try {
+      await _dio.post(
+        ApiConstants.updateFcmToken,
+        data: {'email': email, 'fcm_token': token},
       );
     } on DioException catch (e) {
       throw handleDioError(e);

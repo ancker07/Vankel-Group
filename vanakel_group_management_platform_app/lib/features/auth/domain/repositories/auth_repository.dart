@@ -9,5 +9,6 @@ abstract class AuthRepository {
   Future<User> updateProfile(Map<String, dynamic> updateData);
   Future<User> getProfile(String email);
   Future<void> changePassword(String email, String currentPassword, String newPassword);
+  Future<void> updateFcmToken(String email, String token);
   Future<void> logout();
 }

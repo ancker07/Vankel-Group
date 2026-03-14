@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Mail\OtpMail;
+use App\Services\NotificationService as PushNotificationService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,13 @@ use App\Models\Intervention;
 
 class AuthController extends Controller
 {
+    protected $pushNotificationService;
+
+    public function __construct(PushNotificationService $pushNotificationService)
+    {
+        $this->pushNotificationService = $pushNotificationService;
+    }
+
     public function signup(Request $request)
     {
         $validated = $request->validate([
@@ -199,6 +207,15 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
         $user->update(['status' => 'APPROVED']);
+        
+        if ($user->fcm_token) {
+            $this->pushNotificationService->sendNotification(
+                $user->fcm_token,
+                'Account Approved!',
+                'Welcome to Vanakel Group. Your account has been approved by the Administrator.'
+            );
+        }
+        
         return response()->json(['success' => true, 'message' => 'User approved', 'user' => $user]);
     }
 
@@ -206,6 +223,15 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
         $user->update(['status' => 'REJECTED']);
+
+        if ($user->fcm_token) {
+            $this->pushNotificationService->sendNotification(
+                $user->fcm_token,
+                'Account Status Update',
+                'Your account registration request has been rejected by the Administrator.'
+            );
+        }
+
         return response()->json(['success' => true, 'message' => 'User rejected', 'user' => $user]);
     }
 
@@ -351,6 +377,30 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Password changed successfully.'
+        ]);
+    }
+
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'fcm_token' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $user->update(['fcm_token' => $request->fcm_token]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM token updated successfully.'
         ]);
     }
 }

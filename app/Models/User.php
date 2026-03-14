@@ -28,6 +28,7 @@ class User extends Authenticatable
         'status',
         'bio',
         'image_url',
+        'fcm_token',
     ];
 
     /**

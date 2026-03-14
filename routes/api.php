@@ -50,6 +50,7 @@ Route::post('/check-status', [AuthController::class, 'checkStatus']);
 Route::post('/profile/update', [AuthController::class, 'updateProfile']);
 Route::post('/profile/details', [AuthController::class, 'getProfile']);
 Route::post('/change-password', [AuthController::class, 'changePassword']);
+Route::post('/update-fcm-token', [AuthController::class, 'updateFcmToken']);
 Route::get('/contacts', [ContactController::class, 'index']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);

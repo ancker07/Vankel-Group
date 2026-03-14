@@ -8,12 +8,20 @@ use App\Models\Mission;
 use App\Models\Document;
 use App\Models\Syndic;
 use App\Models\User;
+use App\Services\NotificationService as PushNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class InterventionController extends Controller
 {
+    protected $pushNotificationService;
+
+    public function __construct(PushNotificationService $pushNotificationService)
+    {
+        $this->pushNotificationService = $pushNotificationService;
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -60,6 +68,16 @@ class InterventionController extends Controller
                 'on_site_contact_phone' => $validated['onSiteContactPhone'] ?? null,
                 'on_site_contact_email' => $validated['onSiteContactEmail'] ?? null,
             ]);
+
+            // Notify Admins about new Mission
+            $admins = User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->whereNotNull('fcm_token')->get();
+            foreach ($admins as $admin) {
+                $this->pushNotificationService->sendNotification(
+                    $admin->fcm_token,
+                    "New Mission: {$entity->title}",
+                    "Urgency: {$entity->urgency}. Requested by a Syndic."
+                );
+            }
         } else {
             $entity = Intervention::create([
                 'building_id' => $building->id,
@@ -169,6 +187,18 @@ class InterventionController extends Controller
             ]);
         }
 
+        // Notify Syndic about Approval
+        if ($mission->syndic_id) {
+            $syndic = User::find($mission->syndic_id);
+            if ($syndic && $syndic->fcm_token) {
+                $this->pushNotificationService->sendNotification(
+                    $syndic->fcm_token,
+                    "Mission Approved!",
+                    "Your mission '{$mission->title}' has been approved and turned into an intervention."
+                );
+            }
+        }
+
         return response()->json([
             'message' => 'Mission approved successfully',
             'mission' => $mission,
@@ -180,6 +210,18 @@ class InterventionController extends Controller
     {
         $mission = Mission::findOrFail($id);
         $mission->update(['status' => 'REJECTED']);
+
+        // Notify Syndic about Rejection
+        if ($mission->syndic_id) {
+            $syndic = User::find($mission->syndic_id);
+            if ($syndic && $syndic->fcm_token) {
+                $this->pushNotificationService->sendNotification(
+                    $syndic->fcm_token,
+                    "Mission Rejected",
+                    "Your mission '{$mission->title}' was unfortunately rejected."
+                );
+            }
+        }
 
         return response()->json([
             'message' => 'Mission rejected successfully',
@@ -208,6 +250,8 @@ class InterventionController extends Controller
             'photos.*' => 'nullable|file|image|max:10240',
         ]);
 
+        $oldStatus = $intervention->status;
+
         if (array_key_exists('syndic_id', $validated) && ($validated['syndic_id'] === 'null' || $validated['syndic_id'] === '')) {
             $validated['syndic_id'] = null;
         }
@@ -231,6 +275,32 @@ class InterventionController extends Controller
         
         $intervention->update($updateData);
         
+        // Notify Syndic about Status Update
+        if (isset($updateData['status']) && $updateData['status'] !== $oldStatus) {
+             if ($intervention->syndic_id) {
+                $syndic = User::find($intervention->syndic_id);
+                if ($syndic && $syndic->fcm_token) {
+                    $this->pushNotificationService->sendNotification(
+                        $syndic->fcm_token,
+                        "Intervention Update",
+                        "The status of '{$intervention->title}' has changed to {$updateData['status']}."
+                    );
+                }
+            }
+        }
+
+        // Notify Professional about Assignment
+        if (isset($updateData['pro_id']) && $updateData['pro_id'] != $intervention->getOriginal('pro_id')) {
+            $professional = User::find($updateData['pro_id']);
+            if ($professional && $professional->fcm_token) {
+                $this->pushNotificationService->sendNotification(
+                    $professional->fcm_token,
+                    "New Assignment",
+                    "You have been assigned to a new intervention: '{$intervention->title}'."
+                );
+            }
+        }
+
         // Handle Photo Uploads (Stored as Documents with image type)
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $file) {
