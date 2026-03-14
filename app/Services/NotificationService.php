@@ -108,6 +108,7 @@ class NotificationService
         }
 
         Log::error('FCM API Error (' . $response->status() . '): ' . $response->body());
+        Log::debug('FCM Request Payload: ' . json_encode(['message' => $message]));
         return false;
     }
 
@@ -149,9 +150,14 @@ class NotificationService
                 'assertion' => $jwt,
             ]);
 
+            if (!$response->successful()) {
+                Log::error('FCM OAuth Token Error (' . $response->status() . '): ' . $response->body());
+                return null;
+            }
+
             return $response->json('access_token');
         } catch (\Exception $e) {
-            Log::error('FCM Token error: ' . $e->getMessage());
+            Log::error('FCM Token Exception: ' . $e->getMessage());
             return null;
         }
     }

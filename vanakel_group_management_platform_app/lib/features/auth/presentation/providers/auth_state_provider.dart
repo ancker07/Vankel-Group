@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/auth_token_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -54,6 +55,16 @@ class AuthNotifier extends Notifier<AuthState> {
       final user = await _repository.checkStatus(email);
       if (user != null) {
         state = state.copyWith(status: AuthStatus.authenticated, user: user);
+        
+        // Sync FCM token on every startup
+        try {
+          final fcmToken = await NotificationService().getToken();
+          if (fcmToken != null) {
+            await _repository.updateFcmToken(email, fcmToken);
+          }
+        } catch (e) {
+          // Non-blocking
+        }
       } else {
         // If user is null, it means unauthorized or unprocessable (e.g. invalid token after reinstall)
         // Ensure the token/email are cleared locally
