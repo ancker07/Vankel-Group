@@ -507,6 +507,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No requests yet'**
   String get noRequestsYet;
+
+  /// No description provided for @pendingApprovalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Approval'**
+  String get pendingApprovalTitle;
+
+  /// No description provided for @pendingApprovalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been successfully created. For security reasons, an administrator must review and approve your access before you can enter the workplace.'**
+  String get pendingApprovalDesc;
+
+  /// No description provided for @statusVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Status Verification'**
+  String get statusVerification;
+
+  /// No description provided for @statusVerificationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'We are currently verifying your professional credentials.'**
+  String get statusVerificationDesc;
+
+  /// No description provided for @emailConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Confirmation'**
+  String get emailConfirmation;
+
+  /// No description provided for @emailConfirmationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You will receive an email notification as soon as your account is activated.'**
+  String get emailConfirmationDesc;
+
+  /// No description provided for @checkingStatusFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking status for: {email}'**
+  String checkingStatusFor(Object email);
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
 }
 
 class _AppLocalizationsDelegate

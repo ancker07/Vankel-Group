@@ -215,4 +215,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noRequestsYet => 'Pas encore de demandes';
+
+  @override
+  String get pendingApprovalTitle => 'Approbation en attente';
+
+  @override
+  String get pendingApprovalDesc =>
+      'Votre compte a été créé avec succès. Pour des raisons de sécurité, un administrateur doit examiner et approuver votre accès avant que vous puissiez entrer dans l\'espace de travail.';
+
+  @override
+  String get statusVerification => 'Vérification du statut';
+
+  @override
+  String get statusVerificationDesc =>
+      'Nous vérifions actuellement vos qualifications professionnelles.';
+
+  @override
+  String get emailConfirmation => 'Confirmation par courriel';
+
+  @override
+  String get emailConfirmationDesc =>
+      'Vous recevrez une notification par courriel dès que votre compte sera activé.';
+
+  @override
+  String checkingStatusFor(Object email) {
+    return 'Vérification du statut pour : $email';
+  }
+
+  @override
+  String get signOut => 'Déconnexion';
 }

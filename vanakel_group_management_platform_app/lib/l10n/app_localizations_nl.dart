@@ -214,4 +214,33 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get noRequestsYet => 'Nog geen aanvragen';
+
+  @override
+  String get pendingApprovalTitle => 'Wachtend op goedkeuring';
+
+  @override
+  String get pendingApprovalDesc =>
+      'Uw account is succesvol aangemaakt. Om veiligheidsredenen moet een beheerder uw toegang controleren en goedkeuren voordat u de werkplek kunt betreden.';
+
+  @override
+  String get statusVerification => 'Statusverificatie';
+
+  @override
+  String get statusVerificationDesc =>
+      'We zijn momenteel uw professionele inloggegevens aan het verifiëren.';
+
+  @override
+  String get emailConfirmation => 'E-mailbevestiging';
+
+  @override
+  String get emailConfirmationDesc =>
+      'U ontvangt een e-mailnotificatie zodra uw account is geactiveerd.';
+
+  @override
+  String checkingStatusFor(Object email) {
+    return 'Status controleren voor: $email';
+  }
+
+  @override
+  String get signOut => 'Afmelden';
 }

@@ -17,6 +17,7 @@ import '../../features/intervention/presentation/interventions_screen.dart';
 import '../../features/intervention/presentation/intervention_details_screen.dart';
 import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
+import '../../features/auth/presentation/waiting_approval_screen.dart';
 import '../../shared/layout/admin_layout.dart';
 import '../../shared/layout/syndic_layout.dart';
 
@@ -43,6 +44,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoginPage = state.uri.path == '/login';
       final isRegisterPage = state.uri.path == '/register';
       final isForgotPasswordPage = state.uri.path == '/forgot-password';
+      final isWaitingApprovalPage = state.uri.path == '/waiting-approval';
 
       final isAuthPage =
           isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage;
@@ -56,13 +58,39 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (authState.status == AuthStatus.authenticated) {
         if (isAuthPage || isSplashScreen) {
           if (authState.user?.role == UserRole.admin) {
+            if (authState.user?.isApproved != true) {
+              return '/waiting-approval';
+            }
             return '/admin/dashboard';
           } else if (authState.user?.role == UserRole.syndic) {
+            if (authState.user?.isApproved != true) {
+              return '/waiting-approval';
+            }
             return '/syndic/dashboard';
           } else if (authState.user?.role == UserRole.technician) {
+            if (authState.user?.isApproved != true) {
+              return '/waiting-approval';
+            }
             return '/technician/dashboard';
           }
         }
+
+        // Handle unapproved redirection from any protected route
+        if (authState.user?.isApproved != true && !isWaitingApprovalPage) {
+          return '/waiting-approval';
+        }
+
+        // Handle approved user moving away from waiting screen
+        if (authState.user?.isApproved == true && isWaitingApprovalPage) {
+          if (authState.user?.role == UserRole.admin) {
+            return '/admin/dashboard';
+          } else if (authState.user?.role == UserRole.syndic) {
+            return '/syndic/dashboard';
+          } else {
+            return '/technician/dashboard';
+          }
+        }
+
         return null;
       }
 
@@ -97,6 +125,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/waiting-approval',
+        builder: (context, state) => const WaitingApprovalScreen(),
+      ),
       // Admin Shell
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

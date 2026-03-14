@@ -137,10 +137,12 @@ class AuthController extends Controller
             $user = Auth::user();
             
             // Check status if not superadmin
-            if ($user->role !== 'SUPERADMIN' && $user->status !== 'APPROVED') {
+            // Allow login even if pending/rejected, the frontend will handle the specific screen (Waiting / Rejected)
+            // This is necessary because the mobile app needs a token to stay in the waiting room and poll.
+            if ($user->role !== 'SUPERADMIN' && $user->status === 'DEACTIVATED') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Your account is pending admin approval.'
+                    'message' => 'Your account has been deactivated.'
                 ], 403);
             }
 
