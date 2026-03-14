@@ -18,6 +18,7 @@ import '../../features/intervention/presentation/intervention_details_screen.dar
 import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/waiting_approval_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../shared/layout/admin_layout.dart';
 import '../../shared/layout/syndic_layout.dart';
 
@@ -128,6 +129,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/waiting-approval',
         builder: (context, state) => const WaitingApprovalScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
       // Admin Shell
       StatefulShellRoute.indexedStack(

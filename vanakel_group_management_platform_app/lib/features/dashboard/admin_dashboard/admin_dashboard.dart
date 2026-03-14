@@ -7,6 +7,7 @@ import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../mission/domain/mission.dart';
 import '../../intervention/domain/intervention.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class AdminDashboard extends ConsumerWidget {
   const AdminDashboard({super.key});
@@ -19,7 +20,7 @@ class AdminDashboard extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.adminDashboard),
+        title: Text(l10n.dashboard.toUpperCase(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -30,9 +31,9 @@ class AdminDashboard extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            onPressed: () => context.push('/notifications'),
           ),
-          IconButton(icon: const Icon(Icons.person_outline), onPressed: () {}),
+          const LanguageSelector(),
         ],
       ),
       body: missionsAsync.when(

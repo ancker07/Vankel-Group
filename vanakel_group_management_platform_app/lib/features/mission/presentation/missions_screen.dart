@@ -6,6 +6,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
 import 'providers/mission_list_provider.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class MissionsScreen extends ConsumerWidget {
   final bool isAdmin;
@@ -18,8 +19,11 @@ class MissionsScreen extends ConsumerWidget {
     final missionsAsync = ref.watch(missionListProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.brandBlack,
       appBar: AppBar(
-        title: Text(isAdmin ? l10n.missionsInbox : l10n.myRequests),
+        title: Text(isAdmin ? 'MISSIONS' : 'MY REQUESTS',
+            style: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -32,14 +36,15 @@ class MissionsScreen extends ConsumerWidget {
                 context.push('/syndic/missions/create');
               },
             ),
+          const LanguageSelector(),
         ],
       ),
       body: missionsAsync.when(
         data: (missions) {
           final displayMissions = isAdmin
               ? missions
-                    .where((m) => m.status == MissionStatus.pending)
-                    .toList()
+                  .where((m) => m.status == MissionStatus.pending)
+                  .toList()
               : missions;
 
           return displayMissions.isEmpty
@@ -47,18 +52,33 @@ class MissionsScreen extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 64,
-                        color: AppTheme.zinc800,
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppTheme.zinc900,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.check_circle_outline,
+                          size: 48,
+                          color: AppTheme.brandGreen,
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       Text(
                         isAdmin ? l10n.allCaughtUp : l10n.noRequestsYet,
-                        style: const TextStyle(color: AppTheme.zinc500),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Enjoy your productive day!',
+                        style: TextStyle(color: AppTheme.zinc500, fontSize: 14),
                       ),
                     ],
-                  ),
+                  ).animate().fadeIn().scale(),
                 )
               : RefreshIndicator(
                   onRefresh: () =>
@@ -67,7 +87,7 @@ class MissionsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     itemCount: displayMissions.length,
                     separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final mission = displayMissions[index];
                       return _MissionCard(mission: mission, isAdmin: isAdmin);
@@ -105,176 +125,173 @@ class _MissionCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Dismissible(
-      key: ValueKey(mission.id),
-      direction: isAdmin ? DismissDirection.horizontal : DismissDirection.none,
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.endToStart) {
-          // Reject
-          final confirmed = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Reject Mission?'),
-              content: const Text('This will reject the mission request.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text(
-                    'Reject',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            ),
-          );
-          if (confirmed == true) {
-            await ref
-                .read(missionListProvider.notifier)
-                .rejectMission(mission.id);
-            if (context.mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Mission Rejected')));
-            }
-          }
-          return confirmed ?? false;
-        } else {
-          // Approve
-          await ref
-              .read(missionListProvider.notifier)
-              .approveMission(mission.id);
-          if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Mission Approved')));
-          }
-          return false; // Don't dismiss from list visually immediately
-        }
-      },
-      background: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.brandGreen,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.only(left: 20),
-        child: const Icon(Icons.check, color: Colors.black),
-      ),
-      secondaryBackground: Container(
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      child: InkWell(
-        onTap: () {
-          if (isAdmin) {
-            context.push('/admin/missions/details/${mission.id}');
-          } else {
-            context.push('/syndic/missions/details/${mission.id}');
-          }
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.zinc950,
-            border: Border.all(color: AppTheme.zinc800),
-            borderRadius: BorderRadius.circular(16),
+    final statusColor = _getStatusColor(mission.status);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.zinc900, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: () {
+            if (isAdmin) {
+              context.push('/admin/missions/details/${mission.id}');
+            } else {
+              context.push('/syndic/missions/details/${mission.id}');
+            }
+          },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (mission.isAiDetected)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.purple.withOpacity(0.3),
+              // Top Banner for Source/AI
+              if (mission.isAiDetected)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                  color: Colors.purple.withOpacity(0.1),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, size: 12, color: Colors.purpleAccent),
+                      const SizedBox(width: 8),
+                      Text(
+                        'AI DETECTED MISSION',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                          color: Colors.purpleAccent.withOpacity(0.8),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.auto_awesome,
-                            size: 12,
-                            color: Colors.purple[200],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'AI Detected',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.purple[200],
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    ],
+                  ),
+                ),
+              
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildBadge(
+                          mission.status.name.toUpperCase(),
+                          statusColor,
+                        ),
+                        _buildUrgencyBadge(mission.urgency),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      mission.title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                  _buildUrgencyBadge(mission.urgency),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                mission.title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                mission.address,
-                style: const TextStyle(fontSize: 12, color: AppTheme.zinc500),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                mission.description,
-                style: const TextStyle(fontSize: 14, color: AppTheme.zinc300),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (!isAdmin) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined, size: 14, color: AppTheme.brandGreen),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            mission.address,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.zinc500,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      mission.status.name.toUpperCase(),
+                      mission.description,
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: mission.status == MissionStatus.approved
-                            ? AppTheme.brandGreen
-                            : AppTheme.zinc500,
+                        fontSize: 14,
+                        color: AppTheme.zinc400,
+                        height: 1.5,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today_outlined, size: 12, color: AppTheme.zinc500),
+                            const SizedBox(width: 6),
+                            Text(
+                              _formatDate(mission.createdAt),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.zinc500,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (isAdmin)
+                          Row(
+                            children: [
+                              Text(
+                                'REVIEW',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.brandGreen.withOpacity(0.8),
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.brandGreen.withOpacity(0.8)),
+                            ],
+                          ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
       ),
-    ).animate().fadeIn().slideX();
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
+  }
+
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: color,
+        ),
+      ),
+    );
   }
 
   Widget _buildUrgencyBadge(MissionUrgency urgency) {
@@ -283,34 +300,36 @@ class _MissionCard extends ConsumerWidget {
 
     switch (urgency) {
       case MissionUrgency.urgent:
-        color = Colors.red;
-        label = 'Urgent';
+        color = Colors.redAccent;
+        label = 'URGENT';
         break;
       case MissionUrgency.normal:
-        color = Colors.orange;
-        label = 'Normal';
+        color = Colors.blueAccent;
+        label = 'NORMAL';
         break;
       case MissionUrgency.low:
-        color = Colors.blue;
-        label = 'Low';
+        color = AppTheme.zinc500;
+        label = 'LOW';
         break;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
+    return _buildBadge(label, color);
+  }
+
+  Color _getStatusColor(MissionStatus status) {
+    switch (status) {
+      case MissionStatus.pending:
+        return AppTheme.brandOrange;
+      case MissionStatus.approved:
+        return AppTheme.brandGreen;
+      case MissionStatus.rejected:
+        return Colors.red;
+      case MissionStatus.completed:
+        return Colors.blue;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

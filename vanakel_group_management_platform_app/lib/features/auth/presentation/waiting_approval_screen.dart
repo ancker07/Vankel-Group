@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/auth_state_provider.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class WaitingApprovalScreen extends ConsumerStatefulWidget {
   const WaitingApprovalScreen({super.key});
@@ -53,6 +54,15 @@ class _WaitingApprovalScreenState extends ConsumerState<WaitingApprovalScreen> {
               ),
             ).animate().fadeIn(duration: 1000.ms).blur(begin: const Offset(5, 5), end: const Offset(10, 10)),
           ),
+          
+          Positioned(
+            top: 40,
+            right: 10,
+            child: const SafeArea(
+              child: LanguageSelector(),
+            ),
+          ),
+          
           Positioned(
             bottom: -100,
             left: -100,

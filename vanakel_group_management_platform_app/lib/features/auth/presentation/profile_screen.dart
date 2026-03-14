@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/auth_state_provider.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -30,6 +31,9 @@ class ProfileScreen extends ConsumerWidget {
             floating: false,
             pinned: true,
             backgroundColor: AppTheme.zinc950,
+            actions: const [
+              LanguageSelector(),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(

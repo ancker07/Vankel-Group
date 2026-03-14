@@ -6,6 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../intervention/domain/intervention.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class SyndicDashboard extends ConsumerWidget {
   const SyndicDashboard({super.key});
@@ -17,7 +18,9 @@ class SyndicDashboard extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.syndicPortal),
+        title: Text(l10n.dashboard.toUpperCase(),
+            style: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -27,11 +30,16 @@ class SyndicDashboard extends ConsumerWidget {
             },
           ),
           IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.push('/notifications'),
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
               context.go('/syndic/missions/create');
             },
           ),
+          const LanguageSelector(),
         ],
       ),
       body: interventionsAsync.when(
