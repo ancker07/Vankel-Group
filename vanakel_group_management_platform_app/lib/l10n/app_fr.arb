@@ -13,7 +13,7 @@
   "propertyAddress": "Adresse de la propriété",
   "phone": "Numéro de téléphone",
   "syndic": "Syndic",
-  "admin": "Membre du Groupe Vanakel",
+  "admin": "Administrateur",
   "selectRole": "Choisir un rôle",
   "onboardingTitle": "Simplifier la gestion immobilière",
   "onboardingDesc": "Optimisez les interventions avec notre plateforme de gestion puissante.",
@@ -38,11 +38,11 @@
   "currentPassword": "Mot de passe actuel",
   "newPassword": "Nouveau mot de passe",
   "confirmNewPassword": "Confirmer le nouveau mot de passe",
-  "adminPortal": "Portail Membre",
+  "adminPortal": "Portail Admin",
   "syndicAccess": "Accès Syndic",
   "managedProperties": "Propriétés gérées",
   "activeAssets": "actifs actifs",
-  "adminDashboard": "Tableau de Bord Membre",
+  "adminDashboard": "Tableau de Bord",
   "overview": "Aperçu",
   "newMissions": "Nouvelles Missions",
   "inProgress": "En cours",
@@ -74,5 +74,6 @@
   "emailConfirmation": "Confirmation par courriel",
   "emailConfirmationDesc": "Vous recevrez une notification par courriel dès que votre compte sera activé.",
   "checkingStatusFor": "Vérification du statut pour : {email}",
-  "signOut": "Déconnexion"
+  "signOut": "Se déconnecter",
+  "notifications": "Notifications"
 }

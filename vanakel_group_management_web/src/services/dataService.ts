@@ -152,6 +152,14 @@ export const dataService = {
     deleteContact: async (id: string) => {
         const response = await apiClient.delete(`/contacts/${id}`);
         return response.data;
+    },
+    sendPushNotification: async (payload: { title: string, body: string, target: 'all' | 'specific', user_ids?: number[] }) => {
+        const response = await apiClient.post('/superadmin/send-notification', payload);
+        return response.data;
+    },
+    getNotificationHistory: async () => {
+        const response = await apiClient.get('/superadmin/notifications/history');
+        return response.data;
     }
 };
 

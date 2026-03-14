@@ -51,7 +51,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syndic => 'Syndic';
 
   @override
-  String get admin => 'Vanakel Group Member';
+  String get admin => 'Admin';
 
   @override
   String get selectRole => 'Select Role';
@@ -127,7 +127,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmNewPassword => 'Confirm New Password';
 
   @override
-  String get adminPortal => 'Member Portal';
+  String get adminPortal => 'Admin Portal';
 
   @override
   String get syndicAccess => 'Syndic Access';
@@ -139,7 +139,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeAssets => 'active assets';
 
   @override
-  String get adminDashboard => 'Member Dashboard';
+  String get adminDashboard => 'Dashboard';
 
   @override
   String get overview => 'Overview';
@@ -243,4 +243,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signOut => 'Sign Out';
+
+  @override
+  String get notifications => 'Notifications';
 }

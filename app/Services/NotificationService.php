@@ -28,10 +28,34 @@ class NotificationService
      */
     public function sendNotification(string $token, string $title, string $body, array $data = []): bool
     {
-        if (empty($token)) {
-            return false;
-        }
+        return $this->sendMessage(['token' => $token], $title, $body, $data);
+    }
 
+    /**
+     * Send a notification to a specific topic (e.g., 'all_users').
+     */
+    public function sendToTopic(string $topic, string $title, string $body, array $data = []): bool
+    {
+        return $this->sendMessage(['topic' => $topic], $title, $body, $data);
+    }
+
+    /**
+     * Send a notification to multiple tokens.
+     */
+    public function sendToMultiple(array $tokens, string $title, string $body, array $data = []): array
+    {
+        $results = [];
+        foreach ($tokens as $token) {
+            $results[$token] = $this->sendNotification($token, $title, $body, $data);
+        }
+        return $results;
+    }
+
+    /**
+     * Shared logic for sending messages.
+     */
+    protected function sendMessage(array $target, string $title, string $body, array $data = []): bool
+    {
         $accessToken = $this->getAccessToken();
         if (!$accessToken) {
             Log::error('FCM: Could not get access token');
@@ -40,33 +64,33 @@ class NotificationService
 
         $url = "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send";
 
-        $payload = [
-            'message' => [
-                'token' => $token,
+        $message = [
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+            ],
+            'data' => array_map('strval', $data),
+            'android' => [
+                'priority' => 'high',
                 'notification' => [
-                    'title' => $title,
-                    'body' => $body,
+                    'channel_id' => 'high_importance_channel',
                 ],
-                'data' => array_map('strval', $data), // FCM data values must be strings
-                'android' => [
-                    'priority' => 'high',
-                    'notification' => [
-                        'channel_id' => 'high_importance_channel',
-                    ],
-                ],
-                'apns' => [
-                    'payload' => [
-                        'aps' => [
-                            'content-available' => 1,
-                            'sound' => 'default',
-                        ],
+            ],
+            'apns' => [
+                'payload' => [
+                    'aps' => [
+                        'content-available' => 1,
+                        'sound' => 'default',
                     ],
                 ],
             ],
         ];
 
+        // Add target (token, topic, or condition)
+        $message = array_merge($message, $target);
+
         $response = Http::withToken($accessToken)
-            ->post($url, $payload);
+            ->post($url, ['message' => $message]);
 
         if ($response->successful()) {
             return true;

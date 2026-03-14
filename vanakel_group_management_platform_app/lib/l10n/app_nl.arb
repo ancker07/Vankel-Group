@@ -13,7 +13,7 @@
   "propertyAddress": "Adres van het pand",
   "phone": "Telefoonnummer",
   "syndic": "Syndicus",
-  "admin": "Lid van de Vanakel Groep",
+  "admin": "Beheerder",
   "selectRole": "Rol selecteren",
   "onboardingTitle": "Vastgoedbeheer vereenvoudigen",
   "onboardingDesc": "Stroomlijn interventies met ons krachtige beheerplatform.",
@@ -38,11 +38,11 @@
   "currentPassword": "Huidig wachtwoord",
   "newPassword": "Nieuw wachtwoord",
   "confirmNewPassword": "Bevestig nieuw wachtwoord",
-  "adminPortal": "Lid Portaal",
+  "adminPortal": "Beheerdersportaal",
   "syndicAccess": "Syndicus Toegang",
   "managedProperties": "Beheerde panden",
   "activeAssets": "actieve activa",
-  "adminDashboard": "Lid Dashboard",
+  "adminDashboard": "Dashboard",
   "overview": "Overzicht",
   "newMissions": "Nieuwe Missies",
   "inProgress": "In Uitvoering",
@@ -74,5 +74,6 @@
   "emailConfirmation": "E-mailbevestiging",
   "emailConfirmationDesc": "U ontvangt een e-mailnotificatie zodra uw account is geactiveerd.",
   "checkingStatusFor": "Status controleren voor: {email}",
-  "signOut": "Afmelden"
+  "signOut": "Afmelden",
+  "notifications": "Meldingen"
 }

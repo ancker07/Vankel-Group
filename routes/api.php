@@ -8,6 +8,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/maintenance-plans', [MaintenanceController::class, 'index']);
 Route::post('/maintenance-plans', [MaintenanceController::class, 'store']);
@@ -33,6 +34,8 @@ Route::get('/users/pending', [AuthController::class, 'getPendingUsers']);
 Route::get('/users/all', [AuthController::class, 'getAllUsers']);
 Route::get('/superadmin/stats', [AuthController::class, 'getSuperAdminStats']);
 Route::post('/superadmin/admins', [AuthController::class, 'storeAdmin']);
+Route::post('/superadmin/send-notification', [NotificationController::class, 'sendBroadcast']);
+Route::get('/superadmin/notifications/history', [NotificationController::class, 'getHistory']);
 Route::post('/users/{id}/approve', [AuthController::class, 'approveUser']);
 Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser']);
 Route::post('/interventions', [InterventionController::class, 'store']);

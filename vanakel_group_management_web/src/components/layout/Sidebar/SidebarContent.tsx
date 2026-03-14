@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare } from 'lucide-react';
+import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare, Bell } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { Role } from '@/types';
 
@@ -87,6 +87,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             label="AI Settings"
                             active={activeTab === 'ai-settings'}
                             onClick={() => handleTabClick('ai-settings')}
+                        />
+                        <SidebarItem
+                            icon={<Bell size={20} className="text-brand-green" />}
+                            label="Push Notifications"
+                            active={activeTab === 'push-notifications'}
+                            onClick={() => handleTabClick('push-notifications')}
                         />
                          <SidebarItem
                             icon={<MessageSquare size={20} className="text-pink-400" />}

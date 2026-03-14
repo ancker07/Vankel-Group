@@ -65,10 +65,10 @@ class NotificationService {
           ?.createNotificationChannel(channel);
 
       await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
+        id: notification.hashCode,
+        title: notification.title,
+        body: notification.body,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             channel.id,
             channel.name,

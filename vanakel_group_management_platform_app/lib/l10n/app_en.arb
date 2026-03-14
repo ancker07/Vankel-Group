@@ -16,7 +16,7 @@
   "propertyAddress": "Property Address",
   "phone": "Phone Number",
   "syndic": "Syndic",
-  "admin": "Vanakel Group Member",
+  "admin": "Admin",
   "selectRole": "Select Role",
   "onboardingTitle": "Simplify Property Management",
   "onboardingDesc": "Streamline interventions and interventions with our powerful management platform.",
@@ -41,11 +41,11 @@
   "currentPassword": "Current Password",
   "newPassword": "New Password",
   "confirmNewPassword": "Confirm New Password",
-  "adminPortal": "Member Portal",
+  "adminPortal": "Admin Portal",
   "syndicAccess": "Syndic Access",
   "managedProperties": "Managed Properties",
   "activeAssets": "active assets",
-  "adminDashboard": "Member Dashboard",
+  "adminDashboard": "Dashboard",
   "overview": "Overview",
   "newMissions": "New Missions",
   "inProgress": "In Progress",
@@ -77,5 +77,6 @@
   "emailConfirmation": "Email Confirmation",
   "emailConfirmationDesc": "You will receive an email notification as soon as your account is activated.",
   "checkingStatusFor": "Checking status for: {email}",
-  "signOut": "Sign Out"
+  "signOut": "Sign Out",
+  "notifications": "Notifications"
 }

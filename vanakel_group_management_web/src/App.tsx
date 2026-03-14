@@ -25,6 +25,7 @@ import SignupForm from '@/features/auth/components/SignupForm';
 import ProfilePage from '@/features/auth/pages/ProfilePage';
 import AiSettingsPage from '@/features/dashboard/pages/AiSettingsPage';
 import ContactsPage from '@/features/dashboard/pages/ContactsPage';
+import PushNotificationsPage from '@/features/dashboard/pages/PushNotificationsPage';
 
 import BuildingProfile from '@/features/buildings/pages/BuildingProfile';
 import InterventionSlip from '@/features/interventions/components/InterventionSlip';
@@ -1214,6 +1215,7 @@ const App: React.FC = () => {
 
                       <Route path="settings" element={<div className="flex flex-col items-center justify-center h-full text-zinc-600">Settings Module under construction</div>} />
                       <Route path="ai-settings" element={role === 'SUPERADMIN' ? <AiSettingsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="push-notifications" element={role === 'SUPERADMIN' ? <PushNotificationsPage /> : <Navigate to="dashboard" replace />} />
                       <Route path="contacts" element={<ContactsPage lang={lang} />} />
                     </Routes>
                   </main>

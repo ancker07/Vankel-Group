@@ -187,7 +187,7 @@ abstract class AppLocalizations {
   /// No description provided for @admin.
   ///
   /// In en, this message translates to:
-  /// **'Vanakel Group Member'**
+  /// **'Admin'**
   String get admin;
 
   /// No description provided for @selectRole.
@@ -337,7 +337,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminPortal.
   ///
   /// In en, this message translates to:
-  /// **'Member Portal'**
+  /// **'Admin Portal'**
   String get adminPortal;
 
   /// No description provided for @syndicAccess.
@@ -361,7 +361,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminDashboard.
   ///
   /// In en, this message translates to:
-  /// **'Member Dashboard'**
+  /// **'Dashboard'**
   String get adminDashboard;
 
   /// No description provided for @overview.
@@ -555,6 +555,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign Out'**
   String get signOut;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
 }
 
 class _AppLocalizationsDelegate
