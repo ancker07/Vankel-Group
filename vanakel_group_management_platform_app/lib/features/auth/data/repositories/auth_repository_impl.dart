@@ -5,6 +5,7 @@ import '../../../../core/services/auth_token_service.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../models/user_model.dart';
+import '../../../../core/enums/user_role_enum.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final Dio _dio;
@@ -36,12 +37,30 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<User> signup(Map<String, dynamic> userData) async {
     try {
       final response = await _dio.post(ApiConstants.signup, data: userData);
-      final user = UserModel.fromJson(response.data['user']).toEntity();
-      if (response.data['token'] != null) {
-        await _tokenService.saveToken(response.data['token']);
-        await _tokenService.saveEmail(user.email);
+      final userJson = response.data['user'];
+      final token = response.data['token'];
+
+      if (token != null) {
+        await _tokenService.saveToken(token);
       }
-      return user;
+
+      if (userJson != null) {
+        final user = UserModel.fromJson(userJson).toEntity();
+        await _tokenService.saveEmail(user.email);
+        return user;
+      }
+
+      // If no user returned (e.g. pending OTP), return a placeholder user for now
+      // so the UI can proceed to wait or OTP state.
+      // But based on our backend fix, ADMIN will return a user.
+      return User(
+        id: -1,
+        name: userData['firstName'] + ' ' + userData['lastName'],
+        email: userData['email'],
+        phone: userData['phone'],
+        role: _parseRoleForSignup(userData['role']),
+        isApproved: false,
+      );
     } on DioException catch (e) {
       throw handleDioError(e);
     }
@@ -176,5 +195,18 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
     await _tokenService.clearAll();
+  }
+
+  UserRole _parseRoleForSignup(String? role) {
+    switch (role?.toUpperCase()) {
+      case 'ADMIN':
+        return UserRole.admin;
+      case 'SYNDIC':
+        return UserRole.syndic;
+      case 'TECHNICIAN':
+        return UserRole.technician;
+      default:
+        return UserRole.technician;
+    }
   }
 }

@@ -29,14 +29,14 @@ class AuthController extends Controller
             'companyName' => 'nullable|string|max:255',
         ]);
 
-        if ($request->role === 'ADMIN') {
+        if ($request->role === 'ADMIN' || $request->role === 'SUPERADMIN') {
             $user = User::create([
                 'name' => $request->firstName . ' ' . $request->lastName,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
                 'phone' => $request->phone,
-                'company_name' => $request->companyName,
+                'company_name' => 'Vankel Group',
                 'status' => 'PENDING',
             ]);
 

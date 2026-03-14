@@ -52,9 +52,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authStateProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated && next.user != null) {
         if (next.user!.role == UserRole.admin) {
-          context.go('/admin/dashboard');
+          if (next.user!.isApproved == false) {
+            context.go('/waiting-approval');
+          } else {
+            context.go('/admin/dashboard');
+          }
         } else if (next.user!.role == UserRole.syndic) {
-          context.go('/syndic/dashboard');
+          if (next.user!.isApproved == false) {
+            context.go('/waiting-approval');
+          } else {
+            context.go('/syndic/dashboard');
+          }
         }
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(

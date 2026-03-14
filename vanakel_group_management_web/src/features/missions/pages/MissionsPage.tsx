@@ -34,9 +34,11 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const [selectedBuilding, setSelectedBuilding] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
 
-    const sortedMissions = [...missions].sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    const sortedMissions = [...missions].sort((a, b) => {
+        const dateA = new Date(a.timestamp || a.created_at || (a as any).received_at || 0).getTime();
+        const dateB = new Date(b.timestamp || b.created_at || (b as any).received_at || 0).getTime();
+        return dateB - dateA;
+    });
 
     const filteredMissions = sortedMissions.filter(m => {
         const matchesSearch = !searchQuery ||
@@ -100,7 +102,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                             </span>
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5">
-                                            <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date(m.timestamp).toLocaleDateString()}</span>
+                                            <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date((m as any).timestamp || (m as any).created_at || (m as any).received_at || Date.now()).toLocaleDateString()}</span>
                                             {m.urgency && (
                                                 <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-black/50 border border-white/10 backdrop-blur-md ${URGENCY.find(u => u.id === m.urgency)?.color || 'text-zinc-500'}`}>
                                                     {URGENCY.find(u => u.id === m.urgency)?.label[lang]}

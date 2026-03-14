@@ -58,11 +58,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     // Split name into firstName and lastName
     final nameParts = name.split(' ');
     final firstName = nameParts.first;
-    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
+    // Ensure lastName is not just a space to avoid 422 error
+    final lastName = nameParts.length > 1
+        ? nameParts.sublist(1).join(' ').trim()
+        : '.';
+    // If joining parts results in empty string, use fallback
+    final finalLastName = lastName.isEmpty ? '.' : lastName;
 
     final userData = {
       'firstName': firstName,
-      'lastName': lastName,
+      'lastName': finalLastName,
       'email': email,
       'phone': phone,
       'password': password,
@@ -82,9 +87,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     ref.listen(authStateProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated && next.user != null) {
         if (next.user!.role == UserRole.admin) {
-          context.go('/admin/dashboard');
+          if (next.user!.isApproved == false) {
+            context.go('/waiting-approval');
+          } else {
+            context.go('/admin/dashboard');
+          }
         } else if (next.user!.role == UserRole.syndic) {
-          context.go('/syndic/dashboard');
+          if (next.user!.isApproved == false) {
+            context.go('/waiting-approval');
+          } else {
+            context.go('/syndic/dashboard');
+          }
         }
       } else if (next.status == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(

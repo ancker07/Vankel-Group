@@ -587,19 +587,14 @@ const App: React.FC = () => {
     localStorage.setItem('vanakel_userName', name);
     localStorage.setItem('vanakel_userEmail', request.email);
 
-    // Set initial approval status - SYNDIC is auto-approved
-    const isSyndic = request.role === 'SYNDIC';
-    setIsApproved(isSyndic);
-    localStorage.setItem('vanakel_isApproved', isSyndic ? 'true' : 'false');
+    // Every new registration (Admin or Syndic) needs approval
+    setIsApproved(false);
+    localStorage.setItem('vanakel_isApproved', 'false');
 
     setIsTourActive(true);
     addToast(t.signup, t.signupSuccess);
 
-    if (isSyndic) {
-      navigate('/syndic/dashboard');
-    } else {
-      navigate('/pending-approval');
-    }
+    navigate('/pending-approval');
   };
 
 
@@ -972,7 +967,7 @@ const App: React.FC = () => {
           <LoginPage
             role={location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN'}
             lang={lang}
-            onLogin={(name, resolvedEmail, token) => {
+            onLogin={(name, resolvedEmail, token, user) => {
               const r = location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN';
               setRole(r);
               localStorage.setItem('vanakel_role', r);
@@ -984,10 +979,17 @@ const App: React.FC = () => {
               if (token) {
                 localStorage.setItem('vanakel_authToken', token);
               }
-              setIsApproved(true);
-              localStorage.setItem('vanakel_isApproved', 'true');
-              setIsTourActive(true);
-              navigate(r === 'SYNDIC' ? '/syndic/dashboard' : '/admin/dashboard');
+              
+              const isUserApproved = user?.status === 'APPROVED' || user?.status === 'ACTIVE' || !token;
+              setIsApproved(isUserApproved);
+              localStorage.setItem('vanakel_isApproved', String(isUserApproved));
+              
+              if (isUserApproved) {
+                setIsTourActive(true);
+                navigate(r === 'SYNDIC' ? '/syndic/dashboard' : '/admin/dashboard');
+              } else {
+                navigate('/pending-approval');
+              }
             }}
             onSignup={() => {
               const r = location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN';
