@@ -40,9 +40,12 @@ class AuthController extends Controller
                 'status' => 'PENDING',
             ]);
 
+            $token = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Admin profile details saved. Awaiting super admin approval.',
+                'token' => $token,
                 'user' => $user
             ]);
         }

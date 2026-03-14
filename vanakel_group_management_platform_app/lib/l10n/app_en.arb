@@ -69,5 +69,13 @@
   "missionsInbox": "Missions Inbox",
   "myRequests": "My Requests",
   "allCaughtUp": "All caught up!",
-  "noRequestsYet": "No requests yet"
+  "noRequestsYet": "No requests yet",
+  "pendingApprovalTitle": "Pending Approval",
+  "pendingApprovalDesc": "Your account has been successfully created. For security reasons, an administrator must review and approve your access before you can enter the workplace.",
+  "statusVerification": "Status Verification",
+  "statusVerificationDesc": "We are currently verifying your professional credentials.",
+  "emailConfirmation": "Email Confirmation",
+  "emailConfirmationDesc": "You will receive an email notification as soon as your account is activated.",
+  "checkingStatusFor": "Checking status for: {email}",
+  "signOut": "Sign Out"
 }

@@ -66,5 +66,13 @@
   "missionsInbox": "Boîte de Réception des Missions",
   "myRequests": "Mes Demandes",
   "allCaughtUp": "Tout est à jour !",
-  "noRequestsYet": "Pas encore de demandes"
+  "noRequestsYet": "Pas encore de demandes",
+  "pendingApprovalTitle": "Approbation en attente",
+  "pendingApprovalDesc": "Votre compte a été créé avec succès. Pour des raisons de sécurité, un administrateur doit examiner et approuver votre accès avant que vous puissiez entrer dans l'espace de travail.",
+  "statusVerification": "Vérification du statut",
+  "statusVerificationDesc": "Nous vérifions actuellement vos qualifications professionnelles.",
+  "emailConfirmation": "Confirmation par courriel",
+  "emailConfirmationDesc": "Vous recevrez une notification par courriel dès que votre compte sera activé.",
+  "checkingStatusFor": "Vérification du statut pour : {email}",
+  "signOut": "Déconnexion"
 }

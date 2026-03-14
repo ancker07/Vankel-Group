@@ -27,7 +27,10 @@ class UserModel extends User {
           json['profile_image_url'] as String? ?? json['image_url'] as String?,
       companyName: json['company_name'] as String?,
       propertyCount: json['property_count'] as int?,
-      isApproved: json['is_approved'] == 1 || json['is_approved'] == true,
+      isApproved: json['is_approved'] == 1 ||
+          json['is_approved'] == true ||
+          json['status'] == 'APPROVED' ||
+          json['status'] == 'ACTIVE',
     );
   }
 

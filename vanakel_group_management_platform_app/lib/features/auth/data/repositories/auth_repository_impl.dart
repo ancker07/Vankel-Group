@@ -88,11 +88,9 @@ class AuthRepositoryImpl implements AuthRepository {
         return null;
       }
 
-      final status = response.data['status']?.toString().toUpperCase();
-      if (status != null && status != 'APPROVED') {
-        return null;
-      }
-
+      // Even if not approved, we want the profile to show the waiting screen
+      // unless it's explicitly rejected or something else.
+      // But for now, if success is true, we want the profile.
       final profileResponse = await _dio.post(
         ApiConstants.profileDetails,
         data: {'email': email},

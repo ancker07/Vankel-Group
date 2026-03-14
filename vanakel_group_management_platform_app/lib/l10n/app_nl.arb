@@ -66,5 +66,13 @@
   "missionsInbox": "Missies Inbox",
   "myRequests": "Mijn Aanvragen",
   "allCaughtUp": "Helemaal bijgewerkt!",
-  "noRequestsYet": "Nog geen aanvragen"
+  "noRequestsYet": "Nog geen aanvragen",
+  "pendingApprovalTitle": "Wachtend op goedkeuring",
+  "pendingApprovalDesc": "Uw account is succesvol aangemaakt. Om veiligheidsredenen moet een beheerder uw toegang controleren en goedkeuren voordat u de werkplek kunt betreden.",
+  "statusVerification": "Statusverificatie",
+  "statusVerificationDesc": "We zijn momenteel uw professionele inloggegevens aan het verifiëren.",
+  "emailConfirmation": "E-mailbevestiging",
+  "emailConfirmationDesc": "U ontvangt een e-mailnotificatie zodra uw account is geactiveerd.",
+  "checkingStatusFor": "Status controleren voor: {email}",
+  "signOut": "Afmelden"
 }
