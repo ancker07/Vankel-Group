@@ -13,8 +13,14 @@ class NotificationService
 
     public function __construct()
     {
-        $this->projectId = 'vanakel-group';
-        $this->serviceAccountPath = storage_path('app/firebase-auth.json');
+        $this->serviceAccountPath = base_path('public/vankelgroup.json');
+        
+        if (file_exists($this->serviceAccountPath)) {
+            $json = json_decode(file_get_contents($this->serviceAccountPath), true);
+            $this->projectId = $json['project_id'] ?? 'vanakel-group';
+        } else {
+            $this->projectId = 'vanakel-group';
+        }
     }
 
     /**
@@ -58,7 +64,7 @@ class NotificationService
     {
         $accessToken = $this->getAccessToken();
         if (!$accessToken) {
-            Log::error('FCM: Could not get access token');
+            Log::error('FCM: Could not get access token. Make sure storage/app/firebase-auth.json exists and is valid.');
             return false;
         }
 
@@ -69,11 +75,12 @@ class NotificationService
                 'title' => $title,
                 'body' => $body,
             ],
-            'data' => array_map('strval', $data),
             'android' => [
                 'priority' => 'high',
                 'notification' => [
                     'channel_id' => 'high_importance_channel',
+                    'sound' => 'default',
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 ],
             ],
             'apns' => [
@@ -86,6 +93,10 @@ class NotificationService
             ],
         ];
 
+        if (!empty($data)) {
+            $message['data'] = array_map('strval', $data);
+        }
+
         // Add target (token, topic, or condition)
         $message = array_merge($message, $target);
 
@@ -96,7 +107,7 @@ class NotificationService
             return true;
         }
 
-        Log::error('FCM Error: ' . $response->body());
+        Log::error('FCM API Error (' . $response->status() . '): ' . $response->body());
         return false;
     }
 
