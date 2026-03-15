@@ -112,6 +112,42 @@ const PushNotificationsPage: React.FC<PushNotificationsPageProps> = ({ lang }) =
                 </div>
             </div>
 
+            {/* Test Notification Section */}
+            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-3xl p-6 backdrop-blur-sm border-dashed">
+                 <h2 className="text-sm font-black text-zinc-500 mb-4 uppercase tracking-widest flex items-center gap-2">
+                    <AlertCircle size={14} />
+                    Debug Tool: Direct Token Test
+                </h2>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <input 
+                        type="text" 
+                        id="test_token"
+                        placeholder="Paste raw FCM token here..."
+                        className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-xs text-white"
+                    />
+                    <button 
+                        onClick={async () => {
+                            const token = (document.getElementById('test_token') as HTMLInputElement).value;
+                            if (!token) return alert('Please paste a token');
+                            try {
+                                const res = await dataService.sendTestNotification({
+                                    token,
+                                    title: 'Test Delivery',
+                                    body: 'If you see this, connectivity is 100% working.'
+                                });
+                                alert(res.message);
+                            } catch (e: any) {
+                                alert('Error: ' + (e.response?.data?.message || 'Check console'));
+                            }
+                        }}
+                        className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-xl text-xs font-bold transition-colors"
+                    >
+                        Send Direct Test
+                    </button>
+                </div>
+                <p className="text-[10px] text-zinc-600 mt-2">Use this to bypass the database and test delivery to a specific token directly.</p>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Send Form */}
                 <div className="lg:col-span-2 space-y-6">

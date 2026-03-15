@@ -160,6 +160,10 @@ export const dataService = {
     getNotificationHistory: async () => {
         const response = await apiClient.get('/superadmin/notifications/history');
         return response.data;
+    },
+    sendTestNotification: async (payload: { token: string, title: string, body: string }) => {
+        const response = await apiClient.post('/superadmin/test-notification', payload);
+        return response.data;
     }
 };
 

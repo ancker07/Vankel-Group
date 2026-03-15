@@ -37,8 +37,11 @@ class NotificationController extends Controller
         $data = $request->data ?? [];
 
         if ($request->target === 'all') {
-            $usersWithTokens = User::whereNotNull('fcm_token')->get();
-            $tokens = $usersWithTokens->pluck('fcm_token')->toArray();
+            $tokens = User::whereNotNull('fcm_token')
+                ->where('fcm_token', '!=', '')
+                ->pluck('fcm_token')
+                ->unique()
+                ->toArray();
 
             Log::info("FCM: Starting broadcast to " . count($tokens) . " tokens.");
             Log::debug("FCM: Tokens list: " . json_encode($tokens));
@@ -68,7 +71,9 @@ class NotificationController extends Controller
             $user_ids = $request->user_ids;
             $tokens = User::whereIn('id', $user_ids)
                 ->whereNotNull('fcm_token')
+                ->where('fcm_token', '!=', '')
                 ->pluck('fcm_token')
+                ->unique()
                 ->toArray();
 
             if (empty($tokens)) {
