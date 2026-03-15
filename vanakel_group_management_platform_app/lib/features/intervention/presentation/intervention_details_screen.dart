@@ -631,7 +631,7 @@ class InterventionDetailsScreen extends ConsumerWidget {
   Color _getStatusColor(InterventionStatus status) {
     switch (status) {
       case InterventionStatus.pending:
-        return Colors.blueAccent;
+        return AppTheme.zinc500;    // gray — matches web
       case InterventionStatus.delayed:
         return AppTheme.brandOrange;
       case InterventionStatus.completed:

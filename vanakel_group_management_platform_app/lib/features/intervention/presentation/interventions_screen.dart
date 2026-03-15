@@ -313,11 +313,11 @@ class _InterventionCard extends StatelessWidget {
   Color _getStatusColor(InterventionStatus status) {
     switch (status) {
       case InterventionStatus.pending:
-        return Colors.blueAccent;
+        return AppTheme.zinc500;   // gray — matches web's zinc badge
       case InterventionStatus.delayed:
-        return AppTheme.brandOrange;
+        return AppTheme.brandOrange; // orange
       case InterventionStatus.completed:
-        return AppTheme.zinc500;
+        return AppTheme.brandGreen;  // green
     }
   }
 
