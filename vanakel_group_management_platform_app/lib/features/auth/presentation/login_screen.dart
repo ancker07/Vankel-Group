@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/presentation/providers/auth_state_provider.dart';
-import '../../../core/enums/user_role_enum.dart';
 import '../../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -48,28 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authStateProvider);
 
-    // Listen for state changes to navigate
-    ref.listen(authStateProvider, (previous, next) {
-      if (next.status == AuthStatus.authenticated && next.user != null) {
-        if (next.user!.role == UserRole.admin) {
-          if (next.user!.isApproved == false) {
-            context.go('/waiting-approval');
-          } else {
-            context.go('/admin/dashboard');
-          }
-        } else if (next.user!.role == UserRole.syndic) {
-          if (next.user!.isApproved == false) {
-            context.go('/waiting-approval');
-          } else {
-            context.go('/syndic/dashboard');
-          }
-        }
-      } else if (next.status == AuthStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage ?? 'Login failed')),
-        );
-      }
-    });
+    // Unified Router handles navigation based on authStateProvider
 
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
@@ -79,34 +57,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
               // Logo Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandGreen,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.apartment,
-                      color: Colors.black,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'VANAKEL',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+              Center(
+                child: Image.asset(
+                  'assets/images/splash_logo.png',
+                  height: 100,
+                  width: 100,
+                  fit: BoxFit.contain,
+                ),
               ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2),
 
               const SizedBox(height: 48),

@@ -85,7 +85,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 gap-6">
                 <div>
                     <h1 className="text-2xl font-black text-white">{t.ingestion_menu}</h1>
-                    <p className="text-zinc-500 text-sm mt-1">{t.email_ingestion_subtitle || 'Review and process incoming emails with AI extraction.'}</p>
+                    <p className="text-zinc-500 text-sm mt-1">{t.email_ingestion_subtitle}</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                     <button
@@ -112,18 +112,18 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.subject || 'Subject'}</th>
-                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.from || 'From'}</th>
-                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.received || 'Received'}</th>
-                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.status || 'Status'}</th>
-                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase text-right">{t.action || 'Action'}</th>
+                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.subject}</th>
+                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.from_label}</th>
+                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.received}</th>
+                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase">{t.status}</th>
+                                <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase text-right">{t.action}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800/50">
                             {handledEmails.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
-                                        {t.no_processed_emails || 'No processed emails found.'}
+                                        {t.no_processed_emails}
                                     </td>
                                 </tr>
                             ) : (
@@ -133,7 +133,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                             <div className="font-bold text-white truncate max-w-md">{email.subject}</div>
                                             {email.attachments && email.attachments.length > 0 && (
                                                 <div className="text-[10px] text-zinc-500 mt-1 flex gap-2">
-                                                    {email.attachments.length} {t.attachments || 'attachment(s)'}
+                                                    {email.attachments.length} {t.attachments_count}
                                                 </div>
                                             )}
                                         </td>

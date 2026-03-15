@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/enums/user_role_enum.dart';
 import 'providers/auth_state_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -84,37 +83,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authStateProvider);
 
-    // Listen for state changes to navigate
-    ref.listen(authStateProvider, (previous, next) {
-      if (kDebugMode) {
-        print('Auth State Change in Register: ${next.status}, User: ${next.user?.email}, Role: ${next.user?.role}, Approved: ${next.user?.isApproved}');
-      }
-
-      if (next.status == AuthStatus.authenticated && next.user != null) {
-        if (next.user!.role == UserRole.admin) {
-          if (next.user!.isApproved == false) {
-            if (mounted) context.go('/waiting-approval');
-          } else {
-            if (mounted) context.go('/admin/dashboard');
-          }
-        } else if (next.user!.role == UserRole.syndic) {
-          // If SYNDIC signup worked but no user exists in DB yet (placeholder returned)
-          // they might need to verify OTP or just wait for approval.
-          // For now, let's assume they go to waiting approval if placeholder returned
-          if (next.user!.isApproved == false) {
-             if (mounted) context.go('/waiting-approval');
-          } else {
-             if (mounted) context.go('/syndic/dashboard');
-          }
-        }
-      } else if (next.status == AuthStatus.error) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.errorMessage ?? 'Registration failed')),
-          );
-        }
-      }
-    });
+    // Unified Router handles navigation based on authStateProvider
 
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
@@ -133,25 +102,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               const SizedBox(height: 8),
               Center(
-                child: Container(
-                  height: 180,
-                  width: 180,
-                  decoration: BoxDecoration(
-                    color: AppTheme.zinc950,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: Image.asset(
-                      'assets/images/auth_register.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.person_add_outlined,
-                        size: 70,
-                        color: AppTheme.brandGreen.withOpacity(0.5),
-                      ),
-                    ),
-                  ),
+                child: Image.asset(
+                  'assets/images/splash_logo.png',
+                  height: 120,
+                  width: 120,
+                  fit: BoxFit.contain,
                 ).animate().fadeIn(duration: 600.ms).scale(),
               ),
               const SizedBox(height: 32),

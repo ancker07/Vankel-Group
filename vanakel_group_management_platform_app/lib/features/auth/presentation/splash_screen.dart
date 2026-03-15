@@ -37,38 +37,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 150,
-              height: 150,
+              width: 200,
+              height: 200,
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.brandGreen.withOpacity(0.2),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(30),
               ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/splash_logo.png',
-                  fit: BoxFit.cover,
-                ),
+              child: Image.asset(
+                'assets/images/splash_logo.png',
+                fit: BoxFit.contain,
               ),
             ).animate().fadeIn(duration: 800.ms).scale(duration: 800.ms),
             const SizedBox(height: 24),
-            Text(
-                  'Vanakel Group',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                )
-                .animate(delay: 400.ms)
-                .fadeIn(duration: 600.ms)
-                .slideY(begin: 0.2, end: 0),
-            const SizedBox(height: 8),
             Text(
                   'Effectively Manage with Ease',
                   style: Theme.of(

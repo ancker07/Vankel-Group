@@ -87,11 +87,11 @@ class _WaitingApprovalScreenState extends ConsumerState<WaitingApprovalScreen> {
                     child: Hero(
                       tag: 'app_logo',
                       child: Container(
-                        height: 120,
-                        width: 120,
+                        height: 130,
+                        width: 130,
                         decoration: BoxDecoration(
                           color: AppTheme.zinc950,
-                          borderRadius: BorderRadius.circular(40),
+                          borderRadius: BorderRadius.circular(30),
                           border: Border.all(color: AppTheme.zinc800),
                           boxShadow: [
                             BoxShadow(
@@ -102,7 +102,7 @@ class _WaitingApprovalScreenState extends ConsumerState<WaitingApprovalScreen> {
                           ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(40),
+                          borderRadius: BorderRadius.circular(30),
                           child: Image.asset(
                             'assets/images/splash_logo.png',
                             fit: BoxFit.contain,

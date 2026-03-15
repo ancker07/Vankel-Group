@@ -17,14 +17,26 @@ class AuthState {
   final AuthStatus status;
   final User? user;
   final String? errorMessage;
+  final bool isSplashDone;
 
-  AuthState({this.status = AuthStatus.initial, this.user, this.errorMessage});
+  AuthState({
+    this.status = AuthStatus.initial,
+    this.user,
+    this.errorMessage,
+    this.isSplashDone = false,
+  });
 
-  AuthState copyWith({AuthStatus? status, User? user, String? errorMessage}) {
+  AuthState copyWith({
+    AuthStatus? status,
+    User? user,
+    String? errorMessage,
+    bool? isSplashDone,
+  }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       errorMessage: errorMessage ?? this.errorMessage,
+      isSplashDone: isSplashDone ?? this.isSplashDone,
     );
   }
 }
@@ -35,8 +47,11 @@ class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
     _repository = ref.watch(authRepositoryProvider);
-    // Trigger initial check status when the provider is first read
-    Future.microtask(() => checkStatus());
+    // Trigger initial check status after splash delay
+    Future.delayed(const Duration(seconds: 2), () {
+      state = state.copyWith(isSplashDone: true);
+      checkStatus();
+    });
     return AuthState();
   }
 
@@ -101,10 +116,8 @@ class AuthNotifier extends Notifier<AuthState> {
       // Repository implementation already saves token and email
       state = state.copyWith(status: AuthStatus.authenticated, user: user);
       
-      // Refresh profile in background to get accurate isApproved status
-      // We don't await this here to prevent transient profile errors 
-      // from breaking the signup flow and triggering redirects.
-      getProfile();
+      // Refresh profile to get accurate isApproved status
+      await getProfile();
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,

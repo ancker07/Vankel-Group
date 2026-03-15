@@ -140,7 +140,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         if (phone) setContactPhone(phone);
       }
     }
-  }, [intervention.description]); // Run once on mount or desc change
+  }, [intervention.description]);
 
   const handleImprove = async () => {
     if (!adminNote) return;
@@ -515,11 +515,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
                     <AtSign size={14} />
                     <span className="text-[9px] font-black uppercase tracking-widest">{t.automatic_import}</span>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-white truncate" title={intervention.sourceDetails.subject}>{intervention.sourceDetails.subject}</p>
-                    <p className="text-[10px] text-zinc-400">From: {intervention.sourceDetails.from}</p>
-                    <p className="text-[10px] text-zinc-500">{new Date(intervention.sourceDetails.receivedAt).toLocaleString()}</p>
-                  </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-white truncate" title={intervention.sourceDetails.subject}>{intervention.sourceDetails.subject}</p>
+                      <p className="text-[10px] text-zinc-400">{t.from_label}: {intervention.sourceDetails.from}</p>
+                      <p className="text-[10px] text-zinc-500">{new Date(intervention.sourceDetails.receivedAt).toLocaleString()}</p>
+                    </div>
                 </div>
               )}
             </div>
@@ -575,7 +575,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
               {isEditable && !isSyndic ? (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{t.syndic} / Customer Info</label>
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{t.syndic} / {t.customer_info}</label>
                     {internalSyndicId && (
                       <button
                         onClick={() => setInternalSyndicId('')}
@@ -590,7 +590,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                     onChange={(e) => setInternalSyndicId(e.target.value)}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs font-bold text-white focus:border-brand-green outline-none transition-all"
                   >
-                    <option value="">{t.selectOrCreateSyndic || 'Select Customer...'}</option>
+                    <option value="">{t.select_customer}</option>
                     {syndics.map(s => (
                       <option key={s.id} value={s.id}>{s.companyName} ({s.contactPerson})</option>
                     ))}
@@ -603,7 +603,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                           <User size={18} />
                         </div>
                         <div>
-                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / Manager</p>
+                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / {t.manager_label}</p>
                           <p className="text-xs font-black text-white">{currentSyndic.companyName}</p>
                           <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentSyndic.contactPerson}</p>
                         </div>
@@ -630,7 +630,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                       <User size={18} />
                     </div>
                     <div>
-                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / Manager</p>
+                      <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / {t.manager_label}</p>
                       <p className="text-xs font-black text-white">{currentSyndic.companyName}</p>
                       <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentSyndic.contactPerson}</p>
                     </div>
@@ -665,7 +665,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         {/* Original Attachments Display prominently below description */}
         {intervention.documents && intervention.documents.length > 0 && (
           <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 mb-6">
-            <h4 className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-4">{t.attachDocuments || 'PIÈCES JOINTES (ATTACHMENTS)'}</h4>
+            <h4 className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-4">{t.attachDocuments}</h4>
             <div className="flex flex-wrap gap-3">
               {intervention.documents.map((doc: any, idx: number) => {
                 const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url);
@@ -816,14 +816,14 @@ const InterventionSlip: React.FC<SlipProps> = ({
                   value={adminNote}
                   onChange={e => setAdminNote(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[160px] md:min-h-[200px] outline-none focus:border-brand-green transition-all text-sm text-zinc-300 leading-relaxed"
-                  placeholder="Technical feedback or observations..."
+                  placeholder={t.technical_feedback_placeholder}
                 />
               ) : (
                 <div className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-4 min-h-[100px] text-sm text-zinc-300 leading-relaxed italic">
                   {adminNote ? (
                     <div className="whitespace-pre-wrap">{adminNote}</div>
                   ) : (
-                    <span className="text-zinc-500">{t.no_note_yet || 'No technical observations recorded.'}</span>
+                    <span className="text-zinc-500">{t.no_technical_observations}</span>
                   )}
                 </div>
               )}

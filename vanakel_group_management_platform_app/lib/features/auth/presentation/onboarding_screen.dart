@@ -238,6 +238,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 8),
             Expanded(
               child: PageView.builder(
                 controller: _pageController,

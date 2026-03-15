@@ -39,10 +39,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                     </div>
 
                     <div className="pt-6 mt-6 border-t border-zinc-800">
-                        <p className="px-4 mb-2 text-[10px] font-black uppercase text-zinc-600 tracking-widest">System Tools</p>
+                        <p className="px-4 mb-2 text-[10px] font-black uppercase text-zinc-600 tracking-widest">{t.sidebar_system_tools}</p>
                         <SidebarItem
                             icon={<Mail size={20} className={isIngesting ? "animate-pulse text-brand-green" : ""} />}
-                            label="Email Ingestion"
+                            label={t.ingestion_menu}
                             active={activeTab === 'email_ingestion'}
                             onClick={() => handleTabClick('email_ingestion')}
                         />
@@ -78,19 +78,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         />
                         <SidebarItem
                             icon={<Mail size={20} className="text-blue-400" />}
-                            label="Inbox"
+                            label={t.inbox_title}
                             active={activeTab === 'emails'}
                             onClick={() => handleTabClick('emails')}
                         />
                         <SidebarItem
                             icon={<Sparkles size={20} className="text-purple-400" />}
-                            label="AI Settings"
+                            label={t.superadmin_ai_settings}
                             active={activeTab === 'ai-settings'}
                             onClick={() => handleTabClick('ai-settings')}
                         />
                         <SidebarItem
                             icon={<Bell size={20} className="text-brand-green" />}
-                            label="Push Notifications"
+                            label={t.push_notifications_title}
                             active={activeTab === 'push-notifications'}
                             onClick={() => handleTabClick('push-notifications')}
                         />

@@ -396,7 +396,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                                 </div>
                                                                 <div>
                                                                     <span className="font-bold text-white block">{user.firstName} {user.lastName}</span>
-                                                                    <span className="text-[10px] text-zinc-600 font-mono tracking-widest uppercase truncate max-w-[150px]">Joined {new Date(user.createdAt).toLocaleDateString()}</span>
+                                                                    <span className="text-[10px] text-zinc-600 font-mono tracking-widest uppercase truncate max-w-[150px]">{t.superadmin_joined} {new Date(user.createdAt).toLocaleDateString()}</span>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -491,11 +491,11 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                     <table className="w-full text-left">
                                         <thead className="bg-zinc-900/50 border-b border-zinc-900">
                                             <tr>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Entry</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Type</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Location</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Status</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Date</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_entry_header || 'Entry'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_type_header || 'Type'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_location_header || 'Location'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_status_header || 'Status'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_date_header || 'Date'}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-900">
@@ -600,12 +600,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             {isLoadingEmails ? (
                                 <div className="py-20 text-center">
                                     <div className="w-8 h-8 border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin mx-auto mb-4"></div>
-                                    <p className="text-zinc-500 text-sm">Fetching emails from server...</p>
+                                    <p className="text-zinc-500 text-sm">{t.superadmin_fetching_emails_server}</p>
                                 </div>
                             ) : emails.length === 0 ? (
                                 <div className="py-20 text-center space-y-4">
                                     <Mail size={48} className="mx-auto text-zinc-800" />
-                                    <p className="text-zinc-500">No emails fetched yet.</p>
+                                    <p className="text-zinc-500">{t.superadmin_no_emails_fetched}</p>
                                 </div>
                             ) : (
                                 emails.map(email => {
@@ -649,7 +649,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                                 {email.subject}
                                                             </h4>
                                                             <p className={`text-xs ${isIgnored ? 'text-zinc-700' : 'text-zinc-500'}`}>
-                                                                From: {email.from_address}
+                                                                {t.from_label}: {email.from_address}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -658,18 +658,18 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                         <div className="bg-zinc-950/80 rounded-2xl border border-zinc-800/80 p-5 space-y-3">
                                                             <div className="flex items-center gap-2 text-brand-green mb-1">
                                                                 <FileText size={14} />
-                                                                <span className="text-[10px] font-black uppercase tracking-widest">Extracted Data</span>
+                                                                <span className="text-[10px] font-black uppercase tracking-widest">{t.extracted_data || 'Extracted Data'}</span>
                                                             </div>
                                                             <div className="grid gap-2">
                                                                 {address && (
                                                                     <div className="flex gap-2 text-xs">
-                                                                        <span className="text-zinc-600 font-bold shrink-0">Addr:</span>
+                                                                        <span className="text-zinc-600 font-bold shrink-0">{t.superadmin_addr || 'Addr:'}</span>
                                                                         <span className="text-zinc-400 leading-tight">{address}</span>
                                                                     </div>
                                                                 )}
                                                                 {contact && (
                                                                     <div className="flex gap-2 text-xs">
-                                                                        <span className="text-zinc-600 font-bold shrink-0">Contact:</span>
+                                                                        <span className="text-zinc-600 font-bold shrink-0">{t.superadmin_contact_label || 'Contact:'}</span>
                                                                         <span className="text-zinc-400">{contact}</span>
                                                                     </div>
                                                                 )}

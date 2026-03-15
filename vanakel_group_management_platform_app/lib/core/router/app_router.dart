@@ -54,12 +54,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthPage =
           isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage;
 
-      // 1. Initial State: Always stay on Splash Screen
-      if (authState.status == AuthStatus.initial) {
+      // 0. Splash State: Always stay on Splash Screen until done
+      if (!authState.isSplashDone) {
         return isSplashScreen ? null : '/splash';
       }
 
-      // 2. Authenticated: Move away from Auth/Splash pages to Dashboard
+      // 1. Authenticated: Move away from Auth/Splash pages to Dashboard
       if (authState.status == AuthStatus.authenticated) {
         if (isAuthPage || isSplashScreen) {
           if (authState.user?.role == UserRole.admin) {
@@ -99,12 +99,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 3. Unauthenticated/Error: Move away from Dashboard/Splash to Onboarding
-      if (authState.status == AuthStatus.unauthenticated ||
-          authState.status == AuthStatus.error) {
+      // 2. Unauthenticated/Error: Move away from Dashboard/Splash to Onboarding
+      if (authState.status == AuthStatus.unauthenticated) {
         if (!isAuthPage) {
           return '/onboarding';
         }
+      }
+
+      // If there's an error and we are on an auth page, stay there to show the error
+      if (authState.status == AuthStatus.error && !isAuthPage && !isSplashScreen) {
+        return '/login';
       }
 
       return null;
