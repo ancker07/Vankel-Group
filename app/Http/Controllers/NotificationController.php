@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 use App\Models\NotificationLog;
+use App\Models\Notification;
 
 class NotificationController extends Controller
 {
@@ -16,6 +17,67 @@ class NotificationController extends Controller
     public function __construct(NotificationService $notificationService)
     {
         $this->notificationService = $notificationService;
+    }
+
+    /**
+     * Get notifications for the authenticated user.
+     */
+    public function getUserNotifications(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            // If they are calling by email in some cases (mobile app sometimes does this if not using sanctum properly yet)
+            if ($request->has('email')) {
+                $user = User::where('email', $request->email)->first();
+            }
+        }
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Get notifications specific to user OR to their role
+        $notifications = Notification::where(function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->orWhere('role', $user->role)
+                      ->orWhereNull('user_id')->whereNull('role'); // Global ones
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        return response()->json($notifications);
+    }
+
+    /**
+     * Mark a notification as read.
+     */
+    public function markAsRead($id)
+    {
+        $notification = Notification::findOrFail($id);
+        $notification->update(['is_read' => true]);
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Mark all notifications as read for the user.
+     */
+    public function markAllAsRead(Request $request)
+    {
+        $user = $request->user();
+        if (!$user && $request->has('email')) {
+            $user = User::where('email', $request->email)->first();
+        }
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        Notification::where('user_id', $user->id)
+            ->orWhere('role', $user->role)
+            ->update(['is_read' => true]);
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -63,6 +125,16 @@ class NotificationController extends Controller
                 'data' => $data,
             ]);
 
+            // Save for dynamic display in app
+            Notification::create([
+                'title' => $title,
+                'body' => $body,
+                'type' => 'broadcast',
+                'data' => $data,
+                'user_id' => null,
+                'role' => null, // Global
+            ]);
+
             return response()->json([
                 'message' => "Broadcast sent successfully to $successCount out of $totalCount devices.",
                 'results' => $results
@@ -91,6 +163,17 @@ class NotificationController extends Controller
                 'success_count' => $successCount,
                 'data' => $data,
             ]);
+
+            // Save for each user for dynamic display
+            foreach ($user_ids as $uid) {
+                Notification::create([
+                    'user_id' => $uid,
+                    'title' => $title,
+                    'body' => $body,
+                    'type' => 'direct',
+                    'data' => $data,
+                ]);
+            }
             
             return response()->json([
                 'message' => 'Notifications sent successfully.',
@@ -104,6 +187,12 @@ class NotificationController extends Controller
      */
     public function sendTestNotification(Request $request)
     {
+        Log::info("FCM Test Tool: Request received", [
+            'token_snippet' => substr($request->token, 0, 15) . '...',
+            'title' => $request->title,
+            'body' => $request->body
+        ]);
+
         $request->validate([
             'token' => 'required|string',
             'title' => 'required|string',

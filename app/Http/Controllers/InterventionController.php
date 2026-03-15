@@ -7,6 +7,7 @@ use App\Models\Intervention;
 use App\Models\Mission;
 use App\Models\Document;
 use App\Models\Syndic;
+use App\Models\Notification;
 use App\Models\User;
 use App\Services\NotificationService as PushNotificationService;
 use Illuminate\Http\Request;
@@ -70,13 +71,26 @@ class InterventionController extends Controller
             ]);
 
             // Notify Admins about new Mission
-            $admins = User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->whereNotNull('fcm_token')->get();
+            $title = "New Mission: {$entity->title}";
+            $body = "Urgency: {$entity->urgency}. Requested by a Syndic.";
+            
+            $admins = User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->get();
             foreach ($admins as $admin) {
-                $this->pushNotificationService->sendNotification(
-                    $admin->fcm_token,
-                    "New Mission: {$entity->title}",
-                    "Urgency: {$entity->urgency}. Requested by a Syndic."
-                );
+                if ($admin->fcm_token) {
+                    $this->pushNotificationService->sendNotification(
+                        $admin->fcm_token,
+                        $title,
+                        $body
+                    );
+                }
+
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'title' => $title,
+                    'body' => $body,
+                    'type' => 'mission',
+                    'data' => ['mission_id' => $entity->id]
+                ]);
             }
         } else {
             $entity = Intervention::create([
@@ -190,12 +204,21 @@ class InterventionController extends Controller
         // Notify Syndic about Approval
         if ($mission->syndic_id) {
             $syndic = User::find($mission->syndic_id);
-            if ($syndic && $syndic->fcm_token) {
-                $this->pushNotificationService->sendNotification(
-                    $syndic->fcm_token,
-                    "Mission Approved!",
-                    "Your mission '{$mission->title}' has been approved and turned into an intervention."
-                );
+            if ($syndic) {
+                $title = "Mission Approved!";
+                $body = "Your mission '{$mission->title}' has been approved and turned into an intervention.";
+
+                if ($syndic->fcm_token) {
+                    $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                }
+
+                Notification::create([
+                    'user_id' => $syndic->id,
+                    'title' => $title,
+                    'body' => $body,
+                    'type' => 'intervention',
+                    'data' => ['intervention_id' => $intervention->id]
+                ]);
             }
         }
 
@@ -214,12 +237,21 @@ class InterventionController extends Controller
         // Notify Syndic about Rejection
         if ($mission->syndic_id) {
             $syndic = User::find($mission->syndic_id);
-            if ($syndic && $syndic->fcm_token) {
-                $this->pushNotificationService->sendNotification(
-                    $syndic->fcm_token,
-                    "Mission Rejected",
-                    "Your mission '{$mission->title}' was unfortunately rejected."
-                );
+            if ($syndic) {
+                $title = "Mission Rejected";
+                $body = "Your mission '{$mission->title}' was unfortunately rejected.";
+
+                if ($syndic->fcm_token) {
+                    $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                }
+
+                Notification::create([
+                    'user_id' => $syndic->id,
+                    'title' => $title,
+                    'body' => $body,
+                    'type' => 'mission',
+                    'data' => ['mission_id' => $mission->id]
+                ]);
             }
         }
 
@@ -279,12 +311,21 @@ class InterventionController extends Controller
         if (isset($updateData['status']) && $updateData['status'] !== $oldStatus) {
              if ($intervention->syndic_id) {
                 $syndic = User::find($intervention->syndic_id);
-                if ($syndic && $syndic->fcm_token) {
-                    $this->pushNotificationService->sendNotification(
-                        $syndic->fcm_token,
-                        "Intervention Update",
-                        "The status of '{$intervention->title}' has changed to {$updateData['status']}."
-                    );
+                if ($syndic) {
+                    $title = "Intervention Update";
+                    $body = "The status of '{$intervention->title}' has changed to {$updateData['status']}.";
+
+                    if ($syndic->fcm_token) {
+                        $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                    }
+
+                    Notification::create([
+                        'user_id' => $syndic->id,
+                        'title' => $title,
+                        'body' => $body,
+                        'type' => 'intervention',
+                        'data' => ['intervention_id' => $intervention->id]
+                    ]);
                 }
             }
         }
@@ -292,12 +333,21 @@ class InterventionController extends Controller
         // Notify Professional about Assignment
         if (isset($updateData['pro_id']) && $updateData['pro_id'] != $intervention->getOriginal('pro_id')) {
             $professional = User::find($updateData['pro_id']);
-            if ($professional && $professional->fcm_token) {
-                $this->pushNotificationService->sendNotification(
-                    $professional->fcm_token,
-                    "New Assignment",
-                    "You have been assigned to a new intervention: '{$intervention->title}'."
-                );
+            if ($professional) {
+                $title = "New Assignment";
+                $body = "You have been assigned to a new intervention: '{$intervention->title}'.";
+
+                if ($professional->fcm_token) {
+                    $this->pushNotificationService->sendNotification($professional->fcm_token, $title, $body);
+                }
+
+                Notification::create([
+                    'user_id' => $professional->id,
+                    'title' => $title,
+                    'body' => $body,
+                    'type' => 'intervention',
+                    'data' => ['intervention_id' => $intervention->id]
+                ]);
             }
         }
 

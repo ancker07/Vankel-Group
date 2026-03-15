@@ -42,5 +42,4 @@ build/
 # OS
 .DS_Store
 Thumbs.db
-/public/vankelgroup.json
-/public/firebase-adminsdk.json
+/public/vanakelgroup.json

@@ -15,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Email;
 use App\Models\Building;
 use App\Models\Intervention;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
@@ -209,13 +210,23 @@ class AuthController extends Controller
         $user = User::findOrFail($id);
         $user->update(['status' => 'APPROVED']);
         
+        $title = 'Account Approved!';
+        $body = 'Welcome to Vanakel Group. Your account has been approved by the Administrator.';
+
         if ($user->fcm_token) {
             $this->pushNotificationService->sendNotification(
                 $user->fcm_token,
-                'Account Approved!',
-                'Welcome to Vanakel Group. Your account has been approved by the Administrator.'
+                $title,
+                $body
             );
         }
+
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => $title,
+            'body' => $body,
+            'type' => 'account',
+        ]);
         
         return response()->json(['success' => true, 'message' => 'User approved', 'user' => $user]);
     }
@@ -225,13 +236,23 @@ class AuthController extends Controller
         $user = User::findOrFail($id);
         $user->update(['status' => 'REJECTED']);
 
+        $title = 'Account Status Update';
+        $body = 'Your account registration request has been rejected by the Administrator.';
+
         if ($user->fcm_token) {
             $this->pushNotificationService->sendNotification(
                 $user->fcm_token,
-                'Account Status Update',
-                'Your account registration request has been rejected by the Administrator.'
+                $title,
+                $body
             );
         }
+
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => $title,
+            'body' => $body,
+            'type' => 'account',
+        ]);
 
         return response()->json(['success' => true, 'message' => 'User rejected', 'user' => $user]);
     }
