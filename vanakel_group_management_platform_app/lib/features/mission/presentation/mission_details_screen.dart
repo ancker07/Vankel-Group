@@ -6,9 +6,10 @@ import '../../../core/api/api_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../intervention/domain/document.dart';
 import '../domain/mission.dart';
-import './providers/mission_detail_provider.dart';
+import './providers/mission_list_provider.dart';
 
 class MissionDetailsScreen extends ConsumerWidget {
   final String missionId;
@@ -107,6 +108,21 @@ class MissionDetailsScreen extends ConsumerWidget {
     );
   }
 
+  String _getStatusLabel(MissionStatus status) {
+    switch (status) {
+      case MissionStatus.pending:
+        return 'Pending Request';
+      case MissionStatus.approved:
+        return 'Accepted';
+      case MissionStatus.rejected:
+        return 'Rejected';
+      case MissionStatus.completed:
+        return 'Completed';
+      case MissionStatus.needsReview:
+        return 'Needs Review';
+    }
+  }
+
   Widget _buildStatusSection(
     BuildContext context,
     WidgetRef ref,
@@ -153,7 +169,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  mission.status.name.toUpperCase(),
+                  _getStatusLabel(mission.status),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -230,15 +246,23 @@ class MissionDetailsScreen extends ConsumerWidget {
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.location_on, color: AppTheme.brandGreen, size: 20),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(Icons.location_on, color: AppTheme.brandGreen, size: 20),
+              ),
               const SizedBox(width: 8),
-              Text(
-                mission.address,
-                style: const TextStyle(fontSize: 16, color: AppTheme.zinc300),
+              Expanded(
+                child: Text(
+                  mission.address,
+                  style: const TextStyle(fontSize: 16, color: AppTheme.zinc300),
+                ),
               ),
             ],
           ),
@@ -414,6 +438,245 @@ class MissionDetailsScreen extends ConsumerWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+  Future<void> _handleApprove(BuildContext context, WidgetRef ref, Mission mission) async {
+    final result = await _showConfirmDialog(
+      context: context,
+      title: 'Approve Mission',
+      content: 'Are you sure you want to approve this mission and turn it into an intervention?',
+      mission: mission,
+      isApprove: true,
+    );
+
+    if (result != null && result['confirmed'] == true) {
+      try {
+        await ref.read(missionListProvider.notifier).approveMission(
+          mission.id,
+          scheduledDate: result['date'],
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Mission approved successfully'), backgroundColor: Colors.green),
+          );
+          // Go back to the list
+          context.pop();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleReject(BuildContext context, WidgetRef ref, Mission mission) async {
+    final result = await _showConfirmDialog(
+      context: context,
+      title: 'Reject Mission',
+      content: 'Are you sure you want to reject this mission?',
+      mission: mission,
+      isApprove: false,
+    );
+
+    if (result != null && result['confirmed'] == true) {
+      try {
+        await ref.read(missionListProvider.notifier).rejectMission(mission.id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Mission rejected'), backgroundColor: Colors.red),
+          );
+          // Go back to the list
+          context.pop();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showConfirmDialog({
+    required BuildContext context,
+    required String title,
+    required String content,
+    required Mission mission,
+    required bool isApprove,
+  }) {
+    DateTime? selectedDate;
+
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: AppTheme.zinc950,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: AppTheme.zinc800),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                isApprove ? Icons.check_circle_outline : Icons.error_outline,
+                color: isApprove ? AppTheme.brandGreen : Colors.red,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  content,
+                  style: const TextStyle(color: AppTheme.zinc300, fontSize: 13, height: 1.5),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.zinc900.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.zinc800),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'MISSION',
+                        style: TextStyle(
+                          color: AppTheme.zinc500,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        mission.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isApprove) ...[
+                  const SizedBox(height: 20),
+                  const Text(
+                    'INTERVENTION DATE (OPTIONAL)',
+                    style: TextStyle(
+                      color: AppTheme.zinc500,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.dark(
+                                primary: AppTheme.brandGreen,
+                                onPrimary: Colors.black,
+                                surface: AppTheme.zinc950,
+                                onSurface: Colors.white,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (date != null) {
+                        setState(() => selectedDate = date);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.zinc900,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.zinc800),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 16,
+                            color: selectedDate != null ? AppTheme.brandGreen : AppTheme.zinc500,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            selectedDate != null
+                                ? DateFormat('dd/MM/yyyy').format(selectedDate!)
+                                : 'Choose a date...',
+                            style: TextStyle(
+                              color: selectedDate != null ? Colors.white : AppTheme.zinc500,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (selectedDate != null) ...[
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 16),
+                              onPressed: () => setState(() => selectedDate = null),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CANCEL', style: TextStyle(color: AppTheme.zinc500, fontWeight: FontWeight.w900, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, {
+                'confirmed': true,
+                'date': selectedDate?.toIso8601String(),
+              }),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isApprove ? AppTheme.brandGreen : Colors.red,
+                foregroundColor: isApprove ? Colors.black : Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(
+                isApprove ? 'APPROVE' : 'REJECT',
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

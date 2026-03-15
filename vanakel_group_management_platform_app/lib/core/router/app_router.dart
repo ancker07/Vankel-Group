@@ -28,19 +28,17 @@ final _adminShellNavigatorKey = GlobalKey<NavigatorState>();
 final _syndicShellNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-
-  // Helper to convert Riverpod provider to Listenable for GoRouter
-  final refreshListenable = ValueNotifier<AuthState>(authState);
-  ref.listen(authStateProvider, (_, next) {
-    refreshListenable.value = next;
-  });
+  // Use a Listenable that notifies GoRouter when the AuthState changes.
+  // We do NOT watch authStateProvider here to keep the GoRouter instance stable.
+  final refreshListenable = GoRouterRefreshListenable(ref);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshListenable,
     redirect: (context, state) {
+      final authState = ref.read(authStateProvider);
+      
       if (kDebugMode) {
         print('GoRouter Redirect: ${state.uri.path}, AuthStatus: ${authState.status}, User: ${authState.user?.email}');
       }
@@ -115,6 +113,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // 3. Error State: Move to login if we are stuck on splash or a protected page
+      // But stay on the login page if we are already there to show the error
       if (authState.status == AuthStatus.error) {
         if (isSplashScreen || !isAuthPage) {
           return '/login';
@@ -298,3 +297,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// A [Listenable] that notifies [GoRouter] when the [authStateProvider] changes.
+class GoRouterRefreshListenable extends ChangeNotifier {
+  GoRouterRefreshListenable(Ref ref) {
+    _subscription = ref.listen(authStateProvider, (previous, next) {
+      if (previous?.status != next.status || previous?.isSplashDone != next.isSplashDone) {
+        notifyListeners();
+      }
+    });
+  }
+
+  late final ProviderSubscription _subscription;
+
+  @override
+  void dispose() {
+    _subscription.close();
+    super.dispose();
+  }
+}

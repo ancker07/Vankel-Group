@@ -104,7 +104,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> login(String email, String password, String role) async {
-    state = state.copyWith(status: AuthStatus.authenticating);
+    state = state.copyWith(status: AuthStatus.authenticating, errorMessage: null);
     try {
       final user = await _repository.login(email, password, role);
       // Repository implementation already saves token and email
@@ -120,7 +120,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> signup(Map<String, dynamic> userData) async {
-    state = state.copyWith(status: AuthStatus.authenticating);
+    state = state.copyWith(status: AuthStatus.authenticating, errorMessage: null);
     try {
       final user = await _repository.signup(userData);
       // Repository implementation already saves token and email
@@ -137,7 +137,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> verifyOtp(String email, String otp) async {
-    state = state.copyWith(status: AuthStatus.authenticating);
+    state = state.copyWith(status: AuthStatus.authenticating, errorMessage: null);
     try {
       final user = await _repository.verifyOtp(email, otp);
       // Repository implementation already saves token and email

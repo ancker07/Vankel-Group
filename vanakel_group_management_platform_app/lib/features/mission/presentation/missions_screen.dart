@@ -160,6 +160,21 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     });
   }
 
+  String _getStatusLabel(MissionStatus status) {
+    switch (status) {
+      case MissionStatus.pending:
+        return 'Pending Request';
+      case MissionStatus.approved:
+        return 'Accepted';
+      case MissionStatus.rejected:
+        return 'Rejected';
+      case MissionStatus.completed:
+        return 'Completed';
+      case MissionStatus.needsReview:
+        return 'Needs Review';
+    }
+  }
+
   Widget _buildFilterBar(List<Mission> missions) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -196,7 +211,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: _selectedStatus?.name.toUpperCase() ?? 'Status',
+                  label: _selectedStatus != null ? _getStatusLabel(_selectedStatus!) : 'Status',
                   icon: Icons.info_outline,
                   isSelected: _selectedStatus != null,
                   onSelected: () => _showStatusPicker(),
@@ -329,8 +344,12 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                         Navigator.pop(context);
                       },
                     ),
-                    ...MissionStatus.values.map((s) => ListTile(
-                      title: Text(s.name.toUpperCase(), style: const TextStyle(color: Colors.white)),
+                    ...MissionStatus.values.where((s) => 
+                      s == MissionStatus.pending || 
+                      s == MissionStatus.approved || 
+                      s == MissionStatus.rejected
+                    ).map((s) => ListTile(
+                      title: Text(_getStatusLabel(s), style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         setState(() => _selectedStatus = s);
                         Navigator.pop(context);
@@ -561,6 +580,22 @@ class _MissionCard extends ConsumerStatefulWidget {
 class _MissionCardState extends ConsumerState<_MissionCard> {
   bool _isExpanded = false;
 
+  // Helper to get status label from _MissionsScreenState
+  String _getStatusLabel(MissionStatus status) {
+    switch (status) {
+      case MissionStatus.pending:
+        return 'Pending Request';
+      case MissionStatus.approved:
+        return 'Accepted';
+      case MissionStatus.rejected:
+        return 'Rejected';
+      case MissionStatus.completed:
+        return 'Completed';
+      case MissionStatus.needsReview:
+        return 'Needs Review';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(widget.mission.status);
@@ -623,7 +658,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildBadge(
-                          widget.mission.status.name.toUpperCase(),
+                          _getStatusLabel(widget.mission.status),
                           statusColor,
                         ),
                         _buildUrgencyBadge(widget.mission.urgency),
