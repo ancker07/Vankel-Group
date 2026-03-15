@@ -35,6 +35,7 @@ Route::get('/users/all', [AuthController::class, 'getAllUsers']);
 Route::get('/superadmin/stats', [AuthController::class, 'getSuperAdminStats']);
 Route::post('/superadmin/admins', [AuthController::class, 'storeAdmin']);
 Route::post('/superadmin/send-notification', [NotificationController::class, 'sendBroadcast']);
+Route::post('/superadmin/test-notification', [NotificationController::class, 'sendTestNotification']);
 Route::get('/superadmin/notifications/history', [NotificationController::class, 'getHistory']);
 Route::post('/users/{id}/approve', [AuthController::class, 'approveUser']);
 Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser']);

@@ -41,6 +41,7 @@ class NotificationController extends Controller
             $tokens = $usersWithTokens->pluck('fcm_token')->toArray();
 
             Log::info("FCM: Starting broadcast to " . count($tokens) . " tokens.");
+            Log::debug("FCM: Tokens list: " . json_encode($tokens));
             if (empty($tokens)) {
                 return response()->json(['message' => 'No users with registered devices found.'], 404);
             }
@@ -91,6 +92,29 @@ class NotificationController extends Controller
                 'results' => $results
             ]);
         }
+    }
+
+    /**
+     * Send a test notification to a specific raw token.
+     */
+    public function sendTestNotification(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'title' => 'required|string',
+            'body' => 'required|string',
+        ]);
+
+        $result = $this->notificationService->sendNotification(
+            $request->token,
+            $request->title,
+            $request->body
+        );
+
+        return response()->json([
+            'success' => $result,
+            'message' => $result ? 'Test notification sent successfully' : 'Failed to send test notification'
+        ]);
     }
 
     /**

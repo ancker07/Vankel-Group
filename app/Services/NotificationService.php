@@ -104,6 +104,7 @@ class NotificationService
             ->post($url, ['message' => $message]);
 
         if ($response->successful()) {
+            Log::info('FCM: Notification sent successfully to target: ' . json_encode($target));
             return true;
         }
 
