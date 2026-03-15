@@ -60,6 +60,30 @@ class InterventionRepositoryImpl implements InterventionRepository {
   }
 
   @override
+  Future<Intervention> registerIntervention(String id, dynamic data) async {
+    try {
+      // If data is FormData, Laravel often requires a POST request with _method spoofing
+      // for multipart updates to work correctly across all PHP versions.
+      dynamic finalData = data;
+      String method = 'PUT';
+
+      if (data is FormData) {
+        data.fields.add(MapEntry('_method', 'PUT'));
+        method = 'POST';
+      }
+
+      final response = await _dio.request(
+        ApiConstants.interventionUpdate.replaceFirst('{id}', id),
+        data: finalData,
+        options: Options(method: method),
+      );
+      return InterventionModel.fromJson(response.data).toEntity();
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
   Future<void> sendReport(String id, Map<String, dynamic> reportData) async {
     try {
       await _dio.post(
@@ -86,6 +110,18 @@ class InterventionRepositoryImpl implements InterventionRepository {
     try {
       final response = await _dio.get(ApiConstants.syndics);
       return response.data;
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
+  Future<List<dynamic>> getProfessionals() async {
+    try {
+      // Fetch all users and filter for professionals
+      final response = await _dio.get('/users/all');
+      final List<dynamic> data = response.data;
+      return data.where((user) => user['role'] == 'PROFESSIONAL').toList();
     } on DioException catch (e) {
       throw handleDioError(e);
     }

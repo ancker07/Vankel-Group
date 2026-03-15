@@ -8,14 +8,43 @@ class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
     return ref.watch(interventionRepositoryProvider).getInterventions();
   }
 
-  Future<void> updateStatus(String id, InterventionStatus status) async {
+  Future<void> updateIntervention(String id, Map<String, dynamic> data) async {
     final repository = ref.read(interventionRepositoryProvider);
     try {
-      await repository.updateIntervention(id, {'status': status.name});
-      // Refresh the list
-      ref.invalidateSelf();
+      await repository.updateIntervention(id, data);
+      _refreshAfterUpdate(id);
     } catch (e) {
-      // Handle error
+      rethrow;
+    }
+  }
+
+  Future<void> registerIntervention(String id, dynamic data) async {
+    final repository = ref.read(interventionRepositoryProvider);
+    try {
+      await repository.registerIntervention(id, data);
+      _refreshAfterUpdate(id);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void _refreshAfterUpdate(String id) {
+    // Refresh the list
+    ref.invalidateSelf();
+    // Also invalidate the detail provider for this specific ID if it exists
+    ref.invalidate(interventionDetailProvider(id));
+  }
+
+  // Helper for simple status updates (backward compatibility)
+  Future<void> updateStatus(String id, InterventionStatus status) async {
+    return updateIntervention(id, {'status': status.name.toUpperCase()});
+  }
+
+  Future<void> sendReport(String id, String type) async {
+    final repository = ref.read(interventionRepositoryProvider);
+    try {
+      await repository.sendReport(id, {'type': type});
+    } catch (e) {
       rethrow;
     }
   }

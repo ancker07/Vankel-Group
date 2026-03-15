@@ -1,695 +1,631 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/api/api_constants.dart';
 import '../domain/intervention.dart';
-import '../domain/document.dart';
 import 'providers/intervention_list_provider.dart';
-import '../../auth/presentation/providers/auth_state_provider.dart';
-import '../../../../core/enums/user_role_enum.dart';
+import 'providers/intervention_provider.dart';
+import 'widgets/intervention_delay_sheet.dart';
 
-class InterventionDetailsScreen extends ConsumerWidget {
+class InterventionDetailsScreen extends ConsumerStatefulWidget {
   final String interventionId;
 
   const InterventionDetailsScreen({super.key, required this.interventionId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final isAdmin = authState.user?.role == UserRole.admin;
+  ConsumerState<InterventionDetailsScreen> createState() => _InterventionDetailsScreenState();
+}
 
-    final interventionAsync = ref.watch(
-      interventionDetailProvider(interventionId),
+class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsScreen> {
+  bool _isEditing = false;
+  bool _isSaving = false;
+  late TextEditingController _adminNoteController;
+  late TextEditingController _contactNameController;
+  late TextEditingController _contactPhoneController;
+  late TextEditingController _contactEmailController;
+
+  // Local state for 'REGISTER' workflow
+  InterventionStatus? _localStatus;
+  String? _localSyndicId;
+  String? _localProId;
+  String? _localDelayReason;
+  String? _localDelayDetails;
+  DateTime? _localDelayedRescheduleDate;
+  final List<XFile> _selectedImages = [];
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _adminNoteController = TextEditingController();
+    _contactNameController = TextEditingController();
+    _contactPhoneController = TextEditingController();
+    _contactEmailController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _adminNoteController.dispose();
+    _contactNameController.dispose();
+    _contactPhoneController.dispose();
+    _contactEmailController.dispose();
+    super.dispose();
+  }
+
+  void _initializeControllers(Intervention intervention) {
+    _adminNoteController.text = intervention.adminFeedback ?? '';
+    _contactNameController.text = intervention.onSiteContactName ?? '';
+    _contactPhoneController.text = intervention.onSiteContactPhone ?? '';
+    _contactEmailController.text = intervention.onSiteContactEmail ?? '';
+
+    _localStatus = intervention.status;
+    _localSyndicId = intervention.syndicId;
+    _localProId = intervention.proId;
+    _localDelayReason = intervention.delayReason;
+    _localDelayDetails = intervention.delayDetails;
+    _localDelayedRescheduleDate = intervention.delayedRescheduleDate;
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() => _selectedImages.add(image));
+    }
+  }
+
+  Future<void> _executeRegister(String id) async {
+    setState(() => _isSaving = true);
+    try {
+      final formData = dio.FormData();
+      formData.fields.addAll([
+        MapEntry('admin_feedback', _adminNoteController.text),
+        MapEntry('on_site_contact_name', _contactNameController.text),
+        MapEntry('on_site_contact_phone', _contactPhoneController.text),
+        MapEntry('on_site_contact_email', _contactEmailController.text),
+      ]);
+
+      if (_localStatus != null) {
+        formData.fields.add(MapEntry('status', _localStatus!.name.toUpperCase()));
+      }
+      if (_localSyndicId != null) {
+        formData.fields.add(MapEntry('syndic_id', _localSyndicId!));
+      }
+      if (_localProId != null) {
+        formData.fields.add(MapEntry('pro_id', _localProId!));
+      }
+
+      if (_localStatus == InterventionStatus.delayed) {
+        if (_localDelayReason != null) formData.fields.add(MapEntry('delay_reason', _localDelayReason!));
+        if (_localDelayDetails != null) formData.fields.add(MapEntry('delay_details', _localDelayDetails!));
+        if (_localDelayedRescheduleDate != null) {
+          formData.fields.add(MapEntry('delayed_reschedule_date', _localDelayedRescheduleDate!.toIso8601String()));
+        }
+      }
+
+      for (final image in _selectedImages) {
+        formData.files.add(MapEntry(
+          'photos[]',
+          await dio.MultipartFile.fromFile(image.path, filename: image.name),
+        ));
+      }
+
+      await ref.read(interventionListProvider.notifier).registerIntervention(id, formData);
+      
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _isEditing = false;
+          _selectedImages.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Intervention registered successfully')));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _handleDelay(String id, Intervention intervention) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => InterventionDelaySheet(
+        initialReason: _localDelayReason ?? intervention.delayReason,
+        initialDetails: _localDelayDetails ?? intervention.delayDetails,
+        initialDate: _localDelayedRescheduleDate ?? intervention.delayedRescheduleDate,
+      ),
     );
+
+    if (result != null) {
+      setState(() {
+        _localStatus = InterventionStatus.delayed;
+        _localDelayReason = result['reason'];
+        _localDelayDetails = result['details'];
+        _localDelayedRescheduleDate = result['date'];
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final interventionAsync = ref.watch(interventionDetailProvider(widget.interventionId));
 
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
       appBar: AppBar(
         backgroundColor: AppTheme.zinc950,
-        title: const Text(
-          'INTERVENTION SLIP',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
-            color: AppTheme.brandGreen,
-          ),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: interventionAsync.when(
+          data: (i) => Text(i.title.toUpperCase(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+          loading: () => const Text('LOADING...'),
+          error: (_, __) => const Text('ERROR'),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.zinc400),
-            onPressed: () => ref.invalidate(interventionDetailProvider(interventionId)),
+            onPressed: () => ref.invalidate(interventionDetailProvider(widget.interventionId)),
           ),
         ],
       ),
       body: interventionAsync.when(
-        data: (intervention) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        data: (intervention) {
+          if (!_isEditing && _adminNoteController.text.isEmpty && intervention.adminFeedback != null) {
+            _initializeControllers(intervention);
+          }
+          return Column(
             children: [
-              // --- Header card: Building + Syndic + Professional ---
-              _buildEntityCard(intervention),
-              const SizedBox(height: 16),
-
-              // --- Status Section ---
-              _buildStatusCard(intervention, isAdmin, ref),
-              const SizedBox(height: 16),
-
-              // --- On-Site Contact ---
-              _buildContactCard(intervention),
-              const SizedBox(height: 16),
-
-              // --- Description ---
-              _buildSection(
-                icon: Icons.description_outlined,
-                label: 'DESCRIPTION',
-                child: Text(
-                  intervention.description,
-                  style: const TextStyle(
-                    color: AppTheme.zinc300,
-                    fontSize: 15,
-                    height: 1.6,
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildContactSection(intervention),
+                      const SizedBox(height: 24),
+                      _buildDescriptionSection(intervention),
+                      const SizedBox(height: 24),
+                      _buildMapSection(intervention),
+                      const SizedBox(height: 24),
+                      _buildStatusSection(intervention),
+                      const SizedBox(height: 24),
+                      _buildFeedbackSection(intervention),
+                      const SizedBox(height: 24),
+                      _buildMediaAuditSection(intervention),
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // --- Admin Feedback ---
-              if (intervention.adminFeedback != null &&
-                  intervention.adminFeedback!.isNotEmpty)
-                _buildSection(
-                  icon: Icons.sticky_note_2_outlined,
-                  label: 'ADMIN NOTE',
-                  child: Text(
-                    intervention.adminFeedback!,
-                    style: const TextStyle(
-                      color: AppTheme.zinc300,
-                      fontSize: 15,
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-              if (intervention.adminFeedback != null &&
-                  intervention.adminFeedback!.isNotEmpty)
-                const SizedBox(height: 16),
-
-              // --- Delay Info ---
-              if (intervention.status == InterventionStatus.delayed)
-                _buildDelayCard(intervention),
-              if (intervention.status == InterventionStatus.delayed)
-                const SizedBox(height: 16),
-
-              // --- Documents ---
-              if (intervention.documents.isNotEmpty) ...[
-                _buildDocumentsSection(intervention, context),
-                const SizedBox(height: 16),
-              ],
-
-              // --- Admin: Status Update Actions ---
-              if (isAdmin) ...[
-                _buildStatusUpdateButtons(intervention, ref),
-                const SizedBox(height: 32),
-              ],
+              _buildFooter(intervention),
             ],
-          ),
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: ${error.toString()}',
-                  style: const TextStyle(color: Colors.white)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () =>
-                    ref.invalidate(interventionDetailProvider(interventionId)),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.brandGreen)),
+        error: (e, __) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white))),
       ),
     );
   }
 
-  // --- Entity Header Card ---
-  Widget _buildEntityCard(Intervention intervention) {
+  Widget _buildContactSection(Intervention i) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.zinc950,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.zinc800),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Building
-          Row(
-            children: [
-              const Icon(Icons.location_on_outlined,
-                  size: 16, color: AppTheme.brandGreen),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  [intervention.address, intervention.city]
-                      .where((e) => e != null && e.isNotEmpty)
-                      .join(', '),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // Scheduled date
-          Row(
-            children: [
-              const Icon(Icons.schedule, size: 13, color: AppTheme.zinc500),
-              const SizedBox(width: 6),
-              Text(
-                DateFormat('EEEE, MMM d, y · HH:mm')
-                    .format(intervention.scheduledDate),
-                style: const TextStyle(
-                    color: AppTheme.zinc500,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(color: AppTheme.zinc800),
-          const SizedBox(height: 12),
-          // Syndic + Pro row
-          Row(
-            children: [
-              Expanded(
-                child: _buildEntityInfo(
-                  label: 'SYNDIC',
-                  name: intervention.syndicName ?? 'Unassigned',
-                  icon: Icons.shield_outlined,
-                ),
-              ),
-              Expanded(
-                child: _buildEntityInfo(
-                  label: 'PROFESSIONAL',
-                  name: intervention.professionalName ?? 'Unassigned',
-                  icon: Icons.engineering_outlined,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEntityInfo({
-    required String label,
-    required String name,
-    required IconData icon,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: AppTheme.zinc500),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: const TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.zinc500,
-                      letterSpacing: 1)),
-              Text(name,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- Status Card ---
-  Widget _buildStatusCard(
-      Intervention intervention, bool isAdmin, WidgetRef ref) {
-    final status = intervention.status;
-    final color = _getStatusColor(status);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.zinc950,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 6)],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('STATUS',
-                  style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.zinc500,
-                      letterSpacing: 1)),
-              Text(_getStatusLabel(status),
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: color)),
-            ],
-          ),
-          if (intervention.urgency != null) ...[
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: _getUrgencyColor(intervention.urgency).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: _getUrgencyColor(intervention.urgency)
-                        .withOpacity(0.3)),
-              ),
-              child: Text(
-                intervention.urgency!.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: _getUrgencyColor(intervention.urgency),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // --- On-Site Contact Card ---
-  Widget _buildContactCard(Intervention intervention) {
-    final hasContact = (intervention.onSiteContactName?.isNotEmpty == true) ||
-        (intervention.onSiteContactPhone?.isNotEmpty == true) ||
-        (intervention.onSiteContactEmail?.isNotEmpty == true);
-
-    if (!hasContact) return const SizedBox.shrink();
-
-    return _buildSection(
-      icon: Icons.person_outline,
-      label: 'ON-SITE CONTACT',
-      child: Column(
-        children: [
-          if (intervention.onSiteContactName?.isNotEmpty == true)
-            _buildContactRow(
-              Icons.badge_outlined,
-              intervention.onSiteContactName!,
-            ),
-          if (intervention.onSiteContactPhone?.isNotEmpty == true)
-            _buildContactRow(
-              Icons.phone_outlined,
-              intervention.onSiteContactPhone!,
-              onTap: () => _launchUrl('tel:${intervention.onSiteContactPhone}'),
-            ),
-          if (intervention.onSiteContactEmail?.isNotEmpty == true)
-            _buildContactRow(
-              Icons.email_outlined,
-              intervention.onSiteContactEmail!,
-              onTap: () =>
-                  _launchUrl('mailto:${intervention.onSiteContactEmail}'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContactRow(IconData icon, String text, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            Icon(icon, size: 14, color: AppTheme.brandGreen),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: onTap != null ? AppTheme.brandGreen : Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  decoration:
-                      onTap != null ? TextDecoration.underline : null,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- Delay Info Card ---
-  Widget _buildDelayCard(Intervention intervention) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.brandOrange.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.brandOrange.withOpacity(0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.warning_amber_outlined,
-                  size: 16, color: AppTheme.brandOrange),
-              SizedBox(width: 8),
-              Text('DELAY INFORMATION',
-                  style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.brandOrange,
-                      letterSpacing: 1.5)),
-            ],
-          ),
-          if (intervention.delayReason?.isNotEmpty == true) ...[
-            const SizedBox(height: 12),
-            const Text('REASON',
-                style: TextStyle(
-                    fontSize: 9,
-                    color: AppTheme.zinc500,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1)),
-            const SizedBox(height: 4),
-            Text(intervention.delayReason!,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600)),
-          ],
-          if (intervention.delayDetails?.isNotEmpty == true) ...[
-            const SizedBox(height: 12),
-            const Text('DETAILS',
-                style: TextStyle(
-                    fontSize: 9,
-                    color: AppTheme.zinc500,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1)),
-            const SizedBox(height: 4),
-            Text(intervention.delayDetails!,
-                style: const TextStyle(
-                    color: AppTheme.zinc300, fontSize: 14, height: 1.5)),
-          ],
-          if (intervention.delayedRescheduleDate != null) ...[
-            const SizedBox(height: 12),
-            const Text('RESCHEDULED TO',
-                style: TextStyle(
-                    fontSize: 9,
-                    color: AppTheme.zinc500,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1)),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('EEEE, MMM d, y')
-                  .format(intervention.delayedRescheduleDate!),
-              style: const TextStyle(
-                  color: AppTheme.brandOrange,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // --- Documents Section ---
-  Widget _buildDocumentsSection(Intervention intervention, BuildContext context) {
-    return _buildSection(
-      icon: Icons.attach_file,
-      label: 'ATTACHMENTS',
-      child: Column(
-        children: intervention.documents
-            .map((doc) => _buildDocumentItem(doc, context))
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildDocumentItem(Document document, BuildContext context) {
-    final fullUrl = ApiConstants.getStorageUrl(document.filePath);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppTheme.zinc900,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.zinc800),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            document.isImage
-                ? Icons.image_outlined
-                : document.isPdf
-                    ? Icons.picture_as_pdf_outlined
-                    : Icons.insert_drive_file_outlined,
-            color: AppTheme.brandGreen,
-            size: 24,
+          Row(
+            children: [
+              const Icon(Icons.person_outline, size: 16, color: AppTheme.zinc500),
+              const SizedBox(width: 8),
+              Text('ON-SITE CONTACT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  document.fileName,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  document.fileType,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppTheme.zinc500),
-                ),
-              ],
-            ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(child: _buildTextField('NAME', _contactNameController)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildTextField('GSM / TEL', _contactPhoneController, hint: '+32 ...')),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.open_in_new, color: AppTheme.brandGreen),
-            onPressed: () => _launchUrl(fullUrl),
-          ),
+          const SizedBox(height: 16),
+          _buildTextField('EMAIL (OPTIONAL)', _contactEmailController, hint: 'email@example.com'),
+          const SizedBox(height: 24),
+          Text('SYNDIC / CUSTOMER INFO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+          const SizedBox(height: 8),
+          _buildSyndicDropdown(),
         ],
       ),
     );
   }
 
-  // --- Admin Status Update Buttons ---
-  Widget _buildStatusUpdateButtons(Intervention intervention, WidgetRef ref) {
+  Widget _buildTextField(String label, TextEditingController controller, {String? hint}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
-          child: Text(
-            'UPDATE STATUS',
-            style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: AppTheme.zinc500,
-                letterSpacing: 1.5),
+        Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500)),
+        const SizedBox(height: 6),
+        Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(color: AppTheme.zinc900, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.zinc800)),
+          child: TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 13), border: InputBorder.none, contentPadding: EdgeInsets.zero),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildSyndicDropdown() {
+    final syndicsAsync = ref.watch(syndicListProvider);
+    return syndicsAsync.when(
+      data: (syndics) => Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(color: AppTheme.zinc900, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.zinc800)),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: _localSyndicId,
+            hint: const Text('Select Customer...', style: TextStyle(color: AppTheme.zinc500, fontSize: 13)),
+            isExpanded: true,
+            dropdownColor: AppTheme.zinc950,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            items: syndics.map((s) => DropdownMenuItem(value: s['id'].toString(), child: Text(s['name'] ?? ''))).toList(),
+            onChanged: (v) => setState(() => _localSyndicId = v),
+          ),
+        ),
+      ),
+      loading: () => const LinearProgressIndicator(),
+      error: (_, __) => const Text('Error loading syndics'),
+    );
+  }
+
+  Widget _buildDescriptionSection(Intervention i) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('INTERVENTION DESCRIPTION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.brandGreen, letterSpacing: 1.2)),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: AppTheme.zinc950, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.zinc800)),
+          child: Text(i.description, style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusSection(Intervention i) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(color: AppTheme.brandGreen, borderRadius: BorderRadius.circular(6)),
+          child: const Text('UPDATE STATUS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black)),
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(
-              child: _StatusButton(
-                label: 'PENDING',
-                color: Colors.blueAccent,
-                isActive: intervention.status == InterventionStatus.pending,
-                onTap: intervention.status != InterventionStatus.pending
-                    ? () => ref
-                        .read(interventionListProvider.notifier)
-                        .updateStatus(intervention.id, InterventionStatus.pending)
-                    : null,
-              ),
-            ),
+            Expanded(child: _StatusBtn(label: 'IN PROGRESS', isActive: _localStatus == InterventionStatus.pending, color: AppTheme.zinc500, onTap: () => setState(() => _localStatus = InterventionStatus.pending))),
             const SizedBox(width: 8),
-            Expanded(
-              child: _StatusButton(
-                label: 'DELAYED',
-                color: AppTheme.brandOrange,
-                isActive: intervention.status == InterventionStatus.delayed,
-                onTap: intervention.status != InterventionStatus.delayed
-                    ? () => ref
-                        .read(interventionListProvider.notifier)
-                        .updateStatus(intervention.id, InterventionStatus.delayed)
-                    : null,
-              ),
-            ),
+            Expanded(child: _StatusBtn(label: 'DELAYED', isActive: _localStatus == InterventionStatus.delayed, color: AppTheme.brandOrange, onTap: () => _handleDelay(i.id, i))),
             const SizedBox(width: 8),
-            Expanded(
-              child: _StatusButton(
-                label: 'DONE',
-                color: AppTheme.brandGreen,
-                isActive: intervention.status == InterventionStatus.completed,
-                onTap: intervention.status != InterventionStatus.completed
-                    ? () => ref
-                        .read(interventionListProvider.notifier)
-                        .updateStatus(
-                            intervention.id, InterventionStatus.completed)
-                    : null,
-              ),
-            ),
+            Expanded(child: _StatusBtn(label: 'COMPLETED', isActive: _localStatus == InterventionStatus.completed, color: AppTheme.brandGreen, onTap: () => setState(() => _localStatus = InterventionStatus.completed))),
           ],
         ),
       ],
     );
   }
 
-  // --- Reusable Section Widget ---
-  Widget _buildSection({
-    required IconData icon,
-    required String label,
-    required Widget child,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.zinc950,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.zinc800),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _buildFeedbackSection(Intervention i) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
             children: [
-              Icon(icon, size: 14, color: AppTheme.brandGreen),
+              Text('INTERVENTION DESCRIPTION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+              const SizedBox(width: 16),
+              _buildSmallBtn(Icons.camera_alt_outlined, 'PHOTOS', _pickImage),
               const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.zinc500,
-                    letterSpacing: 1.5),
-              ),
+              _buildSmallBtn(Icons.upload_file_outlined, 'DOCUMENTS', () {}),
+              const SizedBox(width: 8),
+              _buildAIBtn(),
             ],
           ),
-          const SizedBox(height: 16),
-          child,
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 250,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: AppTheme.zinc950, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.zinc800)),
+          child: TextField(
+            controller: _adminNoteController,
+            maxLines: null,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            decoration: const InputDecoration(hintText: 'Technical feedback or observations...', hintStyle: TextStyle(color: AppTheme.zinc500, fontSize: 16), border: InputBorder.none),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSmallBtn(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(color: AppTheme.zinc900, borderRadius: BorderRadius.circular(4), border: Border.all(color: AppTheme.zinc800)),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: AppTheme.zinc500),
+            const SizedBox(width: 4),
+            Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAIBtn() {
+    return GestureDetector(
+      onTap: () {
+        if (_adminNoteController.text.isNotEmpty) {
+          _adminNoteController.text = "[AI IMPROVED] ${_adminNoteController.text}";
+        }
+      },
+      child: const Row(
+        children: [
+          Icon(Icons.auto_awesome_outlined, size: 14, color: AppTheme.brandGreen),
+          SizedBox(width: 4),
+          Text('IMPROVE WITH AI', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)),
         ],
       ),
     );
   }
 
-  // --- Helpers ---
-  String _getStatusLabel(InterventionStatus status) {
-    switch (status) {
-      case InterventionStatus.pending:
-        return 'PENDING';
-      case InterventionStatus.delayed:
-        return 'DELAYED';
-      case InterventionStatus.completed:
-        return 'COMPLETED';
-    }
+  Widget _buildMediaAuditSection(Intervention i) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('MEDIA & AUDIT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(child: _buildMediaBox(Icons.camera_alt_outlined, 'PHOTOS', count: _selectedImages.length.toString(), onTap: _pickImage)),
+            const SizedBox(width: 12),
+            Expanded(child: _buildMediaBox(Icons.upload_file_outlined, 'DOCUMENTS', count: i.documents.length.toString())),
+          ],
+        ),
+        if (_selectedImages.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 60,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedImages.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) => ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(File(_selectedImages[index].path), width: 60, height: 60, fit: BoxFit.cover),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 24),
+        _buildAuditCard(),
+      ],
+    );
   }
 
-  Color _getStatusColor(InterventionStatus status) {
-    switch (status) {
-      case InterventionStatus.pending:
-        return AppTheme.zinc500;    // gray — matches web
-      case InterventionStatus.delayed:
-        return AppTheme.brandOrange;
-      case InterventionStatus.completed:
-        return AppTheme.brandGreen;
-    }
+  Widget _buildMediaBox(IconData icon, String label, {String? count, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(color: AppTheme.zinc950, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.zinc800)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 32, color: AppTheme.zinc500),
+            const SizedBox(height: 12),
+            Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500)),
+            if (count != null && count != '0') ...[
+              const SizedBox(height: 4),
+              Text(count, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
-  Color _getUrgencyColor(String? urgency) {
-    switch (urgency?.toUpperCase()) {
-      case 'LOW':
-        return AppTheme.zinc500;
-      case 'MEDIUM':
-        return Colors.blueAccent;
-      case 'HIGH':
-        return AppTheme.brandOrange;
-      case 'CRITICAL':
-        return Colors.red;
-      default:
-        return AppTheme.zinc500;
-    }
+  Widget _buildAuditCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppTheme.zinc950, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.zinc800)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('AUDIT TRACEABILITY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen, letterSpacing: 1.2)),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppTheme.brandGreen.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline, size: 16, color: AppTheme.brandGreen)),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('INTERVENTION INITIALIZED ON', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                  const SizedBox(height: 2),
+                  Text(DateFormat('M/d/yyyy, h:mm:ss a').format(DateTime.now()), style: const TextStyle(fontSize: 10, color: AppTheme.zinc500)),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
-  void _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Widget _buildFooter(Intervention i) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppTheme.brandBlack, border: Border(top: BorderSide(color: AppTheme.zinc800))),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _isSaving ? null : () => _executeRegister(i.id),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.brandGreen, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0),
+            child: _isSaving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.description_outlined, size: 18), SizedBox(width: 10), Text('REGISTER', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14))]),
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildMapSection(Intervention i) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('LOCATION & ACCESS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.brandGreen, letterSpacing: 1.2)),
+            GestureDetector(
+              onTap: () => _openMap(i.address),
+              child: const Icon(Icons.near_me_outlined, size: 18, color: AppTheme.brandGreen),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _openMap(i.address),
+          child: Container(
+            height: 160,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppTheme.zinc950,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.zinc800),
+            ),
+            child: Stack(
+              children: [
+                Opacity(
+                  opacity: 0.1,
+                  child: GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 10),
+                    itemBuilder: (context, index) => Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppTheme.zinc500, width: 0.5),
+                      ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.location_on, color: AppTheme.brandGreen, size: 32),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          "${i.address}\n${i.city ?? ''}",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandGreen,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.directions, size: 14, color: Colors.black),
+                        SizedBox(width: 6),
+                        Text('NAVIGATE', style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openMap(String address) async {
+    final encodedAddress = Uri.encodeComponent(address);
+    final googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$encodedAddress";
+    final appleMapsUrl = "https://maps.apple.com/?q=$encodedAddress";
+
+    if (Platform.isAndroid) {
+      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+        await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
+      }
+    } else {
+      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
+        await launchUrl(Uri.parse(appleMapsUrl), mode: LaunchMode.externalApplication);
+      }
     }
   }
 }
 
-// --- Status Button Widget ---
-class _StatusButton extends StatelessWidget {
+class _StatusBtn extends StatelessWidget {
   final String label;
-  final Color color;
   final bool isActive;
-  final VoidCallback? onTap;
+  final Color color;
+  final VoidCallback onTap;
 
-  const _StatusButton({
-    required this.label,
-    required this.color,
-    required this.isActive,
-    this.onTap,
-  });
+  const _StatusBtn({required this.label, required this.isActive, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? color.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isActive ? color : AppTheme.zinc800,
-            width: isActive ? 2 : 1,
-          ),
+          color: isActive ? color.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isActive ? color : AppTheme.zinc800),
         ),
         child: Center(
           child: Text(
@@ -698,7 +634,6 @@ class _StatusButton extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w900,
               color: isActive ? color : AppTheme.zinc500,
-              letterSpacing: 1,
             ),
           ),
         ),

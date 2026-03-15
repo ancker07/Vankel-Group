@@ -7,3 +7,15 @@ final interventionRepositoryProvider = Provider<InterventionRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return InterventionRepositoryImpl(dio);
 });
+
+final syndicListProvider = FutureProvider<List<dynamic>>((ref) async {
+  return ref.watch(interventionRepositoryProvider).getSyndics();
+});
+
+final buildingListProvider = FutureProvider<List<dynamic>>((ref) async {
+  return ref.watch(interventionRepositoryProvider).getBuildings();
+});
+
+final professionalListProvider = FutureProvider<List<dynamic>>((ref) async {
+  return ref.watch(interventionRepositoryProvider).getProfessionals();
+});
