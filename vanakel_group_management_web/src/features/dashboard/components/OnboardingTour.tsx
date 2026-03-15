@@ -14,6 +14,12 @@ interface OnboardingTourProps {
 const STORAGE_KEY = 'vanakel_onboarding_completed';
 const MARGIN = 16; // Safe distance from screen edges
 const TOOLTIP_MAX_WIDTH = 360;
+const t = {
+  tip: 'TIP',
+  close: 'Passer',
+  finish: 'Terminer',
+  continue: 'Continuer'
+};
 
 const OnboardingTour: React.FC<OnboardingTourProps> = ({
   isActive, onClose, lang, currentTab, onTabChange
@@ -329,14 +335,6 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({
       </div>
     </div>
   );
-};
-
-// Fallback translations inside component to avoid breaking if constants missing
-const t = {
-  tip: 'TIP',
-  close: 'Passer',
-  finish: 'Terminer',
-  continue: 'Continuer'
 };
 
 export default OnboardingTour;

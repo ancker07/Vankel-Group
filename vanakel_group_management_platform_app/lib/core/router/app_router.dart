@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
@@ -40,6 +41,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: refreshListenable,
     redirect: (context, state) {
+      if (kDebugMode) {
+        print('GoRouter Redirect: ${state.uri.path}, AuthStatus: ${authState.status}, User: ${authState.user?.email}');
+      }
       final isSplashScreen = state.uri.path == '/splash';
       final isOnboarding = state.uri.path == '/onboarding';
       final isLoginPage = state.uri.path == '/login';

@@ -100,6 +100,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     <h1 className="text-2xl md:text-3xl font-black text-white">{t.superAdmin}</h1>
                     <p className="text-zinc-500 text-xs md:text-sm mt-1">{t.overview_subtitle}</p>
                 </div>
+                <button
+                    onClick={onRefresh}
+                    className="flex items-center gap-2 px-6 py-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-900 hover:border-brand-green/30 rounded-[1.25rem] text-zinc-400 hover:text-brand-green transition-all text-[10px] md:text-xs font-black uppercase tracking-[0.2em] group shadow-2xl"
+                >
+                    <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700 ease-in-out" />
+                    {t.refresh || 'Refresh'}
+                </button>
             </div>
             <div className="flex border-b border-zinc-900 bg-zinc-950/50 sticky top-0 z-10 overflow-x-auto no-scrollbar whitespace-nowrap px-4 md:px-0">
                 <button
@@ -141,7 +148,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     onClick={() => setActiveTab('settings')}
                     className={`px-6 py-4 text-[10px] md:text-xs font-black uppercase tracking-widest transition-all relative shrink-0 ${activeTab === 'settings' ? 'text-brand-green' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
-                    AI Settings
+                    {t.superadmin_ai_settings || 'AI Settings'}
                     {activeTab === 'settings' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand-green"></div>}
                 </button>
             </div>
@@ -153,7 +160,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center border border-brand-green/20 group-hover:scale-110 transition-transform">
                             <ShieldCheck className="text-brand-green" size={24} />
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">System</span>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">{t.superadmin_system || 'System'}</span>
                     </div>
                     <div className="space-y-1">
                         <h3 className="text-3xl font-black text-white">{stats?.total_admins || 0}</h3>
@@ -166,7 +173,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
                             <Users className="text-blue-500" size={24} />
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">Active</span>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">{t.superadmin_active_users || 'Active'}</span>
                     </div>
                     <div className="space-y-1">
                         <h3 className="text-3xl font-black text-white">{(stats?.total_syndics || 0) + (stats?.total_professionals || 0)}</h3>
@@ -179,7 +186,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center border border-orange-500/20 group-hover:scale-110 transition-transform">
                             <AlertCircle className="text-orange-500" size={24} />
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">Pending</span>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">{t.superadmin_pending_badge || 'Pending'}</span>
                     </div>
                     <div className="space-y-1">
                         <h3 className="text-3xl font-black text-white">{stats?.pending_registrations || 0}</h3>
@@ -192,7 +199,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                         <div className="w-12 h-12 bg-zinc-500/10 rounded-2xl flex items-center justify-center border border-zinc-500/20 group-hover:scale-110 transition-transform">
                             <Mail className="text-zinc-400" size={24} />
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">Logs</span>
+                        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest bg-zinc-900 px-2 py-1 rounded">{t.superadmin_logs_badge || 'Logs'}</span>
                     </div>
                     <div className="space-y-1">
                         <h3 className="text-3xl font-black text-white">{stats?.total_emails || 0}</h3>
@@ -294,7 +301,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                         </thead>
                                         <tbody className="divide-y divide-zinc-900">
                                             {admins.length === 0 ? (
-                                                <tr><td colSpan={4} className="px-8 py-20 text-center"><p className="text-zinc-500 text-sm">No administrators found.</p></td></tr>
+                                                <tr><td colSpan={4} className="px-8 py-20 text-center"><p className="text-zinc-500 text-sm">{t.superadmin_no_admins_found || 'No administrators found.'}</p></td></tr>
                                             ) : (
                                                 admins.map(admin => (
                                                     <tr key={admin.id} className="hover:bg-zinc-900/30 transition-colors group">
@@ -322,7 +329,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             {/* Mobile Cards */}
                             <div className="md:hidden space-y-4 px-2">
                                 {admins.length === 0 ? (
-                                    <div className="py-20 text-center text-zinc-500 italic">No administrators found.</div>
+                                    <div className="py-20 text-center text-zinc-500 italic">{t.superadmin_no_admins_found || 'No administrators found.'}</div>
                                 ) : (
                                     admins.map(admin => (
                                         <div key={admin.id} className="p-5 bg-zinc-950/50 rounded-2xl border border-zinc-900 space-y-4">
@@ -332,7 +339,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-white text-lg">{admin.firstName} {admin.lastName}</h4>
-                                                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">Added {new Date(admin.createdAt).toLocaleDateString()}</p>
+                                                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-widest">{t.superadmin_date || 'Added'} {new Date(admin.createdAt).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
                                             <div className="space-y-2 pt-2 border-t border-zinc-900">
@@ -369,16 +376,16 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                     <table className="w-full text-left">
                                         <thead className="bg-zinc-900/50 border-b border-zinc-900">
                                             <tr>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Participant</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Role</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Status</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Company / Org</th>
-                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">Contact Info</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_participant || 'Participant'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_role || 'Role'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.status || 'Status'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_company_org || 'Company / Org'}</th>
+                                                <th className="px-8 py-5 text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t.superadmin_contact_info || 'Contact Info'}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-900">
                                             {allUsers.length === 0 ? (
-                                                <tr><td colSpan={5} className="px-8 py-20 text-center"><p className="text-zinc-500 text-sm">No users found.</p></td></tr>
+                                                <tr><td colSpan={5} className="px-8 py-20 text-center"><p className="text-zinc-500 text-sm">{t.superadmin_no_users_found || 'No users found.'}</p></td></tr>
                                             ) : (
                                                 allUsers.map(user => (
                                                     <tr key={user.id} className="hover:bg-zinc-900/30 transition-colors group">
@@ -422,7 +429,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                             {/* Mobile Cards */}
                             <div className="md:hidden space-y-4 px-2">
                                 {allUsers.length === 0 ? (
-                                    <div className="py-20 text-center text-zinc-500 italic">No users found.</div>
+                                    <div className="py-20 text-center text-zinc-500 italic">{t.superadmin_no_users_found || 'No users found.'}</div>
                                 ) : (
                                     allUsers.map(user => (
                                         <div key={user.id} className="p-5 bg-zinc-950/50 rounded-2xl border border-zinc-900 space-y-4">
@@ -586,7 +593,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                 onClick={fetchEmails}
                                 className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:text-brand-green-light transition-colors"
                             >
-                                Refresh
+                                {t.refresh}
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-6 space-y-4">

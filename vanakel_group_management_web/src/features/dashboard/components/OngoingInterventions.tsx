@@ -59,14 +59,14 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                         onClick={onRefresh}
                         disabled={isRefreshing}
                         className={`p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-brand-green hover:border-brand-green/30 transition-all ${isRefreshing ? 'animate-spin' : ''}`}
-                        title="Refresh Data"
+                        title={t.refresh_data_title || "Refresh Data"}
                     >
                         <RotateCcw size={18} />
                     </button>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                     <span className="bg-zinc-900 text-zinc-500 px-3 py-1 rounded-full text-xs font-bold border border-zinc-800">
-                        {ongoingItems.length} {t.items || 'Items'}
+                        {ongoingItems.length} {t.items_count || 'Items'}
                     </span>
                 </div>
             </div>
@@ -132,7 +132,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             className="bg-transparent text-xs text-zinc-300 focus:outline-none border-none p-0 cursor-pointer"
-                            title="Filter by Date"
+                            title={t.filter_by_date_title || "Filter by Date"}
                         />
                     </div>
 
@@ -157,7 +157,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
             {ongoingItems.length === 0 ? (
                 <div className="p-12 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20">
                     <Clock size={48} className="mx-auto text-zinc-700 mb-4" />
-                    <p className="text-zinc-500 font-medium">No ongoing interventions.</p>
+                    <p className="text-zinc-500 font-medium">{t.no_ongoing_interventions || 'No ongoing interventions.'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

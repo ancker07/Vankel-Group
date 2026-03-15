@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -85,24 +86,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     // Listen for state changes to navigate
     ref.listen(authStateProvider, (previous, next) {
+      if (kDebugMode) {
+        print('Auth State Change in Register: ${next.status}, User: ${next.user?.email}, Role: ${next.user?.role}, Approved: ${next.user?.isApproved}');
+      }
+
       if (next.status == AuthStatus.authenticated && next.user != null) {
         if (next.user!.role == UserRole.admin) {
           if (next.user!.isApproved == false) {
-            context.go('/waiting-approval');
+            if (mounted) context.go('/waiting-approval');
           } else {
-            context.go('/admin/dashboard');
+            if (mounted) context.go('/admin/dashboard');
           }
         } else if (next.user!.role == UserRole.syndic) {
+          // If SYNDIC signup worked but no user exists in DB yet (placeholder returned)
+          // they might need to verify OTP or just wait for approval.
+          // For now, let's assume they go to waiting approval if placeholder returned
           if (next.user!.isApproved == false) {
-            context.go('/waiting-approval');
+             if (mounted) context.go('/waiting-approval');
           } else {
-            context.go('/syndic/dashboard');
+             if (mounted) context.go('/syndic/dashboard');
           }
         }
       } else if (next.status == AuthStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage ?? 'Registration failed')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(next.errorMessage ?? 'Registration failed')),
+          );
+        }
       }
     });
 

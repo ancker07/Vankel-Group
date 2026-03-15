@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Building, Professional, Syndic, Language } from '../types';
+import { Building, Professional, Syndic, Language } from '@/types';
 import { MapPin, User, ChevronRight, ShieldCheck, RotateCcw } from 'lucide-react';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS } from '@/utils/constants';
 
 interface BuildingCardProps {
   building: Building;

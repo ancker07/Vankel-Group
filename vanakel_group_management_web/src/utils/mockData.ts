@@ -161,7 +161,8 @@ export const mockMissions: Mission[] = [
     sector: 'ELECTRICITE',
     description: 'Suggested upgrade for emergency lighting in basement due to flickering lights.',
     status: 'PENDING',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    documents: []
   }
 ];
 

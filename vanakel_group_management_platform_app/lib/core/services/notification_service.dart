@@ -91,7 +91,9 @@ class NotificationService {
     // Log the token for debugging
     String? token = await getToken();
     if (kDebugMode) {
+      print('-----------------------------------------');
       print('FCM Token: $token');
+      print('-----------------------------------------');
     }
   }
 

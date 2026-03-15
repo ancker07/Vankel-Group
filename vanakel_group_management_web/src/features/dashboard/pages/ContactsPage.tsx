@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, User, Calendar, MessageSquare, Trash2, Search, CheckCircle2, Clock, Briefcase } from 'lucide-react';
 import { dataService } from '@/services/dataService';
+import { TRANSLATIONS } from '@/utils/constants';
+import { Language } from '@/types';
 
 interface ContactSubmission {
     id: string;
@@ -14,7 +16,8 @@ interface ContactSubmission {
     mission?: any;
 }
 
-const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
+const ContactsPage: React.FC<{ lang: Language }> = ({ lang }) => {
+    const t = TRANSLATIONS[lang];
     const [contacts, setContacts] = useState<ContactSubmission[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -35,7 +38,7 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
     }, []);
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this contact?')) return;
+        if (!window.confirm(t.confirm_delete_contact || 'Are you sure you want to delete this contact?')) return;
         try {
             await dataService.deleteContact(id);
             setContacts(prev => prev.filter(c => c.id !== id));
@@ -55,16 +58,16 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">
-                        <MessageSquare className="text-brand-green" /> Web Form Contacts
+                        <MessageSquare className="text-brand-green" /> {t.web_form_contacts_title || 'Web Form Contacts'}
                     </h2>
-                    <p className="text-zinc-500 text-sm font-medium">Manage submissions from the public website</p>
+                    <p className="text-zinc-500 text-sm font-medium">{t.web_form_contacts_subtitle || 'Manage submissions from the public website'}</p>
                 </div>
 
                 <div className="relative w-full md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                     <input
                         type="text"
-                        placeholder="Search contacts..."
+                        placeholder={t.search_contacts || 'Search contacts...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-brand-green outline-none transition-all"
@@ -79,7 +82,7 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
             ) : filteredContacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-20 bg-zinc-950 border border-zinc-900 rounded-3xl">
                     <MessageSquare size={48} className="text-zinc-800 mb-4" />
-                    <p className="text-zinc-500 font-bold">No contact submissions found.</p>
+                    <p className="text-zinc-500 font-bold">{t.no_contacts_found || 'No contact submissions found.'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-4">
@@ -119,18 +122,18 @@ const ContactsPage: React.FC<{ lang: string }> = ({ lang }) => {
                                             href={`/superadmin/missions?id=${contact.mission_id}`}
                                             className="flex-1 md:flex-none py-3 px-6 bg-brand-green/20 text-brand-green rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-green hover:text-brand-black transition-all flex items-center justify-center gap-2 border border-brand-green/20"
                                         >
-                                            <Briefcase size={16} /> View Mission
+                                            <Briefcase size={16} /> {t.view_mission_btn || 'View Mission'}
                                         </a>
                                     ) : (
                                         <button className="flex-1 md:flex-none py-3 px-6 bg-zinc-900 text-zinc-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-brand-green/10 hover:text-brand-green transition-all flex items-center justify-center gap-2 border border-zinc-800">
-                                            <CheckCircle2 size={16} /> Process
+                                            <CheckCircle2 size={16} /> {t.process_btn || 'Process'}
                                         </button>
                                     )}
                                     <button 
                                         onClick={() => handleDelete(contact.id)}
                                         className="flex-1 md:flex-none py-3 px-6 bg-zinc-900 text-zinc-400 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center justify-center gap-2 border border-zinc-800"
                                     >
-                                        <Trash2 size={16} /> Delete
+                                        <Trash2 size={16} /> {t.btnDelete || 'Delete'}
                                     </button>
                                 </div>
                             </div>

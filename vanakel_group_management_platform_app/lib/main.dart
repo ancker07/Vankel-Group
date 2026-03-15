@@ -17,6 +17,10 @@ void main() async {
 
   // Initialize notifications
   await NotificationService().initialize();
+  final debugToken = await NotificationService().getToken();
+  print('=========================================');
+  print('CRITICAL: NEW FCM TOKEN: $debugToken');
+  print('=========================================');
 
   final sharedPreferences = await SharedPreferences.getInstance();
   

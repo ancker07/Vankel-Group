@@ -79,9 +79,9 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
                         <Mail className="text-brand-green" size={28} />
-                        Inbox
+                        {t.inbox_title || 'Inbox'}
                     </h1>
-                    <p className="text-zinc-500 text-xs md:text-sm mt-1">Direct view of all incoming communication.</p>
+                    <p className="text-zinc-500 text-xs md:text-sm mt-1">{t.inbox_subtitle || 'Direct view of all incoming communication.'}</p>
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto">
@@ -89,7 +89,7 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                         <input
                             type="text"
-                            placeholder="Search inbox..."
+                            placeholder={t.search_inbox || 'Search inbox...'}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-xs md:text-sm text-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-all"
@@ -105,7 +105,7 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                         ) : (
                             <Download size={14} />
                         )}
-                        <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Fetch'}</span>
+                        <span className="hidden sm:inline">{isSyncing ? (t.syncing || 'Syncing...') : (t.fetch || 'Fetch')}</span>
                     </button>
                     <button
                         onClick={fetchEmails}
@@ -120,12 +120,12 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
             <div className="bg-zinc-950 md:rounded-2xl border-y md:border border-zinc-900 overflow-hidden flex flex-col flex-1 min-h-[500px]">
                 <div className="p-4 border-b border-zinc-900 bg-zinc-950/50 flex justify-between items-center px-6">
                     <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                        {filteredEmails.length} messages
+                        {filteredEmails.length} {t.messages || 'messages'}
                     </span>
                     {!isSyncing && (
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse"></div>
-                            <span className="text-[10px] font-bold text-brand-green uppercase tracking-widest">Live</span>
+                            <span className="text-[10px] font-bold text-brand-green uppercase tracking-widest">{t.live || 'Live'}</span>
                         </div>
                     )}
                 </div>
@@ -134,14 +134,14 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                     {isLoading && emails.length === 0 ? (
                         <div className="py-20 text-center">
                             <div className="w-10 h-10 border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin mx-auto mb-4"></div>
-                            <p className="text-zinc-500 text-sm font-medium">Checking mail server...</p>
+                            <p className="text-zinc-500 text-sm font-medium">{t.checking_mail_server || 'Checking mail server...'}</p>
                         </div>
                     ) : filteredEmails.length === 0 ? (
                         <div className="py-20 text-center space-y-4">
                             <div className="w-16 h-16 bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto border border-zinc-800">
                                 <Mail size={32} className="text-zinc-700" />
                             </div>
-                            <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">No matching emails</p>
+                            <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">{t.no_matching_emails || 'No matching emails'}</p>
                         </div>
                     ) : (
                         filteredEmails.map(email => (
@@ -161,7 +161,7 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2 overflow-hidden">
                                                     <h3 className={`text-sm font-bold truncate ${email.is_read ? 'text-zinc-400' : 'text-white'}`}>
-                                                        {email.from_name || 'System'}
+                                                        {email.from_name || t.system_name || 'System'}
                                                     </h3>
                                                     {!email.is_read && (
                                                         <span className="w-1.5 h-1.5 rounded-full bg-brand-green shrink-0"></span>
@@ -197,7 +197,7 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
 
                                     <div className="space-y-1">
                                         <h4 className={`text-sm font-bold leading-snug line-clamp-1 ${email.is_read ? 'text-zinc-500' : 'text-zinc-200'}`}>
-                                            {email.subject || '(No Subject)'}
+                                            {email.subject || t.no_subject || '(No Subject)'}
                                         </h4>
                                         <p className="text-xs text-zinc-500 line-clamp-2 md:line-clamp-1 leading-relaxed">
                                             {email.body_text?.replace(/[\n\r]+/g, ' ')}
@@ -217,7 +217,7 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-zinc-500 group-hover:text-brand-green transition-colors">
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Details</span>
+                                            <span className="text-[9px] font-black uppercase tracking-widest">{t.details_btn || 'Details'}</span>
                                             <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
@@ -232,10 +232,10 @@ const EmailsPage: React.FC<EmailsPageProps> = ({ lang }) => {
                 isOpen={emailToDelete !== null}
                 onClose={() => setEmailToDelete(null)}
                 onConfirm={handleDelete}
-                title="Delete Email"
-                message="Are you sure you want to delete this email? This will permanently remove it from the system and the mail server."
-                confirmLabel={isDeleting ? "Deleting..." : "Yes, Delete"}
-                cancelLabel="Cancel"
+                title={t.delete_email || 'Delete Email'}
+                message={t.delete_email_confirm || 'Are you sure you want to delete this email? This will permanently remove it from the system and the mail server.'}
+                confirmLabel={isDeleting ? (t.deleting || 'Deleting...') : (t.yes_delete || 'Yes, Delete')}
+                cancelLabel={t.cancel || 'Cancel'}
                 isDanger={true}
             />
         </div>

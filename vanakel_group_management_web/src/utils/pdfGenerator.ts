@@ -61,7 +61,7 @@ export const generateInterventionPDF = async (
     // 2. Report Title & Meta
     doc.setFontSize(18);
     doc.setTextColor(30, 30, 30);
-    doc.text(t.reports_title || 'Intervention Report', 15, 65);
+    doc.text(t.pdf_report_title || t.reports_title || 'Intervention Report', 15, 65);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -201,7 +201,8 @@ export const generateInterventionPDF = async (
         doc.setPage(i);
         doc.setFontSize(9);
         doc.setTextColor(150);
-        doc.text(`Page ${i} of ${pageCountSource}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+        const pageText = t.pdf_page_of ? t.pdf_page_of.replace('{current}', String(i)).replace('{total}', String(pageCountSource)) : `Page ${i} of ${pageCountSource}`;
+        doc.text(pageText, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
         doc.text(`© Vanakel Group (SRL) ${currentYear}`, 15, doc.internal.pageSize.getHeight() - 10);
     }
 

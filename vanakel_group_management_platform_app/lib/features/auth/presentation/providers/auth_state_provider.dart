@@ -100,8 +100,11 @@ class AuthNotifier extends Notifier<AuthState> {
       final user = await _repository.signup(userData);
       // Repository implementation already saves token and email
       state = state.copyWith(status: AuthStatus.authenticated, user: user);
-      // Refresh profile to get accurate isApproved status
-      await getProfile();
+      
+      // Refresh profile in background to get accurate isApproved status
+      // We don't await this here to prevent transient profile errors 
+      // from breaking the signup flow and triggering redirects.
+      getProfile();
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,

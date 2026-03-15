@@ -6,9 +6,10 @@ import { Language } from '@/types';
 
 interface AiSettingsPageProps {
     lang: Language;
+    t: any;
 }
 
-const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
+const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
     const [model, setModel] = useState('gemini-3-flash-preview');
     const [apiKey, setApiKey] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +55,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
         return (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
                 <div className="w-12 h-12 border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin"></div>
-                <p className="text-zinc-500 font-medium">Loading settings...</p>
+                <p className="text-zinc-500 font-medium">{t?.loading_settings || 'Loading settings...'}</p>
             </div>
         );
     }
@@ -65,9 +66,9 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
                         <Sparkles className="text-brand-green shrink-0" size={28} />
-                        AI Settings
+                        {t?.superadmin_ai_settings || 'AI Settings'}
                     </h1>
-                    <p className="text-zinc-500 text-xs md:text-sm mt-1">Configure global AI models and API keys for the system.</p>
+                    <p className="text-zinc-500 text-xs md:text-sm mt-1">{t?.ai_settings_subtitle || 'Configure global AI models and API keys for the system.'}</p>
                 </div>
             </div>
 
@@ -77,9 +78,9 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                     <div className="p-5 md:p-8 border-b border-zinc-900 bg-zinc-900/20">
                         <div className="flex items-center gap-3 mb-2">
                             <Shield className="text-brand-green" size={20} />
-                            <h2 className="text-lg md:text-xl font-bold text-white">Model Configuration</h2>
+                            <h2 className="text-lg md:text-xl font-bold text-white">{t?.model_config || 'Model Configuration'}</h2>
                         </div>
-                        <p className="text-zinc-500 text-xs md:text-sm">Select the preferred AI engine and provide credentials.</p>
+                        <p className="text-zinc-500 text-xs md:text-sm">{t?.model_config_desc || 'Select the preferred AI engine and provide credentials.'}</p>
                     </div>
 
                     <div className="p-5 md:p-8 space-y-6 md:space-y-8">
@@ -87,7 +88,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-[10px] md:text-sm font-black uppercase tracking-widest text-zinc-500">
                                 <Cpu size={14} />
-                                Select AI Model
+                                {t?.select_ai_model || 'Select AI Model'}
                             </label>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button
@@ -98,10 +99,10 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                                         }`}
                                 >
                                     <div className="flex justify-between items-start">
-                                        <span className={`font-bold text-sm md:text-base ${model.startsWith('gemini') ? 'text-brand-green' : 'text-zinc-300'}`}>Google Gemini</span>
+                                        <span className={`font-bold text-sm md:text-base ${model.startsWith('gemini') ? 'text-brand-green' : 'text-zinc-300'}`}>{t?.google_gemini || 'Google Gemini'}</span>
                                         {model.startsWith('gemini') && <CheckCircle2 size={18} className="text-brand-green" />}
                                     </div>
-                                    <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">Fast and efficient model for extraction and short rewrites.</p>
+                                    <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">{t?.gemini_desc || 'Fast and efficient model for extraction and short rewrites.'}</p>
                                 </button>
 
                                 <button
@@ -112,10 +113,10 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                                         }`}
                                 >
                                     <div className="flex justify-between items-start">
-                                        <span className={`font-bold text-sm md:text-base ${model.startsWith('gpt') ? 'text-purple-400' : 'text-zinc-300'}`}>OpenAI ChatGPT</span>
+                                        <span className={`font-bold text-sm md:text-base ${model.startsWith('gpt') ? 'text-purple-400' : 'text-zinc-300'}`}>{t?.openai_chatgpt || 'OpenAI ChatGPT'}</span>
                                         {model.startsWith('gpt') && <CheckCircle2 size={18} className="text-purple-400" />}
                                     </div>
-                                    <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">Powerful general purpose model for complex logic and long content.</p>
+                                    <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">{t?.chatgpt_desc || 'Powerful general purpose model for complex logic and long content.'}</p>
                                 </button>
                             </div>
                         </div>
@@ -124,7 +125,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-[10px] md:text-sm font-black uppercase tracking-widest text-zinc-500">
                                 <Key size={14} />
-                                API Key
+                                {t?.api_key || 'API Key'}
                             </label>
                             <div className="relative">
                                 <input
@@ -139,7 +140,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                                 </div>
                             </div>
                             <p className="text-[9px] md:text-[10px] text-zinc-600 font-bold italic leading-tight">
-                                * Your API key is encrypted and stored securely. It is only used for system-level AI requests.
+                                {t?.api_key_secured || '* Your API key is encrypted and stored securely. It is only used for system-level AI requests.'}
                             </p>
                         </div>
 
@@ -164,7 +165,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                             ) : (
                                 <Save size={18} />
                             )}
-                            Save Changes
+                            {t?.save_changes || 'Save Changes'}
                         </button>
                     </div>
                 </div>
@@ -175,10 +176,9 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang }) => {
                         <AlertCircle className="text-zinc-600" size={20} />
                     </div>
                     <div>
-                        <h3 className="text-xs md:text-sm font-bold text-white mb-1">About AI Integration</h3>
+                        <h3 className="text-xs md:text-sm font-bold text-white mb-1">{t?.about_ai_integration || 'About AI Integration'}</h3>
                         <p className="text-[10px] md:text-xs text-zinc-500 leading-tight md:leading-relaxed font-bold uppercase tracking-tight opacity-60">
-                            Vanakel Group uses AI to automatically classify incoming emails, improve technical reports, and generate building summaries.
-                            Gemini is recommended for its speed and native support for extraction features.
+                            {t?.about_ai_desc || 'Vanakel Group uses AI to automatically classify incoming emails, improve technical reports, and generate building summaries. Gemini is recommended for its speed and native support for extraction features.'}
                         </p>
                     </div>
                 </div>
