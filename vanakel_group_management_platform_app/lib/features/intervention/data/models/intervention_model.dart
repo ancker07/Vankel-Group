@@ -5,33 +5,84 @@ class InterventionModel extends Intervention {
   const InterventionModel({
     required super.id,
     required super.title,
-    required super.address,
     required super.description,
     required super.status,
     required super.scheduledDate,
-    super.tenantContact,
-    super.codes = const [],
+    required super.address,
+    super.buildingId,
+    super.city,
+    super.syndicId,
+    super.proId,
+    super.syndicName,
+    super.professionalName,
+    super.onSiteContactName,
+    super.onSiteContactPhone,
+    super.onSiteContactEmail,
+    super.adminFeedback,
+    super.urgency,
+    super.sector,
+    super.category,
+    super.delayReason,
+    super.delayDetails,
+    super.delayedRescheduleDate,
+    super.completedAt,
     super.documents = const [],
   });
 
   factory InterventionModel.fromJson(Map<String, dynamic> json) {
+    // Building info — may come as nested object or flat fields
+    final building = json['building'] as Map<String, dynamic>?;
+    final buildingAddress = building?['address'] as String? ??
+        json['address'] as String? ??
+        'No Address';
+    final buildingCity = building?['city'] as String? ?? json['city'] as String?;
+
+    // Syndic info
+    final syndic = json['syndic'] as Map<String, dynamic>?;
+    final syndicName = syndic != null
+        ? ((syndic['company_name'] ?? syndic['companyName']) as String?)
+        : null;
+
+    // Professional info
+    final professional = json['professional'] as Map<String, dynamic>?;
+    final proName = professional != null
+        ? ((professional['company_name'] ?? professional['companyName']) as String?)
+        : null;
+
     return InterventionModel(
       id: json['id'].toString(),
       title: json['title'] as String? ?? 'No Title',
-      address: json['address'] as String? ?? 'No Address',
       description: json['description'] as String? ?? '',
       status: _parseStatus(json['status'] as String?),
-      scheduledDate: json['scheduled_at'] != null
-          ? DateTime.parse(json['scheduled_at'] as String)
-          : DateTime.now(),
-      tenantContact: json['tenant_contact'] as String?,
-      codes:
-          (json['codes'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      documents:
-          (json['documents'] as List<dynamic>?)
+      // Backend uses 'scheduled_date', not 'scheduled_at'
+      scheduledDate: json['scheduled_date'] != null
+          ? DateTime.tryParse(json['scheduled_date'] as String) ?? DateTime.now()
+          : json['scheduled_at'] != null
+              ? DateTime.tryParse(json['scheduled_at'] as String) ?? DateTime.now()
+              : DateTime.now(),
+      address: buildingAddress,
+      city: buildingCity,
+      buildingId: json['building_id']?.toString(),
+      syndicId: json['syndic_id']?.toString(),
+      proId: json['pro_id']?.toString(),
+      syndicName: syndicName,
+      professionalName: proName,
+      onSiteContactName: json['on_site_contact_name'] as String?,
+      onSiteContactPhone: json['on_site_contact_phone'] as String?,
+      onSiteContactEmail: json['on_site_contact_email'] as String?,
+      adminFeedback: json['admin_feedback'] as String?,
+      urgency: json['urgency'] as String?,
+      sector: json['sector'] as String?,
+      category: json['category'] as String?,
+      delayReason: json['delay_reason'] as String?,
+      delayDetails: json['delay_details'] as String?,
+      delayedRescheduleDate: json['delayed_reschedule_date'] != null
+          ? DateTime.tryParse(json['delayed_reschedule_date'] as String)
+          : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.tryParse(json['completed_at'] as String)
+          : null,
+      documents: (json['documents'] as List<dynamic>?)
               ?.map(
                 (doc) => Document(
                   id: doc['id'].toString(),
@@ -40,7 +91,7 @@ class InterventionModel extends Intervention {
                   fileType:
                       doc['file_type'] as String? ?? 'application/octet-stream',
                   createdAt: doc['created_at'] != null
-                      ? DateTime.parse(doc['created_at'] as String)
+                      ? DateTime.tryParse(doc['created_at'] as String)
                       : null,
                 ),
               )
@@ -49,55 +100,22 @@ class InterventionModel extends Intervention {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'address': address,
-      'description': description,
-      'status': status.name,
-      'scheduled_at': scheduledDate.toIso8601String(),
-      'tenant_contact': tenantContact,
-      'codes': codes,
-      'documents': documents
-          .map(
-            (doc) => {
-              'id': doc.id,
-              'file_name': doc.fileName,
-              'file_path': doc.filePath,
-              'file_type': doc.fileType,
-              'created_at': doc.createdAt?.toIso8601String(),
-            },
-          )
-          .toList(),
-    };
-  }
-
   static InterventionStatus _parseStatus(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'scheduled':
-        return InterventionStatus.scheduled;
-      case 'in_progress':
-        return InterventionStatus.in_progress;
-      case 'delayed':
+    switch (status?.toUpperCase()) {
+      case 'PENDING':
+        return InterventionStatus.pending;
+      case 'DELAYED':
         return InterventionStatus.delayed;
-      case 'completed':
+      case 'COMPLETED':
         return InterventionStatus.completed;
+      // Legacy fallbacks
+      case 'SCHEDULED':
+      case 'IN_PROGRESS':
+        return InterventionStatus.pending;
       default:
-        return InterventionStatus.scheduled;
+        return InterventionStatus.pending;
     }
   }
 
-  Intervention toEntity() {
-    return Intervention(
-      id: id,
-      title: title,
-      address: address,
-      description: description,
-      status: status,
-      scheduledDate: scheduledDate,
-      tenantContact: tenantContact,
-      codes: codes,
-    );
-  }
+  Intervention toEntity() => this;
 }

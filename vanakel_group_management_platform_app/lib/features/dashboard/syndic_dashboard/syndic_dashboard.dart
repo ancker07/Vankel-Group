@@ -203,10 +203,8 @@ class SyndicDashboard extends ConsumerWidget {
 
   Color _getStatusColor(InterventionStatus status) {
     switch (status) {
-      case InterventionStatus.scheduled:
+      case InterventionStatus.pending:
         return Colors.blue;
-      case InterventionStatus.in_progress:
-        return AppTheme.brandGreen;
       case InterventionStatus.delayed:
         return AppTheme.brandOrange;
       case InterventionStatus.completed:

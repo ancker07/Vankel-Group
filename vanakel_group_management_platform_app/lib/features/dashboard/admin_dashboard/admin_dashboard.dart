@@ -30,9 +30,7 @@ class AdminDashboard extends ConsumerWidget {
               .length;
           final inProgressInterventions = interventions
               .where(
-                (i) =>
-                    i.status == InterventionStatus.in_progress ||
-                    i.status == InterventionStatus.scheduled,
+                (i) => i.status == InterventionStatus.pending,
               )
               .length;
           final delayedInterventions = interventions

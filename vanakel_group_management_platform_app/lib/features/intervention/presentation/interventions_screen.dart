@@ -29,12 +29,6 @@ class InterventionsScreen extends ConsumerWidget {
             onPressed: () =>
                 ref.read(interventionListProvider.notifier).refresh(),
           ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // TODO: Filter
-            },
-          ),
           const LanguageSelector(),
         ],
       ),
@@ -114,12 +108,18 @@ class _InterventionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(intervention.status);
+    final statusLabel = _getStatusLabel(intervention.status);
 
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.zinc950,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.zinc900, width: 2),
+        border: Border.all(
+          color: intervention.status == InterventionStatus.delayed
+              ? AppTheme.brandOrange.withOpacity(0.4)
+              : AppTheme.zinc900,
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -138,123 +138,142 @@ class _InterventionCard extends StatelessWidget {
               context.push('/syndic/interventions/details/${intervention.id}');
             }
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Status + Urgency + Date row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      spacing: 8,
                       children: [
-                        _buildBadge(
-                          intervention.status.name.toUpperCase().replaceAll('_', ' '),
-                          statusColor,
+                        _buildBadge(statusLabel, statusColor),
+                        if (intervention.urgency != null)
+                          _buildBadge(
+                            intervention.urgency!,
+                            _getUrgencyColor(intervention.urgency),
+                          ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.event_available,
+                            size: 12, color: AppTheme.zinc500),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat('MMM d, y')
+                              .format(intervention.scheduledDate),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.zinc500,
+                              fontWeight: FontWeight.bold),
                         ),
-                        Row(
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Title
+                Text(
+                  intervention.title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Address
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined,
+                        size: 14, color: AppTheme.brandGreen),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        [intervention.address, intervention.city]
+                            .where((e) => e != null && e.isNotEmpty)
+                            .join(', '),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.zinc500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Description
+                Text(
+                  intervention.description,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.zinc400,
+                    height: 1.5,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+                const Divider(color: AppTheme.zinc900),
+                const SizedBox(height: 12),
+                // Footer: contact + VIEW SLIP
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (intervention.onSiteContactName != null &&
+                        intervention.onSiteContactName!.isNotEmpty)
+                      Expanded(
+                        child: Row(
                           children: [
-                            const Icon(Icons.event_available, size: 12, color: AppTheme.zinc500),
+                            Icon(Icons.person_outline,
+                                size: 12, color: AppTheme.zinc500),
                             const SizedBox(width: 4),
-                            Text(
-                              DateFormat('MMM d, y').format(intervention.scheduledDate),
-                              style: const TextStyle(fontSize: 11, color: AppTheme.zinc500, fontWeight: FontWeight.bold),
+                            Flexible(
+                              child: Text(
+                                intervention.onSiteContactName!,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.zinc500,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      intervention.title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, size: 14, color: AppTheme.brandGreen),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            intervention.address,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.zinc500,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          'VIEW SLIP',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.brandGreen.withOpacity(0.8),
+                            letterSpacing: 1,
                           ),
                         ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_ios,
+                            size: 10,
+                            color: AppTheme.brandGreen.withOpacity(0.8)),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      intervention.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.zinc400,
-                        height: 1.5,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (isAdmin || intervention.codes.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (intervention.codes.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppTheme.zinc900,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.vpn_key_outlined, size: 12, color: AppTheme.brandOrange),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '${intervention.codes.length} ACCESS CODES',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppTheme.brandOrange,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (isAdmin)
-                            Row(
-                              children: [
-                                Text(
-                                  'VIEW SLIP',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppTheme.brandGreen.withOpacity(0.8),
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.brandGreen.withOpacity(0.8)),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ],
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -267,7 +286,7 @@ class _InterventionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         label,
@@ -280,15 +299,39 @@ class _InterventionCard extends StatelessWidget {
     );
   }
 
+  String _getStatusLabel(InterventionStatus status) {
+    switch (status) {
+      case InterventionStatus.pending:
+        return 'PENDING';
+      case InterventionStatus.delayed:
+        return 'DELAYED';
+      case InterventionStatus.completed:
+        return 'COMPLETED';
+    }
+  }
+
   Color _getStatusColor(InterventionStatus status) {
     switch (status) {
-      case InterventionStatus.scheduled:
+      case InterventionStatus.pending:
         return Colors.blueAccent;
-      case InterventionStatus.in_progress:
-        return AppTheme.brandGreen;
       case InterventionStatus.delayed:
         return AppTheme.brandOrange;
       case InterventionStatus.completed:
+        return AppTheme.zinc500;
+    }
+  }
+
+  Color _getUrgencyColor(String? urgency) {
+    switch (urgency?.toUpperCase()) {
+      case 'LOW':
+        return AppTheme.zinc500;
+      case 'MEDIUM':
+        return Colors.blueAccent;
+      case 'HIGH':
+        return AppTheme.brandOrange;
+      case 'CRITICAL':
+        return Colors.red;
+      default:
         return AppTheme.zinc500;
     }
   }
