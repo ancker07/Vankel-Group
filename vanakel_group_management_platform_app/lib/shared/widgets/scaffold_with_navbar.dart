@@ -6,6 +6,11 @@ import '../../core/enums/user_role_enum.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/language_selector.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
+import '../../features/mission/presentation/providers/mission_list_provider.dart';
+import '../../features/mission/presentation/providers/mission_filter_provider.dart';
+import '../../features/intervention/presentation/providers/intervention_list_provider.dart';
+import '../../features/intervention/presentation/providers/intervention_filter_provider.dart';
+import '../../features/notifications/presentation/providers/notification_provider.dart';
 
 class ScaffoldWithNavBar extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -46,12 +51,14 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // Invalidate common providers
-              // Since this is generic, we can use ref to invalidate everything or specific ones
-              // For now, let's invalidate mission and intervention lists
-              // We'll import them if needed or use a more generic approach
-              // Actually, simplified refresh:
-              ref.invalidate(authStateProvider); // Example
+              // 1. Reset filters to show full results on refresh
+              ref.read(missionFilterProvider.notifier).reset();
+              ref.read(interventionFilterProvider.notifier).reset();
+              
+              // 2. Invalidate specific data providers
+              ref.invalidate(missionListProvider);
+              ref.invalidate(interventionListProvider);
+              ref.invalidate(notificationProvider);
             },
           ),
           const LanguageSelector(),

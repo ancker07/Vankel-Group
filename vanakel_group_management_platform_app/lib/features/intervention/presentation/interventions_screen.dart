@@ -12,48 +12,70 @@ import 'providers/intervention_filter_provider.dart';
 import 'providers/intervention_provider.dart';
 import 'providers/intervention_list_provider.dart';
 
-class InterventionsScreen extends ConsumerWidget {
+class InterventionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
 
   const InterventionsScreen({super.key, required this.isAdmin});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InterventionsScreen> createState() => _InterventionsScreenState();
+}
+
+class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final filteredInterventionsAsync = ref.watch(filteredInterventionListProvider);
     final filter = ref.watch(interventionFilterProvider);
     final buildingsAsync = ref.watch(buildingListProvider);
 
     return Column(
       children: [
-        _buildTopBar(ref, filter),
-        _buildFilterBar(context, ref, filter, buildingsAsync),
+        _buildTopBar(filter),
+        _buildFilterBar(filter, buildingsAsync),
         Expanded(
           child: filteredInterventionsAsync.when(
-            data: (interventions) => interventions.isEmpty
-                ? _buildEmptyState(filter.isActive)
-                : RefreshIndicator(
-                    onRefresh: () => ref.read(interventionListProvider.notifier).refresh(),
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: interventions.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        return _InterventionCard(
-                          intervention: interventions[index],
-                          isAdmin: isAdmin,
-                        );
-                      },
-                    ),
-                  ),
-            loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.brandGreen)),
-            error: (error, stack) => _buildErrorState(ref, error),
+            skipLoadingOnReload: false,
+            data: (interventions) {
+              if (interventions.isEmpty) return _buildEmptyState(filter.isActive);
+              
+              return RefreshIndicator(
+                onRefresh: () => ref.read(interventionListProvider.notifier).refresh(),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: interventions.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    return _InterventionCard(
+                      intervention: interventions[index],
+                      isAdmin: widget.isAdmin,
+                    );
+                  },
+                ),
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppTheme.brandGreen),
+            ),
+            error: (error, stack) => _buildErrorState(error),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTopBar(WidgetRef ref, InterventionFilter filter) {
+  Widget _buildTopBar(InterventionFilter filter) {
+    if (_searchController.text != filter.searchQuery) {
+      _searchController.text = filter.searchQuery;
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       color: AppTheme.zinc950,
@@ -65,6 +87,7 @@ class InterventionsScreen extends ConsumerWidget {
           border: Border.all(color: AppTheme.zinc800),
         ),
         child: TextField(
+          controller: _searchController,
           onChanged: (v) => ref.read(interventionFilterProvider.notifier).updateSearchQuery(v),
           style: const TextStyle(color: Colors.white, fontSize: 14),
           decoration: InputDecoration(
@@ -74,11 +97,14 @@ class InterventionsScreen extends ConsumerWidget {
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            suffixIcon: filter.searchQuery.isNotEmpty 
+            contentPadding: const EdgeInsets.symmetric(vertical: 0),
+            suffixIcon: filter.isActive
               ? IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppTheme.zinc500),
-                  onPressed: () => ref.read(interventionFilterProvider.notifier).updateSearchQuery(''),
+                  onPressed: () {
+                    _searchController.clear();
+                    ref.read(interventionFilterProvider.notifier).reset();
+                  },
                 )
               : null,
           ),
@@ -87,7 +113,7 @@ class InterventionsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterBar(BuildContext context, WidgetRef ref, InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync) {
+  Widget _buildFilterBar(InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync) {
     return Container(
       height: 50,
       color: AppTheme.zinc950,
@@ -98,14 +124,14 @@ class InterventionsScreen extends ConsumerWidget {
           _FilterChip(
             label: filter.sectorId ?? 'Sector',
             isActive: filter.sectorId != null,
-            onTap: () => _showSectorPicker(context, ref, filter),
+            onTap: () => _showSectorPicker(context, filter),
             onClear: filter.sectorId != null ? () => ref.read(interventionFilterProvider.notifier).updateSector(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: filter.urgency ?? 'Urgency',
             isActive: filter.urgency != null,
-            onTap: () => _showUrgencyPicker(context, ref, filter),
+            onTap: () => _showUrgencyPicker(context, filter),
             onClear: filter.urgency != null ? () => ref.read(interventionFilterProvider.notifier).updateUrgency(null) : null,
           ),
           const SizedBox(width: 8),
@@ -114,14 +140,14 @@ class InterventionsScreen extends ConsumerWidget {
               ? (buildingsAsync.value?.firstWhere((b) => b['id'].toString() == filter.buildingId, orElse: () => null)?['address'] ?? 'Building')
               : 'Building',
             isActive: filter.buildingId != null,
-            onTap: () => _showBuildingPicker(context, ref, filter, buildingsAsync),
+            onTap: () => _showBuildingPicker(context, filter, buildingsAsync),
             onClear: filter.buildingId != null ? () => ref.read(interventionFilterProvider.notifier).updateBuilding(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: filter.scheduledDate != null ? DateFormat('MMM d, y').format(filter.scheduledDate!) : 'Date',
             isActive: filter.scheduledDate != null,
-            onTap: () => _showDatePicker(context, ref, filter),
+            onTap: () => _showDatePicker(context, filter),
             onClear: filter.scheduledDate != null ? () => ref.read(interventionFilterProvider.notifier).updateDate(null) : null,
           ),
           if (filter.isActive) ...[
@@ -151,21 +177,21 @@ class InterventionsScreen extends ConsumerWidget {
     );
   }
 
-  void _showSectorPicker(BuildContext context, WidgetRef ref, InterventionFilter filter) {
+  void _showSectorPicker(BuildContext context, InterventionFilter filter) {
     final sectors = ['ELECTRICITE', 'CARRELAGE', 'SANITAIRE', 'CHAUFFAGE', 'PLOMBERIE', 'PEINTURE', 'MENUISERIE', 'GENERAL', 'AUTRE'];
     _showPicker(context, 'Select Sector', sectors, filter.sectorId, (v) {
       ref.read(interventionFilterProvider.notifier).updateSector(v);
     });
   }
 
-  void _showUrgencyPicker(BuildContext context, WidgetRef ref, InterventionFilter filter) {
+  void _showUrgencyPicker(BuildContext context, InterventionFilter filter) {
     final values = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
     _showPicker(context, 'Select Urgency', values, filter.urgency, (v) {
       ref.read(interventionFilterProvider.notifier).updateUrgency(v);
     });
   }
 
-  void _showBuildingPicker(BuildContext context, WidgetRef ref, InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync) {
+  void _showBuildingPicker(BuildContext context, InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync) {
     if (buildingsAsync.value == null) return;
     final items = buildingsAsync.value!.map((b) => {'id': b['id'].toString(), 'label': b['address'] as String}).toList();
     
@@ -209,7 +235,7 @@ class InterventionsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDatePicker(BuildContext context, WidgetRef ref, InterventionFilter filter) async {
+  Future<void> _showDatePicker(BuildContext context, InterventionFilter filter) async {
     final date = await showDatePicker(
       context: context,
       initialDate: filter.scheduledDate ?? DateTime.now(),
@@ -291,17 +317,22 @@ class InterventionsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(WidgetRef ref, Object error) {
+  Widget _buildErrorState(Object error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+          Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
           const SizedBox(height: 16),
-          Text('Error: ${error.toString()}'),
-          const SizedBox(height: 16),
+          Text('Error: ${error.toString()}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => ref.read(interventionListProvider.notifier).refresh(),
+            onPressed: () => ref.invalidate(interventionListProvider),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandGreen,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Retry'),
           ),
         ],

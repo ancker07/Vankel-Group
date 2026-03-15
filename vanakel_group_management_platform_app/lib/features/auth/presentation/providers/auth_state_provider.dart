@@ -42,22 +42,36 @@ class AuthState {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
-  late final AuthRepository _repository;
+  late AuthRepository _repository;
 
   @override
   AuthState build() {
+    ref.keepAlive();
+    
+    // We watch the repository provider to ensure we stay updated if it changes
+    // But since it's a simple Provider, it stays stable unless the whole app rebuilds
     _repository = ref.watch(authRepositoryProvider);
-    // Trigger initial check status after splash delay
+    
+    // Trigger initial check status after splash delay, but only once
+    if (!_isInitialized) {
+      _init();
+    }
+    
+    return AuthState();
+  }
+
+  bool _isInitialized = false;
+  void _init() {
+    _isInitialized = true;
+    
     Future.delayed(const Duration(seconds: 2), () {
       if (state.status == AuthStatus.initial) {
         state = state.copyWith(isSplashDone: true);
         checkStatus();
       } else {
-        // If we already moved away from initial (e.g. login started), just mark splash as done
         state = state.copyWith(isSplashDone: true);
       }
     });
-    return AuthState();
   }
 
   Future<void> checkStatus() async {

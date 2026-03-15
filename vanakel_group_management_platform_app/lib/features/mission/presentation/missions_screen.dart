@@ -6,6 +6,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
 import 'providers/mission_list_provider.dart';
+import 'providers/mission_filter_provider.dart';
 
 class MissionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -18,12 +19,6 @@ class MissionsScreen extends ConsumerStatefulWidget {
 
 class _MissionsScreenState extends ConsumerState<MissionsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  MissionStatus? _selectedStatus;
-  MissionUrgency? _selectedUrgency;
-  String? _selectedSector;
-  String? _selectedBuildingId;
-  DateTime? _selectedDate;
-  String _searchQuery = '';
 
   @override
   void dispose() {
@@ -34,36 +29,17 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final missionsAsync = ref.watch(missionListProvider);
+    final filteredMissionsAsync = ref.watch(filteredMissionListProvider);
+    final filter = ref.watch(missionFilterProvider);
+    final missions = ref.watch(missionListProvider).value ?? [];
 
     return Column(
       children: [
-        _buildFilterBar(missionsAsync.value ?? []),
+        _buildFilterBar(missions, filter),
         Expanded(
-          child: missionsAsync.when(
-            data: (missions) {
-              final filteredMissions = missions.where((m) {
-                final matchesSearch = m.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    m.address.toLowerCase().contains(_searchQuery.toLowerCase());
-                
-                final matchesStatus = _selectedStatus == null || m.status == _selectedStatus;
-                final matchesUrgency = _selectedUrgency == null || m.urgency == _selectedUrgency;
-                final matchesSector = _selectedSector == null || m.sector == _selectedSector;
-                final matchesBuilding = _selectedBuildingId == null || m.buildingId == _selectedBuildingId;
-                
-                final missionDate = DateTime(m.createdAt.year, m.createdAt.month, m.createdAt.day);
-                final matchesDate = _selectedDate == null || missionDate.isAtSameMomentAs(_selectedDate!);
-                
-                // If admin, they usually only see pending/needsReview in the main inbox, 
-                // but let's allow them to see filtered results if they choose a status.
-                if (widget.isAdmin && _selectedStatus == null && _selectedSector == null && _selectedBuildingId == null && _selectedDate == null && _selectedUrgency == null) {
-                   if (m.status != MissionStatus.pending && m.status != MissionStatus.needsReview && _searchQuery.isEmpty) return false;
-                }
-
-                return matchesSearch && matchesStatus && matchesUrgency && matchesSector && matchesBuilding && matchesDate;
-              }).toList();
-
+          child: filteredMissionsAsync.when(
+            skipLoadingOnReload: false,
+            data: (filteredMissions) {
               if (filteredMissions.isEmpty) {
                 return Center(
                   child: Column(
@@ -76,7 +52,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          _hasActiveFilters()
+                          filter.isActive
                               ? Icons.search_off
                               : Icons.check_circle_outline,
                           size: 48,
@@ -85,7 +61,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        _hasActiveFilters()
+                        filter.isActive
                             ? 'No missions match your filters'
                             : (widget.isAdmin ? l10n.allCaughtUp : l10n.noRequestsYet),
                         style: const TextStyle(
@@ -94,9 +70,9 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (_hasActiveFilters())
+                      if (filter.isActive)
                         TextButton(
-                          onPressed: _clearFilters,
+                          onPressed: () => ref.read(missionFilterProvider.notifier).reset(),
                           child: const Text('Clear Filters', style: TextStyle(color: AppTheme.brandGreen)),
                         ),
                     ],
@@ -117,18 +93,25 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 ),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppTheme.brandGreen),
+            ),
             error: (error, stack) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                   Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
                   const SizedBox(height: 16),
-                  Text('Error: ${error.toString()}'),
-                  const SizedBox(height: 16),
+                  Text('Error: ${error.toString()}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => ref.read(missionListProvider.notifier).refresh(),
-                    child: const Text('Retry'),
+                    onPressed: () => ref.invalidate(missionListProvider),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.brandGreen,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Retry Fetching Missions'),
                   ),
                 ],
               ),
@@ -139,43 +122,11 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  bool _hasActiveFilters() {
-    return _searchQuery.isNotEmpty || 
-           _selectedStatus != null || 
-           _selectedUrgency != null || 
-           _selectedSector != null || 
-           _selectedBuildingId != null || 
-           _selectedDate != null;
-  }
-
-  void _clearFilters() {
-    setState(() {
-      _searchController.clear();
-      _searchQuery = '';
-      _selectedStatus = null;
-      _selectedUrgency = null;
-      _selectedSector = null;
-      _selectedBuildingId = null;
-      _selectedDate = null;
-    });
-  }
-
-  String _getStatusLabel(MissionStatus status) {
-    switch (status) {
-      case MissionStatus.pending:
-        return 'Pending Request';
-      case MissionStatus.approved:
-        return 'Accepted';
-      case MissionStatus.rejected:
-        return 'Rejected';
-      case MissionStatus.completed:
-        return 'Completed';
-      case MissionStatus.needsReview:
-        return 'Needs Review';
+  Widget _buildFilterBar(List<Mission> missions, MissionFilter filter) {
+    if (_searchController.text != filter.searchQuery) {
+      _searchController.text = filter.searchQuery;
     }
-  }
 
-  Widget _buildFilterBar(List<Mission> missions) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       color: AppTheme.zinc950,
@@ -183,7 +134,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
         children: [
           TextField(
             controller: _searchController,
-            onChanged: (value) => setState(() => _searchQuery = value),
+            onChanged: (value) => ref.read(missionFilterProvider.notifier).updateSearchQuery(value),
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Search missions...',
@@ -204,48 +155,48 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: _selectedUrgency?.name.toUpperCase() ?? 'Urgency',
+                  label: filter.urgency?.name.toUpperCase() ?? 'Urgency',
                   icon: Icons.priority_high,
-                  isSelected: _selectedUrgency != null,
-                  onSelected: () => _showUrgencyPicker(),
+                  isSelected: filter.urgency != null,
+                  onSelected: () => _showUrgencyPicker(filter),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: _selectedStatus != null ? _getStatusLabel(_selectedStatus!) : 'Status',
+                  label: filter.status != null ? _getStatusLabel(filter.status!) : 'Status',
                   icon: Icons.info_outline,
-                  isSelected: _selectedStatus != null,
-                  onSelected: () => _showStatusPicker(),
+                  isSelected: filter.status != null,
+                  onSelected: () => _showStatusPicker(filter),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: _selectedSector ?? 'Sector',
+                  label: filter.sector ?? 'Sector',
                   icon: Icons.category_outlined,
-                  isSelected: _selectedSector != null,
-                  onSelected: () => _showSectorPicker(missions),
+                  isSelected: filter.sector != null,
+                  onSelected: () => _showSectorPicker(missions, filter),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: _selectedBuildingId != null 
-                    ? (missions.firstWhere((m) => m.buildingId == _selectedBuildingId, orElse: () => missions.first).address)
+                  label: filter.buildingId != null 
+                    ? (missions.firstWhere((m) => m.buildingId == filter.buildingId, orElse: () => missions.first).address)
                     : 'Building',
                   icon: Icons.business_outlined,
-                  isSelected: _selectedBuildingId != null,
-                  onSelected: () => _showBuildingPicker(missions),
+                  isSelected: filter.buildingId != null,
+                  onSelected: () => _showBuildingPicker(missions, filter),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: _selectedDate != null 
-                    ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+                  label: filter.date != null 
+                    ? "${filter.date!.day}/${filter.date!.month}/${filter.date!.year}"
                     : 'Date',
                   icon: Icons.calendar_today_outlined,
-                  isSelected: _selectedDate != null,
-                  onSelected: () => _showDatePicker(context),
+                  isSelected: filter.date != null,
+                  onSelected: () => _showDatePicker(context, filter),
                 ),
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: IconButton(
                       onPressed: () {
-                        _clearFilters();
+                        ref.read(missionFilterProvider.notifier).reset();
                         ref.read(missionListProvider.notifier).refresh();
                       },
                       icon: const Icon(Icons.refresh, color: AppTheme.brandOrange, size: 20),
@@ -261,7 +212,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showUrgencyPicker() {
+  void _showUrgencyPicker(MissionFilter filter) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.zinc950,
@@ -291,14 +242,14 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                     ListTile(
                       title: const Text('All urgencies', style: TextStyle(color: Colors.white)),
                       onTap: () {
-                        setState(() => _selectedUrgency = null);
+                        ref.read(missionFilterProvider.notifier).updateUrgency(null);
                         Navigator.pop(context);
                       },
                     ),
                     ...MissionUrgency.values.map((u) => ListTile(
                       title: Text(u.name.toUpperCase(), style: const TextStyle(color: Colors.white)),
                       onTap: () {
-                        setState(() => _selectedUrgency = u);
+                        ref.read(missionFilterProvider.notifier).updateUrgency(u);
                         Navigator.pop(context);
                       },
                     )),
@@ -312,7 +263,22 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showStatusPicker() {
+  String _getStatusLabel(MissionStatus status) {
+    switch (status) {
+      case MissionStatus.pending:
+        return 'Pending Request';
+      case MissionStatus.approved:
+        return 'Accepted';
+      case MissionStatus.rejected:
+        return 'Rejected';
+      case MissionStatus.completed:
+        return 'Completed';
+      case MissionStatus.needsReview:
+        return 'Needs Review';
+    }
+  }
+
+  void _showStatusPicker(MissionFilter filter) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.zinc950,
@@ -342,7 +308,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                     ListTile(
                       title: const Text('All statuses', style: TextStyle(color: Colors.white)),
                       onTap: () {
-                        setState(() => _selectedStatus = null);
+                        ref.read(missionFilterProvider.notifier).updateStatus(null);
                         Navigator.pop(context);
                       },
                     ),
@@ -353,7 +319,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                     ).map((s) => ListTile(
                       title: Text(_getStatusLabel(s), style: const TextStyle(color: Colors.white)),
                       onTap: () {
-                        setState(() => _selectedStatus = s);
+                        ref.read(missionFilterProvider.notifier).updateStatus(s);
                         Navigator.pop(context);
                       },
                     )),
@@ -367,7 +333,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showSectorPicker(List<Mission> missions) {
+  void _showSectorPicker(List<Mission> missions, MissionFilter filter) {
     final sectors = missions.map((m) => m.sector).whereType<String>().toSet().toList();
     sectors.sort();
 
@@ -400,7 +366,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                     ListTile(
                       title: const Text('All sectors', style: TextStyle(color: Colors.white)),
                       onTap: () {
-                        setState(() => _selectedSector = null);
+                        ref.read(missionFilterProvider.notifier).updateSector(null);
                         Navigator.pop(context);
                       },
                     ),
@@ -413,7 +379,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       ...sectors.map((s) => ListTile(
                         title: Text(s, style: const TextStyle(color: Colors.white)),
                         onTap: () {
-                          setState(() => _selectedSector = s);
+                          ref.read(missionFilterProvider.notifier).updateSector(s);
                           Navigator.pop(context);
                         },
                       )),
@@ -427,7 +393,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showBuildingPicker(List<Mission> missions) {
+  void _showBuildingPicker(List<Mission> missions, MissionFilter filter) {
     final buildingIds = missions.map((m) => m.buildingId).whereType<String>().toSet().toList();
     
     showModalBottomSheet(
@@ -459,7 +425,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
               ListTile(
                 title: const Text('All buildings', style: TextStyle(color: Colors.white)),
                 onTap: () {
-                  setState(() => _selectedBuildingId = null);
+                  ref.read(missionFilterProvider.notifier).updateBuilding(null);
                   Navigator.pop(context);
                 },
               ),
@@ -477,7 +443,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                         return ListTile(
                           title: Text(address, style: const TextStyle(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                           onTap: () {
-                            setState(() => _selectedBuildingId = id);
+                            ref.read(missionFilterProvider.notifier).updateBuilding(id);
                             Navigator.pop(context);
                           },
                         );
@@ -491,10 +457,10 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  Future<void> _showDatePicker(BuildContext context) async {
+  Future<void> _showDatePicker(BuildContext context, MissionFilter filter) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate: filter.date ?? DateTime.now(),
       firstDate: DateTime(2024),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -512,9 +478,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
       },
     );
     if (picked != null) {
-      setState(() {
-        _selectedDate = DateTime(picked.year, picked.month, picked.day);
-      });
+      ref.read(missionFilterProvider.notifier).updateDate(DateTime(picked.year, picked.month, picked.day));
     }
   }
 }

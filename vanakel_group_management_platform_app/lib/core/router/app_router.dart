@@ -52,8 +52,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthPage =
           isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage;
 
-      // 0. Splash State: Always stay on Splash Screen until done
-      if (!authState.isSplashDone) {
+      // 0. Splash State: Only force Splash Screen if we are in the initial state 
+      // AND not already authenticated (to avoid loops during refreshes)
+      if (!authState.isSplashDone && authState.status == AuthStatus.initial) {
+        // IMPORTANT: If we are already on a dashboard/protected page, DO NOT kick us out
+        // during a provider refresh/rebuild. Only redirect if we ARE on splash/entry pages.
+        if (state.uri.path.contains('/admin') || state.uri.path.contains('/syndic') || state.uri.path.contains('/technician')) {
+          return null;
+        }
+        
         // If we are already on an Auth Page or Waiting Approval, don't force back to Splash
         if (isAuthPage || isWaitingApprovalPage) {
           return null;
