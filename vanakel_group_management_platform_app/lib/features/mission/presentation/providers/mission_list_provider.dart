@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/mission.dart';
 import 'mission_provider.dart';
+import '../../../intervention/presentation/providers/intervention_list_provider.dart';
 
 class MissionListNotifier extends AsyncNotifier<List<Mission>> {
   @override
@@ -13,6 +14,8 @@ class MissionListNotifier extends AsyncNotifier<List<Mission>> {
     try {
       await repository.approveMission(id, scheduledDate: scheduledDate);
       ref.invalidateSelf();
+      // Also refresh interventions as an approved mission creates one
+      ref.invalidate(interventionListProvider);
     } catch (e) {
       rethrow;
     }
@@ -23,6 +26,7 @@ class MissionListNotifier extends AsyncNotifier<List<Mission>> {
     try {
       await repository.rejectMission(id);
       ref.invalidateSelf();
+      ref.invalidate(interventionListProvider);
     } catch (e) {
       rethrow;
     }

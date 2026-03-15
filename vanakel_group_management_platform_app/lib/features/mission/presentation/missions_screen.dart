@@ -241,11 +241,13 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                   isSelected: _selectedDate != null,
                   onSelected: () => _showDatePicker(context),
                 ),
-                if (_hasActiveFilters())
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: IconButton(
-                      onPressed: _clearFilters,
+                      onPressed: () {
+                        _clearFilters();
+                        ref.read(missionListProvider.notifier).refresh();
+                      },
                       icon: const Icon(Icons.refresh, color: AppTheme.brandOrange, size: 20),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
