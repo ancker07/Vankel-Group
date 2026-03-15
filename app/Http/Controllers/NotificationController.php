@@ -40,6 +40,7 @@ class NotificationController extends Controller
             $usersWithTokens = User::whereNotNull('fcm_token')->get();
             $tokens = $usersWithTokens->pluck('fcm_token')->toArray();
 
+            Log::info("FCM: Starting broadcast to " . count($tokens) . " tokens.");
             if (empty($tokens)) {
                 return response()->json(['message' => 'No users with registered devices found.'], 404);
             }

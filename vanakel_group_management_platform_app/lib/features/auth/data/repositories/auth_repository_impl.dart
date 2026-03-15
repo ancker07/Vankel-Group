@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/api/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/services/auth_token_service.dart';
@@ -229,11 +230,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> updateFcmToken(String email, String token) async {
     try {
+      if (kDebugMode) print('SYNC: Updating FCM token for $email...');
       await _dio.post(
         ApiConstants.updateFcmToken,
         data: {'email': email, 'fcm_token': token},
       );
+      if (kDebugMode) print('SYNC: FCM token updated successfully.');
     } on DioException catch (e) {
+      if (kDebugMode) print('SYNC: Failed to update FCM token: ${e.message}');
       throw handleDioError(e);
     }
   }

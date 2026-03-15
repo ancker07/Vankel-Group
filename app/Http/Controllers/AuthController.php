@@ -15,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 use App\Models\Email;
 use App\Models\Building;
 use App\Models\Intervention;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -390,12 +391,14 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
+            Log::warning("FCM: Attempted token update for non-existent user: {$request->email}");
             return response()->json([
                 'success' => false,
                 'message' => 'User not found'
             ], 404);
         }
 
+        Log::info("FCM: Updating token for {$request->email}. New token: " . substr($request->fcm_token, 0, 15) . "...");
         $user->update(['fcm_token' => $request->fcm_token]);
 
         return response()->json([
