@@ -107,6 +107,7 @@ class MissionModel extends Mission {
       urgency: urgency,
       createdAt: createdAt,
       isAiDetected: isAiDetected,
+      documents: documents,
     );
   }
 }

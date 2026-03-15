@@ -175,11 +175,34 @@ class InterventionController extends Controller
     public function approveMission(Request $request, $id)
     {
         $mission = Mission::with('documents')->findOrFail($id);
+
+        $buildingId = $mission->building_id;
+
+        // If no building assigned, try to find or create one from extracted_address
+        if (!$buildingId && $mission->extracted_address) {
+            $building = Building::where('address', $mission->extracted_address)->first();
+            if (!$building) {
+                $building = Building::create([
+                    'address' => $mission->extracted_address,
+                    'city' => 'Unknown',
+                    'syndic_id' => $mission->syndic_id,
+                ]);
+            }
+            $buildingId = $building->id;
+            $mission->update(['building_id' => $buildingId]);
+        }
+
+        if (!$buildingId) {
+            return response()->json([
+                'error' => 'Mission cannot be approved without an associated building. Please assign an address first.'
+            ], 422);
+        }
+
         $mission->update(['status' => 'APPROVED']);
 
         // Create an Intervention based on the mission
         $intervention = Intervention::create([
-            'building_id' => $mission->building_id,
+            'building_id' => $buildingId,
             'syndic_id' => $mission->syndic_id,
             'title' => $mission->title ?? 'Approved Mission',
             'category' => $mission->category,
@@ -187,6 +210,7 @@ class InterventionController extends Controller
             'description' => $mission->description,
             'urgency' => $mission->urgency,
             'status' => 'PENDING',
+            'scheduled_date' => $request->scheduled_date ? Carbon::parse($request->scheduled_date) : null,
             'on_site_contact_name' => $mission->on_site_contact_name,
             'on_site_contact_phone' => $mission->on_site_contact_phone,
             'on_site_contact_email' => $mission->on_site_contact_email,

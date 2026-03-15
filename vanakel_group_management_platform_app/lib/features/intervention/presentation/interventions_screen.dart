@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
-import '../../../shared/widgets/language_selector.dart';
 
 class InterventionsScreen extends ConsumerWidget {
   final bool isAdmin;
@@ -17,22 +16,7 @@ class InterventionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final interventionsAsync = ref.watch(interventionListProvider);
 
-    return Scaffold(
-      backgroundColor: AppTheme.brandBlack,
-      appBar: AppBar(
-        title: Text(isAdmin ? 'INTERVENTIONS' : 'HISTORY',
-            style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                ref.read(interventionListProvider.notifier).refresh(),
-          ),
-          const LanguageSelector(),
-        ],
-      ),
-      body: interventionsAsync.when(
+    return interventionsAsync.when(
         data: (interventions) => interventions.isEmpty
             ? Center(
                 child: Column(
@@ -94,7 +78,6 @@ class InterventionsScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

@@ -6,8 +6,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/auth_state_provider.dart';
-import '../../../shared/widgets/language_selector.dart';
-
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -19,23 +17,17 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      backgroundColor: AppTheme.brandBlack,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200.0,
-            floating: false,
-            pinned: true,
-            backgroundColor: AppTheme.zinc950,
-            actions: const [
-              LanguageSelector(),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 40),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -46,143 +38,138 @@ class ProfileScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 40),
-                      Hero(
-                        tag: 'profile_pic',
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppTheme.brandGreen,
-                              width: 2,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 45,
-                            backgroundColor: AppTheme.zinc800,
-                            backgroundImage: user.profileImageUrl != null
-                                ? NetworkImage(user.profileImageUrl!)
-                                : null,
-                            child: user.profileImageUrl == null
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: AppTheme.zinc500,
-                                  )
-                                : null,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Hero(
+                      tag: 'profile_pic',
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppTheme.brandGreen,
+                            width: 2,
                           ),
                         ),
-                      ).animate().scale(
-                        delay: 200.ms,
-                        duration: 400.ms,
-                        curve: Curves.easeOutBack,
+                        child: CircleAvatar(
+                          radius: 45,
+                          backgroundColor: AppTheme.zinc800,
+                          backgroundImage: user.profileImageUrl != null
+                              ? NetworkImage(user.profileImageUrl!)
+                              : null,
+                          child: user.profileImageUrl == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: AppTheme.zinc500,
+                                )
+                              : null,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        user.name,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ).animate().fadeIn(delay: 400.ms),
-                      const SizedBox(height: 4),
-                      _buildRoleBadge(context, user.role),
-                    ],
-                  ),
+                    ).animate().scale(
+                      delay: 200.ms,
+                      duration: 400.ms,
+                      curve: Curves.easeOutBack,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      user.name,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ).animate().fadeIn(delay: 400.ms),
+                    const SizedBox(height: 4),
+                    _buildRoleBadge(context, user.role),
+                  ],
                 ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle(l10n.information),
-                  const SizedBox(height: 16),
-                  _buildInfoCard([
-                    _buildInfoTile(Icons.email_outlined, 'Email', user.email),
-                    _buildInfoTile(Icons.phone_outlined, 'Phone', user.phone),
-                    _buildInfoTile(
-                      Icons.info_outline,
-                      'Bio',
-                      user.bio ?? 'No bio provided.',
-                    ),
-                  ]),
-                  const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle(l10n.information),
+                    const SizedBox(height: 16),
+                    _buildInfoCard([
+                      _buildInfoTile(Icons.email_outlined, 'Email', user.email),
+                      _buildInfoTile(Icons.phone_outlined, 'Phone', user.phone),
+                      _buildInfoTile(
+                        Icons.info_outline,
+                        'Bio',
+                        user.bio ?? 'No bio provided.',
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
 
-                  if (user.role == UserRole.admin) ...[
-                    _buildSectionTitle(l10n.businessDetails),
+                    if (user.role == UserRole.admin) ...[
+                      _buildSectionTitle(l10n.businessDetails),
+                      const SizedBox(height: 16),
+                      _buildInfoCard([
+                        _buildInfoTile(
+                          Icons.business_outlined,
+                          l10n.companyName,
+                          user.companyName ?? 'Vanakel Group',
+                        ),
+                      ]),
+                    ] else ...[
+                      _buildSectionTitle(l10n.propertyOverview),
+                      const SizedBox(height: 16),
+                      _buildInfoCard([
+                        _buildInfoTile(
+                          Icons.apartment_outlined,
+                          l10n.managedProperties,
+                          '${user.propertyCount ?? 0} ${l10n.activeAssets}',
+                        ),
+                      ]),
+                    ],
+
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(l10n.security),
                     const SizedBox(height: 16),
-                    _buildInfoCard([
-                      _buildInfoTile(
-                        Icons.business_outlined,
-                        l10n.companyName,
-                        user.companyName ?? 'Vanakel Group',
+                    _buildActionTile(Icons.lock_outline, l10n.changePassword, () {
+                      _showChangePasswordDialog(context);
+                    }),
+
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () {
+                        final rolePath = user.role == UserRole.admin
+                            ? '/admin'
+                            : '/syndic';
+                        context.push('$rolePath/profile/edit');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandGreen,
+                        foregroundColor: Colors.black,
+                        minimumSize: const Size(double.infinity, 56),
                       ),
-                    ]),
-                  ] else ...[
-                    _buildSectionTitle(l10n.propertyOverview),
+                      child: Text(l10n.editProfile),
+                    ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
                     const SizedBox(height: 16),
-                    _buildInfoCard([
-                      _buildInfoTile(
-                        Icons.apartment_outlined,
-                        l10n.managedProperties,
-                        '${user.propertyCount ?? 0} ${l10n.activeAssets}',
+                    OutlinedButton(
+                      onPressed: () async {
+                        await ref.read(authStateProvider.notifier).logout();
+                        if (context.mounted) {
+                          context.go('/login');
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.redAccent,
+                        side: const BorderSide(color: Colors.redAccent, width: 1),
+                        minimumSize: const Size(double.infinity, 56),
                       ),
-                    ]),
+                      child: Text(l10n.logout),
+                    ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
+                    const SizedBox(height: 40),
                   ],
-
-                  const SizedBox(height: 24),
-                  _buildSectionTitle(l10n.security),
-                  const SizedBox(height: 16),
-                  _buildActionTile(Icons.lock_outline, l10n.changePassword, () {
-                    _showChangePasswordDialog(context);
-                  }),
-
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      final rolePath = user.role == UserRole.admin
-                          ? '/admin'
-                          : '/syndic';
-                      context.push('$rolePath/profile/edit');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.brandGreen,
-                      foregroundColor: Colors.black,
-                      minimumSize: const Size(double.infinity, 56),
-                    ),
-                    child: Text(l10n.editProfile),
-                  ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.2),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: () async {
-                      await ref.read(authStateProvider.notifier).logout();
-                      if (context.mounted) {
-                        context.go('/login');
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.redAccent,
-                      side: const BorderSide(color: Colors.redAccent, width: 1),
-                      minimumSize: const Size(double.infinity, 56),
-                    ),
-                    child: Text(l10n.logout),
-                  ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2),
-                  const SizedBox(height: 40),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

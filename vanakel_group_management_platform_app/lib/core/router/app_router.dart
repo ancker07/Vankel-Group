@@ -165,6 +165,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'details/:id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return MissionDetailsScreen(missionId: id);
@@ -183,6 +184,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'details/:id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return InterventionDetailsScreen(interventionId: id);
@@ -200,6 +202,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'edit',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const EditProfileScreen(),
                   ),
                 ],
@@ -231,10 +234,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'create',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const CreateMissionScreen(),
                   ),
                   GoRoute(
                     path: 'details/:id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return MissionDetailsScreen(missionId: id);
@@ -253,6 +258,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'details/:id',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
                       return InterventionDetailsScreen(interventionId: id);
@@ -270,6 +276,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'edit',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const EditProfileScreen(),
                   ),
                 ],
