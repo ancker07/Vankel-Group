@@ -137,36 +137,43 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
-            'role' => ['required', 'string'] // Enforce role check
+            'role' => ['required', 'string']
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            
-            // Check status if not superadmin
-            // Allow login even if pending/rejected, the frontend will handle the specific screen (Waiting / Rejected)
-            // This is necessary because the mobile app needs a token to stay in the waiting room and poll.
-            if ($user->role !== 'SUPERADMIN' && $user->status === 'DEACTIVATED') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Your account has been deactivated.'
-                ], 403);
-            }
+        $user = User::where('email', $request->email)->first();
 
-            return response()->json([
-                'success' => true,
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'status' => $user->status,
-                ],
-                'token' => $user->createToken('auth_token')->plainTextToken
-            ]);
+        if ($user && Hash::check($request->password, $user->password)) {
+            $requestedRole = strtoupper($request->role);
+            $userRole = strtoupper($user->role);
+
+            // Allow SUPERADMIN to login as ADMIN
+            $roleMatch = ($userRole === $requestedRole) || 
+                         ($requestedRole === 'ADMIN' && $userRole === 'SUPERADMIN');
+
+            if ($roleMatch) {
+                // Check status
+                if ($user->role !== 'SUPERADMIN' && $user->status === 'DEACTIVATED') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Your account has been deactivated.'
+                    ], 403);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                        'status' => $user->status,
+                    ],
+                    'token' => $user->createToken('auth_token')->plainTextToken
+                ]);
+            }
         }
 
         return response()->json([

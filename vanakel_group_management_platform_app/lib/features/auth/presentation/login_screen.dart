@@ -155,6 +155,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ).animate().fadeIn().scale(),
 
                 const SizedBox(height: 48),
+                
+                if (authState.status == AuthStatus.error && authState.errorMessage != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            authState.errorMessage!,
+                            style: const TextStyle(color: Colors.red, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().shake(),
 
                 TextFormField(
                   controller: _emailController,
@@ -205,16 +228,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     backgroundColor: AppTheme.brandGreen,
                     foregroundColor: Colors.black,
                   ),
-                  child: authState.status == AuthStatus.authenticating
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.black,
+                   child: authState.status == AuthStatus.authenticating
+                      ? const Center(
+                          child: SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.black,
+                            ),
                           ),
                         )
-                      : Text(l10n.login),
+                      : Text(
+                          l10n.login,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
                 ).animate().fadeIn(delay: 400.ms).scale(),
               ],
 

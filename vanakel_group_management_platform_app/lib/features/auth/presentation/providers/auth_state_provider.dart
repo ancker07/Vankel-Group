@@ -49,8 +49,13 @@ class AuthNotifier extends Notifier<AuthState> {
     _repository = ref.watch(authRepositoryProvider);
     // Trigger initial check status after splash delay
     Future.delayed(const Duration(seconds: 2), () {
-      state = state.copyWith(isSplashDone: true);
-      checkStatus();
+      if (state.status == AuthStatus.initial) {
+        state = state.copyWith(isSplashDone: true);
+        checkStatus();
+      } else {
+        // If we already moved away from initial (e.g. login started), just mark splash as done
+        state = state.copyWith(isSplashDone: true);
+      }
     });
     return AuthState();
   }
@@ -60,36 +65,41 @@ class AuthNotifier extends Notifier<AuthState> {
     final token = tokenService.getToken();
     final email = tokenService.getEmail();
 
-    // If no token or email exists in SharedPreferences, we are definitely unauthenticated
+    // If no token exists, we are unauthenticated (if we were still in initial)
     if (token == null || email == null) {
-      state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+      if (state.status == AuthStatus.initial) {
+        state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+      }
       return;
     }
 
     try {
       final user = await _repository.checkStatus(email);
+      
+      // GUARD: Only update if we haven't started a manual login or other action
+      if (state.status != AuthStatus.initial && state.status != AuthStatus.unauthenticated) {
+        return;
+      }
+
       if (user != null) {
         state = state.copyWith(status: AuthStatus.authenticated, user: user);
         
-        // Sync FCM token on every startup
+        // Sync FCM token
         try {
           final fcmToken = await NotificationService().getToken();
           if (fcmToken != null) {
             await _repository.updateFcmToken(email, fcmToken);
           }
-        } catch (e) {
-          // Non-blocking
-        }
+        } catch (e) {}
       } else {
-        // If user is null, it means unauthorized or unprocessable (e.g. invalid token after reinstall)
-        // Ensure the token/email are cleared locally
         await tokenService.clearAll();
         state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
       }
     } catch (e) {
-      // If we can't check status (e.g. no internet), but we have a token,
-      // stay unauthenticated for safety to avoid being stuck on Splash
-      state = state.copyWith(status: AuthStatus.unauthenticated);
+      // Only set to unauthenticated if we were trying to auto-login from initial state
+      if (state.status == AuthStatus.initial) {
+        state = state.copyWith(status: AuthStatus.unauthenticated);
+      }
     }
   }
 

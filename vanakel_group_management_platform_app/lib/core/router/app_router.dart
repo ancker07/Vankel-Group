@@ -56,6 +56,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 0. Splash State: Always stay on Splash Screen until done
       if (!authState.isSplashDone) {
+        // If we are already on an Auth Page or Waiting Approval, don't force back to Splash
+        if (isAuthPage || isWaitingApprovalPage) {
+          return null;
+        }
         return isSplashScreen ? null : '/splash';
       }
 
