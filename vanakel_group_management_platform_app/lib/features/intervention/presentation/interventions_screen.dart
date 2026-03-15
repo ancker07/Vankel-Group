@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
@@ -92,27 +94,20 @@ class _InterventionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(intervention.status);
     final statusLabel = _getStatusLabel(intervention.status);
+    final dateStr = DateFormat('M/d/yyyy').format(intervention.scheduledDate);
 
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.zinc950,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: intervention.status == InterventionStatus.delayed
-              ? AppTheme.brandOrange.withOpacity(0.4)
-              : AppTheme.zinc900,
-          width: 2,
+              ? AppTheme.brandOrange.withValues(alpha: 0.3)
+              : AppTheme.zinc800,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: () {
             if (isAdmin) {
@@ -121,163 +116,234 @@ class _InterventionCard extends StatelessWidget {
               context.push('/syndic/interventions/details/${intervention.id}');
             }
           },
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Status + Urgency + Date row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _buildBadge(statusLabel, statusColor),
-                        if (intervention.urgency != null)
-                          _buildBadge(
-                            intervention.urgency!,
-                            _getUrgencyColor(intervention.urgency),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Map Section (Stylized Placeholder)
+              Stack(
+                children: [
+                  Container(
+                    height: 160,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppTheme.zinc900,
+                      border: Border(bottom: BorderSide(color: AppTheme.zinc800)),
+                    ),
+                    child: Opacity(
+                      opacity: 0.1,
+                      child: GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 10),
+                        itemBuilder: (context, index) => Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppTheme.zinc500, width: 0.5),
                           ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.event_available,
-                            size: 12, color: AppTheme.zinc500),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('MMM d, y')
-                              .format(intervention.scheduledDate),
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.zinc500,
-                              fontWeight: FontWeight.bold),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Title
-                Text(
-                  intervention.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Address
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 14, color: AppTheme.brandGreen),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        [intervention.address, intervention.city]
-                            .where((e) => e != null && e.isNotEmpty)
-                            .join(', '),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppTheme.zinc500,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Description
-                Text(
-                  intervention.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.zinc400,
-                    height: 1.5,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-                const Divider(color: AppTheme.zinc900),
-                const SizedBox(height: 12),
-                // Footer: contact + VIEW SLIP
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (intervention.onSiteContactName != null &&
-                        intervention.onSiteContactName!.isNotEmpty)
-                      Expanded(
-                        child: Row(
+                  // Gradient Overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            AppTheme.zinc950.withValues(alpha: 0.8),
+                            AppTheme.zinc950,
+                          ],
+                          stops: const [0.0, 0.6, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Badges
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildBadge(statusLabel, statusColor),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Icon(Icons.person_outline,
-                                size: 12, color: AppTheme.zinc500),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                              ),
+                              child: Text(dateStr, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, fontFeatures: [FontFeature.tabularFigures()])),
+                            ),
+                            if (intervention.urgency != null) ...[
+                              const SizedBox(height: 6),
+                              _buildBadge(intervention.urgency!, _getUrgencyColor(intervention.urgency)),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Title & Address (Overlaying bottom of map area)
+                  Positioned(
+                    bottom: 12,
+                    left: 16,
+                    right: 60,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          intervention.title.toUpperCase(),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on, size: 12, color: AppTheme.brandGreen),
                             const SizedBox(width: 4),
-                            Flexible(
+                            Expanded(
                               child: Text(
-                                intervention.onSiteContactName!,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.zinc500,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                "${intervention.address}, ${intervention.city ?? ''}",
+                                style: TextStyle(fontSize: 11, color: AppTheme.zinc300, fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                      )
-                    else
-                      const Expanded(child: SizedBox()),
-                    Row(
-                      children: [
-                        Text(
-                          'VIEW SLIP',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.brandGreen.withOpacity(0.8),
-                            letterSpacing: 1,
+                      ],
+                    ),
+                  ),
+                  // Map Pin Button
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: () => _openMap(intervention.address),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.zinc950.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.zinc800),
+                        ),
+                        child: const Icon(Icons.location_on, size: 16, color: AppTheme.brandGreen),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // Content Section
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      intervention.description,
+                      style: TextStyle(fontSize: 13, color: AppTheme.zinc400, height: 1.5),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (intervention.documents.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 40,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: intervention.documents.length,
+                          itemBuilder: (context, idx) => Container(
+                            width: 40,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.zinc900,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppTheme.zinc800),
+                            ),
+                            child: const Icon(Icons.description_outlined, size: 16, color: AppTheme.zinc500),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_ios,
-                            size: 10,
-                            color: AppTheme.brandGreen.withOpacity(0.8)),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    // Divider
+                    Container(height: 1, color: AppTheme.zinc900),
+                    const SizedBox(height: 16),
+                    // Footer
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(Icons.shield_outlined, size: 14, color: AppTheme.zinc500),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  intervention.syndicName ?? 'UNASSIGNED',
+                                  style: TextStyle(fontSize: 11, color: AppTheme.zinc500, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'VIEW SLIP',
+                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen, letterSpacing: 1.2),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.chevron_right, size: 14, color: AppTheme.brandGreen),
+                          ],
+                        ),
                       ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05);
+  }
+
+  Future<void> _openMap(String address) async {
+    final encodedAddress = Uri.encodeComponent(address);
+    final googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$encodedAddress";
+    final appleMapsUrl = "https://maps.apple.com/?q=$encodedAddress";
+
+    if (Platform.isAndroid) {
+      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+        await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
+      }
+    } else {
+      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
+        await launchUrl(Uri.parse(appleMapsUrl), mode: LaunchMode.externalApplication);
+      }
+    }
   }
 
   Widget _buildBadge(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: color,
-        ),
+        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: color, letterSpacing: 0.5),
       ),
     );
   }
