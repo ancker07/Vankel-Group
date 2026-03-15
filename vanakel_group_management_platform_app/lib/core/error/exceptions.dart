@@ -7,7 +7,7 @@ abstract class AppExceptions implements Exception {
   AppExceptions(this.message, [this.statusCode]);
 
   @override
-  String toString() => 'AppExceptions: $message (Status Code: $statusCode)';
+  String toString() => message;
 }
 
 class NetworkException extends AppExceptions {

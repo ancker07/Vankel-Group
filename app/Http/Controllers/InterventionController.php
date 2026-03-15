@@ -174,83 +174,98 @@ class InterventionController extends Controller
 
     public function approveMission(Request $request, $id)
     {
-        $mission = Mission::with('documents')->findOrFail($id);
+        try {
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id) {
+                $mission = Mission::with('documents')->findOrFail($id);
 
-        $buildingId = $mission->building_id;
+                $buildingId = $mission->building_id;
 
-        // If no building assigned, try to find or create one from extracted_address
-        if (!$buildingId && $mission->extracted_address) {
-            $building = Building::where('address', $mission->extracted_address)->first();
-            if (!$building) {
-                $building = Building::create([
-                    'address' => $mission->extracted_address,
-                    'city' => 'Unknown',
-                    'syndic_id' => $mission->syndic_id,
-                ]);
-            }
-            $buildingId = $building->id;
-            $mission->update(['building_id' => $buildingId]);
-        }
-
-        if (!$buildingId) {
-            return response()->json([
-                'error' => 'Mission cannot be approved without an associated building. Please assign an address first.'
-            ], 422);
-        }
-
-        $mission->update(['status' => 'APPROVED']);
-
-        // Create an Intervention based on the mission
-        $intervention = Intervention::create([
-            'building_id' => $buildingId,
-            'syndic_id' => $mission->syndic_id,
-            'title' => $mission->title ?? 'Approved Mission',
-            'category' => $mission->category,
-            'sector' => $mission->sector,
-            'description' => $mission->description,
-            'urgency' => $mission->urgency,
-            'status' => 'PENDING',
-            'scheduled_date' => $request->scheduled_date ? Carbon::parse($request->scheduled_date) : null,
-            'on_site_contact_name' => $mission->on_site_contact_name,
-            'on_site_contact_phone' => $mission->on_site_contact_phone,
-            'on_site_contact_email' => $mission->on_site_contact_email,
-        ]);
-
-        // Copy documents from mission to intervention
-        foreach ($mission->documents as $doc) {
-            $intervention->documents()->create([
-                'file_path' => $doc->file_path,
-                'file_name' => $doc->file_name,
-                'file_type' => $doc->file_type,
-            ]);
-        }
-
-        // Notify Syndic about Approval
-        if ($mission->syndic_id) {
-            $syndic = User::find($mission->syndic_id);
-            if ($syndic) {
-                $title = "Mission Approved!";
-                $body = "Your mission '{$mission->title}' has been approved and turned into an intervention.";
-
-                if ($syndic->fcm_token) {
-                    $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                // 1. If no building assigned, try to find or create one from extracted_address
+                if (!$buildingId && $mission->extracted_address) {
+                    $building = Building::whereRaw('LOWER(address) = ?', [strtolower(trim($mission->extracted_address))])->first();
+                    if (!$building) {
+                        $building = Building::create([
+                            'address' => $mission->extracted_address,
+                            'city' => 'Unknown',
+                            'syndic_id' => $mission->syndic_id,
+                        ]);
+                    }
+                    $buildingId = $building->id;
+                    $mission->update(['building_id' => $buildingId]);
                 }
 
-                Notification::create([
-                    'user_id' => $syndic->id,
-                    'title' => $title,
-                    'body' => $body,
-                    'type' => 'intervention',
-                    'data' => ['intervention_id' => $intervention->id]
-                ]);
-            }
-        }
+                // 2. Validate we have a building now
+                if (!$buildingId) {
+                    return response()->json([
+                        'message' => 'Mission cannot be approved without an associated building. Please link it to a building or ensure an address is present first.'
+                    ], 422);
+                }
 
-        return response()->json([
-            'message' => 'Mission approved successfully',
-            'mission' => $mission,
-            'intervention' => $intervention->load('documents')
-        ]);
+                $mission->update(['status' => 'APPROVED']);
+
+                // 3. Create an Intervention based on the mission
+                $intervention = Intervention::create([
+                    'building_id' => $buildingId,
+                    'syndic_id' => $mission->syndic_id,
+                    'title' => $mission->title ?? 'Approved Mission',
+                    'category' => $mission->category ?? 'GENERAL',
+                    'sector' => $mission->sector ?? 'GENERAL',
+                    'description' => $mission->description ?? 'No description provided.',
+                    'urgency' => $mission->urgency ?? 'MEDIUM',
+                    'status' => 'PENDING',
+                    'scheduled_date' => ($request->scheduled_date && $request->scheduled_date !== 'null') ? Carbon::parse($request->scheduled_date) : null,
+                    'on_site_contact_name' => $mission->on_site_contact_name,
+                    'on_site_contact_phone' => $mission->on_site_contact_phone,
+                    'on_site_contact_email' => $mission->on_site_contact_email,
+                ]);
+
+                // 4. Copy documents from mission to intervention
+                foreach ($mission->documents as $doc) {
+                    $intervention->documents()->create([
+                        'file_path' => $doc->file_path,
+                        'file_name' => $doc->file_name,
+                        'file_type' => $doc->file_type,
+                    ]);
+                }
+
+                // 5. Notify Syndic about Approval
+                if ($mission->syndic_id) {
+                    // Attempt to find the user linked to this syndic company or using the ID directly
+                    $syndic = User::where('id', $mission->syndic_id)
+                                 ->orWhere('role', 'SYNDIC') // Fallback if needed, but not ideal
+                                 ->first();
+                    
+                    if ($syndic) {
+                        $title = "Mission Approved!";
+                        $body = "Your mission '{$mission->title}' has been approved.";
+
+                        if ($syndic->fcm_token) {
+                            try {
+                                $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                            } catch (\Exception $e) {}
+                        }
+
+                        Notification::create([
+                            'user_id' => $syndic->id,
+                            'title' => $title,
+                            'body' => $body,
+                            'type' => 'intervention',
+                            'data' => ['intervention_id' => $intervention->id]
+                        ]);
+                    }
+                }
+
+                return response()->json([
+                    'message' => 'Mission approved successfully',
+                    'mission' => $mission,
+                    'intervention' => $intervention->load('documents')
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to approve mission: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function rejectMission($id)

@@ -103,16 +103,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 2. Unauthenticated/Error: Move away from Dashboard/Splash to Onboarding
+      // 2. Unauthenticated: Move away from protected pages to Onboarding
       if (authState.status == AuthStatus.unauthenticated) {
-        if (!isAuthPage) {
+        if (!isAuthPage && !isSplashScreen) {
+          return '/onboarding';
+        }
+        // If we were on Splash and auto-login failed, go to onboarding
+        if (isSplashScreen && authState.isSplashDone) {
           return '/onboarding';
         }
       }
 
-      // If there's an error and we are on an auth page, stay there to show the error
-      if (authState.status == AuthStatus.error && !isAuthPage && !isSplashScreen) {
-        return '/login';
+      // 3. Error State: Move to login if we are stuck on splash or a protected page
+      if (authState.status == AuthStatus.error) {
+        if (isSplashScreen || !isAuthPage) {
+          return '/login';
+        }
       }
 
       return null;
