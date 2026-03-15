@@ -180,24 +180,39 @@ class InterventionController extends Controller
 
                 $buildingId = $mission->building_id;
 
-                // 1. If no building assigned, try to find or create one from extracted_address
+                // 1. If no building assigned, try to find one from extracted_address
                 if (!$buildingId && $mission->extracted_address) {
-                    $building = Building::whereRaw('LOWER(address) = ?', [strtolower(trim($mission->extracted_address))])->first();
-                    if (!$building) {
+                    $raw = $mission->extracted_address;
+                    $normalizedRaw = strtolower(preg_replace('/[^a-z0-9\s]/i', '', $raw));
+                    
+                    // Try normalized match against existing buildings
+                    $buildings = Building::all();
+                    foreach ($buildings as $b) {
+                        $normalizedExisting = strtolower(preg_replace('/[^a-z0-9\s]/i', '', $b->address));
+                        if ($normalizedExisting === $normalizedRaw || str_contains($normalizedExisting, $normalizedRaw) || str_contains($normalizedRaw, $normalizedExisting)) {
+                            $buildingId = $b->id;
+                            break;
+                        }
+                    }
+
+                    // If still no building found, create a new one
+                    if (!$buildingId) {
                         $building = Building::create([
-                            'address' => $mission->extracted_address,
+                            'address' => $raw,
                             'city' => 'Unknown',
                             'syndic_id' => $mission->syndic_id,
+                            'admin_note' => 'Automatically created during mission approval.',
                         ]);
+                        $buildingId = $building->id;
                     }
-                    $buildingId = $building->id;
+                    
                     $mission->update(['building_id' => $buildingId]);
                 }
 
                 // 2. Validate we have a building now
                 if (!$buildingId) {
                     return response()->json([
-                        'message' => 'Mission cannot be approved without an associated building. Please link it to a building or ensure an address is present first.'
+                        'message' => 'This mission is missing an address. Please assign a building to it before approving.'
                     ], 422);
                 }
 

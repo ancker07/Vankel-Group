@@ -19,7 +19,7 @@ class MissionModel extends Mission {
       id: json['id'].toString(),
       title: json['title'] as String? ?? 'No Title',
       description: json['description'] as String? ?? '',
-      address: json['building']?['address'] as String? ?? 'No Address',
+      address: json['building']?['address'] as String? ?? json['extracted_address'] as String? ?? 'No Address',
       status: _parseStatus(json['status'] as String?),
       urgency: _parseUrgency(json['urgency'] as String?),
       createdAt: json['created_at'] != null
@@ -73,6 +73,8 @@ class MissionModel extends Mission {
     switch (status?.toLowerCase()) {
       case 'pending':
         return MissionStatus.pending;
+      case 'needs_review':
+        return MissionStatus.needsReview;
       case 'approved':
         return MissionStatus.approved;
       case 'rejected':

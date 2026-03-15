@@ -129,6 +129,10 @@ class MissionDetailsScreen extends ConsumerWidget {
         statusColor = Colors.blue;
         statusIcon = Icons.done_all;
         break;
+      case MissionStatus.needsReview:
+        statusColor = Colors.orange;
+        statusIcon = Icons.report_problem_outlined;
+        break;
       default:
         statusColor = Colors.orange;
         statusIcon = Icons.pending;

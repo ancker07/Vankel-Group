@@ -599,6 +599,8 @@ class _MissionCard extends ConsumerWidget {
     switch (status) {
       case MissionStatus.pending:
         return AppTheme.brandOrange;
+      case MissionStatus.needsReview:
+        return Colors.amber;
       case MissionStatus.approved:
         return AppTheme.brandGreen;
       case MissionStatus.rejected:

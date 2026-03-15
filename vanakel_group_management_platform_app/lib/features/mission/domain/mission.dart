@@ -1,6 +1,6 @@
 import '../../intervention/domain/document.dart';
 
-enum MissionStatus { pending, approved, rejected, completed }
+enum MissionStatus { pending, approved, rejected, completed, needsReview }
 
 enum MissionUrgency { low, normal, urgent }
 
