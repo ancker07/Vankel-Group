@@ -163,12 +163,12 @@ class InterventionController extends Controller
 
     public function getInterventions()
     {
-        return response()->json(Intervention::with('documents')->get());
+        return response()->json(Intervention::with(['documents', 'building', 'professional', 'syndic'])->get());
     }
 
     public function getInterventionById($id)
     {
-        $intervention = Intervention::with('documents')->findOrFail($id);
+        $intervention = Intervention::with(['documents', 'building', 'professional', 'syndic'])->findOrFail($id);
         return response()->json($intervention);
     }
 

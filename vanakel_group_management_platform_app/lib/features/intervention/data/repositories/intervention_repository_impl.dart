@@ -126,4 +126,17 @@ class InterventionRepositoryImpl implements InterventionRepository {
       throw handleDioError(e);
     }
   }
+
+  @override
+  Future<String> improveNote(String text) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.improveNote,
+        data: {'text': text},
+      );
+      return response.data['improved_text'] ?? text;
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
 }

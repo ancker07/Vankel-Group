@@ -52,6 +52,10 @@ class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
   Future<void> refresh() async {
     ref.invalidateSelf();
   }
+
+  Future<String> improveNote(String text) async {
+    return ref.read(interventionRepositoryProvider).improveNote(text);
+  }
 }
 
 final interventionListProvider = AsyncNotifierProvider<InterventionListNotifier, List<Intervention>>(

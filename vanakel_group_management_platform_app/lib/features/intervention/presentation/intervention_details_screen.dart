@@ -21,8 +21,8 @@ class InterventionDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsScreen> {
-  bool _isEditing = false;
   bool _isSaving = false;
+  bool _isInitialized = false;
   late TextEditingController _adminNoteController;
   late TextEditingController _contactNameController;
   late TextEditingController _contactPhoneController;
@@ -37,6 +37,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
   DateTime? _localDelayedRescheduleDate;
   final List<XFile> _selectedImages = [];
   final ImagePicker _picker = ImagePicker();
+  bool _isImproving = false;
 
   @override
   void initState() {
@@ -57,17 +58,37 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
   }
 
   void _initializeControllers(Intervention intervention) {
-    _adminNoteController.text = intervention.adminFeedback ?? '';
+    if (_isInitialized) return;
+    
+    if (_adminNoteController.text.isEmpty) {
+      _adminNoteController.text = intervention.adminFeedback ?? '';
+    }
     _contactNameController.text = intervention.onSiteContactName ?? '';
     _contactPhoneController.text = intervention.onSiteContactPhone ?? '';
     _contactEmailController.text = intervention.onSiteContactEmail ?? '';
 
-    _localStatus = intervention.status;
-    _localSyndicId = intervention.syndicId;
-    _localProId = intervention.proId;
-    _localDelayReason = intervention.delayReason;
-    _localDelayDetails = intervention.delayDetails;
-    _localDelayedRescheduleDate = intervention.delayedRescheduleDate;
+    // Auto-fill logic from description if contact fields are empty after loading
+    if (_contactNameController.text.isEmpty && _contactPhoneController.text.isEmpty) {
+      final pattern = RegExp(r'(?:contact|sur place|contact sur place)\s*[:]\s*([^\d\n(]+)(?:\(([^)]+)\))?', caseSensitive: false);
+      final match = pattern.firstMatch(intervention.description);
+      if (match != null) {
+        String name = match.group(1)?.trim() ?? '';
+        name = name.replaceAll(RegExp(r'^(M\.|Mr\.|Mme\.|Mle\.)\s*', caseSensitive: false), '');
+        final phone = match.group(2)?.trim().replaceAll(RegExp(r'[^\d+]'), '') ?? '';
+        
+        if (name.isNotEmpty) _contactNameController.text = name;
+        if (phone.isNotEmpty) _contactPhoneController.text = phone;
+      }
+    }
+
+    _localStatus ??= intervention.status;
+    _localSyndicId ??= (intervention.syndicId ?? intervention.buildingSyndicId);
+    _localProId ??= intervention.proId;
+    _localDelayReason ??= intervention.delayReason;
+    _localDelayDetails ??= intervention.delayDetails;
+    _localDelayedRescheduleDate ??= intervention.delayedRescheduleDate;
+    
+    _isInitialized = true;
   }
 
   Future<void> _pickImage() async {
@@ -118,7 +139,6 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _isEditing = false;
           _selectedImages.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Intervention registered successfully')));
@@ -180,9 +200,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
       ),
       body: interventionAsync.when(
         data: (intervention) {
-          if (!_isEditing && _adminNoteController.text.isEmpty && intervention.adminFeedback != null) {
-            _initializeControllers(intervention);
-          }
+          _initializeControllers(intervention);
           return Column(
             children: [
               Expanded(
@@ -244,13 +262,100 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
             ],
           ),
           const SizedBox(height: 16),
+          const SizedBox(height: 16),
           _buildTextField('EMAIL (OPTIONAL)', _contactEmailController, hint: 'email@example.com'),
           const SizedBox(height: 24),
-          Text('SYNDIC / CUSTOMER INFO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
-          const SizedBox(height: 8),
+          const Text('SYNDIC / CUSTOMER INFO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+          const SizedBox(height: 12),
           _buildSyndicDropdown(),
+          _buildSyndicInfoCard(),
         ],
       ),
+    );
+  }
+
+  Widget _buildSyndicInfoCard() {
+    if (_localSyndicId == null) return const SizedBox.shrink();
+    
+    final syndicsAsync = ref.watch(syndicListProvider);
+    return syndicsAsync.when(
+      data: (syndics) {
+        final syndic = syndics.firstWhere(
+          (s) => s['id'].toString() == _localSyndicId,
+          orElse: () => null,
+        );
+        if (syndic == null) return const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.only(top: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.brandGreen.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.brandGreen.withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppTheme.brandGreen.withValues(alpha: 0.2)),
+                    ),
+                    child: const Icon(Icons.person_outline, size: 20, color: AppTheme.brandGreen),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('SYNDIC / MANAGER', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+                        const SizedBox(height: 2),
+                        Text(syndic['company_name'] ?? syndic['name'] ?? 'Unknown', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Colors.white)),
+                        if (syndic['contact_person'] != null)
+                          Text(syndic['contact_person'].toString().toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.zinc500, letterSpacing: 0.5)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (syndic['phone'] != null)
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.smartphone_outlined, size: 14, color: AppTheme.brandGreen),
+                          const SizedBox(width: 8),
+                          Text(syndic['phone'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.zinc300)),
+                        ],
+                      ),
+                    ),
+                  if (syndic['email'] != null)
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const Icon(Icons.mail_outline, size: 14, color: AppTheme.zinc500),
+                          const SizedBox(width: 8),
+                          Flexible(child: Text(syndic['email'], style: const TextStyle(fontSize: 11, color: AppTheme.zinc500), overflow: TextOverflow.ellipsis)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -288,7 +393,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
             isExpanded: true,
             dropdownColor: AppTheme.zinc950,
             style: const TextStyle(color: Colors.white, fontSize: 13),
-            items: syndics.map((s) => DropdownMenuItem(value: s['id'].toString(), child: Text(s['name'] ?? ''))).toList(),
+            items: syndics.map((s) => DropdownMenuItem(value: s['id'].toString(), child: Text(s['company_name'] ?? s['name'] ?? ''))).toList(),
             onChanged: (v) => setState(() => _localSyndicId = v),
           ),
         ),
@@ -345,7 +450,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              Text('INTERVENTION DESCRIPTION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+              const Text('TECHNICAL OBSERVATIONS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
               const SizedBox(width: 16),
               _buildSmallBtn(Icons.camera_alt_outlined, 'PHOTOS', _pickImage),
               const SizedBox(width: 8),
@@ -359,7 +464,14 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
         Container(
           height: 250,
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: AppTheme.zinc950, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.zinc800)),
+          decoration: BoxDecoration(
+            color: AppTheme.zinc950, 
+            borderRadius: BorderRadius.circular(16), 
+            border: Border.all(
+              color: _adminNoteController.text.isNotEmpty ? AppTheme.brandGreen.withValues(alpha: 0.3) : AppTheme.zinc800,
+              width: _adminNoteController.text.isNotEmpty ? 2 : 1,
+            )
+          ),
           child: TextField(
             controller: _adminNoteController,
             maxLines: null,
@@ -390,16 +502,41 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
 
   Widget _buildAIBtn() {
     return GestureDetector(
-      onTap: () {
-        if (_adminNoteController.text.isNotEmpty) {
-          _adminNoteController.text = "[AI IMPROVED] ${_adminNoteController.text}";
+      onTap: _isImproving ? null : () async {
+        if (_adminNoteController.text.isEmpty) return;
+        
+        setState(() => _isImproving = true);
+        try {
+          final improved = await ref.read(interventionListProvider.notifier).improveNote(_adminNoteController.text);
+          if (mounted) {
+            _adminNoteController.text = improved;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Note improved with AI'),
+                backgroundColor: AppTheme.brandGreen,
+                duration: Duration(seconds: 1),
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('AI Error: $e'), backgroundColor: Colors.red),
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _isImproving = false);
         }
       },
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.auto_awesome_outlined, size: 14, color: AppTheme.brandGreen),
-          SizedBox(width: 4),
-          Text('IMPROVE WITH AI', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)),
+          _isImproving 
+            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandGreen))
+            : const Icon(Icons.auto_awesome_outlined, size: 14, color: AppTheme.brandGreen),
+          const SizedBox(width: 4),
+          Text(_isImproving ? 'WORKING...' : 'IMPROVE WITH AI', 
+            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)
+          ),
         ],
       ),
     );
@@ -472,7 +609,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           const SizedBox(height: 20),
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppTheme.brandGreen.withOpacity(0.1), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline, size: 16, color: AppTheme.brandGreen)),
+              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppTheme.brandGreen.withValues(alpha: 0.1), shape: BoxShape.circle), child: const Icon(Icons.check_circle_outline, size: 16, color: AppTheme.brandGreen)),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,11 +636,16 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _isSaving ? null : () => _executeRegister(i.id),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.brandGreen, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), elevation: 0),
-            child: _isSaving
+            onPressed: (_isSaving || _isImproving) ? null : () => _executeRegister(i.id),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandGreen, 
+              foregroundColor: Colors.black, 
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), 
+              elevation: 0
+            ),
+            child: (_isSaving || _isImproving)
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.description_outlined, size: 18), SizedBox(width: 10), Text('REGISTER', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14))]),
+                : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.description_outlined, size: 18), SizedBox(width: 10), Text('REGISTER INTERVENTION', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14))]),
           ),
         ),
       ),
@@ -557,7 +699,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
-                          "${i.address}\n${i.city ?? ''}",
+                          i.address == 'No Address' ? 'Address not specified' : "${i.address}\n${i.city ?? ''}",
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                         ),
@@ -623,7 +765,7 @@ class _StatusBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isActive ? color.withOpacity(0.1) : Colors.transparent,
+          color: isActive ? color.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: isActive ? color : AppTheme.zinc800),
         ),

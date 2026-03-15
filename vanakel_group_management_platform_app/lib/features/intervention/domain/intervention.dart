@@ -12,6 +12,7 @@ class Intervention {
 
   // Building info
   final String? buildingId;
+  final String? buildingSyndicId;
   final String address; // building.address
   final String? city;   // building.city
 
@@ -48,6 +49,7 @@ class Intervention {
     required this.scheduledDate,
     required this.address,
     this.buildingId,
+    this.buildingSyndicId,
     this.city,
     this.syndicId,
     this.proId,
@@ -101,6 +103,7 @@ class Intervention {
       scheduledDate: scheduledDate ?? this.scheduledDate,
       address: address ?? this.address,
       buildingId: buildingId ?? this.buildingId,
+      buildingSyndicId: buildingSyndicId ?? this.buildingSyndicId,
       city: city ?? this.city,
       syndicId: syndicId ?? this.syndicId,
       proId: proId ?? this.proId,

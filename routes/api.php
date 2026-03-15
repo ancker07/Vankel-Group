@@ -26,6 +26,7 @@ Route::post('/emails/ingest-all', [EmailController::class, 'ingestAll']);
 
 Route::get('/settings/ai', [SettingController::class, 'getAiSettings']);
 Route::post('/settings/ai', [SettingController::class, 'updateAiSettings']);
+Route::post('/ai/improve', [SettingController::class, 'improveNote']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/send-otp', [AuthController::class, 'sendOtp']);

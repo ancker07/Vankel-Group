@@ -10,4 +10,5 @@ abstract class InterventionRepository {
   Future<List<dynamic>> getBuildings();
   Future<List<dynamic>> getSyndics();
   Future<List<dynamic>> getProfessionals();
+  Future<String> improveNote(String text);
 }

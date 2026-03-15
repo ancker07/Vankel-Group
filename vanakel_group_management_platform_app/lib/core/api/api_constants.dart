@@ -32,6 +32,9 @@ class ApiConstants {
   static const String missions = '/missions';
   static const String approveMission = '/missions/{id}/approve';
   static const String rejectMission = '/missions/{id}/reject';
+  
+  // AI Endpoints
+  static const String improveNote = '/ai/improve';
 
   static String getStorageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
