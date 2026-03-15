@@ -10,6 +10,8 @@ class MissionModel extends Mission {
     required super.status,
     required super.urgency,
     required super.createdAt,
+    super.buildingId,
+    super.sector,
     super.isAiDetected = false,
     super.documents = const [],
   });
@@ -25,6 +27,8 @@ class MissionModel extends Mission {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
+      buildingId: json['building_id']?.toString() ?? json['buildingId']?.toString(),
+      sector: json['sector'] as String?,
       isAiDetected:
           json['is_ai_detected'] == 1 || json['is_ai_detected'] == true,
       documents:
@@ -108,6 +112,8 @@ class MissionModel extends Mission {
       status: status,
       urgency: urgency,
       createdAt: createdAt,
+      buildingId: buildingId,
+      sector: sector,
       isAiDetected: isAiDetected,
       documents: documents,
     );

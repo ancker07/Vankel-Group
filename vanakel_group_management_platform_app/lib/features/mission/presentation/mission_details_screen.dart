@@ -49,21 +49,21 @@ class MissionDetailsScreen extends ConsumerWidget {
                 _buildDocumentsSection(mission, context),
               ],
               const SizedBox(height: 32),
-              // Only show approve/reject buttons for non-syndic users with pending missions
-              if (mission.status == MissionStatus.pending &&
-                  authState.user?.role != UserRole.syndic) ...[
+              // Action Buttons for Admin
+              if (authState.user?.role == UserRole.admin &&
+                  (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview)) ...[
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: Approve mission
-                    },
+                    onPressed: () => _handleApprove(context, ref, mission),
                     icon: const Icon(Icons.check),
                     label: const Text('Approve Mission'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandGreen,
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),
@@ -71,15 +71,14 @@ class MissionDetailsScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Reject mission
-                    },
+                    onPressed: () => _handleReject(context, ref, mission),
                     icon: const Icon(Icons.close),
                     label: const Text('Reject Mission'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ),

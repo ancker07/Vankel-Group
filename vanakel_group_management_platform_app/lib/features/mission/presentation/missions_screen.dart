@@ -7,102 +7,563 @@ import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
 import 'providers/mission_list_provider.dart';
 
-class MissionsScreen extends ConsumerWidget {
+class MissionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
 
   const MissionsScreen({super.key, required this.isAdmin});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MissionsScreen> createState() => _MissionsScreenState();
+}
+
+class _MissionsScreenState extends ConsumerState<MissionsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  MissionStatus? _selectedStatus;
+  MissionUrgency? _selectedUrgency;
+  String? _selectedSector;
+  String? _selectedBuildingId;
+  DateTime? _selectedDate;
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final missionsAsync = ref.watch(missionListProvider);
 
-    return missionsAsync.when(
-        data: (missions) {
-          final displayMissions = isAdmin
-              ? missions
-                  .where((m) => m.status == MissionStatus.pending)
-                  .toList()
-              : missions;
+    return Column(
+      children: [
+        _buildFilterBar(missionsAsync.value ?? []),
+        Expanded(
+          child: missionsAsync.when(
+            data: (missions) {
+              final filteredMissions = missions.where((m) {
+                final matchesSearch = m.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                    m.description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                    m.address.toLowerCase().contains(_searchQuery.toLowerCase());
+                
+                final matchesStatus = _selectedStatus == null || m.status == _selectedStatus;
+                final matchesUrgency = _selectedUrgency == null || m.urgency == _selectedUrgency;
+                final matchesSector = _selectedSector == null || m.sector == _selectedSector;
+                final matchesBuilding = _selectedBuildingId == null || m.buildingId == _selectedBuildingId;
+                
+                final missionDate = DateTime(m.createdAt.year, m.createdAt.month, m.createdAt.day);
+                final matchesDate = _selectedDate == null || missionDate.isAtSameMomentAs(_selectedDate!);
+                
+                // If admin, they usually only see pending/needsReview in the main inbox, 
+                // but let's allow them to see filtered results if they choose a status.
+                if (widget.isAdmin && _selectedStatus == null && _selectedSector == null && _selectedBuildingId == null && _selectedDate == null && _selectedUrgency == null) {
+                   if (m.status != MissionStatus.pending && m.status != MissionStatus.needsReview && _searchQuery.isEmpty) return false;
+                }
 
-          return displayMissions.isEmpty
-              ? Center(
+                return matchesSearch && matchesStatus && matchesUrgency && matchesSector && matchesBuilding && matchesDate;
+              }).toList();
+
+              if (filteredMissions.isEmpty) {
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
                         padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppTheme.zinc900,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.check_circle_outline,
+                          _hasActiveFilters()
+                              ? Icons.search_off
+                              : Icons.check_circle_outline,
                           size: 48,
                           color: AppTheme.brandGreen,
                         ),
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        isAdmin ? l10n.allCaughtUp : l10n.noRequestsYet,
+                        _hasActiveFilters()
+                            ? 'No missions match your filters'
+                            : (widget.isAdmin ? l10n.allCaughtUp : l10n.noRequestsYet),
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Enjoy your productive day!',
-                        style: TextStyle(color: AppTheme.zinc500, fontSize: 14),
-                      ),
+                      if (_hasActiveFilters())
+                        TextButton(
+                          onPressed: _clearFilters,
+                          child: const Text('Clear Filters', style: TextStyle(color: AppTheme.brandGreen)),
+                        ),
                     ],
                   ).animate().fadeIn().scale(),
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(missionListProvider.notifier).refresh(),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: displayMissions.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 16),
-                    itemBuilder: (context, index) {
-                      final mission = displayMissions[index];
-                      return _MissionCard(mission: mission, isAdmin: isAdmin);
-                    },
-                  ),
                 );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => ref.read(missionListProvider.notifier).refresh(),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredMissions.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final mission = filteredMissions[index];
+                    return _MissionCard(mission: mission, isAdmin: widget.isAdmin);
+                  },
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text('Error: ${error.toString()}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.read(missionListProvider.notifier).refresh(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool _hasActiveFilters() {
+    return _searchQuery.isNotEmpty || 
+           _selectedStatus != null || 
+           _selectedUrgency != null || 
+           _selectedSector != null || 
+           _selectedBuildingId != null || 
+           _selectedDate != null;
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _searchController.clear();
+      _searchQuery = '';
+      _selectedStatus = null;
+      _selectedUrgency = null;
+      _selectedSector = null;
+      _selectedBuildingId = null;
+      _selectedDate = null;
+    });
+  }
+
+  Widget _buildFilterBar(List<Mission> missions) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      color: AppTheme.zinc950,
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            onChanged: (value) => setState(() => _searchQuery = value),
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Search missions...',
+              hintStyle: TextStyle(color: AppTheme.zinc500),
+              prefixIcon: const Icon(Icons.search, color: AppTheme.zinc500),
+              filled: true,
+              fillColor: AppTheme.zinc900,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _FilterChip(
+                  label: _selectedUrgency?.name.toUpperCase() ?? 'Urgency',
+                  icon: Icons.priority_high,
+                  isSelected: _selectedUrgency != null,
+                  onSelected: () => _showUrgencyPicker(),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
+                  label: _selectedStatus?.name.toUpperCase() ?? 'Status',
+                  icon: Icons.info_outline,
+                  isSelected: _selectedStatus != null,
+                  onSelected: () => _showStatusPicker(),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
+                  label: _selectedSector ?? 'Sector',
+                  icon: Icons.category_outlined,
+                  isSelected: _selectedSector != null,
+                  onSelected: () => _showSectorPicker(missions),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
+                  label: _selectedBuildingId != null 
+                    ? (missions.firstWhere((m) => m.buildingId == _selectedBuildingId, orElse: () => missions.first).address)
+                    : 'Building',
+                  icon: Icons.business_outlined,
+                  isSelected: _selectedBuildingId != null,
+                  onSelected: () => _showBuildingPicker(missions),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
+                  label: _selectedDate != null 
+                    ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+                    : 'Date',
+                  icon: Icons.calendar_today_outlined,
+                  isSelected: _selectedDate != null,
+                  onSelected: () => _showDatePicker(context),
+                ),
+                if (_hasActiveFilters())
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: IconButton(
+                      onPressed: _clearFilters,
+                      icon: const Icon(Icons.refresh, color: AppTheme.brandOrange, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUrgencyPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.zinc950,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Filter by Urgency', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text('All urgencies', style: TextStyle(color: Colors.white)),
+                      onTap: () {
+                        setState(() => _selectedUrgency = null);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ...MissionUrgency.values.map((u) => ListTile(
+                      title: Text(u.name.toUpperCase(), style: const TextStyle(color: Colors.white)),
+                      onTap: () {
+                        setState(() => _selectedUrgency = u);
+                        Navigator.pop(context);
+                      },
+                    )),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showStatusPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.zinc950,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Filter by Status', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text('All statuses', style: TextStyle(color: Colors.white)),
+                      onTap: () {
+                        setState(() => _selectedStatus = null);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ...MissionStatus.values.map((s) => ListTile(
+                      title: Text(s.name.toUpperCase(), style: const TextStyle(color: Colors.white)),
+                      onTap: () {
+                        setState(() => _selectedStatus = s);
+                        Navigator.pop(context);
+                      },
+                    )),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSectorPicker(List<Mission> missions) {
+    final sectors = missions.map((m) => m.sector).whereType<String>().toSet().toList();
+    sectors.sort();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.zinc950,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Filter by Sector', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: const Text('All sectors', style: TextStyle(color: Colors.white)),
+                      onTap: () {
+                        setState(() => _selectedSector = null);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    if (sectors.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('No sectors available', style: TextStyle(color: AppTheme.zinc500)),
+                      )
+                    else
+                      ...sectors.map((s) => ListTile(
+                        title: Text(s, style: const TextStyle(color: Colors.white)),
+                        onTap: () {
+                          setState(() => _selectedSector = s);
+                          Navigator.pop(context);
+                        },
+                      )),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showBuildingPicker(List<Mission> missions) {
+    final buildingIds = missions.map((m) => m.buildingId).whereType<String>().toSet().toList();
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.zinc950,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.4,
+        minChildSize: 0.2,
+        maxChildSize: 0.75,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text('Error: ${error.toString()}'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () =>
-                    ref.read(missionListProvider.notifier).refresh(),
-                child: const Text('Retry'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Filter by Building', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                title: const Text('All buildings', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  setState(() => _selectedBuildingId = null);
+                  Navigator.pop(context);
+                },
+              ),
+              Expanded(
+                child: buildingIds.isEmpty
+                  ? const Center(
+                      child: Text('No buildings available', style: TextStyle(color: AppTheme.zinc500)),
+                    )
+                  : ListView.builder(
+                      controller: scrollController,
+                      itemCount: buildingIds.length,
+                      itemBuilder: (context, index) {
+                        final id = buildingIds[index];
+                        final address = missions.firstWhere((m) => m.buildingId == id).address;
+                        return ListTile(
+                          title: Text(address, style: const TextStyle(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          onTap: () {
+                            setState(() => _selectedBuildingId = id);
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showDatePicker(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppTheme.brandGreen,
+              onPrimary: Colors.black,
+              surface: AppTheme.zinc900,
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = DateTime(picked.year, picked.month, picked.day);
+      });
+    }
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onSelected;
+
+  const _FilterChip({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onSelected,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.brandGreen.withOpacity(0.1) : AppTheme.zinc900,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppTheme.brandGreen : AppTheme.zinc800,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: isSelected ? AppTheme.brandGreen : AppTheme.zinc500),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.zinc400,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down, size: 14, color: AppTheme.brandGreen),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _MissionCard extends ConsumerWidget {
+class _MissionCard extends ConsumerStatefulWidget {
   final Mission mission;
   final bool isAdmin;
 
   const _MissionCard({required this.mission, required this.isAdmin});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final statusColor = _getStatusColor(mission.status);
+  ConsumerState<_MissionCard> createState() => _MissionCardState();
+}
+
+class _MissionCardState extends ConsumerState<_MissionCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = _getStatusColor(widget.mission.status);
 
     return Container(
       decoration: BoxDecoration(
@@ -121,17 +582,17 @@ class _MissionCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         child: InkWell(
           onTap: () {
-            if (isAdmin) {
-              context.push('/admin/missions/details/${mission.id}');
+            if (widget.isAdmin) {
+              context.push('/admin/missions/details/${widget.mission.id}');
             } else {
-              context.push('/syndic/missions/details/${mission.id}');
+              context.push('/syndic/missions/details/${widget.mission.id}');
             }
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Top Banner for Source/AI
-              if (mission.isAiDetected)
+              if (widget.mission.isAiDetected)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
@@ -162,15 +623,15 @@ class _MissionCard extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildBadge(
-                          mission.status.name.toUpperCase(),
+                          widget.mission.status.name.toUpperCase(),
                           statusColor,
                         ),
-                        _buildUrgencyBadge(mission.urgency),
+                        _buildUrgencyBadge(widget.mission.urgency),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      mission.title,
+                      widget.mission.title,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -185,7 +646,7 @@ class _MissionCard extends ConsumerWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            mission.address,
+                            widget.mission.address,
                             style: TextStyle(
                               fontSize: 13,
                               color: AppTheme.zinc500,
@@ -196,15 +657,65 @@ class _MissionCard extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      mission.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.zinc400,
-                        height: 1.5,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final hasLongDescription = widget.mission.description.length > 60;
+                        return GestureDetector(
+                          onTap: () {
+                            if (hasLongDescription) {
+                              setState(() => _isExpanded = !_isExpanded);
+                            }
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.zinc900.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppTheme.zinc800.withOpacity(0.5)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.mission.description,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppTheme.zinc400,
+                                    height: 1.6,
+                                  ),
+                                  maxLines: _isExpanded ? null : 2,
+                                  overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                                ),
+                                if (hasLongDescription) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        _isExpanded ? 'Show less' : 'Read more',
+                                        style: const TextStyle(
+                                          color: AppTheme.brandGreen,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(
+                                        _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                        size: 14,
+                                        color: AppTheme.brandGreen,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -215,7 +726,7 @@ class _MissionCard extends ConsumerWidget {
                             const Icon(Icons.calendar_today_outlined, size: 12, color: AppTheme.zinc500),
                             const SizedBox(width: 6),
                             Text(
-                              _formatDate(mission.createdAt),
+                              _formatDate(widget.mission.createdAt),
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: AppTheme.zinc500,
@@ -224,9 +735,9 @@ class _MissionCard extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        if (isAdmin && mission.status == MissionStatus.pending)
-                          Row(
-                            children: [
+                        Row(
+                          children: [
+                            if (widget.isAdmin && (widget.mission.status == MissionStatus.pending || widget.mission.status == MissionStatus.needsReview)) ...[
                               _buildActionButton(
                                 context,
                                 ref,
@@ -242,24 +753,47 @@ class _MissionCard extends ConsumerWidget {
                                 Colors.red,
                                 () => _handleReject(context, ref),
                               ),
+                              const SizedBox(width: 12),
                             ],
-                          )
-                        else if (isAdmin)
-                          Row(
-                            children: [
-                              Text(
-                                'REVIEW',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.brandGreen.withOpacity(0.8),
-                                  letterSpacing: 1,
+                            // Global Details Button
+                            ElevatedButton(
+                              onPressed: () {
+                                if (widget.isAdmin) {
+                                  context.push('/admin/missions/details/${widget.mission.id}');
+                                } else {
+                                  context.push('/syndic/missions/details/${widget.mission.id}');
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.zinc900,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(color: AppTheme.zinc800),
                                 ),
+                                elevation: 0,
                               ),
-                              const SizedBox(width: 4),
-                              Icon(Icons.arrow_forward_ios, size: 10, color: AppTheme.brandGreen.withOpacity(0.8)),
-                            ],
-                          ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'DETAILS',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.arrow_forward_ios, size: 10),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ],
@@ -293,14 +827,14 @@ class _MissionCard extends ConsumerWidget {
       context: context,
       title: 'Approve Mission',
       content: 'Are you sure you want to approve this mission and turn it into an intervention?',
-      mission: mission,
+      mission: widget.mission,
       isApprove: true,
     );
 
     if (result != null && result['confirmed'] == true) {
       try {
         await ref.read(missionListProvider.notifier).approveMission(
-              mission.id,
+              widget.mission.id,
               scheduledDate: result['date'],
             );
         if (context.mounted) {
@@ -323,13 +857,13 @@ class _MissionCard extends ConsumerWidget {
       context: context,
       title: 'Reject Mission',
       content: 'Are you sure you want to reject this mission?',
-      mission: mission,
+      mission: widget.mission,
       isApprove: false,
     );
 
     if (result != null && result['confirmed'] == true) {
       try {
-        await ref.read(missionListProvider.notifier).rejectMission(mission.id);
+        await ref.read(missionListProvider.notifier).rejectMission(widget.mission.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Mission rejected'), backgroundColor: Colors.red),
