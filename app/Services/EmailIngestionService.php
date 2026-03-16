@@ -114,14 +114,28 @@ class EmailIngestionService
 
                 $mission = null;
                 if ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW') {
+                    $title_fr = $missionData['title']['fr'] ?? (is_string($missionData['title'] ?? null) ? $missionData['title'] : $email->subject);
+                    $title_en = $missionData['title']['en'] ?? $title_fr;
+                    $title_nl = $missionData['title']['nl'] ?? $title_fr;
+
+                    $desc_fr = $missionData['description']['fr'] ?? (is_string($missionData['description'] ?? null) ? $missionData['description'] : $email->body_text);
+                    $desc_en = $missionData['description']['en'] ?? $desc_fr;
+                    $desc_nl = $missionData['description']['nl'] ?? $desc_fr;
+
                     $mission = Mission::create([
                         'building_id' => $building ? $building->id : null,
                         'syndic_id' => $syndicId,
                         'extracted_syndic_name' => $extractedSyndicName,
                         'extracted_address' => $building ? null : $rawAddress,
                         'requested_by' => 'SYNDIC',
-                        'title' => $missionData['title'] ?? $email->subject,
-                        'description' => $missionData['description'] ?? $email->body_text,
+                        'title' => $title_fr,
+                        'title_en' => $title_en,
+                        'title_fr' => $title_fr,
+                        'title_nl' => $title_nl,
+                        'description' => $desc_fr,
+                        'description_en' => $desc_en,
+                        'description_fr' => $desc_fr,
+                        'description_nl' => $desc_nl,
                         'sector' => $missionData['sector'] ?? 'GENERAL',
                         'urgency' => $missionData['urgency'] ?? 'MEDIUM',
                         'status' => ($aiData['classification'] === 'MISSION' && $building) ? 'PENDING' : 'NEEDS_REVIEW',

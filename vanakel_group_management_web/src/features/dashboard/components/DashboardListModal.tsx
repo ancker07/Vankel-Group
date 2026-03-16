@@ -58,6 +58,12 @@ const DashboardListModal: React.FC<DashboardListModalProps> = ({
     return r ? r[lang as keyof typeof r] : reasonKey;
   };
 
+  const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+      if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+      if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+      return obj[`${field}_fr`] || obj[field];
+  };
+
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
@@ -110,7 +116,7 @@ const DashboardListModal: React.FC<DashboardListModalProps> = ({
                         {getStatusBadge(item)}
                         <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide truncate max-w-[150px]">{item.category}</span>
                       </div>
-                      <h4 className="text-sm font-bold text-white truncate">{item.title}{'interventionNumber' in item && item.interventionNumber ? ` – ${item.interventionNumber}` : ''}</h4>
+                      <h4 className="text-sm font-bold text-white truncate">{getLocalizedField(item, 'title')}{'interventionNumber' in item && item.interventionNumber ? ` – ${item.interventionNumber}` : ''}</h4>
 
                       {/* Delay Reason Display */}
                       {isIntervention && (item as Intervention).status === 'DELAYED' && (item as Intervention).delayReason && (

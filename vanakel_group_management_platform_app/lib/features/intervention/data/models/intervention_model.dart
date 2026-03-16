@@ -5,7 +5,13 @@ class InterventionModel extends Intervention {
   const InterventionModel({
     required super.id,
     required super.title,
+    super.titleEn,
+    super.titleFr,
+    super.titleNl,
     required super.description,
+    super.descriptionEn,
+    super.descriptionFr,
+    super.descriptionNl,
     required super.status,
     required super.scheduledDate,
     required super.address,
@@ -56,7 +62,13 @@ class InterventionModel extends Intervention {
     return InterventionModel(
       id: json['id'].toString(),
       title: json['title'] as String? ?? 'No Title',
+      titleEn: json['title_en'] as String?,
+      titleFr: json['title_fr'] as String?,
+      titleNl: json['title_nl'] as String?,
       description: json['description'] as String? ?? '',
+      descriptionEn: json['description_en'] as String?,
+      descriptionFr: json['description_fr'] as String?,
+      descriptionNl: json['description_nl'] as String?,
       status: _parseStatus(json['status'] as String?),
       // Backend uses 'scheduled_date', not 'scheduled_at'
       scheduledDate: json['scheduled_date'] != null

@@ -7,7 +7,13 @@ enum MissionUrgency { low, normal, urgent }
 class Mission {
   final String id;
   final String title;
+  final String? titleEn;
+  final String? titleFr;
+  final String? titleNl;
   final String description;
+  final String? descriptionEn;
+  final String? descriptionFr;
+  final String? descriptionNl;
   final String address;
   final MissionStatus status;
   final MissionUrgency urgency;
@@ -23,7 +29,13 @@ class Mission {
   const Mission({
     required this.id,
     required this.title,
+    this.titleEn,
+    this.titleFr,
+    this.titleNl,
     required this.description,
+    this.descriptionEn,
+    this.descriptionFr,
+    this.descriptionNl,
     required this.address,
     required this.status,
     required this.urgency,
@@ -40,7 +52,13 @@ class Mission {
   Mission copyWith({
     String? id,
     String? title,
+    String? titleEn,
+    String? titleFr,
+    String? titleNl,
     String? description,
+    String? descriptionEn,
+    String? descriptionFr,
+    String? descriptionNl,
     String? address,
     MissionStatus? status,
     MissionUrgency? urgency,
@@ -55,7 +73,13 @@ class Mission {
     return Mission(
       id: id ?? this.id,
       title: title ?? this.title,
+      titleEn: titleEn ?? this.titleEn,
+      titleFr: titleFr ?? this.titleFr,
+      titleNl: titleNl ?? this.titleNl,
       description: description ?? this.description,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
+      descriptionFr: descriptionFr ?? this.descriptionFr,
+      descriptionNl: descriptionNl ?? this.descriptionNl,
       address: address ?? this.address,
       status: status ?? this.status,
       urgency: urgency ?? this.urgency,

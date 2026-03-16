@@ -17,8 +17,15 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
     allInterventions,
     onCreateIntervention,
     onSelectIntervention,
+    lang,
     t
 }) => {
+    const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+        if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+        if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+        return obj[`${field}_fr`] || obj[field];
+    };
+
     return (
         <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto pb-12 px-4 md:px-0">
             <div className="flex justify-between items-end mb-4">
@@ -70,7 +77,7 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
                                         <Wrench size={20} className="text-zinc-500 group-hover:text-brand-green transition-colors" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h4 className="font-bold text-white text-sm md:text-base truncate leading-tight">{int.title}</h4>
+                                        <h4 className="font-bold text-white text-sm md:text-base truncate leading-tight">{getLocalizedField(int, 'title')}</h4>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="text-[10px] md:text-xs text-zinc-500 font-mono truncate max-w-[150px] md:max-w-none">
                                                 {new Date(int.createdAt || int.scheduledDate || '').toLocaleDateString()}

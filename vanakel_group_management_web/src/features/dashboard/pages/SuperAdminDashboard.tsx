@@ -55,6 +55,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
     lang
 }) => {
     const t = TRANSLATIONS[lang];
+    const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+        if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+        if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+        return obj[`${field}_fr`] || obj[field];
+    };
+
     const [activeTab, setActiveTab] = useState<'requests' | 'admins' | 'all_users' | 'history' | 'emails'>('requests');
     const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
     const [emails, setEmails] = useState<Email[]>([]);
@@ -510,7 +516,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                         return (
                                                             <tr key={entry.id} className="hover:bg-zinc-900/30 transition-colors group">
                                                                 <td className="px-8 py-5">
-                                                                    <span className="font-bold text-white block truncate max-w-[200px]">{entry.title || 'Untitled'}</span>
+                                                                    <span className="font-bold text-white block truncate max-w-[200px]">{getLocalizedField(entry, 'title') || 'Untitled'}</span>
                                                                     <span className="text-[9px] text-zinc-600 font-mono uppercase tracking-tighter">ID: {entry.id}</span>
                                                                 </td>
                                                                 <td className="px-8 py-5">
@@ -559,7 +565,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                                                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border mb-1.5 inline-block uppercase tracking-widest ${entry.entryType === 'INTERVENTION' ? 'bg-blue-500/10 text-blue-400 border-blue-400/20' : 'bg-brand-green/10 text-brand-green border-brand-green/20'}`}>
                                                                 {entry.entryType}
                                                             </span>
-                                                            <h4 className="font-bold text-white text-base truncate">{entry.title || 'Untitled'}</h4>
+                                                            <h4 className="font-bold text-white text-base truncate">{getLocalizedField(entry, 'title') || 'Untitled'}</h4>
                                                         </div>
                                                         <span className={`text-[9px] font-black uppercase tracking-tight ${entry.status === 'COMPLETED' || entry.status === 'APPROVED' ? 'text-brand-green' : entry.status === 'REJECTED' || entry.status === 'DELAYED' ? 'text-red-400' : 'text-orange-400'}`}>
                                                             {entry.status}

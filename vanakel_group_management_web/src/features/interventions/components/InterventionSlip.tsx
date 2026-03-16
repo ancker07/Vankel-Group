@@ -114,6 +114,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
+  const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+      if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+      if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+      return obj[`${field}_fr`] || obj[field];
+  };
+
   // Sync internal status with prop if it changes from outside
   useEffect(() => {
     setStatus(intervention.status);
@@ -345,10 +351,10 @@ const InterventionSlip: React.FC<SlipProps> = ({
     // Use i18n keys for template
     const body = encodeURIComponent(
       `*** ${t.ticketHeader.toUpperCase()} ***\n\n` +
-      `${t.email_template_title}: ${intervention.title}\n` +
+      `${t.email_template_title}: ${getLocalizedField(intervention, 'title')}\n` +
       `${t.email_template_status}: ${status}\n` +
       `${t.address.toUpperCase()}: ${building.address}, ${building.city}\n\n` +
-      `${t.email_template_desc}:\n${intervention.description}\n\n` +
+      `${t.email_template_desc}:\n${getLocalizedField(intervention, 'description')}\n\n` +
       `${t.email_template_contact}:\n` +
       `Name: ${contactName || 'N/A'}\n` +
       `Phone: ${contactPhone || 'N/A'}\n\n` +
@@ -387,10 +393,10 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
     const text = encodeURIComponent(
       `*VANAKEL GROUP - ${t.ticketHeader.toUpperCase()}*\n\n` +
-      `*${t.email_template_title}:* ${currentInt.title}\n` +
+      `*${t.email_template_title}:* ${getLocalizedField(currentInt, 'title')}\n` +
       `*${t.building_header}:* ${building.address}\n` +
       `*${t.status}:* ${status}\n\n` +
-      `*${t.description}:* ${currentInt.description}\n` +
+      `*${t.description}:* ${getLocalizedField(currentInt, 'description')}\n` +
       `*${t.adminNote}:* ${adminNote || 'N/A'}\n` +
       (status === 'DELAYED' ? `\n*${t.status_delayed}:* ${reasonLabel}\n` : '') +
       (status === 'DELAYED' && delayedDate ? `*${t.email_template_new_date}:* ${new Date(delayedDate).toLocaleDateString()}\n` : '') +
@@ -410,7 +416,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         <div className="flex flex-col items-center flex-1 min-w-0 px-4">
           <h2 className="text-xs md:text-sm font-black uppercase tracking-[0.2em] text-brand-green truncate w-full text-center">{t.ticketHeader}</h2>
           <h3 className="text-sm md:text-lg font-bold text-white truncate w-full text-center">
-            {intervention.title}{intervention.interventionNumber ? ` – ${intervention.interventionNumber}` : ''}
+            {getLocalizedField(intervention, 'title')}{intervention.interventionNumber ? ` – ${intervention.interventionNumber}` : ''}
           </h3>
         </div>
         <div className="flex items-center gap-2">
@@ -669,7 +675,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 mb-6">
           <h4 className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-4">{t.description}</h4>
           {/* Replaced raw description with formatted component */}
-          <FormattedExtractedContent text={intervention.description} />
+          <FormattedExtractedContent text={getLocalizedField(intervention, 'description')} />
         </div>
 
         {/* Original Attachments Display prominently below description */}

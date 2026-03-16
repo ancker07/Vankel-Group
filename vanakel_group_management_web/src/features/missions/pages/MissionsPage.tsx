@@ -59,6 +59,12 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const approvedMissions = filteredMissions.filter(m => m.status === 'APPROVED');
     const rejectedMissions = filteredMissions.filter(m => m.status === 'REJECTED');
 
+    const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+        if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+        if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+        return obj[`${field}_fr`] || obj[field];
+    };
+
     const renderMissionList = (list: Mission[], emptyMsg: string) => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {list.length === 0 ? (
@@ -112,7 +118,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     </div>
 
                                     <div className="pr-12">
-                                        <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={m.title || t.mission_request}>{m.title || t.mission_request}</h4>
+                                        <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(m, 'title') || t.mission_request}>{getLocalizedField(m, 'title') || t.mission_request}</h4>
                                         <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
                                             <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
                                             <span className="truncate drop-shadow-md">{b?.address || 'Standalone Request'}</span>
@@ -145,7 +151,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                             className={`text-sm text-zinc-400 leading-relaxed mb-4 cursor-pointer hover:text-zinc-300 transition-colors ${expandedDescIds[m.id] ? '' : 'line-clamp-2'}`}
                                             title={expandedDescIds[m.id] ? "Click to collapse" : "Click to expand"}
                                         >
-                                            {m.description}
+                                            {getLocalizedField(m, 'description')}
                                         </p>
 
                                         {/* Email Source Banner */}

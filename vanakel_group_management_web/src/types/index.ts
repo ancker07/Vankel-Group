@@ -93,9 +93,15 @@ export interface Intervention {
   id: string;
   buildingId: string;
   title: string; // Mandatory title
+  title_en?: string;
+  title_fr?: string;
+  title_nl?: string;
   category: string; // Legacy category field, kept for compatibility but UI should favor sector
   sector: Sector; // New mandatory sector field
   description: string; // Mandatory technical description
+  description_en?: string;
+  description_fr?: string;
+  description_nl?: string;
   scheduledDate: string;
   createdAt?: string; // New field for tracking creation time
   status: InterventionStatus;
@@ -166,11 +172,17 @@ export interface Mission {
   buildingId: string;
   requestedBy: Role;
   title?: string; // Optional title for missions
+  title_en?: string;
+  title_fr?: string;
+  title_nl?: string;
   proId?: string;
   syndicId?: string;
   category: string;
   sector: Sector; // Mandatory
   description: string;
+  description_en?: string;
+  description_fr?: string;
+  description_nl?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   timestamp: string;
 

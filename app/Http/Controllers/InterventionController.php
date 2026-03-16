@@ -17,10 +17,12 @@ use Carbon\Carbon;
 class InterventionController extends Controller
 {
     protected $pushNotificationService;
+    protected $aiService;
 
-    public function __construct(PushNotificationService $pushNotificationService)
+    public function __construct(PushNotificationService $pushNotificationService, \App\Services\AiService $aiService)
     {
         $this->pushNotificationService = $pushNotificationService;
+        $this->aiService = $aiService;
     }
 
     public function store(Request $request)
@@ -54,6 +56,8 @@ class InterventionController extends Controller
         $entity = null;
         $type = $request->input('type', ($validated['role'] === 'SYNDIC' ? 'mission' : 'intervention'));
 
+        $translations = $this->aiService->translateToFill($validated['title'], $validated['description']);
+
         if ($type === 'mission') {
             $entity = Mission::create([
                 'building_id' => $building->id,
@@ -61,6 +65,12 @@ class InterventionController extends Controller
                 'requested_by' => $validated['role'],
                 'title' => $validated['title'],
                 'description' => $validated['description'],
+                'title_en' => $translations['title']['en'] ?? $validated['title'],
+                'title_fr' => $translations['title']['fr'] ?? $validated['title'],
+                'title_nl' => $translations['title']['nl'] ?? $validated['title'],
+                'description_en' => $translations['description']['en'] ?? $validated['description'],
+                'description_fr' => $translations['description']['fr'] ?? $validated['description'],
+                'description_nl' => $translations['description']['nl'] ?? $validated['description'],
                 'urgency' => $validated['urgency'],
                 'status' => 'PENDING',
                 'category' => $validated['sector'] ?? 'GENERAL',
@@ -99,6 +109,12 @@ class InterventionController extends Controller
                 'pro_id' => $request->pro_id ?? null,
                 'title' => $validated['title'],
                 'description' => $validated['description'],
+                'title_en' => $translations['title']['en'] ?? $validated['title'],
+                'title_fr' => $translations['title']['fr'] ?? $validated['title'],
+                'title_nl' => $translations['title']['nl'] ?? $validated['title'],
+                'description_en' => $translations['description']['en'] ?? $validated['description'],
+                'description_fr' => $translations['description']['fr'] ?? $validated['description'],
+                'description_nl' => $translations['description']['nl'] ?? $validated['description'],
                 'urgency' => $validated['urgency'],
                 'status' => $validated['status'] ?? 'PENDING',
                 'category' => $validated['sector'] ?? 'GENERAL',
@@ -271,9 +287,15 @@ class InterventionController extends Controller
                     'building_id' => $buildingId,
                     'syndic_id' => $mission->syndic_id,
                     'title' => $mission->title ?? 'Approved Mission',
+                    'title_en' => $mission->title_en,
+                    'title_fr' => $mission->title_fr,
+                    'title_nl' => $mission->title_nl,
+                    'description' => $mission->description ?? 'No description provided.',
+                    'description_en' => $mission->description_en,
+                    'description_fr' => $mission->description_fr,
+                    'description_nl' => $mission->description_nl,
                     'category' => $mission->category ?? 'GENERAL',
                     'sector' => $mission->sector ?? 'GENERAL',
-                    'description' => $mission->description ?? 'No description provided.',
                     'urgency' => $mission->urgency ?? 'MEDIUM',
                     'status' => 'PENDING',
                     'scheduled_date' => ($request->scheduled_date && $request->scheduled_date !== 'null') ? Carbon::parse($request->scheduled_date) : null,

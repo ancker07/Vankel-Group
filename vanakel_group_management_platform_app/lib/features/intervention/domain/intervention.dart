@@ -19,7 +19,13 @@ extension InterventionStatusX on InterventionStatus {
 class Intervention {
   final String id;
   final String title;
+  final String? titleEn;
+  final String? titleFr;
+  final String? titleNl;
   final String description;
+  final String? descriptionEn;
+  final String? descriptionFr;
+  final String? descriptionNl;
   final InterventionStatus status;
   final DateTime scheduledDate;
 
@@ -59,7 +65,13 @@ class Intervention {
   const Intervention({
     required this.id,
     required this.title,
+    this.titleEn,
+    this.titleFr,
+    this.titleNl,
     required this.description,
+    this.descriptionEn,
+    this.descriptionFr,
+    this.descriptionNl,
     required this.status,
     required this.scheduledDate,
     required this.address,
@@ -90,7 +102,13 @@ class Intervention {
   Intervention copyWith({
     String? id,
     String? title,
+    String? titleEn,
+    String? titleFr,
+    String? titleNl,
     String? description,
+    String? descriptionEn,
+    String? descriptionFr,
+    String? descriptionNl,
     InterventionStatus? status,
     DateTime? scheduledDate,
     String? address,
@@ -117,7 +135,13 @@ class Intervention {
     return Intervention(
       id: id ?? this.id,
       title: title ?? this.title,
+      titleEn: titleEn ?? this.titleEn,
+      titleFr: titleFr ?? this.titleFr,
+      titleNl: titleNl ?? this.titleNl,
       description: description ?? this.description,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
+      descriptionFr: descriptionFr ?? this.descriptionFr,
+      descriptionNl: descriptionNl ?? this.descriptionNl,
       status: status ?? this.status,
       scheduledDate: scheduledDate ?? this.scheduledDate,
       address: address ?? this.address,

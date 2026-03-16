@@ -47,6 +47,12 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
 
     const ongoingItems = filteredInterventions.filter(i => i.status === 'PENDING');
 
+    const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+        if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+        if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+        return obj[`${field}_fr`] || obj[field];
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-12">
             <div className="flex justify-between items-center bg-zinc-950 p-6 rounded-3xl border border-zinc-900 shadow-xl mb-8">
@@ -204,7 +210,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                         </div>
 
                                         <div className="pr-12">
-                                            <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={i.title}>{i.title}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
+                                            <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(i, 'title')}>{getLocalizedField(i, 'title')}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
                                             <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
                                                 <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
                                                 <span className="truncate drop-shadow-md" title={b?.address}>{b?.address}, {b?.city}</span>
@@ -225,7 +231,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                 </div>
 
                                 <div className="p-5 flex-1 flex flex-col relative z-10 bg-zinc-950">
-                                    <p className="text-xs text-zinc-400 mb-4 line-clamp-3 min-h-[48px] leading-relaxed">{i.description}</p>
+                                    <p className="text-xs text-zinc-400 mb-4 line-clamp-3 min-h-[48px] leading-relaxed">{getLocalizedField(i, 'description')}</p>
 
                                     {i.documents && i.documents.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4">

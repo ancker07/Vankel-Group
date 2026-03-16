@@ -34,6 +34,12 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
 
     const urgencyInfo = mission.urgency ? (URGENCY.find(u => u.id === mission.urgency) || URGENCY[0]) : null;
 
+    const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+        if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+        if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+        return obj[`${field}_fr`] || obj[field];
+    };
+
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-zinc-950 border-t md:border border-zinc-800 w-full max-w-4xl h-[95dvh] md:h-auto md:max-h-[90dvh] rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col relative overflow-hidden">
@@ -68,7 +74,7 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                 </span>
                             )}
                         </div>
-                        <h2 className="text-xl md:text-2xl font-black text-white leading-tight truncate">{mission.title || t.mission_request}</h2>
+                        <h2 className="text-xl md:text-2xl font-black text-white leading-tight truncate">{getLocalizedField(mission, 'title') || t.mission_request}</h2>
                     </div>
                 </div>
 
@@ -85,7 +91,7 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                     <FileText size={14} className="text-brand-green" /> {t.description}
                                 </h3>
                                 <div className="bg-zinc-900/50 rounded-2xl p-5 border border-zinc-800">
-                                    <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{mission.description}</p>
+                                    <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{getLocalizedField(mission, 'description')}</p>
                                 </div>
                             </section>
 

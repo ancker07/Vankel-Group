@@ -114,6 +114,63 @@ class AiService
         return $data;
     }
 
+    /**
+     * Translates manual inputs into the required EN, FR, and NL structure.
+     */
+    public function translateToFill(string $title, string $description)
+    {
+        $prompt = <<<PROMPT
+You are a professional translator for a building management system.
+Translate the provided title and technical description into Dutch and English. 
+The input should be considered the primary language (often French, but detect if it's Dutch/English).
+
+Return a valid JSON object with EXACTLY this structure:
+{
+  "title": {
+    "en": "Translated title in English",
+    "fr": "Translated title in French",
+    "nl": "Translated title in Dutch"
+  },
+  "description": {
+    "en": "Translated description in English",
+    "fr": "Translated description in French",
+    "nl": "Translated description in Dutch"
+  }
+}
+
+Title Payload:
+{$title}
+
+Description Payload:
+{$description}
+PROMPT;
+
+        $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini-1.5-flash-latest';
+        $apiKey = Setting::where('key', 'ai_api_key')->value('value');
+        
+        if (!$apiKey) {
+            // Fallback strategy if AI is offline: use the same string for all languages.
+            return [
+                'title' => ['en' => $title, 'fr' => $title, 'nl' => $title],
+                'description' => ['en' => $description, 'fr' => $description, 'nl' => $description]
+            ];
+        }
+
+        try {
+            if (str_contains($model, 'gpt')) {
+                return $this->callOpenAi($prompt, [], $model, $apiKey);
+            } else {
+                return $this->callGemini($prompt, [], $model, $apiKey);
+            }
+        } catch (\Exception $e) {
+            Log::error("Translation AI Error: " . $e->getMessage());
+            return [
+                'title' => ['en' => $title, 'fr' => $title, 'nl' => $title],
+                'description' => ['en' => $description, 'fr' => $description, 'nl' => $description]
+            ];
+        }
+    }
+
     protected function getSystemPrompt()
     {
         return <<<PROMPT
@@ -146,8 +203,16 @@ Your task is to extract ALL mission-critical details from the email content AND 
   "confidence": 0.0-1.0,
   "reasons": ["short reason why"],
   "mission": {
-    "title": "Short descriptive title (e.g., 'Clogged Sewer at Brusselbaan 98')",
-    "description": "Full technical description combining email body + attachment content",
+    "title": {
+      "en": "Short descriptive title in English",
+      "fr": "Short descriptive title in French",
+      "nl": "Short descriptive title in Dutch"
+    },
+    "description": {
+      "en": "Full technical description in English",
+      "fr": "Full technical description in French",
+      "nl": "Full technical description in Dutch"
+    },
     "sector": "ELECTRICITE | CARRELAGE | SANITAIRE | CHAUFFAGE | PLOMBERIE | PEINTURE | MENUISERIE | GENERAL | AUTRE",
     "urgency": "LOW | MEDIUM | HIGH | CRITICAL",
     "reference": "Reference number if found",

@@ -21,6 +21,12 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
   const [filterSearch, setFilterSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(20);
 
+  const getLocalizedField = (obj: any, field: 'title' | 'description') => {
+      if (lang === 'EN') return obj[`${field}_en`] || obj[field];
+      if (lang === 'NL') return obj[`${field}_nl`] || obj[field];
+      return obj[`${field}_fr`] || obj[field];
+  };
+
   // Sorting: Newest createdAt first, fallback to scheduledDate
   const sortedInterventions = useMemo(() => {
     return [...interventions].sort((a, b) => {
@@ -42,7 +48,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
       const b = buildings.find(build => build.id === i.buildingId);
       const searchLower = filterSearch.toLowerCase();
       const matchesSearch =
-        i.title.toLowerCase().includes(searchLower) ||
+        getLocalizedField(i, 'title')?.toLowerCase().includes(searchLower) ||
         (i.id && i.id.toLowerCase().includes(searchLower)) ||
         (b?.address.toLowerCase().includes(searchLower)) ||
         (b?.city.toLowerCase().includes(searchLower));
@@ -156,7 +162,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                       </div>
 
                       <div className="pr-10">
-                        <h4 className="font-bold text-sm text-white truncate drop-shadow-md" title={slip.title}>{slip.title}</h4>
+                        <h4 className="font-bold text-sm text-white truncate drop-shadow-md" title={getLocalizedField(slip, 'title')}>{getLocalizedField(slip, 'title')}</h4>
                       </div>
                     </div>
 
@@ -245,7 +251,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                   {/* Desktop Row */}
                   <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-4 items-center">
                     <div className="col-span-2 text-xs font-mono text-zinc-500 truncate">{item.id}</div>
-                    <div className="col-span-3 font-bold text-white text-sm truncate pr-4" title={item.title}>{item.title}</div>
+                    <div className="col-span-3 font-bold text-white text-sm truncate pr-4" title={getLocalizedField(item, 'title')}>{getLocalizedField(item, 'title')}</div>
                     <div className="col-span-3 text-xs text-zinc-400">
                       <div className="flex items-center gap-2 group/addr">
                         <div className="min-w-0">
@@ -293,7 +299,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                     <div className="flex justify-between items-start">
                       <div>
                         <span className="text-[10px] font-mono text-zinc-500 block mb-1">{item.id}</span>
-                        <h4 className="font-bold text-white text-sm">{item.title}</h4>
+                        <h4 className="font-bold text-white text-sm">{getLocalizedField(item, 'title')}</h4>
                       </div>
                       <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${item.status === 'DELAYED' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
                         {item.status === 'DELAYED' ? (
