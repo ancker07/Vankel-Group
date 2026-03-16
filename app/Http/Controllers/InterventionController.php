@@ -152,7 +152,7 @@ class InterventionController extends Controller
 
     public function getMissions()
     {
-        return response()->json(Mission::with(['documents', 'email', 'building'])->latest()->get());
+        return response()->json(Mission::with(['documents', 'email', 'building', 'syndic'])->latest()->get());
     }
 
     public function getMissionById($id)

@@ -651,7 +651,7 @@ class _InterventionCard extends StatelessWidget {
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  intervention.syndicName ?? 'UNASSIGNED',
+                                  intervention.syndicName ?? 'No Syndic',
                                   style: TextStyle(fontSize: 11, color: AppTheme.zinc500, fontWeight: FontWeight.bold),
                                   overflow: TextOverflow.ellipsis,
                                 ),

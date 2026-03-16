@@ -14,6 +14,8 @@ class Mission {
   final DateTime createdAt;
   final bool isAiDetected;
   final String? buildingId;
+  final String? syndicId;
+  final String? syndicName;
   final String? sector;
   final List<Document> documents;
 
@@ -26,6 +28,8 @@ class Mission {
     required this.urgency,
     required this.createdAt,
     this.buildingId,
+    this.syndicId,
+    this.syndicName,
     this.sector,
     this.isAiDetected = false,
     this.documents = const [],
@@ -41,6 +45,8 @@ class Mission {
     DateTime? createdAt,
     bool? isAiDetected,
     String? buildingId,
+    String? syndicId,
+    String? syndicName,
     String? sector,
   }) {
     return Mission(
@@ -53,6 +59,8 @@ class Mission {
       createdAt: createdAt ?? this.createdAt,
       isAiDetected: isAiDetected ?? this.isAiDetected,
       buildingId: buildingId ?? this.buildingId,
+      syndicId: syndicId ?? this.syndicId,
+      syndicName: syndicName ?? this.syndicName,
       sector: sector ?? this.sector,
     );
   }

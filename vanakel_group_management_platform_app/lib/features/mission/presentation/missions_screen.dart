@@ -811,20 +811,47 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today_outlined, size: 12, color: AppTheme.zinc500),
-                            const SizedBox(width: 6),
-                            Text(
-                              _formatDate(widget.mission.createdAt),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppTheme.zinc500,
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.shield_outlined, size: 14, color: AppTheme.zinc500),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      widget.mission.syndicName ?? 'No Syndic',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppTheme.zinc500,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.calendar_today_outlined, size: 12, color: AppTheme.zinc500),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _formatDate(widget.mission.createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppTheme.zinc500,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                         Row(
                           children: [
