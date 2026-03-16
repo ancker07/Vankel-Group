@@ -8,6 +8,7 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/auth/presentation/otp_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/dashboard/admin_dashboard/admin_dashboard.dart';
 import '../../features/dashboard/syndic_dashboard/syndic_dashboard.dart';
@@ -50,10 +51,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoginPage = state.uri.path == '/login';
       final isRegisterPage = state.uri.path == '/register';
       final isForgotPasswordPage = state.uri.path == '/forgot-password';
+      final isOtpPage = state.uri.path == '/otp';
       final isWaitingApprovalPage = state.uri.path == '/waiting-approval';
 
       final isAuthPage =
-          isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage;
+          isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage || isOtpPage;
 
       // 0. Splash State: Only force Splash Screen if we are in the initial state 
       // AND not already authenticated (to avoid loops during refreshes)
@@ -130,6 +132,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
+      // 4. OTP State: Move to OTP page if we are awaiting verification
+      if (authState.status == AuthStatus.awaitingOtp) {
+        if (!isOtpPage) {
+          return '/otp';
+        }
+      }
+
       return null;
     },
     routes: [
@@ -153,6 +162,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/otp',
+        builder: (context, state) => const OtpScreen(),
+      ),
       GoRoute(
         path: '/waiting-approval',
         builder: (context, state) => const WaitingApprovalScreen(),

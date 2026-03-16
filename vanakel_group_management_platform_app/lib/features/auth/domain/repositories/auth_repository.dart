@@ -4,7 +4,7 @@ abstract class AuthRepository {
   Future<User> login(String email, String password, String role);
   Future<User> signup(Map<String, dynamic> userData);
   Future<void> sendOtp(String email);
-  Future<User> verifyOtp(String email, String otp);
+  Future<User> verifyOtp(String email, String otp, {Map<String, dynamic>? extraData});
   Future<User?> checkStatus(String email);
   Future<User> updateProfile(Map<String, dynamic> updateData);
   Future<User> getProfile(String email);

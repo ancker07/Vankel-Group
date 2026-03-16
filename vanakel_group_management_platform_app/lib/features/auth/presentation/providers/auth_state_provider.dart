@@ -11,6 +11,7 @@ enum AuthStatus {
   authenticated,
   unauthenticated,
   error,
+  awaitingOtp,
 }
 
 class AuthState {
@@ -18,12 +19,14 @@ class AuthState {
   final User? user;
   final String? errorMessage;
   final bool isSplashDone;
+  final Map<String, dynamic>? pendingUserData;
 
   AuthState({
     this.status = AuthStatus.initial,
     this.user,
     this.errorMessage,
     this.isSplashDone = false,
+    this.pendingUserData,
   });
 
   AuthState copyWith({
@@ -31,12 +34,14 @@ class AuthState {
     User? user,
     String? errorMessage,
     bool? isSplashDone,
+    Map<String, dynamic>? pendingUserData,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       errorMessage: errorMessage ?? this.errorMessage,
       isSplashDone: isSplashDone ?? this.isSplashDone,
+      pendingUserData: pendingUserData ?? this.pendingUserData,
     );
   }
 }
@@ -137,11 +142,20 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(status: AuthStatus.authenticating, errorMessage: null);
     try {
       final user = await _repository.signup(userData);
-      // Repository implementation already saves token and email
-      state = state.copyWith(status: AuthStatus.authenticated, user: user);
       
-      // Refresh profile to get accurate isApproved status
-      await getProfile();
+      // If the backend didn't return a "real" user (id -1), it means OTP is pending
+      if (user.id == -1) {
+        state = state.copyWith(
+          status: AuthStatus.awaitingOtp, 
+          user: user,
+          pendingUserData: userData,
+        );
+      } else {
+        // Repository implementation already saves token and email
+        state = state.copyWith(status: AuthStatus.authenticated, user: user);
+        // Refresh profile to get accurate isApproved status
+        await getProfile();
+      }
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,
@@ -150,12 +164,31 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<void> verifyOtp(String email, String otp) async {
+  Future<void> verifyOtp(String otp) async {
+    if (state.user == null) return;
+    
     state = state.copyWith(status: AuthStatus.authenticating, errorMessage: null);
     try {
-      final user = await _repository.verifyOtp(email, otp);
-      // Repository implementation already saves token and email
-      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+      final email = state.user!.email;
+      
+      // Merge pending user data with verifyOtp call if needed
+      // Actually AuthController.php verifyOtp takes firstName, lastName etc.
+      // We should send the full data from pendingUserData
+      final signupData = Map<String, dynamic>.from(state.pendingUserData ?? {});
+      signupData['otp'] = otp;
+      
+      // Re-use current implementation or update it
+      // The current repo verifyOtp takes (email, otp)
+      // We need it to take the full registration details as per AuthController.php:94
+      
+      final user = await _repository.verifyOtp(
+        email, 
+        otp, 
+        extraData: state.pendingUserData,
+      );
+      
+      // If the backend verifyOtp handles the full creation, we are good.
+      state = state.copyWith(status: AuthStatus.authenticated, user: user, pendingUserData: null);
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,

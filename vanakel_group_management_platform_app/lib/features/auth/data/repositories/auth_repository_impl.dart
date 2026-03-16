@@ -101,11 +101,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<User> verifyOtp(String email, String otp) async {
+  Future<User> verifyOtp(String email, String otp, {Map<String, dynamic>? extraData}) async {
     try {
+      final data = {
+        'email': email,
+        'otp': otp,
+        if (extraData != null) ...extraData,
+      };
+      
       final response = await _dio.post(
         ApiConstants.verifyOtp,
-        data: {'email': email, 'otp': otp},
+        data: data,
       );
 
       final token = response.data['token'];
