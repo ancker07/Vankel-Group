@@ -98,7 +98,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
     }
   }
 
-  Future<void> _executeRegister(String id) async {
+  Future<void> _executeRegister(String id, {String mode = 'NONE'}) async {
     setState(() => _isSaving = true);
     try {
       final formData = dio.FormData();
@@ -107,6 +107,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
         MapEntry('on_site_contact_name', _contactNameController.text),
         MapEntry('on_site_contact_phone', _contactPhoneController.text),
         MapEntry('on_site_contact_email', _contactEmailController.text),
+        MapEntry('save_mode', mode),
       ]);
 
       if (_localStatus != null) {
@@ -141,12 +142,13 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           _isSaving = false;
           _selectedImages.clear();
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Intervention registered successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Intervention registered successfully'), backgroundColor: AppTheme.brandGreen));
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -192,6 +194,15 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           error: (_, __) => const Text('ERROR'),
         ),
         actions: [
+          interventionAsync.when(
+            data: (i) => IconButton(
+              icon: const Icon(Icons.rotate_left, color: AppTheme.brandOrange),
+              tooltip: 'MAINTENANCE',
+              onPressed: () => _showMaintenanceModal(context, i),
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: AppTheme.zinc400),
             onPressed: () => ref.invalidate(interventionDetailProvider(widget.interventionId)),
@@ -455,8 +466,6 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
               _buildSmallBtn(Icons.camera_alt_outlined, 'PHOTOS', _pickImage),
               const SizedBox(width: 8),
               _buildSmallBtn(Icons.upload_file_outlined, 'DOCUMENTS', () {}),
-              const SizedBox(width: 8),
-              _buildAIBtn(),
             ],
           ),
         ),
@@ -475,8 +484,36 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           child: TextField(
             controller: _adminNoteController,
             maxLines: null,
+            minLines: null,
+            expands: true,
+            textAlignVertical: TextAlignVertical.top,
             style: const TextStyle(color: Colors.white, fontSize: 16),
-            decoration: const InputDecoration(hintText: 'Technical feedback or observations...', hintStyle: TextStyle(color: AppTheme.zinc500, fontSize: 16), border: InputBorder.none),
+            decoration: const InputDecoration(
+              hintText: 'Technical feedback or observations...', 
+              hintStyle: TextStyle(color: AppTheme.zinc500, fontSize: 16), 
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: Column(
+            children: [
+              _buildAIBtn(),
+              const SizedBox(height: 8),
+              const Text(
+                'IMPROVE WITH AI',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.brandGreen,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -528,16 +565,39 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           if (mounted) setState(() => _isImproving = false);
         }
       },
-      child: Row(
-        children: [
-          _isImproving 
-            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandGreen))
-            : const Icon(Icons.auto_awesome_outlined, size: 14, color: AppTheme.brandGreen),
-          const SizedBox(width: 4),
-          Text(_isImproving ? 'WORKING...' : 'IMPROVE WITH AI', 
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: _isImproving ? AppTheme.brandGreen.withValues(alpha: 0.1) : AppTheme.zinc900,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: _isImproving ? AppTheme.brandGreen : AppTheme.zinc800,
+            width: 2,
           ),
-        ],
+          boxShadow: [
+            if (_isImproving)
+              BoxShadow(
+                color: AppTheme.brandGreen.withValues(alpha: 0.3),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+          ],
+        ),
+        child: _isImproving 
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppTheme.brandGreen,
+              ),
+            )
+          : const Icon(
+              Icons.auto_awesome_outlined,
+              size: 24,
+              color: AppTheme.brandGreen,
+            ),
       ),
     );
   }
@@ -636,7 +696,7 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: (_isSaving || _isImproving) ? null : () => _executeRegister(i.id),
+            onPressed: (_isSaving || _isImproving) ? null : () => _showRegisterOptionsModal(context, i),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandGreen, 
               foregroundColor: Colors.black, 
@@ -727,6 +787,366 @@ class _InterventionDetailsScreenState extends ConsumerState<InterventionDetailsS
                 ),
               ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showMaintenanceModal(BuildContext context, Intervention i) async {
+    final titleController = TextEditingController(text: i.title);
+    final descController = TextEditingController(text: i.description);
+    DateTime startDate = DateTime.now();
+    String frequency = 'YEARLY';
+    bool isSubmitting = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: AppTheme.zinc950,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppTheme.zinc800)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'CREATE MAINTENANCE PLAN',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.brandOrange,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppTheme.zinc500),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Form
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildModalField('MAINTENANCE TITLE', titleController),
+                      const SizedBox(height: 20),
+                      
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('START DATE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500)),
+                                const SizedBox(height: 8),
+                                InkWell(
+                                  onTap: () async {
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: startDate,
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                                    );
+                                    if (picked != null) {
+                                      setModalState(() => startDate = picked);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.zinc900,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: AppTheme.zinc800),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.calendar_today, size: 16, color: AppTheme.brandOrange),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          DateFormat('MMM d, yyyy').format(startDate),
+                                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('FREQUENCY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500)),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.zinc900,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppTheme.zinc800),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: frequency,
+                                      isExpanded: true,
+                                      dropdownColor: AppTheme.zinc900,
+                                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                      items: const [
+                                        DropdownMenuItem(value: 'YEARLY', child: Text('YEARLY')),
+                                        DropdownMenuItem(value: 'QUARTERLY', child: Text('QUARTERLY')),
+                                        DropdownMenuItem(value: 'MONTHLY', child: Text('MONTHLY')),
+                                      ],
+                                      onChanged: (v) => setModalState(() => frequency = v!),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      _buildModalField('DESCRIPTION', descController, maxLines: 4),
+                      
+                      const SizedBox(height: 32),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandOrange.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.brandOrange.withValues(alpha: 0.1)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline, color: AppTheme.brandOrange, size: 20),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'Interventions will be created automatically for the next 5 years.',
+                                style: TextStyle(color: AppTheme.zinc400, fontSize: 11, height: 1.4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Footer
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: AppTheme.zinc800)),
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: isSubmitting ? null : () async {
+                      if (titleController.text.isEmpty) return;
+                      
+                      setModalState(() => isSubmitting = true);
+                      try {
+                        final endDate = DateTime(startDate.year + 5, startDate.month, startDate.day);
+                        
+                        await ref.read(interventionListProvider.notifier).createMaintenancePlan({
+                          'building_id': i.buildingId,
+                          'title': titleController.text,
+                          'description': descController.text,
+                          'syndic_id': i.syndicId ?? i.buildingSyndicId,
+                          'recurrence': {
+                            'frequency': frequency,
+                            'interval': 1,
+                            'start_date': startDate.toIso8601String(),
+                            'end_date': endDate.toIso8601String(),
+                          }
+                        });
+                        
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Maintenance plan created successfully'),
+                              backgroundColor: AppTheme.brandGreen,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setModalState(() => isSubmitting = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.brandOrange,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('CONFIRM PLAN', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRegisterOptionsModal(BuildContext context, Intervention i) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: AppTheme.zinc950,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: AppTheme.zinc800,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Text(
+              'SAVE RECORD',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'CHOOSE SAVE MODE',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.zinc500,
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildOptionBtn(
+              icon: Icons.save_outlined,
+              label: 'SAVE ONLY',
+              onTap: () {
+                Navigator.pop(context);
+                _executeRegister(i.id, mode: 'NONE');
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildOptionBtn(
+              icon: Icons.mail_outline,
+              label: 'SAVE & SEND EMAIL',
+              onTap: () {
+                Navigator.pop(context);
+                _executeRegister(i.id, mode: 'EMAIL');
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildOptionBtn(
+              icon: Icons.chat_outlined,
+              label: 'SAVE & SEND WHATSAPP',
+              onTap: () {
+                Navigator.pop(context);
+                _executeRegister(i.id, mode: 'WHATSAPP');
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionBtn({required IconData icon, required String label, required VoidCallback onTap}) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          side: const BorderSide(color: AppTheme.zinc800),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: AppTheme.zinc900.withValues(alpha: 0.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: Colors.white70),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalField(String label, TextEditingController controller, {int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: AppTheme.zinc900,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.zinc800),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+            decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(vertical: 12)),
           ),
         ),
       ],

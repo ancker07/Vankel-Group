@@ -56,6 +56,10 @@ class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
   Future<String> improveNote(String text) async {
     return ref.read(interventionRepositoryProvider).improveNote(text);
   }
+
+  Future<void> createMaintenancePlan(Map<String, dynamic> data) async {
+    return ref.read(interventionRepositoryProvider).createMaintenancePlan(data);
+  }
 }
 
 final interventionListProvider = AsyncNotifierProvider<InterventionListNotifier, List<Intervention>>(

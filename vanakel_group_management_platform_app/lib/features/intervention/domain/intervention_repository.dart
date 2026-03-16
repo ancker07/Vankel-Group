@@ -11,4 +11,5 @@ abstract class InterventionRepository {
   Future<List<dynamic>> getSyndics();
   Future<List<dynamic>> getProfessionals();
   Future<String> improveNote(String text);
+  Future<void> createMaintenancePlan(Map<String, dynamic> data);
 }

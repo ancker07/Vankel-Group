@@ -139,4 +139,13 @@ class InterventionRepositoryImpl implements InterventionRepository {
       throw handleDioError(e);
     }
   }
+
+  @override
+  Future<void> createMaintenancePlan(Map<String, dynamic> data) async {
+    try {
+      await _dio.post('/maintenance-plans', data: data);
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
 }
