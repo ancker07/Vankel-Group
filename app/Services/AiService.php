@@ -128,7 +128,7 @@ Your task is to extract ALL mission-critical details from the email content AND 
 - If there is a conflict between email body and attachment, **TRUST THE ATTACHMENT** (it's the formal document).
 
 ### DATA EXTRACTION PRIORITIES (from attachments AND email body):
-1. **Syndic / Manager Name**: Look for "Syndic:", "Expéditeur:", "Gestionnaire:", "Manager:" in both email body and attachments. This is the property management company requesting the intervention.
+1. **Syndic / Manager Name**: Look for "Syndic:", "Expéditeur:", "Gestionnaire:", "Manager:" in both email body and attachments. Extract this separately for the body and for each attachment.
 2. **Address**: Look for "Adresse d'intervention:", "Adresse:", address tables, or Belgian format addresses (street + number, postal code + city).
 3. **Contact Person**: Look for "Personne de contact:", "Contact sur place:", or names near phone numbers.
 4. **Phone / GSM**: Look for "Numéro de GSM:", "GSM:", "Tél:", phone numbers starting with 04xx or +32.
@@ -163,7 +163,8 @@ Your task is to extract ALL mission-critical details from the email content AND 
       "phone": "Phone/GSM number",
       "email": "Email if found"
     },
-    "syndicName": "Name of the syndic/manager company (e.g., 'Shopysyndic'). Extract from BOTH email body AND attachments.",
+    "syndicFromBody": "Name of the syndic/manager company extracted specifically from the email body.",
+    "syndicFromAttachments": "Name of the syndic/manager company extracted specifically from the attached documents. If multiple documents have different names, prioritize the most recent or formal looking one.",
     "senderEmail": "Email sender address"
   },
   "extractionWarnings": ["any issues encountered during extraction"]

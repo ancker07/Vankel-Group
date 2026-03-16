@@ -232,6 +232,7 @@ class InterventionController extends Controller
                     'on_site_contact_name' => $mission->on_site_contact_name,
                     'on_site_contact_phone' => $mission->on_site_contact_phone,
                     'on_site_contact_email' => $mission->on_site_contact_email,
+                    'extracted_syndic_name' => $mission->extracted_syndic_name,
                 ]);
 
                 // 4. Copy documents from mission to intervention

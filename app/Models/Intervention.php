@@ -8,6 +8,8 @@ class Intervention extends Model
 {
     //
     protected $guarded = [];
+    
+    protected $appends = ['extractedSyndicName'];
 
     public function building()
     {
@@ -32,6 +34,11 @@ class Intervention extends Model
     public function maintenancePlan()
     {
         return $this->belongsTo(MaintenancePlan::class);
+    }
+
+    public function getExtractedSyndicNameAttribute()
+    {
+        return $this->attributes['extracted_syndic_name'] ?? null;
     }
 }
 

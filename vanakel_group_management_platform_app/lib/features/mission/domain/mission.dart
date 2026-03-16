@@ -16,6 +16,7 @@ class Mission {
   final String? buildingId;
   final String? syndicId;
   final String? syndicName;
+  final String? extractedSyndicName;
   final String? sector;
   final List<Document> documents;
 
@@ -30,6 +31,7 @@ class Mission {
     this.buildingId,
     this.syndicId,
     this.syndicName,
+    this.extractedSyndicName,
     this.sector,
     this.isAiDetected = false,
     this.documents = const [],
@@ -47,6 +49,7 @@ class Mission {
     String? buildingId,
     String? syndicId,
     String? syndicName,
+    String? extractedSyndicName,
     String? sector,
   }) {
     return Mission(
@@ -61,6 +64,7 @@ class Mission {
       buildingId: buildingId ?? this.buildingId,
       syndicId: syndicId ?? this.syndicId,
       syndicName: syndicName ?? this.syndicName,
+      extractedSyndicName: extractedSyndicName ?? this.extractedSyndicName,
       sector: sector ?? this.sector,
     );
   }

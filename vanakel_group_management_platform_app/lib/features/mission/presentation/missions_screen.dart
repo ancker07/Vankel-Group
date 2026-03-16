@@ -823,7 +823,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      widget.mission.syndicName ?? 'No Syndic',
+                                      widget.mission.syndicName ?? widget.mission.extractedSyndicName ?? 'No Syndic',
                                       style: const TextStyle(
                                         fontSize: 11,
                                         color: AppTheme.zinc500,

@@ -9,7 +9,7 @@ class Mission extends Model
     //
     protected $guarded = [];
 
-    protected $appends = ['source_details', 'timestamp', 'buildingId', 'syndicId'];
+    protected $appends = ['source_details', 'timestamp', 'buildingId', 'syndicId', 'extractedSyndicName'];
 
     public function documents()
     {
@@ -49,6 +49,11 @@ class Mission extends Model
     public function getSyndicIdAttribute()
     {
         return $this->attributes['syndic_id'] ?? null;
+    }
+
+    public function getExtractedSyndicNameAttribute()
+    {
+        return $this->attributes['extracted_syndic_name'] ?? null;
     }
 
     public function getSourceDetailsAttribute()

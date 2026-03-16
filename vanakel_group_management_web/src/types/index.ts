@@ -194,6 +194,7 @@ export interface Mission {
   // Intervention Number (e.g. OS-123)
   interventionNumber?: string;
   urgency?: Urgency;
+  extractedSyndicName?: string;
   documents: Document[];
 }
 

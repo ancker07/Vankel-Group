@@ -84,9 +84,19 @@ class EmailIngestionService
                      $aiData['classification'] = 'NEEDS_REVIEW';
                 }
 
-                // ========= SYNDIC MATCHING =========
+                // ========= SYNDIC MATCHING & CONFLICT RESOLUTION =========
                 $syndicId = null;
-                $extractedSyndicName = $missionData['syndicName'] ?? null;
+                $extractedSyndicName = null;
+                
+                $syndicFromBody = $missionData['syndicFromBody'] ?? null;
+                $syndicFromAttachments = $missionData['syndicFromAttachments'] ?? null;
+
+                // Conflict Resolution: Prioritize attachments
+                if ($syndicFromAttachments) {
+                    $extractedSyndicName = $syndicFromAttachments;
+                } elseif ($syndicFromBody) {
+                    $extractedSyndicName = $syndicFromBody;
+                }
 
                 if ($extractedSyndicName) {
                     $syndicId = $this->matchSyndic($extractedSyndicName);
@@ -107,6 +117,7 @@ class EmailIngestionService
                     $mission = Mission::create([
                         'building_id' => $building ? $building->id : null,
                         'syndic_id' => $syndicId,
+                        'extracted_syndic_name' => $extractedSyndicName,
                         'extracted_address' => $building ? null : $rawAddress,
                         'requested_by' => 'SYNDIC',
                         'title' => $missionData['title'] ?? $email->subject,

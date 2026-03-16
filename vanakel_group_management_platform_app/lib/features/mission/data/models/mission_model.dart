@@ -13,6 +13,7 @@ class MissionModel extends Mission {
     super.buildingId,
     super.syndicId,
     super.syndicName,
+    super.extractedSyndicName,
     super.sector,
     super.isAiDetected = false,
     super.documents = const [],
@@ -26,6 +27,7 @@ class MissionModel extends Mission {
       address: json['building']?['address'] as String? ?? json['extracted_address'] as String? ?? 'No Address',
       syndicId: json['syndic_id']?.toString() ?? json['syndicId']?.toString(),
       syndicName: json['syndic'] != null ? (json['syndic']['company_name'] ?? json['syndic']['companyName']) as String? : null,
+      extractedSyndicName: json['extracted_syndic_name'] as String? ?? json['extractedSyndicName'] as String?,
       status: _parseStatus(json['status'] as String?),
       urgency: _parseUrgency(json['urgency'] as String?),
       createdAt: json['created_at'] != null
@@ -119,6 +121,7 @@ class MissionModel extends Mission {
       buildingId: buildingId,
       syndicId: syndicId,
       syndicName: syndicName,
+      extractedSyndicName: extractedSyndicName,
       sector: sector,
       isAiDetected: isAiDetected,
       documents: documents,

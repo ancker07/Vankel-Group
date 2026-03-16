@@ -179,14 +179,14 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                                 </button>
                                             )}
                                         </div>
-                                        {syndic && (
+                                        {(syndic || mission.extractedSyndicName) && (
                                             <div className="flex gap-3 pt-2 border-t border-zinc-800/50 mt-2">
                                                 <div className="w-8 h-8 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-center justify-center shrink-0 backdrop-blur-md">
                                                     <ShieldCheck size={16} className="text-zinc-500" />
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest drop-shadow-sm">{t.syndic}</p>
-                                                    <p className="text-xs font-bold text-white shadow-black drop-shadow-sm">{syndic.companyName}</p>
+                                                    <p className="text-xs font-bold text-white shadow-black drop-shadow-sm">{syndic ? syndic.companyName : mission.extractedSyndicName}</p>
                                                 </div>
                                             </div>
                                         )}
