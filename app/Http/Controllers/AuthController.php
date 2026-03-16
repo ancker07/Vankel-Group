@@ -39,22 +39,24 @@ class AuthController extends Controller
             'companyName' => 'nullable|string|max:255',
         ]);
 
-        if ($request->role === 'ADMIN' || $request->role === 'SUPERADMIN') {
+        if ($request->role === 'ADMIN' || $request->role === 'SUPERADMIN' || $request->role === 'SYNDIC') {
             $user = User::create([
                 'name' => $request->firstName . ' ' . $request->lastName,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
                 'phone' => $request->phone,
-                'company_name' => 'Vankel Group',
-                'status' => 'PENDING',
+                'company_name' => $request->role === 'SYNDIC' ? ($request->companyName ?? '') : 'Vankel Group',
+                'status' => $request->role === 'SYNDIC' ? 'APPROVED' : 'PENDING',
             ]);
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
-                'message' => 'Admin profile details saved. Awaiting super admin approval.',
+                'message' => $request->role === 'SYNDIC' 
+                    ? 'Syndic account created successfully.' 
+                    : 'Admin profile details saved. Awaiting super admin approval.',
                 'token' => $token,
                 'user' => $user
             ]);
