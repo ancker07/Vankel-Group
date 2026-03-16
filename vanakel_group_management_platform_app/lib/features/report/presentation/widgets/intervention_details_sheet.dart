@@ -122,12 +122,12 @@ class InterventionDetailsSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Jean Dupont", // Mock or from model if available
+                            intervention.onSiteContactName ?? "Not Provided",
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                           ),
-                          const Text(
-                            "Facility Manager",
-                            style: TextStyle(color: Colors.white30, fontSize: 12),
+                          Text(
+                            intervention.onSiteContactEmail ?? "ON-SITE CONTACT",
+                            style: const TextStyle(color: Colors.white30, fontSize: 12),
                           ),
                         ],
                       ),

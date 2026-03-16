@@ -4,6 +4,7 @@ import '../../intervention/presentation/providers/intervention_provider.dart';
 import 'providers/maintenance_list_provider.dart';
 import '../../maintenance/domain/entities/maintenance_plan.dart';
 import '../../../l10n/app_localizations.dart';
+import 'widgets/maintenance_plan_form_sheet.dart';
 
 class MaintenancePlansScreen extends ConsumerWidget {
   const MaintenancePlansScreen({super.key});
@@ -47,7 +48,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
                     orElse: () => null,
                   );
 
-                  return _buildMaintenanceCard(plan, building, syndic, context);
+                  return _buildMaintenanceCard(plan, building, syndic, context, ref);
                 },
               );
             },
@@ -68,13 +69,18 @@ class MaintenancePlansScreen extends ConsumerWidget {
         ),
         child: const Icon(Icons.add, color: Color(0xFFF97316)),
         onPressed: () {
-          // Create new plan
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const MaintenancePlanFormSheet(),
+          );
         },
       ),
     );
   }
 
-  Widget _buildMaintenanceCard(MaintenancePlan plan, dynamic building, dynamic syndic, BuildContext context) {
+  Widget _buildMaintenanceCard(MaintenancePlan plan, dynamic building, dynamic syndic, BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -163,7 +169,14 @@ class MaintenancePlansScreen extends ConsumerWidget {
                   child: _buildActionBtn(
                     icon: Icons.edit_outlined,
                     label: "Edit",
-                    onTap: () {},
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => MaintenancePlanFormSheet(plan: plan),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -172,7 +185,35 @@ class MaintenancePlansScreen extends ConsumerWidget {
                     icon: Icons.delete_outline,
                     label: "Delete",
                     color: Colors.redAccent,
-                    onTap: () {},
+                    onTap: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: const Color(0xFF09090B),
+                          title: const Text('Delete Plan?', style: TextStyle(color: Colors.white)),
+                          content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('DELETE', style: TextStyle(color: Colors.redAccent)),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmed == true) {
+                        try {
+                          await ref.read(maintenanceListProvider.notifier).deletePlan(plan.id);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      }
+                    },
                   ),
                 ),
               ],
@@ -188,7 +229,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        height: 48,
         decoration: BoxDecoration(
           color: color.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
@@ -197,11 +238,16 @@ class MaintenancePlansScreen extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 14, color: color == Colors.white24 ? Colors.white54 : color),
-            const SizedBox(width: 6),
+            Icon(icon, size: 16, color: color == Colors.white24 ? Colors.white54 : color),
+            const SizedBox(width: 8),
             Text(
               label.toUpperCase(),
-              style: TextStyle(color: color == Colors.white24 ? Colors.white54 : color, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+              style: TextStyle(
+                color: color == Colors.white24 ? Colors.white54 : color, 
+                fontSize: 11, 
+                fontWeight: FontWeight.w900, 
+                letterSpacing: 1.0,
+              ),
             ),
           ],
         ),

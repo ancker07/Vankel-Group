@@ -24,6 +24,26 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
   }
 
   @override
+  Future<void> createMaintenancePlan(MaintenancePlan plan) async {
+    try {
+      final model = MaintenancePlanModel.fromEntity(plan);
+      await _dio.post(ApiConstants.maintenancePlans, data: model.toJson());
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
+  Future<void> updateMaintenancePlan(MaintenancePlan plan) async {
+    try {
+      final model = MaintenancePlanModel.fromEntity(plan);
+      await _dio.put('${ApiConstants.maintenancePlans}/${plan.id}', data: model.toJson());
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
   Future<void> deleteMaintenancePlan(String id) async {
     try {
       await _dio.delete('${ApiConstants.maintenancePlans}/$id');

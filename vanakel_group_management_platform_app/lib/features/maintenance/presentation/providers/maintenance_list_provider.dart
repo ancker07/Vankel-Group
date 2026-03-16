@@ -18,6 +18,26 @@ class MaintenanceListNotifier extends AsyncNotifier<List<MaintenancePlan>> {
     }
   }
 
+  Future<void> createPlan(MaintenancePlan plan) async {
+    final repository = ref.read(maintenanceRepositoryProvider);
+    try {
+      await repository.createMaintenancePlan(plan);
+      ref.invalidateSelf();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updatePlan(MaintenancePlan plan) async {
+    final repository = ref.read(maintenanceRepositoryProvider);
+    try {
+      await repository.updateMaintenancePlan(plan);
+      ref.invalidateSelf();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> refresh() async {
     ref.invalidateSelf();
   }

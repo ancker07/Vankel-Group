@@ -27,6 +27,9 @@ class ScaffoldWithNavBar extends ConsumerWidget {
 
     final location = GoRouterState.of(context).matchedLocation;
 
+    final notificationsAsync = ref.watch(notificationProvider);
+    final unreadCount = notificationsAsync.value?.where((n) => !n.isRead).length ?? 0;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -63,6 +66,23 @@ class ScaffoldWithNavBar extends ConsumerWidget {
               ref.invalidate(notificationProvider);
             },
           ),
+          IconButton(
+            onPressed: () => context.push('/notifications'),
+            icon: Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text(
+                unreadCount.toString(),
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+              backgroundColor: Colors.red,
+              child: Icon(
+                unreadCount > 0 
+                  ? Icons.notifications 
+                  : Icons.notifications_none_outlined,
+                color: unreadCount > 0 ? AppTheme.brandGreen : null,
+              ),
+            ),
+          ),
           const LanguageSelector(),
         ],
       ),
@@ -89,16 +109,6 @@ class ScaffoldWithNavBar extends ConsumerWidget {
               decoration: const BoxDecoration(
                 color: AppTheme.zinc900,
               ),
-            ),
-            _buildDrawerItem(
-              context,
-              icon: Icons.dashboard_outlined,
-              label: l10n.dashboard,
-              onTap: () {
-                Navigator.pop(context);
-                navigationShell.goBranch(0);
-              },
-              isSelected: location == '/admin/dashboard' || location == '/syndic/dashboard',
             ),
             if (authState.user?.role == UserRole.admin) ...[
               _buildDrawerItem(
@@ -132,16 +142,6 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 isSelected: location == '/admin/dashboard/maintenance',
               ),
             ],
-            _buildDrawerItem(
-              context,
-              icon: Icons.notifications_none_outlined,
-              label: l10n.notifications,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/notifications');
-              },
-              isSelected: location == '/notifications',
-            ),
             const Divider(color: AppTheme.zinc800, indent: 20, endIndent: 20),
             _buildDrawerItem(
               context,

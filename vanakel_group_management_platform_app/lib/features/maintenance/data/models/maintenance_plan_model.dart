@@ -18,7 +18,7 @@ class MaintenancePlanModel extends MaintenancePlan {
   factory MaintenancePlanModel.fromJson(Map<String, dynamic> json) {
     // Recurrence logic from backend
     final recurrence = json['recurrence'] as Map<String, dynamic>?;
-    
+
     return MaintenancePlanModel(
       id: json['id'].toString(),
       buildingId: json['building_id']?.toString() ?? '',
@@ -34,19 +34,37 @@ class MaintenancePlanModel extends MaintenancePlan {
     );
   }
 
+  factory MaintenancePlanModel.fromEntity(MaintenancePlan entity) {
+    return MaintenancePlanModel(
+      id: entity.id,
+      buildingId: entity.buildingId,
+      title: entity.title,
+      description: entity.description,
+      frequency: entity.frequency,
+      interval: entity.interval,
+      startDate: entity.startDate,
+      endDate: entity.endDate,
+      status: entity.status,
+      syndicId: entity.syndicId,
+      createdAt: entity.createdAt,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'building_id': buildingId,
       'title': title,
       'description': description,
-      'frequency': frequency,
-      'interval': interval,
-      'start_date': startDate.toIso8601String(),
-      'end_date': endDate.toIso8601String(),
       'status': status,
       'syndic_id': syndicId,
       'created_at': createdAt.toIso8601String(),
+      'recurrence': {
+        'frequency': frequency,
+        'interval': interval,
+        'start_date': startDate.toIso8601String(),
+        'end_date': endDate.toIso8601String(),
+      },
     };
   }
 
