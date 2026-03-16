@@ -247,4 +247,28 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notifications => 'Notifications';
+
+  @override
+  String get management => 'Gestion';
+
+  @override
+  String get reports => 'Rapports';
+
+  @override
+  String get maintenance => 'Entretien';
+
+  @override
+  String get search => 'Rechercher';
+
+  @override
+  String get latestSlips => 'Derniers bordereaux';
+
+  @override
+  String get fullHistory => 'Historique complet';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get allSyndics => 'Tous les syndics';
 }

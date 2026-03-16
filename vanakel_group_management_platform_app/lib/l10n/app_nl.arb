@@ -75,5 +75,14 @@
   "emailConfirmationDesc": "U ontvangt een e-mailnotificatie zodra uw account is geactiveerd.",
   "checkingStatusFor": "Status controleren voor: {email}",
   "signOut": "Afmelden",
-  "notifications": "Meldingen"
+  "notifications": "Meldingen",
+  "management": "Beheer",
+  "reports": "Rapporten",
+  "maintenance": "Onderhoud",
+  "search": "Zoeken",
+  "latestSlips": "Laatste fiches",
+  "fullHistory": "Volledige geschiedenis",
+  "total": "Totaal",
+  "completed": "Voltooid",
+  "allSyndics": "Alle syndici"
 }

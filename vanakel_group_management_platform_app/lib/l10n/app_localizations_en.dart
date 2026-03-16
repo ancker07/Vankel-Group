@@ -246,4 +246,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifications => 'Notifications';
+
+  @override
+  String get management => 'Management';
+
+  @override
+  String get reports => 'Reports';
+
+  @override
+  String get maintenance => 'Maintenance';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get latestSlips => 'Latest Slips';
+
+  @override
+  String get fullHistory => 'Full History';
+
+  @override
+  String get total => 'Total';
+
+  @override
+  String get allSyndics => 'All Syndics';
 }

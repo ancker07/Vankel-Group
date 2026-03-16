@@ -27,6 +27,7 @@ class ApiConstants {
   static const String sendReport = '/interventions/{id}/send-report';
   static const String buildings = '/buildings';
   static const String syndics = '/syndics';
+  static const String maintenancePlans = '/maintenance-plans';
 
   // Mission Endpoints
   static const String missions = '/missions';

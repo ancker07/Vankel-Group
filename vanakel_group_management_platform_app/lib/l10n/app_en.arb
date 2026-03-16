@@ -78,5 +78,14 @@
   "emailConfirmationDesc": "You will receive an email notification as soon as your account is activated.",
   "checkingStatusFor": "Checking status for: {email}",
   "signOut": "Sign Out",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "management": "Management",
+  "reports": "Reports",
+  "maintenance": "Maintenance",
+  "search": "Search",
+  "latestSlips": "Latest Slips",
+  "fullHistory": "Full History",
+  "total": "Total",
+  "completed": "Completed",
+  "allSyndics": "All Syndics"
 }

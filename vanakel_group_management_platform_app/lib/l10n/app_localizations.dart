@@ -561,6 +561,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications'**
   String get notifications;
+
+  /// No description provided for @management.
+  ///
+  /// In en, this message translates to:
+  /// **'Management'**
+  String get management;
+
+  /// No description provided for @reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reports;
+
+  /// No description provided for @maintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get maintenance;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @latestSlips.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Slips'**
+  String get latestSlips;
+
+  /// No description provided for @fullHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Full History'**
+  String get fullHistory;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
+
+  /// No description provided for @allSyndics.
+  ///
+  /// In en, this message translates to:
+  /// **'All Syndics'**
+  String get allSyndics;
 }
 
 class _AppLocalizationsDelegate

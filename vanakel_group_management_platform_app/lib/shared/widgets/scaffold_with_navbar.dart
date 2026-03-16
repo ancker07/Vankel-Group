@@ -25,6 +25,8 @@ class ScaffoldWithNavBar extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authStateProvider);
 
+    final location = GoRouterState.of(context).matchedLocation;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -96,8 +98,40 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 Navigator.pop(context);
                 navigationShell.goBranch(0);
               },
-              isSelected: navigationShell.currentIndex == 0,
+              isSelected: location == '/admin/dashboard' || location == '/syndic/dashboard',
             ),
+            if (authState.user?.role == UserRole.admin) ...[
+              _buildDrawerItem(
+                context,
+                icon: Icons.business_outlined,
+                label: l10n.management,
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/admin/dashboard/management');
+                },
+                isSelected: location == '/admin/dashboard/management',
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.assessment_outlined,
+                label: l10n.reports,
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/admin/dashboard/reports');
+                },
+                isSelected: location == '/admin/dashboard/reports',
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.settings_backup_restore_outlined,
+                label: l10n.maintenance,
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push('/admin/dashboard/maintenance');
+                },
+                isSelected: location == '/admin/dashboard/maintenance',
+              ),
+            ],
             _buildDrawerItem(
               context,
               icon: Icons.notifications_none_outlined,
@@ -106,7 +140,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 Navigator.pop(context);
                 context.push('/notifications');
               },
-              isSelected: false,
+              isSelected: location == '/notifications',
             ),
             const Divider(color: AppTheme.zinc800, indent: 20, endIndent: 20),
             _buildDrawerItem(

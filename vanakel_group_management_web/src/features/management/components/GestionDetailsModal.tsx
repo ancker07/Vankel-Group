@@ -3,6 +3,7 @@ import React from 'react';
 import { Building, Syndic, Intervention, Mission, Language } from '@/types';
 import { X, MapPin, Phone, Mail, User, ShieldCheck, Download, FileText, Calendar, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
+import HistoryEntryDetailModal from './HistoryEntryDetailModal';
 
 interface GestionDetailsModalProps {
   building: Building;
@@ -14,6 +15,7 @@ interface GestionDetailsModalProps {
 
 const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syndic, entries, onClose, lang }) => {
   const t = TRANSLATIONS[lang];
+  const [selectedEntry, setSelectedEntry] = React.useState<Intervention | Mission | null>(null);
 
   const handleDownload = (docName: string, url?: string) => {
     if (url) {
@@ -150,7 +152,11 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
                 const date = new Date((entry as any).createdAt || (entry as any).timestamp || (entry as any).scheduledDate);
 
                 return (
-                  <div key={entry.id} className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 md:p-5 hover:border-zinc-700 transition-all flex flex-col md:flex-row gap-4 md:gap-6">
+                  <div 
+                    key={entry.id} 
+                    onClick={() => setSelectedEntry(entry)}
+                    className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 md:p-5 hover:border-brand-green/50 hover:bg-zinc-900/50 cursor-pointer transition-all flex flex-col md:flex-row gap-4 md:gap-6 group"
+                  >
                     {/* Status & Date */}
                     <div className="flex flex-row md:flex-col justify-between items-center md:items-start md:w-48 shrink-0 gap-3">
                       <div className="flex flex-col gap-2">
@@ -177,7 +183,7 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
 
                     {/* Details */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm md:text-base font-bold text-white mb-1.5 break-words">{entry.title || (isMission ? 'Mission Request' : 'Manual Intervention')}</h4>
+                      <h4 className="text-sm md:text-base font-bold text-white mb-1.5 break-words group-hover:text-brand-green transition-colors">{entry.title || (isMission ? 'Mission Request' : 'Manual Intervention')}</h4>
                       <p className="text-xs md:text-sm text-zinc-400 leading-relaxed mb-3 line-clamp-2">{entry.description}</p>
 
                       <div className="flex items-center gap-2 text-xs">
@@ -236,6 +242,17 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
 
         </div>
       </div>
+
+      {/* Nested Detail Modal */}
+      {selectedEntry && (
+        <HistoryEntryDetailModal 
+          entry={selectedEntry}
+          buildingAddress={building.address}
+          buildingCity={building.city}
+          onClose={() => setSelectedEntry(null)}
+          lang={lang}
+        />
+      )}
     </div >
   );
 };

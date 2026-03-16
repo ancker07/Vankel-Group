@@ -246,4 +246,28 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get notifications => 'Meldingen';
+
+  @override
+  String get management => 'Beheer';
+
+  @override
+  String get reports => 'Rapporten';
+
+  @override
+  String get maintenance => 'Onderhoud';
+
+  @override
+  String get search => 'Zoeken';
+
+  @override
+  String get latestSlips => 'Laatste fiches';
+
+  @override
+  String get fullHistory => 'Volledige geschiedenis';
+
+  @override
+  String get total => 'Totaal';
+
+  @override
+  String get allSyndics => 'Alle syndici';
 }

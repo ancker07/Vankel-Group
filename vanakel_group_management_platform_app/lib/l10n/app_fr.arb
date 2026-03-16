@@ -75,5 +75,14 @@
   "emailConfirmationDesc": "Vous recevrez une notification par courriel dès que votre compte sera activé.",
   "checkingStatusFor": "Vérification du statut pour : {email}",
   "signOut": "Se déconnecter",
-  "notifications": "Notifications"
+  "notifications": "Notifications",
+  "management": "Gestion",
+  "reports": "Rapports",
+  "maintenance": "Entretien",
+  "search": "Rechercher",
+  "latestSlips": "Derniers bordereaux",
+  "fullHistory": "Historique complet",
+  "total": "Total",
+  "completed": "Terminé",
+  "allSyndics": "Tous les syndics"
 }

@@ -20,6 +20,9 @@ import '../../features/auth/presentation/profile_screen.dart';
 import '../../features/auth/presentation/edit_profile_screen.dart';
 import '../../features/auth/presentation/waiting_approval_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/management/presentation/management_screen.dart';
+import '../../features/report/presentation/reports_screen.dart';
+import '../../features/maintenance/presentation/maintenance_plans_screen.dart';
 import '../../shared/layout/admin_layout.dart';
 import '../../shared/layout/syndic_layout.dart';
 
@@ -169,6 +172,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/admin/dashboard',
                 builder: (context, state) => const AdminDashboard(),
+                routes: [
+                  GoRoute(
+                    path: 'management',
+                    builder: (context, state) => const ManagementScreen(),
+                  ),
+                  GoRoute(
+                    path: 'reports',
+                    builder: (context, state) => const ReportsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'maintenance',
+                    builder: (context, state) => const MaintenancePlansScreen(),
+                  ),
+                ],
               ),
             ],
           ),
