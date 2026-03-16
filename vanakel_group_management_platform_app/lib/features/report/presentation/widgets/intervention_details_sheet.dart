@@ -3,6 +3,7 @@ import '../../../intervention/domain/intervention.dart';
 import '../../../../core/services/pdf_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../intervention/presentation/providers/intervention_provider.dart';
+import '../../../../core/utils/translation_helper.dart';
 
 class InterventionDetailsSheet extends ConsumerWidget {
   final Intervention intervention;
@@ -61,7 +62,13 @@ class InterventionDetailsSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  intervention.title,
+                  TranslationHelper.getLocalizedField(
+                    context: context,
+                    enValue: intervention.titleEn,
+                    frValue: intervention.titleFr,
+                    nlValue: intervention.titleNl,
+                    fallback: intervention.title,
+                  ),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -171,7 +178,13 @@ class InterventionDetailsSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  intervention.description,
+                  TranslationHelper.getLocalizedField(
+                    context: context,
+                    enValue: intervention.descriptionEn,
+                    frValue: intervention.descriptionFr,
+                    nlValue: intervention.descriptionNl,
+                    fallback: intervention.description,
+                  ),
                   style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
                 ),
               ],

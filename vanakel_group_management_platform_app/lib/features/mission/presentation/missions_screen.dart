@@ -8,6 +8,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
 import 'providers/mission_list_provider.dart';
 import 'providers/mission_filter_provider.dart';
+import '../../../core/utils/translation_helper.dart';
 
 class MissionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -722,7 +723,13 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      widget.mission.title,
+                      TranslationHelper.getLocalizedField(
+                        context: context,
+                        enValue: widget.mission.titleEn,
+                        frValue: widget.mission.titleFr,
+                        nlValue: widget.mission.titleNl,
+                        fallback: widget.mission.title,
+                      ),
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -750,7 +757,14 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                     const SizedBox(height: 16),
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final hasLongDescription = widget.mission.description.length > 60;
+                        final localizedDescription = TranslationHelper.getLocalizedField(
+                          context: context,
+                          enValue: widget.mission.descriptionEn,
+                          frValue: widget.mission.descriptionFr,
+                          nlValue: widget.mission.descriptionNl,
+                          fallback: widget.mission.description,
+                        );
+                        final hasLongDescription = localizedDescription.length > 60;
                         return GestureDetector(
                           onTap: () {
                             if (hasLongDescription) {
@@ -771,7 +785,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.mission.description,
+                                  localizedDescription,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: AppTheme.zinc400,

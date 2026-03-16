@@ -125,7 +125,13 @@ class MissionModel extends Mission {
     return Mission(
       id: id,
       title: title,
+      titleEn: titleEn,
+      titleFr: titleFr,
+      titleNl: titleNl,
       description: description,
+      descriptionEn: descriptionEn,
+      descriptionFr: descriptionFr,
+      descriptionNl: descriptionNl,
       address: address,
       status: status,
       urgency: urgency,

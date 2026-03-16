@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/translation_helper.dart';
 import '../domain/intervention_filter.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_filter_provider.dart';
@@ -562,7 +563,13 @@ class _InterventionCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          intervention.title.toUpperCase(),
+                          TranslationHelper.getLocalizedField(
+                            context: context,
+                            enValue: intervention.titleEn,
+                            frValue: intervention.titleFr,
+                            nlValue: intervention.titleNl,
+                            fallback: intervention.title,
+                          ).toUpperCase(),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -0.2),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -611,7 +618,13 @@ class _InterventionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      intervention.description,
+                      TranslationHelper.getLocalizedField(
+                        context: context,
+                        enValue: intervention.descriptionEn,
+                        frValue: intervention.descriptionFr,
+                        nlValue: intervention.descriptionNl,
+                        fallback: intervention.description,
+                      ),
                       style: TextStyle(fontSize: 13, color: AppTheme.zinc400, height: 1.5),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,

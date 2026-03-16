@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../intervention/domain/intervention.dart';
 import '../../../report/presentation/widgets/intervention_details_sheet.dart';
+import '../../../../core/utils/translation_helper.dart';
 
 class BuildingDetailsSheet extends StatelessWidget {
   final Map<String, dynamic> building;
@@ -211,7 +212,13 @@ class BuildingDetailsSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title,
+                    TranslationHelper.getLocalizedField(
+                      context: context,
+                      enValue: item.titleEn,
+                      frValue: item.titleFr,
+                      nlValue: item.titleNl,
+                      fallback: item.title,
+                    ),
                     style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
