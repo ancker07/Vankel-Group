@@ -294,12 +294,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         await onUpdate(savedIntervention, true); // IMPORTANT: skipApi=true to avoid double save
       }
 
-      if (status === 'COMPLETED') onClose();
-      else {
-        setIsEditable(false);
-      }
-
-      // Handle Email/WhatsApp after successful save
+      // Handle Email/WhatsApp BEFORE closing — so the component stays mounted
       if (mode === 'EMAIL') {
         setIsSendingEmail(true);
         try {
@@ -315,6 +310,13 @@ const InterventionSlip: React.FC<SlipProps> = ({
       }
 
       if (mode === 'WHATSAPP') handleSendWhatsApp(savedIntervention);
+
+      // Close AFTER sending — so component is still mounted during send
+      if (status === 'COMPLETED') onClose();
+      else {
+        setIsEditable(false);
+      }
+
 
     } catch (err) {
       console.error("Save failed:", err);

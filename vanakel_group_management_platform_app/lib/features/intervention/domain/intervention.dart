@@ -3,6 +3,19 @@ import 'document.dart';
 /// Maps to backend's status strings: PENDING, DELAYED, COMPLETED
 enum InterventionStatus { pending, delayed, completed }
 
+extension InterventionStatusX on InterventionStatus {
+  String get label {
+    switch (this) {
+      case InterventionStatus.pending:
+        return 'In progress';
+      case InterventionStatus.delayed:
+        return 'Delayed';
+      case InterventionStatus.completed:
+        return 'Completed';
+    }
+  }
+}
+
 class Intervention {
   final String id;
   final String title;

@@ -3,8 +3,6 @@
 namespace App\Mail;
 
 use App\Models\Intervention;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Attachment;
@@ -15,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class InterventionReportMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use SerializesModels;
 
     public $intervention;
     public $building;

@@ -6,6 +6,7 @@ class InterventionFilter {
   final String? urgency;
   final String? buildingId;
   final DateTime? scheduledDate;
+  final InterventionStatus? status;
 
   const InterventionFilter({
     this.searchQuery = '',
@@ -13,6 +14,7 @@ class InterventionFilter {
     this.urgency,
     this.buildingId,
     this.scheduledDate,
+    this.status,
   });
 
   InterventionFilter copyWith({
@@ -21,10 +23,12 @@ class InterventionFilter {
     String? urgency,
     String? buildingId,
     DateTime? scheduledDate,
+    InterventionStatus? status,
     bool clearSector = false,
     bool clearUrgency = false,
     bool clearBuilding = false,
     bool clearDate = false,
+    bool clearStatus = false,
   }) {
     return InterventionFilter(
       searchQuery: searchQuery ?? this.searchQuery,
@@ -32,6 +36,7 @@ class InterventionFilter {
       urgency: clearUrgency ? null : (urgency ?? this.urgency),
       buildingId: clearBuilding ? null : (buildingId ?? this.buildingId),
       scheduledDate: clearDate ? null : (scheduledDate ?? this.scheduledDate),
+      status: clearStatus ? null : (status ?? this.status),
     );
   }
 
@@ -40,11 +45,18 @@ class InterventionFilter {
       sectorId != null ||
       urgency != null ||
       buildingId != null ||
-      scheduledDate != null;
+      scheduledDate != null ||
+      status != null;
 
   bool matches(Intervention i) {
-    // Show only ongoing interventions (exclude completed)
-    if (i.status == InterventionStatus.completed) return false;
+    // If status filter is set, match exactly
+    if (status != null) {
+      if (i.status != status) return false;
+    } else {
+      // Default: Show only ongoing interventions (exclude completed)
+      // This preserves existing behavior when no status filter is selected
+      if (i.status == InterventionStatus.completed) return false;
+    }
 
     // Search query match
     if (searchQuery.isNotEmpty) {

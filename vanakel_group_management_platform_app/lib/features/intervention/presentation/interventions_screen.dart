@@ -132,6 +132,13 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           _FilterChip(
+            label: filter.status?.label ?? 'Status',
+            isActive: filter.status != null,
+            onTap: () => _showStatusPicker(context, filter),
+            onClear: filter.status != null ? () => ref.read(interventionFilterProvider.notifier).updateStatus(null) : null,
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
             label: filter.sectorId ?? 'Sector',
             isActive: filter.sectorId != null,
             onTap: () => _showSectorPicker(context, filter),
@@ -177,6 +184,44 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     );
   }
 
+  void _showStatusPicker(BuildContext context, InterventionFilter filter) {
+    final options = [
+      {'label': 'In progress', 'value': InterventionStatus.pending},
+      {'label': 'Delayed', 'value': InterventionStatus.delayed},
+      {'label': 'Completed', 'value': InterventionStatus.completed},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.zinc950,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: AppTheme.zinc800, borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 20),
+            const Text('Select Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            ...options.map((o) => ListTile(
+                  title: Text(o['label'] as String, textAlign: TextAlign.center, style: TextStyle(color: filter.status == o['value'] ? AppTheme.brandGreen : Colors.white)),
+                  onTap: () {
+                    ref.read(interventionFilterProvider.notifier).updateStatus(o['value'] as InterventionStatus);
+                    Navigator.pop(context);
+                  },
+                )),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showSectorPicker(BuildContext context, InterventionFilter filter) {
     final sectors = ['ELECTRICITE', 'CARRELAGE', 'SANITAIRE', 'CHAUFFAGE', 'PLOMBERIE', 'PEINTURE', 'MENUISERIE', 'GENERAL', 'AUTRE'];
     _showPicker(context, 'Select Sector', sectors, filter.sectorId, (v) {
@@ -199,7 +244,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
       context: context,
       backgroundColor: AppTheme.zinc950,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         minChildSize: 0.4,
@@ -258,7 +303,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
       context: context,
       backgroundColor: AppTheme.zinc950,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.5,
         minChildSize: 0.3,
@@ -397,7 +442,7 @@ class _InterventionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(intervention.status);
-    final statusLabel = _getStatusLabel(intervention.status);
+    final statusLabel = intervention.status.label;
     final dateStr = DateFormat('M/d/yyyy').format(intervention.scheduledDate);
 
     return Container(
@@ -667,16 +712,6 @@ class _InterventionCard extends StatelessWidget {
     );
   }
 
-  String _getStatusLabel(InterventionStatus status) {
-    switch (status) {
-      case InterventionStatus.pending:
-        return 'In progress';
-      case InterventionStatus.delayed:
-        return 'Delayed';
-      case InterventionStatus.completed:
-        return 'Completed';
-    }
-  }
 
   Color _getStatusColor(InterventionStatus status) {
     switch (status) {

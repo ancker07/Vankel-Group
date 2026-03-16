@@ -45,6 +45,14 @@ class InterventionFilterNotifier extends Notifier<InterventionFilter> {
     }
   }
 
+  void updateStatus(InterventionStatus? status) {
+    if (status == null) {
+      state = state.copyWith(clearStatus: true);
+    } else {
+      state = state.copyWith(status: status);
+    }
+  }
+
   void reset() {
     state = const InterventionFilter();
   }
