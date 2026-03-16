@@ -152,12 +152,18 @@ class InterventionController extends Controller
 
     public function getMissions()
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
 
         $query = Mission::with(['documents', 'email', 'building', 'syndic'])->latest();
 
         if ($user && $user->role === 'SYNDIC') {
-            $query->where('syndic_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('syndic_id', $user->id)
+                  ->orWhere('on_site_contact_email', $user->email)
+                  ->orWhereHas('email', function ($emailQuery) use ($user) {
+                      $emailQuery->where('from_address', $user->email);
+                  });
+            });
         }
 
         return response()->json($query->get());
@@ -165,11 +171,17 @@ class InterventionController extends Controller
 
     public function getMissionById($id)
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         $query = Mission::with(['documents', 'email', 'building']);
         
         if ($user && $user->role === 'SYNDIC') {
-            $query->where('syndic_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('syndic_id', $user->id)
+                  ->orWhere('on_site_contact_email', $user->email)
+                  ->orWhereHas('email', function ($emailQuery) use ($user) {
+                      $emailQuery->where('from_address', $user->email);
+                  });
+            });
         }
         
         $mission = $query->findOrFail($id);
@@ -178,12 +190,15 @@ class InterventionController extends Controller
 
     public function getInterventions()
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         
         $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
 
         if ($user && $user->role === 'SYNDIC') {
-            $query->where('syndic_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('syndic_id', $user->id)
+                  ->orWhere('on_site_contact_email', $user->email);
+            });
         }
 
         return response()->json($query->get());
@@ -191,11 +206,14 @@ class InterventionController extends Controller
 
     public function getInterventionById($id)
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
 
         if ($user && $user->role === 'SYNDIC') {
-            $query->where('syndic_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('syndic_id', $user->id)
+                  ->orWhere('on_site_contact_email', $user->email);
+            });
         }
 
         $intervention = $query->findOrFail($id);

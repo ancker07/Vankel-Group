@@ -24,7 +24,7 @@ class EmailController extends Controller
 
     public function index()
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
 
         // Group by thread_id, falling back to message_id for unique emails
         // Then take the latest message from each group
@@ -62,7 +62,7 @@ class EmailController extends Controller
 
     public function getThread($threadId)
     {
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
 
         // First try finding an email that matches this thread_id or message_id
         $query = Email::where(function($q) use ($threadId) {
