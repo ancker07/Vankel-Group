@@ -1231,7 +1231,7 @@ const App: React.FC = () => {
                       } />
                       <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} userData={fullUserData} />} />
 
-                      <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage lang={lang} maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
 
                       <Route path="settings" element={<div className="flex flex-col items-center justify-center h-full text-zinc-600">Settings Module under construction</div>} />
                       <Route path="ai-settings" element={role === 'SUPERADMIN' ? <AiSettingsPage lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />

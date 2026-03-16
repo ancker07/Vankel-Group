@@ -4,6 +4,7 @@ import '../../intervention/presentation/providers/intervention_provider.dart';
 import 'providers/maintenance_list_provider.dart';
 import '../../maintenance/domain/entities/maintenance_plan.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/utils/translation_helper.dart';
 import 'widgets/maintenance_plan_form_sheet.dart';
 
 class MaintenancePlansScreen extends ConsumerWidget {
@@ -122,12 +123,24 @@ class MaintenancePlansScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              plan.title,
+              TranslationHelper.getLocalizedField(
+                context: context,
+                enValue: plan.titleEn,
+                frValue: plan.titleFr,
+                nlValue: plan.titleNl,
+                fallback: plan.title,
+              ),
               style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              plan.description.isEmpty ? 'Routine maintenance plan.' : plan.description,
+              TranslationHelper.getLocalizedField(
+                context: context,
+                enValue: plan.descriptionEn,
+                frValue: plan.descriptionFr,
+                nlValue: plan.descriptionNl,
+                fallback: plan.description.isEmpty ? 'Routine maintenance plan.' : plan.description,
+              ),
               style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 16),

@@ -218,7 +218,13 @@ export interface MaintenancePlan {
   id: string;
   buildingId: string;
   title: string;
+  title_en?: string;
+  title_fr?: string;
+  title_nl?: string;
   description?: string;
+  description_en?: string;
+  description_fr?: string;
+  description_nl?: string;
   recurrence: {
     frequency: MaintenanceFrequency;
     interval: number; // e.g., 1
@@ -246,6 +252,13 @@ export interface AppNotification {
   buildingAddress: string;
   interventionId?: string;
   title: string;
+  title_en?: string;
+  title_fr?: string;
+  title_nl?: string;
+  body?: string;
+  body_en?: string;
+  body_fr?: string;
+  body_nl?: string;
   type: 'CREATED' | 'UPDATED' | 'STATUS_CHANGE' | 'MISSION_DECISION' | 'MAINTENANCE_AUTO' | 'EMAIL_INGESTION' | 'EMAIL_INGESTION_ERROR';
   timestamp: string;
   read: boolean;

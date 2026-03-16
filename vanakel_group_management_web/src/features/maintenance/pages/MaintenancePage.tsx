@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { RotateCcw, Plus, MapPin, ShieldCheck, Trash2, Edit2 } from 'lucide-react';
-import { MaintenancePlan, Building, Syndic } from '@/types';
+import { MaintenancePlan, Building, Syndic, Language } from '@/types';
 
 interface MaintenancePageProps {
+    lang: Language;
     maintenancePlans: MaintenancePlan[];
     buildings: Building[];
     syndics: Syndic[];
@@ -13,7 +14,7 @@ interface MaintenancePageProps {
     t: any;
 }
 
-const MaintenancePage: React.FC<MaintenancePageProps> = ({ maintenancePlans, buildings, syndics, onCreateClick, onEditClick, onDeleteClick, t }) => {
+const MaintenancePage: React.FC<MaintenancePageProps> = ({ lang, maintenancePlans, buildings, syndics, onCreateClick, onEditClick, onDeleteClick, t }) => {
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-12">
             <div className="flex justify-between items-center">
@@ -48,8 +49,18 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ maintenancePlans, bui
                                         </span>
                                         <span className="text-[10px] text-zinc-500 font-mono">Next: {new Date(mp.recurrence.startDate).toLocaleDateString()}</span>
                                     </div>
-                                    <h4 className="text-lg font-bold text-white mb-2">{mp.title}</h4>
-                                    <p className="text-sm text-zinc-400 leading-relaxed mb-4">{mp.description || 'Routine maintenance plan.'}</p>
+                                    <h4 className="text-lg font-bold text-white mb-2">
+                                        {(lang.toLowerCase() === 'en' && mp.title_en) ||
+                                         (lang.toLowerCase() === 'fr' && mp.title_fr) ||
+                                         (lang.toLowerCase() === 'nl' && mp.title_nl) ||
+                                         mp.title}
+                                    </h4>
+                                    <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+                                        {(lang.toLowerCase() === 'en' && mp.description_en) ||
+                                         (lang.toLowerCase() === 'fr' && mp.description_fr) ||
+                                         (lang.toLowerCase() === 'nl' && mp.description_nl) ||
+                                         mp.description || 'Routine maintenance plan.'}
+                                    </p>
 
                                     <div className="flex flex-wrap gap-4 text-xs text-zinc-500">
                                         <div className="flex items-center gap-1.5">

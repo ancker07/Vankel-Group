@@ -236,7 +236,7 @@ class AuthController extends Controller
             );
         }
 
-        Notification::create([
+        Notification::createWithTranslation([
             'user_id' => $user->id,
             'title' => $title,
             'body' => $body,
@@ -262,7 +262,7 @@ class AuthController extends Controller
             );
         }
 
-        Notification::create([
+        Notification::createWithTranslation([
             'user_id' => $user->id,
             'title' => $title,
             'body' => $body,

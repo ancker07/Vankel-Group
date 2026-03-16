@@ -282,10 +282,20 @@ const BuildingProfile: React.FC<ProfileProps> = ({
                 {maintenancePlans.map(plan => (
                   <div key={plan.id} className="bg-zinc-900/30 border border-orange-500/20 p-4 rounded-xl hover:bg-zinc-900/50 transition-colors">
                     <div className="flex justify-between items-start mb-2">
-                      <h5 className="text-sm font-bold text-white">{plan.title}</h5>
+                      <h5 className="text-sm font-bold text-white">
+                        {(lang.toLowerCase() === 'en' && plan.title_en) ||
+                         (lang.toLowerCase() === 'fr' && plan.title_fr) ||
+                         (lang.toLowerCase() === 'nl' && plan.title_nl) ||
+                         plan.title}
+                      </h5>
                       <span className="text-[9px] font-black uppercase bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded">{plan.recurrence.frequency}</span>
                     </div>
-                    <p className="text-xs text-zinc-400 mb-3">{plan.description}</p>
+                    <p className="text-xs text-zinc-400 mb-3">
+                        {(lang.toLowerCase() === 'en' && plan.description_en) ||
+                         (lang.toLowerCase() === 'fr' && plan.description_fr) ||
+                         (lang.toLowerCase() === 'nl' && plan.description_nl) ||
+                         plan.description}
+                    </p>
                     <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
                       <CalendarIcon size={12} className="text-orange-500" />
                       <span>{new Date(plan.recurrence.startDate).toLocaleDateString()}</span>
@@ -327,8 +337,18 @@ const BuildingProfile: React.FC<ProfileProps> = ({
                         <span className="text-brand-green font-black text-[9px] uppercase tracking-[0.2em]">{i.category}</span>
                         <span className="bg-green-500/10 text-green-500 text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider">{t.status_completed}</span>
                       </div>
-                      <h4 className="text-sm md:text-base font-bold text-white mb-1">{i.title}</h4>
-                      <p className="text-zinc-400 text-xs truncate pr-4 italic">{i.description}</p>
+                      <h4 className="text-sm md:text-base font-bold text-white mb-1">
+                        {(lang.toLowerCase() === 'en' && i.title_en) ||
+                         (lang.toLowerCase() === 'fr' && i.title_fr) ||
+                         (lang.toLowerCase() === 'nl' && i.title_nl) ||
+                         i.title}
+                      </h4>
+                      <p className="text-zinc-400 text-xs truncate pr-4 italic">
+                        {(lang.toLowerCase() === 'en' && i.description_en) ||
+                         (lang.toLowerCase() === 'fr' && i.description_fr) ||
+                         (lang.toLowerCase() === 'nl' && i.description_nl) ||
+                         i.description}
+                      </p>
                       <p className="text-zinc-600 text-[10px] mt-1 font-medium uppercase tracking-tighter">{t.closedOn} {new Date(i.completedAt!).toLocaleDateString()}</p>
 
                       {/* On-site Contact Info Line */}

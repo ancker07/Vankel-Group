@@ -98,6 +98,9 @@ class NotificationController extends Controller
         $body = $request->body;
         $data = $request->data ?? [];
 
+        $aiService = new \App\Services\AiService();
+        $translated = $aiService->translateToFill($title, $body);
+
         if ($request->target === 'all') {
             $tokens = User::whereNotNull('fcm_token')
                 ->where('fcm_token', '!=', '')
@@ -118,7 +121,13 @@ class NotificationController extends Controller
 
             NotificationLog::create([
                 'title' => $title,
+                'title_en' => $translated['title']['en'] ?? null,
+                'title_fr' => $translated['title']['fr'] ?? null,
+                'title_nl' => $translated['title']['nl'] ?? null,
                 'body' => $body,
+                'body_en' => $translated['description']['en'] ?? null,
+                'body_fr' => $translated['description']['fr'] ?? null,
+                'body_nl' => $translated['description']['nl'] ?? null,
                 'target' => 'all',
                 'total_recipients' => $totalCount,
                 'success_count' => $successCount,
@@ -128,7 +137,13 @@ class NotificationController extends Controller
             // Save for dynamic display in app
             Notification::create([
                 'title' => $title,
+                'title_en' => $translated['title']['en'] ?? null,
+                'title_fr' => $translated['title']['fr'] ?? null,
+                'title_nl' => $translated['title']['nl'] ?? null,
                 'body' => $body,
+                'body_en' => $translated['description']['en'] ?? null,
+                'body_fr' => $translated['description']['fr'] ?? null,
+                'body_nl' => $translated['description']['nl'] ?? null,
                 'type' => 'broadcast',
                 'data' => $data,
                 'user_id' => null,
@@ -157,7 +172,13 @@ class NotificationController extends Controller
 
             NotificationLog::create([
                 'title' => $title,
+                'title_en' => $translated['title']['en'] ?? null,
+                'title_fr' => $translated['title']['fr'] ?? null,
+                'title_nl' => $translated['title']['nl'] ?? null,
                 'body' => $body,
+                'body_en' => $translated['description']['en'] ?? null,
+                'body_fr' => $translated['description']['fr'] ?? null,
+                'body_nl' => $translated['description']['nl'] ?? null,
                 'target' => 'specific',
                 'total_recipients' => count($tokens),
                 'success_count' => $successCount,
@@ -169,7 +190,13 @@ class NotificationController extends Controller
                 Notification::create([
                     'user_id' => $uid,
                     'title' => $title,
+                    'title_en' => $translated['title']['en'] ?? null,
+                    'title_fr' => $translated['title']['fr'] ?? null,
+                    'title_nl' => $translated['title']['nl'] ?? null,
                     'body' => $body,
+                    'body_en' => $translated['description']['en'] ?? null,
+                    'body_fr' => $translated['description']['fr'] ?? null,
+                    'body_nl' => $translated['description']['nl'] ?? null,
                     'type' => 'direct',
                     'data' => $data,
                 ]);

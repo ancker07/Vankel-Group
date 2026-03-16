@@ -39,10 +39,19 @@ class MaintenanceController extends Controller
             'syndicId' => 'nullable'
         ]);
 
+        $aiService = new \App\Services\AiService();
+        $translated = $aiService->translateToFill($validated['title'], $validated['description'] ?? 'Aucune description fournie');
+
         $plan = MaintenancePlan::create([
             'building_id' => $validated['buildingId'],
             'title' => $validated['title'],
+            'title_en' => $translated['title']['en'] ?? null,
+            'title_fr' => $translated['title']['fr'] ?? null,
+            'title_nl' => $translated['title']['nl'] ?? null,
             'description' => $validated['description'] ?? null,
+            'description_en' => $translated['description']['en'] ?? null,
+            'description_fr' => $translated['description']['fr'] ?? null,
+            'description_nl' => $translated['description']['nl'] ?? null,
             'frequency' => $validated['recurrence']['frequency'],
             'interval' => $validated['recurrence']['interval'] ?? 1,
             'start_date' => $validated['recurrence']['startDate'],

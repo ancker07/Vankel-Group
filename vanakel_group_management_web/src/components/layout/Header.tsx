@@ -74,6 +74,7 @@ const Header: React.FC<HeaderProps> = ({
                     </button>
                     {showNotifications && (
                         <NotificationPanel
+                            lang={lang}
                             notifications={notifications}
                             onClose={() => setShowNotifications(false)}
                             onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}

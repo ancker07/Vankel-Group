@@ -84,6 +84,9 @@ class InterventionController extends Controller
             $title = "New Mission: {$entity->title}";
             $body = "Urgency: {$entity->urgency}. Requested by a Syndic.";
             
+            $aiService = new \App\Services\AiService();
+            $translated = $aiService->translateToFill($title, $body);
+
             $admins = User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->get();
             foreach ($admins as $admin) {
                 if ($admin->fcm_token) {
@@ -97,7 +100,13 @@ class InterventionController extends Controller
                 Notification::create([
                     'user_id' => $admin->id,
                     'title' => $title,
+                    'title_en' => $translated['title']['en'] ?? null,
+                    'title_fr' => $translated['title']['fr'] ?? null,
+                    'title_nl' => $translated['title']['nl'] ?? null,
                     'body' => $body,
+                    'body_en' => $translated['description']['en'] ?? null,
+                    'body_fr' => $translated['description']['fr'] ?? null,
+                    'body_nl' => $translated['description']['nl'] ?? null,
                     'type' => 'mission',
                     'data' => ['mission_id' => $entity->id]
                 ]);
@@ -331,7 +340,7 @@ class InterventionController extends Controller
                             } catch (\Exception $e) {}
                         }
 
-                        Notification::create([
+                        Notification::createWithTranslation([
                             'user_id' => $syndic->id,
                             'title' => $title,
                             'body' => $body,
@@ -370,7 +379,7 @@ class InterventionController extends Controller
                     $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
                 }
 
-                Notification::create([
+                Notification::createWithTranslation([
                     'user_id' => $syndic->id,
                     'title' => $title,
                     'body' => $body,
@@ -444,7 +453,7 @@ class InterventionController extends Controller
                         $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
                     }
 
-                    Notification::create([
+                    Notification::createWithTranslation([
                         'user_id' => $syndic->id,
                         'title' => $title,
                         'body' => $body,
@@ -466,7 +475,7 @@ class InterventionController extends Controller
                     $this->pushNotificationService->sendNotification($professional->fcm_token, $title, $body);
                 }
 
-                Notification::create([
+                Notification::createWithTranslation([
                     'user_id' => $professional->id,
                     'title' => $title,
                     'body' => $body,

@@ -5,6 +5,7 @@ import { AppNotification } from '@/types';
 
 interface NotificationPanelProps {
   notifications: AppNotification[];
+  lang: string;
   onClose: () => void;
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
@@ -13,7 +14,7 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel: React.FC<NotificationPanelProps> = ({
-  notifications, onClose, onMarkRead, onMarkAllRead, onSelect, title
+  notifications, lang, onClose, onMarkRead, onMarkAllRead, onSelect, title
 }) => {
   return (
     <div className="absolute top-full right-0 mt-2 w-screen max-w-sm md:w-96 bg-zinc-950 border border-zinc-800 rounded-b-2xl md:rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 flex flex-col max-h-[80vh] md:max-h-[600px]">
@@ -59,7 +60,10 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
               {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-brand-green shrink-0 animate-pulse"></div>}
             </div>
             <p className={`text-sm mb-1 ${!n.read ? 'font-bold text-white' : 'font-medium text-zinc-300'}`}>
-              {n.title}
+              {(lang.toLowerCase() === 'en' && n.title_en) ||
+               (lang.toLowerCase() === 'fr' && n.title_fr) ||
+               (lang.toLowerCase() === 'nl' && n.title_nl) ||
+               n.title}
             </p>
             <p className="text-xs text-zinc-500 truncate mb-1">{n.buildingAddress}</p>
             <p className="text-[10px] text-zinc-600 text-right font-mono">

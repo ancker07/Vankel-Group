@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import 'providers/notification_provider.dart';
 import '../domain/entities/notification_item.dart';
 import 'package:intl/intl.dart';
+import '../../../core/utils/translation_helper.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -123,7 +124,13 @@ class _NotificationTile extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        item.title,
+                        TranslationHelper.getLocalizedField(
+                          context: context,
+                          enValue: item.titleEn,
+                          frValue: item.titleFr,
+                          nlValue: item.titleNl,
+                          fallback: item.title,
+                        ),
                         style: TextStyle(
                           fontWeight: !item.isRead ? FontWeight.bold : FontWeight.normal,
                           color: Colors.white,
@@ -141,7 +148,13 @@ class _NotificationTile extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    item.body,
+                    TranslationHelper.getLocalizedField(
+                      context: context,
+                      enValue: item.bodyEn,
+                      frValue: item.bodyFr,
+                      nlValue: item.bodyNl,
+                      fallback: item.body,
+                    ),
                     style: TextStyle(
                       color: !item.isRead ? AppTheme.zinc300 : AppTheme.zinc500,
                       fontSize: 12,
