@@ -670,11 +670,11 @@ class _InterventionCard extends StatelessWidget {
   String _getStatusLabel(InterventionStatus status) {
     switch (status) {
       case InterventionStatus.pending:
-        return 'PENDING';
+        return 'In progress';
       case InterventionStatus.delayed:
-        return 'DELAYED';
+        return 'Delayed';
       case InterventionStatus.completed:
-        return 'COMPLETED';
+        return 'Completed';
     }
   }
 

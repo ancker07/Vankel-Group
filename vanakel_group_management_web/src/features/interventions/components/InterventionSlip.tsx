@@ -502,7 +502,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                       <span className="text-xs uppercase tracking-widest">{t.status_delayed}</span>
                     </div>
                     {intervention.delayReason && (
-                      <p className="text-[10px] opacity-80">{DELAY_REASONS.find(r => r.id === intervention.delayReason)?.[lang] || intervention.delayReason}</p>
+                      <p className="text-[10px] opacity-80">{DELAY_REASONS.find(r => r.id === intervention.delayReason)?.[lang as keyof { EN: string, FR: string, NL: string }] || intervention.delayReason}</p>
                     )}
                   </div>
                 )}
@@ -705,15 +705,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
               <label className="inline-block px-2 py-0.5 bg-brand-green text-brand-black text-[10px] font-black uppercase tracking-widest rounded mb-2">{t.updateStatus}</label>
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {[
-                  { id: 'PENDING', label: t.status_pending, activeColor: 'bg-zinc-600 text-white border-zinc-600', baseColor: 'border-zinc-700 text-zinc-500' },
-                  { id: 'DELAYED', label: t.status_delayed, activeColor: 'bg-orange-500 text-white border-orange-500', baseColor: 'border-orange-500/30 text-orange-500' },
-                  { id: 'COMPLETED', label: t.status_completed, activeColor: 'bg-green-500 text-white border-green-500', baseColor: 'border-green-500/30 text-green-500' }
+                  { id: 'PENDING', label: t.status_pending, activeColor: 'bg-zinc-600 text-white border-zinc-600', baseColor: 'bg-transparent border-zinc-800 text-zinc-500' },
+                  { id: 'DELAYED', label: t.status_delayed, activeColor: 'bg-brand-orange text-white border-brand-orange', baseColor: 'bg-transparent border-brand-orange/40 text-brand-orange' },
+                  { id: 'COMPLETED', label: t.status_completed, activeColor: 'bg-brand-green text-brand-black border-brand-green', baseColor: 'bg-transparent border-brand-green/40 text-brand-green' }
                 ].map(s => (
                   <button
                     key={s.id}
                     disabled={!isEditable}
                     onClick={() => handleStatusChange(s.id as any)}
-                    className={`py-3 md:py-4 rounded-xl border font-black text-[9px] md:text-[10px] uppercase tracking-widest transition-all min-h-[44px] ${status === s.id ? s.activeColor : 'bg-transparent border-zinc-800 ' + s.baseColor} ${!isEditable ? 'cursor-default' : ''}`}
+                    className={`py-3 md:py-4 rounded-2xl border font-black text-[9px] md:text-[10px] tracking-widest transition-all min-h-[44px] ${status === s.id ? s.activeColor : 'bg-brand-black ' + s.baseColor} ${!isEditable ? 'cursor-default' : ''}`}
                   >
                     {s.label}
                   </button>

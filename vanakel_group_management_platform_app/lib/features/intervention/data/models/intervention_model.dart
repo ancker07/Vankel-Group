@@ -27,6 +27,8 @@ class InterventionModel extends Intervention {
     super.delayDetails,
     super.delayedRescheduleDate,
     super.completedAt,
+    super.interventionNumber,
+    super.isMaintenance = false,
     super.documents = const [],
   });
 
@@ -84,6 +86,8 @@ class InterventionModel extends Intervention {
       completedAt: json['completed_at'] != null
           ? DateTime.tryParse(json['completed_at'] as String)
           : null,
+      interventionNumber: (json['intervention_number'] ?? json['interventionNumber'])?.toString(),
+      isMaintenance: json['is_maintenance_occurrence'] == true || json['isMaintenance'] == true,
       documents: (json['documents'] as List<dynamic>?)
               ?.map(
                 (doc) => Document(

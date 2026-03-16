@@ -26,10 +26,19 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
   final List<Map<String, String>> _delayReasons = [
     {'id': 'missing_part', 'label': 'Pièce manquante / Missing part'},
     {'id': 'no_access', 'label': 'Accès impossible / No access'},
-    {'id': 'client_unavailable', 'label': 'Client indisponible / Client unavailable'},
-    {'id': 'waiting_validation', 'label': 'En attente de validation / Waiting validation'},
+    {
+      'id': 'client_unavailable',
+      'label': 'Client indisponible / Client unavailable',
+    },
+    {
+      'id': 'waiting_validation',
+      'label': 'En attente de validation / Waiting validation',
+    },
     {'id': 'weather', 'label': 'Intempéries / Bad weather'},
-    {'id': 'subcontractor', 'label': 'Sous-traitant indisponible / Subcontractor unavailable'},
+    {
+      'id': 'subcontractor',
+      'label': 'Sous-traitant indisponible / Subcontractor unavailable',
+    },
     {'id': 'other', 'label': 'Autre / Other'},
   ];
 
@@ -132,16 +141,26 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedReason,
-                hint: const Text('Select a reason', style: TextStyle(color: AppTheme.zinc500, fontSize: 14)),
+                hint: const Text(
+                  'Select a reason',
+                  style: TextStyle(color: AppTheme.zinc500, fontSize: 14),
+                ),
                 isExpanded: true,
                 dropdownColor: AppTheme.zinc900,
-                icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.zinc500),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppTheme.zinc500,
+                ),
                 items: _delayReasons.map((reason) {
                   return DropdownMenuItem<String>(
                     value: reason['id'],
                     child: Text(
                       reason['label']!,
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   );
                 }).toList(),
@@ -204,21 +223,31 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today, size: 18, color: AppTheme.brandGreen),
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 18,
+                    color: AppTheme.brandGreen,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     _selectedDate != null
                         ? DateFormat('EEEE, MMM d, y').format(_selectedDate!)
                         : 'Select new date',
                     style: TextStyle(
-                      color: _selectedDate != null ? Colors.white : AppTheme.zinc500,
+                      color: _selectedDate != null
+                          ? Colors.white
+                          : AppTheme.zinc500,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const Spacer(),
                   if (_selectedDate != null)
                     IconButton(
-                      icon: const Icon(Icons.clear, size: 16, color: AppTheme.zinc500),
+                      icon: const Icon(
+                        Icons.clear,
+                        size: 16,
+                        color: AppTheme.zinc500,
+                      ),
                       onPressed: () => setState(() => _selectedDate = null),
                     ),
                 ],
@@ -244,9 +273,14 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
                 backgroundColor: AppTheme.brandOrange,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-              child: const Text('CONFIRM DELAY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+              child: const Text(
+                'CONFIRM DELAY',
+                style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+              ),
             ),
           ),
         ],

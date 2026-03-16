@@ -38,7 +38,8 @@ class Intervention {
   final String? delayDetails;
   final DateTime? delayedRescheduleDate;
   final DateTime? completedAt;
-
+  final String? interventionNumber;
+  final bool isMaintenance;
   final List<Document> documents;
 
   const Intervention({
@@ -48,6 +49,8 @@ class Intervention {
     required this.status,
     required this.scheduledDate,
     required this.address,
+    this.interventionNumber,
+    this.isMaintenance = false,
     this.buildingId,
     this.buildingSyndicId,
     this.city,
@@ -88,11 +91,11 @@ class Intervention {
     String? adminFeedback,
     String? urgency,
     String? sector,
-    String? category,
-    String? delayReason,
     String? delayDetails,
     DateTime? delayedRescheduleDate,
     DateTime? completedAt,
+    String? interventionNumber,
+    bool? isMaintenance,
     List<Document>? documents,
   }) {
     return Intervention(
@@ -102,6 +105,8 @@ class Intervention {
       status: status ?? this.status,
       scheduledDate: scheduledDate ?? this.scheduledDate,
       address: address ?? this.address,
+      interventionNumber: interventionNumber ?? this.interventionNumber,
+      isMaintenance: isMaintenance ?? this.isMaintenance,
       buildingId: buildingId ?? this.buildingId,
       buildingSyndicId: buildingSyndicId ?? this.buildingSyndicId,
       city: city ?? this.city,
