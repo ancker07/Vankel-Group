@@ -125,11 +125,14 @@ class AuthController extends Controller
                 'status' => $request->role === 'SYNDIC' ? 'APPROVED' : 'PENDING',
             ]);
 
+            $token = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'success' => true,
                 'message' => $request->role === 'SYNDIC' 
                     ? 'Email verified and account created successfully.' 
                     : 'Email verified and account created successfully. Awaiting admin approval.',
+                'token' => $token,
                 'user' => $user
             ]);
         }
