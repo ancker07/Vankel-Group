@@ -4,6 +4,8 @@ import '../../intervention/presentation/providers/intervention_list_provider.dar
 import '../../intervention/domain/intervention.dart';
 import 'widgets/intervention_details_sheet.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/services/pdf_service.dart';
+import '../../intervention/presentation/providers/intervention_provider.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -50,6 +52,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             if (_searchQuery.isEmpty) return true;
             final q = _searchQuery.toLowerCase();
             return i.title.toLowerCase().contains(q) || 
+                   i.id.toLowerCase().contains(q) ||
                    i.address.toLowerCase().contains(q) || 
                    (i.city?.toLowerCase().contains(q) ?? false);
           }).toList();
@@ -90,7 +93,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               // Latest Slips Horizontal List
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: 180,
+                  height: 200,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -118,6 +121,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             l10n.fullHistory.toUpperCase(),
                             style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 1),
                           ),
+                          const Spacer(),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -187,6 +191,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Widget _buildLatestSlipCard(Intervention item) {
     final isDelayed = item.status.name.toLowerCase() == 'delayed';
+    final themeColor = isDelayed ? Colors.orange : const Color(0xFF22C55E);
+
     return GestureDetector(
       onTap: () {
         showModalBottomSheet(
@@ -197,75 +203,135 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         );
       },
       child: Container(
-        width: 260,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF09090B),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDelayed ? Colors.orange.withOpacity(0.1) : Colors.white10),
-        boxShadow: isDelayed ? [BoxShadow(color: Colors.orange.withOpacity(0.05), blurRadius: 10)] : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Mock Image/Map Area
-          Container(
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.02),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Center(
-              child: Icon(Icons.map_outlined, color: Colors.white.withOpacity(0.05), size: 32),
-            ),
+        width: 280,
+        margin: const EdgeInsets.only(right: 12, bottom: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF09090B),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDelayed ? Colors.orange.withOpacity(0.2) : Colors.white10,
           ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Technical Header / Background
+              Container(
+                height: 90,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      themeColor.withOpacity(0.15),
+                      Colors.black.withOpacity(0.4),
+                    ],
+                  ),
+                ),
+                child: Stack(
                   children: [
-                    _buildStatusBadge(item.status),
-                    Text(
-                      _formatDate(item.scheduledDate),
-                      style: const TextStyle(color: Colors.white24, fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+                    Positioned(
+                      right: -20,
+                      top: -20,
+                      child: Icon(
+                        Icons.description_outlined,
+                        size: 100,
+                        color: themeColor.withOpacity(0.05),
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  item.title,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 10, color: Color(0xFF22C55E)),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        item.address,
-                        style: const TextStyle(color: Colors.white30, fontSize: 11),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildStatusBadge(item.status),
+                          Text(
+                            item.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 12, color: themeColor),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              item.address,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "#${item.id}",
+                            style: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 9,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                          Text(
+                            _formatDate(item.scheduledDate),
+                            style: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildHistoryItem(Intervention item) {
+    final isDelayed = item.status.name.toLowerCase() == 'delayed';
+    final themeColor = isDelayed ? Colors.orange : const Color(0xFF22C55E);
+
     return InkWell(
       onTap: () {
         showModalBottomSheet(
@@ -277,32 +343,140 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF09090B).withOpacity(0.5),
+          color: const Color(0xFF09090B),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.03)),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              Colors.white.withOpacity(0.02),
+              Colors.black.withOpacity(0.5),
+            ],
+          ),
         ),
-        child: Row(
-          children: [
-            _buildStatusBadge(item.status, small: true),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  Text(item.address, style: const TextStyle(color: Colors.white30, fontSize: 11)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildStatusBadge(item.status, small: true),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 10, color: themeColor),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                item.address,
+                                style: const TextStyle(
+                                  color: Colors.white30,
+                                  fontSize: 11,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            IconButton(
-              onPressed: () {}, // Download PDF
-              icon: const Icon(Icons.picture_as_pdf_outlined, color: Colors.white24, size: 20),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.white10, size: 20),
-          ],
+              const SizedBox(height: 12),
+              const Divider(color: Colors.white10, height: 1),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${_formatDate(item.scheduledDate)}  •  ID: ${item.id.toUpperCase()}",
+                    style: const TextStyle(
+                      color: Colors.white24,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(8),
+                        onPressed: () async {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Generating PDF...'),
+                                duration: Duration(seconds: 1)),
+                          );
+
+                          try {
+                            // Fetch data reliably using .future
+                            final buildings = await ref.read(buildingListProvider.future);
+                            final syndics = await ref.read(syndicListProvider.future);
+                            final professionals = await ref.read(professionalListProvider.future);
+
+                            final building = buildings.firstWhere(
+                              (b) => b['id']?.toString() == item.buildingId,
+                              orElse: () => null,
+                            );
+                            final syndic = syndics.firstWhere(
+                              (s) => s['id']?.toString() == item.syndicId,
+                              orElse: () => null,
+                            );
+                            final pro = professionals.firstWhere(
+                              (p) => p['id']?.toString() == item.proId,
+                              orElse: () => null,
+                            );
+
+                            await PdfService.generateInterventionReport(
+                              intervention: item,
+                              building: building,
+                              professional: pro,
+                              syndic: syndic,
+                              lang: Localizations.localeOf(context).languageCode,
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('Error generating PDF: $e'),
+                                  backgroundColor: Colors.red),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.picture_as_pdf_outlined,
+                            color: Colors.white24, size: 18),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right,
+                          color: Colors.white10, size: 18),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

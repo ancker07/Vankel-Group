@@ -78,32 +78,42 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      color: AppTheme.zinc950,
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        border: Border(bottom: BorderSide(color: AppTheme.zinc900, width: 1)),
+      ),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
           color: AppTheme.zinc900,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.zinc800),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.zinc800, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: TextField(
           controller: _searchController,
           onChanged: (v) => ref.read(interventionFilterProvider.notifier).updateSearchQuery(v),
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: 'Search interventions...',
             hintStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 14),
-            prefixIcon: const Icon(Icons.search, size: 20, color: AppTheme.zinc500),
+            prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.brandGreen),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 0),
-            suffixIcon: filter.isActive
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close, size: 18, color: AppTheme.zinc500),
+                  icon: const Icon(Icons.cancel_rounded, size: 18, color: AppTheme.zinc500),
                   onPressed: () {
                     _searchController.clear();
-                    ref.read(interventionFilterProvider.notifier).reset();
+                    ref.read(interventionFilterProvider.notifier).updateSearchQuery('');
                   },
                 )
               : null,
@@ -423,17 +433,32 @@ class _InterventionCard extends StatelessWidget {
                       color: AppTheme.zinc900,
                       border: Border(bottom: BorderSide(color: AppTheme.zinc800)),
                     ),
-                    child: Opacity(
-                      opacity: 0.1,
-                      child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 10),
-                        itemBuilder: (context, index) => Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppTheme.zinc500, width: 0.5),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Icon(
+                            Icons.map_outlined,
+                            size: 40,
+                            color: AppTheme.zinc800,
                           ),
                         ),
-                      ),
+                        // Overlay Map Image (Stylized)
+                        Opacity(
+                          opacity: 0.15,
+                          child: Image.network(
+                            "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop",
+                            width: double.infinity,
+                            height: 160,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        // Grid Overlay
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: MapGridPainter(),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   // Gradient Overlay
@@ -678,4 +703,25 @@ class _InterventionCard extends StatelessWidget {
         return AppTheme.zinc500;
     }
   }
+}
+
+class MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppTheme.zinc800.withOpacity(0.2)
+      ..strokeWidth = 0.5;
+
+    const double step = 20;
+
+    for (double i = 0; i < size.width; i += step) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+    for (double i = 0; i < size.height; i += step) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

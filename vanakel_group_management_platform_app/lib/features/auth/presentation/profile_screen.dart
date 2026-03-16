@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/auth_state_provider.dart';
+import '../../../core/api/api_constants.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -55,10 +56,10 @@ class ProfileScreen extends ConsumerWidget {
                         child: CircleAvatar(
                           radius: 45,
                           backgroundColor: AppTheme.zinc800,
-                          backgroundImage: user.profileImageUrl != null
-                              ? NetworkImage(user.profileImageUrl!)
+                          backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                              ? NetworkImage(ApiConstants.getStorageUrl(user.profileImageUrl))
                               : null,
-                          child: user.profileImageUrl == null
+                          child: user.profileImageUrl == null || user.profileImageUrl!.isEmpty
                               ? const Icon(
                                   Icons.person,
                                   size: 50,

@@ -138,6 +138,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
               buildingsAsync.when(
                 data: (buildings) => DropdownButtonFormField<String>(
                   value: _selectedBuildingId,
+                  isExpanded: true,
                   dropdownColor: const Color(0xFF18181B),
                   style: const TextStyle(color: Colors.white),
                   decoration: _inputDecoration('Select Building'),
@@ -172,6 +173,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
 
               DropdownButtonFormField<String>(
                 value: _frequency,
+                isExpanded: true,
                 dropdownColor: const Color(0xFF18181B),
                 style: const TextStyle(color: Colors.white),
                 decoration: _inputDecoration('Frequency'),

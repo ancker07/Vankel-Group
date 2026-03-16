@@ -17,6 +17,8 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
+  Function? onNotificationUpdate;
+
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'high_importance_channel',
     'High Importance Notifications',
@@ -59,6 +61,7 @@ class NotificationService {
         if (kDebugMode) {
           print('Notification clicked: ${details.payload}');
         }
+        onNotificationUpdate?.call();
       },
     );
 
@@ -71,6 +74,7 @@ class NotificationService {
         print('Foreground message received: ${message.notification?.title}');
       }
       _showLocalNotification(message);
+      onNotificationUpdate?.call();
     });
 
     // Handle clicks when app is in background but not terminated
@@ -78,6 +82,7 @@ class NotificationService {
       if (kDebugMode) {
         print('Notification clicked (background): ${message.notification?.title}');
       }
+      onNotificationUpdate?.call();
     });
 
     // Check if app was opened from a terminated state via a notification
@@ -86,6 +91,10 @@ class NotificationService {
       if (kDebugMode) {
         print('App opened from terminated state via notification: ${initialMessage.notification?.title}');
       }
+      // Delay call slightly to ensure UI is ready to navigate/refresh
+      Future.delayed(const Duration(milliseconds: 500), () {
+        onNotificationUpdate?.call();
+      });
     }
 
     // Log the token for debugging

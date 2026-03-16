@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/auth_state_provider.dart';
+import '../../../core/api/api_constants.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -165,12 +166,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         backgroundColor: AppTheme.zinc800,
                         backgroundImage: _imageFile != null
                             ? FileImage(File(_imageFile!.path)) as ImageProvider
-                            : (user?.profileImageUrl != null
-                                      ? NetworkImage(user!.profileImageUrl!)
+                            : (user?.profileImageUrl != null && user!.profileImageUrl!.isNotEmpty
+                                      ? NetworkImage(ApiConstants.getStorageUrl(user.profileImageUrl))
                                       : null)
                                   as ImageProvider?,
                         child:
-                            _imageFile == null && user?.profileImageUrl == null
+                            _imageFile == null && (user?.profileImageUrl == null || user!.profileImageUrl!.isEmpty)
                             ? const Icon(
                                 Icons.person,
                                 size: 60,

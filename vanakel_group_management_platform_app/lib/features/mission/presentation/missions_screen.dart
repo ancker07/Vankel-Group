@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
@@ -129,24 +130,48 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      color: AppTheme.zinc950,
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        border: Border(bottom: BorderSide(color: AppTheme.zinc900, width: 1)),
+      ),
       child: Column(
         children: [
-          TextField(
-            controller: _searchController,
-            onChanged: (value) => ref.read(missionFilterProvider.notifier).updateSearchQuery(value),
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Search missions...',
-              hintStyle: TextStyle(color: AppTheme.zinc500),
-              prefixIcon: const Icon(Icons.search, color: AppTheme.zinc500),
-              filled: true,
-              fillColor: AppTheme.zinc900,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+          Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.zinc900,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.zinc800, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => ref.read(missionFilterProvider.notifier).updateSearchQuery(value),
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                hintText: 'Search missions...',
+                hintStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 14),
+                prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.brandGreen),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.cancel_rounded, size: 18, color: AppTheme.zinc500),
+                        onPressed: () {
+                          _searchController.clear();
+                          ref.read(missionFilterProvider.notifier).updateSearchQuery('');
+                        },
+                      )
+                    : null,
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
             ),
           ),
           const SizedBox(height: 12),
@@ -603,11 +628,88 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                   ),
                 ),
               
+              // Map Visualization Area
+              Stack(
+                children: [
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppTheme.zinc900,
+                      border: Border(bottom: BorderSide(color: AppTheme.zinc800.withOpacity(0.5))),
+                    ),
+                    child: ClipRRect(
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: Icon(
+                              Icons.map_outlined,
+                              size: 40,
+                              color: AppTheme.zinc800,
+                            ),
+                          ),
+                          // Overlay Map Image (Placeholder for now, but stylized)
+                          Opacity(
+                            opacity: 0.15,
+                            child: Image.network(
+                              "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop",
+                              width: double.infinity,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          // Grid Overlay
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: MapGridPainter(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Gradient Overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            AppTheme.zinc950.withOpacity(0.8),
+                            AppTheme.zinc950,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Map Pin Action
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: () => _openMap(widget.mission.address),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandGreen.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppTheme.brandGreen.withOpacity(0.3)),
+                        ),
+                        child: const Icon(Icons.location_on, size: 16, color: AppTheme.brandGreen),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -793,6 +895,22 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
+  }
+
+  Future<void> _openMap(String address) async {
+    final encodedAddress = Uri.encodeComponent(address);
+    final googleMapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedAddress");
+    final appleMapsUrl = Uri.parse("https://maps.apple.com/?q=$encodedAddress");
+
+    try {
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(appleMapsUrl)) {
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error opening maps: $e');
+    }
   }
 
   Widget _buildActionButton(BuildContext context, WidgetRef ref, IconData icon, Color color, VoidCallback onPressed) {
@@ -1136,4 +1254,25 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
+}
+
+class MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppTheme.zinc800.withOpacity(0.2)
+      ..strokeWidth = 0.5;
+
+    const double step = 20;
+
+    for (double i = 0; i < size.width; i += step) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+    for (double i = 0; i < size.height; i += step) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

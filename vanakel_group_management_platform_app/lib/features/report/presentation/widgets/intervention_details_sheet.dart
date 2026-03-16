@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../intervention/domain/intervention.dart';
+import '../../../../core/services/pdf_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../intervention/presentation/providers/intervention_provider.dart';
 
-class InterventionDetailsSheet extends StatelessWidget {
+class InterventionDetailsSheet extends ConsumerWidget {
   final Intervention intervention;
 
   const InterventionDetailsSheet({
@@ -10,7 +13,7 @@ class InterventionDetailsSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDelayed = intervention.status.name.toLowerCase() == 'delayed';
     final themeColor = isDelayed ? Colors.orange : const Color(0xFF22C55E);
 
@@ -19,9 +22,10 @@ class InterventionDetailsSheet extends StatelessWidget {
         color: Color(0xFF09090B),
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           // Handle
           Center(
             child: Container(
@@ -176,11 +180,46 @@ class InterventionDetailsSheet extends StatelessWidget {
 
           const SizedBox(height: 40),
 
-          // Action Button
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Generating PDF...'), duration: Duration(seconds: 1)),
+                );
+
+                try {
+                  // Fetch data reliably using .future
+                  final buildings = await ref.read(buildingListProvider.future);
+                  final syndics = await ref.read(syndicListProvider.future);
+                  final professionals = await ref.read(professionalListProvider.future);
+
+                  final building = buildings.firstWhere(
+                    (b) => b['id']?.toString() == intervention.buildingId, 
+                    orElse: () => null,
+                  );
+                  final syndic = syndics.firstWhere(
+                    (s) => s['id']?.toString() == intervention.syndicId, 
+                    orElse: () => null,
+                  );
+                  final pro = professionals.firstWhere(
+                    (p) => p['id']?.toString() == intervention.proId, 
+                    orElse: () => null,
+                  );
+
+                  await PdfService.generateInterventionReport(
+                    intervention: intervention,
+                    building: building,
+                    professional: pro,
+                    syndic: syndic,
+                    lang: Localizations.localeOf(context).languageCode,
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error generating PDF: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: themeColor,
                 foregroundColor: Colors.black,
@@ -196,8 +235,9 @@ class InterventionDetailsSheet extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildStatusBadge(InterventionStatus status) {
     final isDelayed = status.name.toLowerCase() == 'delayed';

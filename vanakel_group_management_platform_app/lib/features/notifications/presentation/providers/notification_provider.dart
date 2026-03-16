@@ -5,8 +5,8 @@ import '../../../../core/services/auth_token_service.dart';
 import '../../domain/entities/notification_item.dart';
 
 class NotificationNotifier extends Notifier<AsyncValue<List<NotificationItem>>> {
-  late final Dio _dio;
-  late final AuthTokenService _tokenService;
+  late Dio _dio;
+  late AuthTokenService _tokenService;
 
   @override
   AsyncValue<List<NotificationItem>> build() {
