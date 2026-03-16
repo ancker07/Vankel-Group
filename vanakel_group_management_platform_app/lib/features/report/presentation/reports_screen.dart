@@ -6,6 +6,7 @@ import 'widgets/intervention_details_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../intervention/presentation/providers/intervention_provider.dart';
+import '../../../core/utils/translation_helper.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -51,7 +52,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           final filteredHistory = allReports.where((i) {
             if (_searchQuery.isEmpty) return true;
             final q = _searchQuery.toLowerCase();
-            return i.title.toLowerCase().contains(q) || 
+            final translatedTitle = TranslationHelper.getLocalizedField(
+              context: context,
+              enValue: i.titleEn,
+              frValue: i.titleFr,
+              nlValue: i.titleNl,
+              fallback: i.title,
+            );
+            return translatedTitle.toLowerCase().contains(q) || 
                    i.id.toLowerCase().contains(q) ||
                    i.address.toLowerCase().contains(q) || 
                    (i.city?.toLowerCase().contains(q) ?? false);
@@ -256,7 +264,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         children: [
                           _buildStatusBadge(item.status),
                           Text(
-                            item.title,
+                            TranslationHelper.getLocalizedField(
+                              context: context,
+                              enValue: item.titleEn,
+                              frValue: item.titleFr,
+                              nlValue: item.titleNl,
+                              fallback: item.title,
+                            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -370,7 +384,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                item.title,
+                                TranslationHelper.getLocalizedField(
+                                  context: context,
+                                  enValue: item.titleEn,
+                                  frValue: item.titleFr,
+                                  nlValue: item.titleNl,
+                                  fallback: item.title,
+                                ),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 14,

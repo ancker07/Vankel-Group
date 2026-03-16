@@ -7,6 +7,7 @@ import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../mission/domain/mission.dart';
 import '../../intervention/domain/intervention.dart';
+import '../../../core/utils/translation_helper.dart';
 
 class AdminDashboard extends ConsumerWidget {
   const AdminDashboard({super.key});
@@ -46,7 +47,13 @@ class AdminDashboard extends ConsumerWidget {
               (m) => _ActivityItem(
                 id: m.id,
                 type: 'mission',
-                title: m.title,
+                title: TranslationHelper.getLocalizedField(
+                  context: context,
+                  enValue: m.titleEn,
+                  frValue: m.titleFr,
+                  nlValue: m.titleNl,
+                  fallback: m.title,
+                ),
                 subtitle: m.address,
                 date: m.createdAt,
                 iconColor: AppTheme.brandOrange,
@@ -57,7 +64,13 @@ class AdminDashboard extends ConsumerWidget {
               (i) => _ActivityItem(
                 id: i.id,
                 type: 'intervention',
-                title: i.title,
+                title: TranslationHelper.getLocalizedField(
+                  context: context,
+                  enValue: i.titleEn,
+                  frValue: i.titleFr,
+                  nlValue: i.titleNl,
+                  fallback: i.title,
+                ),
                 subtitle: i.address,
                 date: i.scheduledDate,
                 iconColor: AppTheme.brandGreen,

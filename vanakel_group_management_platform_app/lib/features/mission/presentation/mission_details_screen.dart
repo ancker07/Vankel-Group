@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../intervention/domain/document.dart';
 import '../domain/mission.dart';
 import './providers/mission_list_provider.dart';
+import '../../../core/utils/translation_helper.dart';
 
 class MissionDetailsScreen extends ConsumerWidget {
   final String missionId;
@@ -42,9 +43,9 @@ class MissionDetailsScreen extends ConsumerWidget {
             children: [
               _buildStatusSection(context, ref, mission),
               const SizedBox(height: 24),
-              _buildInfoCard(mission),
+              _buildInfoCard(context, mission),
               const SizedBox(height: 24),
-              _buildDescriptionCard(mission),
+              _buildDescriptionCard(context, mission),
               if (mission.documents.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 _buildDocumentsSection(mission, context),
@@ -188,7 +189,7 @@ class MissionDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoCard(Mission mission) {
+  Widget _buildInfoCard(BuildContext context, Mission mission) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -240,7 +241,13 @@ class MissionDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            mission.title,
+            TranslationHelper.getLocalizedField(
+              context: context,
+              enValue: mission.titleEn,
+              frValue: mission.titleFr,
+              nlValue: mission.titleNl,
+              fallback: mission.title,
+            ),
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -271,7 +278,7 @@ class MissionDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDescriptionCard(Mission mission) {
+  Widget _buildDescriptionCard(BuildContext context, Mission mission) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -292,7 +299,13 @@ class MissionDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            mission.description,
+            TranslationHelper.getLocalizedField(
+              context: context,
+              enValue: mission.descriptionEn,
+              frValue: mission.descriptionFr,
+              nlValue: mission.descriptionNl,
+              fallback: mission.description,
+            ),
             style: const TextStyle(
               fontSize: 16,
               color: AppTheme.zinc300,
@@ -563,7 +576,13 @@ class MissionDetailsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        mission.title,
+                        TranslationHelper.getLocalizedField(
+                          context: context,
+                          enValue: mission.titleEn,
+                          frValue: mission.titleFr,
+                          nlValue: mission.titleNl,
+                          fallback: mission.title,
+                        ),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,

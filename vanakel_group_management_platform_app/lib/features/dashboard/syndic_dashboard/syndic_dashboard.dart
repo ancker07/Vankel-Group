@@ -6,6 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../intervention/domain/intervention.dart';
+import '../../../core/utils/translation_helper.dart';
 
 class SyndicDashboard extends ConsumerWidget {
   const SyndicDashboard({super.key});
@@ -146,7 +147,13 @@ class SyndicDashboard extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.title,
+                                    TranslationHelper.getLocalizedField(
+                                      context: context,
+                                      enValue: item.titleEn,
+                                      frValue: item.titleFr,
+                                      nlValue: item.titleNl,
+                                      fallback: item.title,
+                                    ),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,

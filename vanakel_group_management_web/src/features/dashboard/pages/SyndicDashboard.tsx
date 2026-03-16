@@ -9,6 +9,8 @@ interface SyndicDashboardProps {
     onCreateIntervention: () => void;
     onSelectIntervention: (id: string) => void;
     onViewFullHistory: () => void;
+    onRefresh: () => void;
+    isRefreshing?: boolean;
     lang: string;
     t: any;
 }
@@ -17,6 +19,8 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
     allInterventions,
     onCreateIntervention,
     onSelectIntervention,
+    onRefresh,
+    isRefreshing,
     lang,
     t
 }) => {
@@ -32,12 +36,24 @@ const SyndicDashboard: React.FC<SyndicDashboardProps> = ({
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tight">{t.syndic_portal || 'Syndic Portal'}</h1>
                 </div>
-                <button
-                    onClick={onCreateIntervention}
-                    className="p-2 bg-brand-green/10 text-brand-green hover:bg-brand-green hover:text-black rounded-xl transition-all"
-                >
-                    <PenTool size={20} />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={onRefresh}
+                        disabled={isRefreshing}
+                        className={`p-2 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-xl transition-all ${isRefreshing ? 'opacity-50 cursor-wait' : 'hover:border-zinc-700'}`}
+                        title="Refresh"
+                    >
+                        <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin text-brand-green' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={onCreateIntervention}
+                        className="p-2 bg-brand-green/10 text-brand-green hover:bg-brand-green hover:text-black rounded-xl transition-all"
+                    >
+                        <PenTool size={20} />
+                    </button>
+                </div>
             </div>
 
             {/* Banner Section */}

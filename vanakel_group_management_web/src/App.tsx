@@ -796,9 +796,15 @@ const App: React.FC = () => {
           id: String(serverData.id),
           buildingId: String(serverData.building_id),
           title: serverData.title,
+          title_en: serverData.title_en,
+          title_fr: serverData.title_fr,
+          title_nl: serverData.title_nl,
           category: serverData.category,
           sector: serverData.sector,
           description: serverData.description,
+          description_en: serverData.description_en,
+          description_fr: serverData.description_fr,
+          description_nl: serverData.description_nl,
           scheduledDate: serverData.scheduled_date || new Date().toISOString(),
           createdAt: serverData.created_at,
           status: serverData.status as InterventionStatus,
@@ -1124,6 +1130,8 @@ const App: React.FC = () => {
                             onCreateIntervention={() => setShowCreateModal(true)}
                             onSelectIntervention={setSelectedInterventionId}
                             onViewFullHistory={() => navigate('/syndic/management')}
+                            onRefresh={() => refreshGlobalData(false)}
+                            isRefreshing={isRefreshing}
                             lang={lang}
                             t={t}
                           />

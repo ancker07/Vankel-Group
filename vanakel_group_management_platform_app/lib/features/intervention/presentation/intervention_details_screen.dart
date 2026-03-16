@@ -10,6 +10,7 @@ import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
 import 'providers/intervention_provider.dart';
 import 'widgets/intervention_delay_sheet.dart';
+import '../../../../core/utils/translation_helper.dart';
 
 class InterventionDetailsScreen extends ConsumerStatefulWidget {
   final String interventionId;
@@ -223,7 +224,13 @@ class _InterventionDetailsScreenState
         ),
         title: interventionAsync.when(
           data: (i) => Text(
-            i.title.toUpperCase(),
+            TranslationHelper.getLocalizedField(
+              context: context,
+              enValue: i.titleEn,
+              frValue: i.titleFr,
+              nlValue: i.titleNl,
+              fallback: i.title,
+            ).toUpperCase(),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w900,
@@ -678,7 +685,13 @@ class _InterventionDetailsScreenState
             border: Border.all(color: AppTheme.zinc800),
           ),
           child: Text(
-            i.description,
+            TranslationHelper.getLocalizedField(
+              context: context,
+              enValue: i.descriptionEn,
+              frValue: i.descriptionFr,
+              nlValue: i.descriptionNl,
+              fallback: i.description,
+            ),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -1185,8 +1198,24 @@ class _InterventionDetailsScreenState
     BuildContext context,
     Intervention i,
   ) async {
-    final titleController = TextEditingController(text: i.title);
-    final descController = TextEditingController(text: i.description);
+    final titleController = TextEditingController(
+      text: TranslationHelper.getLocalizedField(
+        context: context,
+        enValue: i.titleEn,
+        frValue: i.titleFr,
+        nlValue: i.titleNl,
+        fallback: i.title,
+      ),
+    );
+    final descController = TextEditingController(
+      text: TranslationHelper.getLocalizedField(
+        context: context,
+        enValue: i.descriptionEn,
+        frValue: i.descriptionFr,
+        nlValue: i.descriptionNl,
+        fallback: i.description,
+      ),
+    );
     DateTime startDate = DateTime.now();
     String frequency = 'YEARLY';
     bool isSubmitting = false;
