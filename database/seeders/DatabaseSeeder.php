@@ -26,51 +26,11 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Syndic User
-        User::updateOrCreate(
-            ['email' => 'syndic@demo.com'],
-            [
-                'name' => 'Demo Syndic',
-                'password' => bcrypt('demo123'),
-                'role' => 'SYNDIC',
-                'status' => 'APPROVED',
-            ]
-        );
-
-        // Create Seed Data
-        $syndic = \App\Models\Syndic::create([
-            'company_name' => 'ImmoTrust Syndic',
-            'contact_person' => 'Jean Dupont',
-            'email' => 'contact@immotrust.be',
-            'phone' => '+32 470 11 22 33',
+        $this->call([
+            SettingSeeder::class,
+            TranslationSeeder::class,
         ]);
-
-        $building = \App\Models\Building::create([
-            'address' => 'Avenue Louise 123',
-            'city' => 'Brussels',
-            'syndic_id' => $syndic->id,
-        ]);
-
-        \App\Models\Mission::create([
-            'building_id' => $building->id,
-            'title' => 'Basement Lighting',
-            'description' => 'Suggested upgrade for emergency lighting in basement due to flickering lights.',
-            'urgency' => 'NORMAL',
-            'status' => 'PENDING',
-            'requested_by' => 'SYNDIC',
-            'category' => 'ELECTRICITY',
-            'sector' => 'ELECTRICITY',
-        ]);
-
-        \App\Models\Intervention::create([
-            'building_id' => $building->id,
-            'title' => 'Water Leak in Garage',
-            'description' => 'Heavy water infiltration detected in level -1.',
-            'urgency' => 'HIGH',
-            'status' => 'ONGOING',
-            'category' => 'PLUMBING',
-            'sector' => 'PLUMBING',
-        ]);
+        
     }
 }
 
