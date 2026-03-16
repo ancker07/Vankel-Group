@@ -139,6 +139,7 @@ export interface Intervention {
   interventionNumber?: string;
   urgency?: Urgency;
   syndicId?: string;
+  extractedSyndicName?: string;
 }
 
 

@@ -33,6 +33,7 @@ class Intervention {
   final String? syndicId;
   final String? proId;
   final String? syndicName;
+  final String? extractedSyndicName;
   final String? professionalName;
 
   // On-site contact
@@ -70,6 +71,7 @@ class Intervention {
     this.syndicId,
     this.proId,
     this.syndicName,
+    this.extractedSyndicName,
     this.professionalName,
     this.onSiteContactName,
     this.onSiteContactPhone,
@@ -97,6 +99,7 @@ class Intervention {
     String? syndicId,
     String? proId,
     String? syndicName,
+    String? extractedSyndicName,
     String? professionalName,
     String? onSiteContactName,
     String? onSiteContactPhone,
@@ -126,6 +129,7 @@ class Intervention {
       syndicId: syndicId ?? this.syndicId,
       proId: proId ?? this.proId,
       syndicName: syndicName ?? this.syndicName,
+      extractedSyndicName: extractedSyndicName ?? this.extractedSyndicName,
       professionalName: professionalName ?? this.professionalName,
       onSiteContactName: onSiteContactName ?? this.onSiteContactName,
       onSiteContactPhone: onSiteContactPhone ?? this.onSiteContactPhone,

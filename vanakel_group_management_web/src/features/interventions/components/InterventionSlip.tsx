@@ -478,7 +478,10 @@ const InterventionSlip: React.FC<SlipProps> = ({
               </div>
               <div>
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">{t.syndic}</p>
-                <p className="font-bold text-brand-green text-sm md:text-lg drop-shadow-sm">{currentSyndic ? currentSyndic.companyName : t.unassigned}</p>
+                <p className="font-bold text-brand-green text-sm md:text-lg drop-shadow-sm">{currentSyndic ? currentSyndic.companyName : (intervention.extractedSyndicName || t.unassigned)}</p>
+                {!currentSyndic && intervention.extractedSyndicName && (
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Extracted from Import</p>
+                )}
                 <div className="flex flex-col md:items-start gap-1 mt-1">
                   <p className="text-zinc-400 text-[10px] font-bold uppercase">{currentSyndic ? currentSyndic.contactPerson : '-'}</p>
                   {currentSyndic?.phone && <p className="text-zinc-500 text-[10px] flex items-center gap-1.5"><Smartphone size={10} /> {currentSyndic.phone}</p>}
@@ -633,22 +636,27 @@ const InterventionSlip: React.FC<SlipProps> = ({
                     </div>
                     <div>
                       <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] leading-none mb-1.5">{t.syndic} / {t.manager_label}</p>
-                      <p className="text-xs font-black text-white">{currentSyndic.companyName}</p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentSyndic.contactPerson}</p>
+                      <p className="text-xs font-black text-white">{currentSyndic ? currentSyndic.companyName : (intervention.extractedSyndicName || t.unassigned)}</p>
+                      {!currentSyndic && intervention.extractedSyndicName && (
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Extracted: {intervention.extractedSyndicName}</p>
+                      )}
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{currentSyndic ? currentSyndic.contactPerson : ''}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col md:items-end justify-center gap-1.5">
-                    {currentSyndic.phone && (
-                      <a href={`tel:${currentSyndic.phone}`} className="text-xs font-bold text-zinc-300 hover:text-brand-green transition-colors flex items-center gap-2">
-                        <Smartphone size={12} className="text-brand-green" /> {currentSyndic.phone}
-                      </a>
-                    )}
-                    {currentSyndic.email && (
-                      <a href={`mailto:${currentSyndic.email}`} className="text-xs font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
-                        <Mail size={12} /> {currentSyndic.email}
-                      </a>
-                    )}
-                  </div>
+                  {currentSyndic && (
+                    <div className="flex flex-col md:items-end justify-center gap-1.5">
+                      {currentSyndic.phone && (
+                        <a href={`tel:${currentSyndic.phone}`} className="text-xs font-bold text-zinc-300 hover:text-brand-green transition-colors flex items-center gap-2">
+                          <Smartphone size={12} className="text-brand-green" /> {currentSyndic.phone}
+                        </a>
+                      )}
+                      {currentSyndic.email && (
+                        <a href={`mailto:${currentSyndic.email}`} className="text-xs font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
+                          <Mail size={12} /> {currentSyndic.email}
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>

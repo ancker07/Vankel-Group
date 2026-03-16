@@ -263,7 +263,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                     <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900/50">
                                         <div className="flex items-center gap-2 text-xs text-zinc-400">
                                             <ShieldCheck size={12} className="text-zinc-600 shrink-0" />
-                                            <span className="truncate">{s?.companyName || t.unassigned}</span>
+                                            <span className="truncate">{s?.companyName || i.extractedSyndicName || t.unassigned}</span>
                                         </div>
                                         {(i.onSiteContactName || (b?.tenants && b.tenants.length > 0)) && (
                                             <div className="flex items-center gap-2 text-xs text-zinc-400">

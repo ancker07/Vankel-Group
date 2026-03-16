@@ -355,7 +355,79 @@ class _InterventionDetailsScreenState
           ),
           const SizedBox(height: 12),
           _buildSyndicDropdown(),
+          _buildExtractedSyndicInfo(i),
           _buildSyndicInfoCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExtractedSyndicInfo(Intervention i) {
+    if (_localSyndicId != null || i.extractedSyndicName == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.brandOrange.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.brandOrange.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.brandOrange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppTheme.brandOrange.withValues(alpha: 0.2),
+              ),
+            ),
+            child: const Icon(
+              Icons.shield_outlined,
+              size: 20,
+              color: AppTheme.brandOrange,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'EXTRACTED SYNDIC (UNMATCHED)',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.brandOrange,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  i.extractedSyndicName!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const Text(
+                  'NOT MATCHED TO DATABASE',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.zinc500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
