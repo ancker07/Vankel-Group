@@ -152,23 +152,53 @@ class InterventionController extends Controller
 
     public function getMissions()
     {
-        return response()->json(Mission::with(['documents', 'email', 'building', 'syndic'])->latest()->get());
+        $user = auth()->user();
+
+        $query = Mission::with(['documents', 'email', 'building', 'syndic'])->latest();
+
+        if ($user && $user->role === 'SYNDIC') {
+            $query->where('syndic_id', $user->id);
+        }
+
+        return response()->json($query->get());
     }
 
     public function getMissionById($id)
     {
-        $mission = Mission::with(['documents', 'email', 'building'])->findOrFail($id);
+        $user = auth()->user();
+        $query = Mission::with(['documents', 'email', 'building']);
+        
+        if ($user && $user->role === 'SYNDIC') {
+            $query->where('syndic_id', $user->id);
+        }
+        
+        $mission = $query->findOrFail($id);
         return response()->json($mission);
     }
 
     public function getInterventions()
     {
-        return response()->json(Intervention::with(['documents', 'building', 'professional', 'syndic'])->get());
+        $user = auth()->user();
+        
+        $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
+
+        if ($user && $user->role === 'SYNDIC') {
+            $query->where('syndic_id', $user->id);
+        }
+
+        return response()->json($query->get());
     }
 
     public function getInterventionById($id)
     {
-        $intervention = Intervention::with(['documents', 'building', 'professional', 'syndic'])->findOrFail($id);
+        $user = auth()->user();
+        $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
+
+        if ($user && $user->role === 'SYNDIC') {
+            $query->where('syndic_id', $user->id);
+        }
+
+        $intervention = $query->findOrFail($id);
         return response()->json($intervention);
     }
 

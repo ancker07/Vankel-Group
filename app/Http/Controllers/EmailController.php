@@ -24,13 +24,23 @@ class EmailController extends Controller
 
     public function index()
     {
+        $user = auth()->user();
+
         // Group by thread_id, falling back to message_id for unique emails
         // Then take the latest message from each group
-        $emails = Email::with('attachments')
+        $query = Email::with('attachments')
             ->select('emails.*')
             ->join(DB::raw('(SELECT MAX(id) as max_id FROM emails GROUP BY COALESCE(thread_id, message_id)) as latest_emails'), 'emails.id', '=', 'latest_emails.max_id')
-            ->orderBy('received_at', 'desc')
-            ->get();
+            ->orderBy('received_at', 'desc');
+
+        if ($user && $user->role === 'SYNDIC') {
+            $query->where(function ($q) use ($user) {
+                $q->where('from_address', $user->email)
+                  ->orWhere('to_address', 'like', '%' . $user->email . '%');
+            });
+        }
+
+        $emails = $query->get();
 
         return response()->json([
             'emails' => $emails
@@ -52,10 +62,22 @@ class EmailController extends Controller
 
     public function getThread($threadId)
     {
+        $user = auth()->user();
+
         // First try finding an email that matches this thread_id or message_id
-        $email = Email::where('thread_id', $threadId)
-            ->orWhere('message_id', $threadId)
-            ->first();
+        $query = Email::where(function($q) use ($threadId) {
+            $q->where('thread_id', $threadId)
+              ->orWhere('message_id', $threadId);
+        });
+
+        if ($user && $user->role === 'SYNDIC') {
+            $query->where(function ($q) use ($user) {
+                $q->where('from_address', $user->email)
+                  ->orWhere('to_address', 'like', '%' . $user->email . '%');
+            });
+        }
+
+        $email = $query->first();
 
         if (!$email) {
             return response()->json(['emails' => []]);
