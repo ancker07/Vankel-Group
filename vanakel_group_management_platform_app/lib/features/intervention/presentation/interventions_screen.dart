@@ -162,16 +162,6 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
               ),
             ),
           ],
-          const SizedBox(width: 8),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: IconButton(
-              onPressed: () => ref.read(interventionListProvider.notifier).refresh(),
-              icon: const Icon(Icons.refresh, color: AppTheme.brandOrange, size: 20),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-          ),
         ],
       ),
     );

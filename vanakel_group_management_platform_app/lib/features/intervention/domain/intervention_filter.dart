@@ -43,6 +43,9 @@ class InterventionFilter {
       scheduledDate != null;
 
   bool matches(Intervention i) {
+    // Show only ongoing interventions (exclude completed)
+    if (i.status == InterventionStatus.completed) return false;
+
     // Search query match
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();

@@ -55,7 +55,9 @@ class MissionFilter {
         mission.description.toLowerCase().contains(searchQuery.toLowerCase()) ||
         mission.address.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final matchesStatus = status == null || mission.status == status;
+    final matchesStatus = status != null 
+        ? mission.status == status 
+        : (mission.status != MissionStatus.completed && mission.status != MissionStatus.rejected);
     final matchesUrgency = urgency == null || mission.urgency == urgency;
     final matchesSector = sector == null || mission.sector == sector;
     final matchesBuilding = buildingId == null || mission.buildingId == buildingId;
