@@ -12,22 +12,27 @@ class AiService
     {
         $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini-1.5-flash-latest';
         $apiKey = Setting::where('key', 'ai_api_key')->value('value');
+        
+        if (!$apiKey) {
+            $apiKey = env('GEMINI_API_KEY') ?? env('API_KEY');
+        }
 
         if (!$apiKey) {
+            Log::error("AI API Key not configured in settings or environment.");
             throw new \Exception("AI API Key not configured.");
         }
 
         if (str_contains($model, 'gpt')) {
-            return $this->callOpenAi($content, $attachments, $model, $apiKey);
+            return $this->callOpenAi($content, $attachments, $model, $apiKey, $this->getSystemPrompt());
         } else {
-            return $this->callGemini($content, $attachments, $model, $apiKey);
+            return $this->callGemini($content, $attachments, $model, $apiKey, $this->getSystemPrompt());
         }
     }
 
-    protected function callOpenAi(string $content, array $attachments, string $model, string $apiKey)
+    protected function callOpenAi(string $content, array $attachments, string $model, string $apiKey, ?string $systemPrompt = null)
     {
         $messages = [
-            ['role' => 'system', 'content' => $this->getSystemPrompt()],
+            ['role' => 'system', 'content' => $systemPrompt ?? $this->getSystemPrompt()],
             ['role' => 'user', 'content' => $content],
         ];
 
@@ -58,13 +63,14 @@ class AiService
         return json_decode($response->json('choices.0.message.content'), true);
     }
 
-    protected function callGemini(string $content, array $attachments, string $model, string $apiKey)
+    protected function callGemini(string $content, array $attachments, string $model, string $apiKey, ?string $systemPrompt = null)
     {
         // Use v1 for more stability if available, but v1beta allows recent models
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
 
+        $promptText = ($systemPrompt ? $systemPrompt . "\n\nContent:\n" : "") . $content;
         $parts = [
-            ['text' => $this->getSystemPrompt() . "\n\nEmail Content:\n" . $content]
+            ['text' => $promptText]
         ];
 
         foreach ($attachments as $att) {
@@ -101,8 +107,11 @@ class AiService
         $resultText = $response->json('candidates.0.content.parts.0.text');
         
         if (!$resultText) {
-             Log::error("Gemini Empty Response: " . $response->body());
-             throw new \Exception("AI Extraction failed (Gemini returned empty response).");
+             $finishReason = $response->json('candidates.0.finishReason');
+             $safetyRatings = $response->json('candidates.0.safetyRatings');
+             Log::error("Gemini Empty Response. Finish Reason: {$finishReason}. Safety Ratings: " . json_encode($safetyRatings));
+             Log::error("Gemini Context: " . substr($content, 0, 500) . "...");
+             throw new \Exception("AI Extraction failed (Gemini returned empty response: {$finishReason}).");
         }
 
         $data = json_decode($resultText, true);
@@ -149,6 +158,11 @@ PROMPT;
         $apiKey = Setting::where('key', 'ai_api_key')->value('value');
         
         if (!$apiKey) {
+            $apiKey = env('GEMINI_API_KEY') ?? env('API_KEY');
+        }
+
+        if (!$apiKey) {
+            Log::warning("Translation AI fallback: API Key missing.");
             // Fallback strategy if AI is offline: use the same string for all languages.
             return [
                 'title' => ['en' => $title, 'fr' => $title, 'nl' => $title],
@@ -156,11 +170,13 @@ PROMPT;
             ];
         }
 
+        $translationSystemPrompt = "You are a professional translator for a building management system. Return ONLY valid JSON.";
+
         try {
             if (str_contains($model, 'gpt')) {
-                return $this->callOpenAi($prompt, [], $model, $apiKey);
+                return $this->callOpenAi($prompt, [], $model, $apiKey, $translationSystemPrompt);
             } else {
-                return $this->callGemini($prompt, [], $model, $apiKey);
+                return $this->callGemini($prompt, [], $model, $apiKey, $translationSystemPrompt);
             }
         } catch (\Exception $e) {
             Log::error("Translation AI Error: " . $e->getMessage());
