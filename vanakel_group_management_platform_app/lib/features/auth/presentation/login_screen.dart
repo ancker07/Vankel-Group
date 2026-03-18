@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/presentation/providers/auth_state_provider.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -57,6 +58,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Language Selector at top right
+              const Align(
+                alignment: Alignment.topRight,
+                child: LanguageSelector(),
+              ),
+              const SizedBox(height: 16),
               // Logo Header
               Center(
                 child: Image.asset(
@@ -88,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 _buildModernRoleCard(
                   title: l10n.admin,
-                  subtitle: 'Central Management & Control',
+                  subtitle: l10n.adminRoleSubtitle,
                   icon: Icons.shield_outlined,
                   onTap: () => setState(() => _selectedRole = 'ADMIN'),
                 ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.2),
@@ -97,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 _buildModernRoleCard(
                   title: l10n.syndic,
-                  subtitle: 'Property Overview & Requests',
+                  subtitle: l10n.syndicRoleSubtitle,
                   icon: Icons.business_center_outlined,
                   onTap: () => setState(() => _selectedRole = 'SYNDIC'),
                 ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.2),
@@ -118,7 +125,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Text(
                         _selectedRole == 'ADMIN'
                             ? l10n.adminPortal
-                            : 'Syndic Access',
+                            : l10n.syndicAccess,
                         style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

@@ -12,6 +12,8 @@ import 'providers/intervention_provider.dart';
 import 'widgets/intervention_delay_sheet.dart';
 import '../../../../core/utils/translation_helper.dart';
 
+import '../../../../l10n/app_localizations.dart';
+
 class InterventionDetailsScreen extends ConsumerStatefulWidget {
   final String interventionId;
 
@@ -167,8 +169,8 @@ class _InterventionDetailsScreenState
           _selectedImages.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Intervention registered successfully'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.interventionRegisteredSuccess),
             backgroundColor: AppTheme.brandGreen,
           ),
         );
@@ -209,6 +211,7 @@ class _InterventionDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final interventionAsync = ref.watch(
       interventionDetailProvider(widget.interventionId),
     );
@@ -237,15 +240,15 @@ class _InterventionDetailsScreenState
               color: Colors.white,
             ),
           ),
-          loading: () => const Text('LOADING...'),
-          error: (_, __) => const Text('ERROR'),
+          loading: () => Text(l10n.loading),
+          error: (_, __) => Text(l10n.error),
         ),
         actions: [
           interventionAsync.when(
             data: (i) => IconButton(
               icon: const Icon(Icons.rotate_left, color: AppTheme.brandOrange),
-              tooltip: 'MAINTENANCE',
-              onPressed: () => _showMaintenanceModal(context, i),
+              tooltip: l10n.maintenance,
+              onPressed: () => _showMaintenanceModal(context, i, l10n),
             ),
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
@@ -269,23 +272,23 @@ class _InterventionDetailsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildContactSection(intervention),
+                      _buildContactSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      _buildDescriptionSection(intervention),
+                      _buildDescriptionSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      _buildMapSection(intervention),
+                      _buildMapSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      _buildStatusSection(intervention),
+                      _buildStatusSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      _buildFeedbackSection(intervention),
+                      _buildFeedbackSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      _buildMediaAuditSection(intervention),
+                      _buildMediaAuditSection(intervention, l10n),
                       const SizedBox(height: 40),
                     ],
                   ),
                 ),
               ),
-              _buildFooter(intervention),
+              _buildFooter(intervention, l10n),
             ],
           );
         },
@@ -299,7 +302,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildContactSection(Intervention i) {
+  Widget _buildContactSection(Intervention i, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -319,8 +322,8 @@ class _InterventionDetailsScreenState
               ),
               const SizedBox(width: 8),
               Text(
-                'ON-SITE CONTACT',
-                style: TextStyle(
+                l10n.onSiteContact,
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   color: AppTheme.zinc500,
@@ -332,11 +335,11 @@ class _InterventionDetailsScreenState
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _buildTextField('NAME', _contactNameController)),
+              Expanded(child: _buildTextField(l10n.name, _contactNameController)),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildTextField(
-                  'GSM / TEL',
+                  l10n.phoneTitle,
                   _contactPhoneController,
                   hint: '+32 ...',
                 ),
@@ -344,16 +347,15 @@ class _InterventionDetailsScreenState
             ],
           ),
           const SizedBox(height: 16),
-          const SizedBox(height: 16),
           _buildTextField(
-            'EMAIL (OPTIONAL)',
+            l10n.emailOptional,
             _contactEmailController,
             hint: 'email@example.com',
           ),
           const SizedBox(height: 24),
-          const Text(
-            'SYNDIC / CUSTOMER INFO',
-            style: TextStyle(
+          Text(
+            l10n.syndicCustomerInfo,
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
               color: AppTheme.zinc500,
@@ -361,15 +363,15 @@ class _InterventionDetailsScreenState
             ),
           ),
           const SizedBox(height: 12),
-          _buildSyndicDropdown(),
-          _buildExtractedSyndicInfo(i),
-          _buildSyndicInfoCard(),
+          _buildSyndicDropdown(l10n),
+          _buildExtractedSyndicInfo(i, l10n),
+          _buildSyndicInfoCard(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildExtractedSyndicInfo(Intervention i) {
+  Widget _buildExtractedSyndicInfo(Intervention i, AppLocalizations l10n) {
     if (_localSyndicId != null || i.extractedSyndicName == null) return const SizedBox.shrink();
 
     return Container(
@@ -405,9 +407,9 @@ class _InterventionDetailsScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'EXTRACTED SYNDIC (UNMATCHED)',
-                  style: TextStyle(
+                Text(
+                  l10n.extractedSyndicUnmatched,
+                  style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w900,
                     color: AppTheme.brandOrange,
@@ -423,9 +425,9 @@ class _InterventionDetailsScreenState
                     color: Colors.white,
                   ),
                 ),
-                const Text(
-                  'NOT MATCHED TO DATABASE',
-                  style: TextStyle(
+                Text(
+                  l10n.notMatchedToDatabase,
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.zinc500,
@@ -440,7 +442,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildSyndicInfoCard() {
+  Widget _buildSyndicInfoCard(AppLocalizations l10n) {
     if (_localSyndicId == null) return const SizedBox.shrink();
 
     final syndicsAsync = ref.watch(syndicListProvider);
@@ -487,9 +489,9 @@ class _InterventionDetailsScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'SYNDIC / MANAGER',
-                          style: TextStyle(
+                        Text(
+                          l10n.syndicManager,
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w900,
                             color: AppTheme.zinc500,
@@ -624,7 +626,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildSyndicDropdown() {
+  Widget _buildSyndicDropdown(AppLocalizations l10n) {
     final syndicsAsync = ref.watch(syndicListProvider);
     return syndicsAsync.when(
       data: (syndics) => Container(
@@ -638,9 +640,9 @@ class _InterventionDetailsScreenState
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             value: _localSyndicId,
-            hint: const Text(
-              'Select Customer...',
-              style: TextStyle(color: AppTheme.zinc500, fontSize: 13),
+            hint: Text(
+              l10n.selectCustomer,
+              style: const TextStyle(color: AppTheme.zinc500, fontSize: 13),
             ),
             isExpanded: true,
             dropdownColor: AppTheme.zinc950,
@@ -658,17 +660,17 @@ class _InterventionDetailsScreenState
         ),
       ),
       loading: () => const LinearProgressIndicator(),
-      error: (_, __) => const Text('Error loading syndics'),
+      error: (_, __) => Text(l10n.errorLoadingSyndics),
     );
   }
 
-  Widget _buildDescriptionSection(Intervention i) {
+  Widget _buildDescriptionSection(Intervention i, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'INTERVENTION DESCRIPTION',
-          style: TextStyle(
+        Text(
+          l10n.interventionDescription,
+          style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w900,
             color: AppTheme.brandGreen,
@@ -703,7 +705,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildStatusSection(Intervention i) {
+  Widget _buildStatusSection(Intervention i, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -713,9 +715,9 @@ class _InterventionDetailsScreenState
             color: AppTheme.brandGreen,
             borderRadius: BorderRadius.circular(6),
           ),
-          child: const Text(
-            'UPDATE STATUS',
-            style: TextStyle(
+          child: Text(
+            l10n.updateStatus,
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
               color: Colors.black,
@@ -727,7 +729,7 @@ class _InterventionDetailsScreenState
           children: [
             Expanded(
               child: _StatusBtn(
-                label: 'In progress',
+                label: l10n.inProgress,
                 isActive: _localStatus == InterventionStatus.pending,
                 color: AppTheme.zinc500,
                 onTap: () =>
@@ -737,7 +739,7 @@ class _InterventionDetailsScreenState
             const SizedBox(width: 8),
             Expanded(
               child: _StatusBtn(
-                label: 'Delayed',
+                label: l10n.delayed,
                 isActive: _localStatus == InterventionStatus.delayed,
                 color: AppTheme.brandOrange,
                 onTap: () => _handleDelay(i.id, i),
@@ -746,7 +748,7 @@ class _InterventionDetailsScreenState
             const SizedBox(width: 8),
             Expanded(
               child: _StatusBtn(
-                label: 'Completed',
+                label: l10n.completed,
                 isActive: _localStatus == InterventionStatus.completed,
                 color: AppTheme.brandGreen,
                 onTap: () =>
@@ -759,7 +761,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildFeedbackSection(Intervention i) {
+  Widget _buildFeedbackSection(Intervention i, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -767,9 +769,9 @@ class _InterventionDetailsScreenState
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              const Text(
-                'TECHNICAL OBSERVATIONS',
-                style: TextStyle(
+              Text(
+                l10n.technicalObservations,
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   color: AppTheme.zinc500,
@@ -777,9 +779,9 @@ class _InterventionDetailsScreenState
                 ),
               ),
               const SizedBox(width: 16),
-              _buildSmallBtn(Icons.camera_alt_outlined, 'PHOTOS', _pickImage),
+              _buildSmallBtn(Icons.camera_alt_outlined, l10n.photos, _pickImage),
               const SizedBox(width: 8),
-              _buildSmallBtn(Icons.upload_file_outlined, 'DOCUMENTS', () {}),
+              _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, () {}),
             ],
           ),
         ),
@@ -804,9 +806,9 @@ class _InterventionDetailsScreenState
             expands: true,
             textAlignVertical: TextAlignVertical.top,
             style: const TextStyle(color: Colors.white, fontSize: 16),
-            decoration: const InputDecoration(
-              hintText: 'Technical feedback or observations...',
-              hintStyle: TextStyle(color: AppTheme.zinc500, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: l10n.technicalFeedbackHint,
+              hintStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 16),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
@@ -818,11 +820,11 @@ class _InterventionDetailsScreenState
         Center(
           child: Column(
             children: [
-              _buildAIBtn(),
+              _buildAIBtn(l10n),
               const SizedBox(height: 8),
-              const Text(
-                'IMPROVE WITH AI',
-                style: TextStyle(
+              Text(
+                l10n.improveWithAi,
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   color: AppTheme.brandGreen,
@@ -864,7 +866,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildAIBtn() {
+  Widget _buildAIBtn(AppLocalizations l10n) {
     return GestureDetector(
       onTap: _isImproving
           ? null
@@ -879,10 +881,10 @@ class _InterventionDetailsScreenState
                 if (mounted) {
                   _adminNoteController.text = improved;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Note improved with AI'),
+                    SnackBar(
+                      content: Text(l10n.noteImprovedWithAi),
                       backgroundColor: AppTheme.brandGreen,
-                      duration: Duration(seconds: 1),
+                      duration: const Duration(seconds: 1),
                     ),
                   );
                 }
@@ -938,13 +940,13 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildMediaAuditSection(Intervention i) {
+  Widget _buildMediaAuditSection(Intervention i, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'MEDIA & AUDIT',
-          style: TextStyle(
+          l10n.mediaAudit,
+          style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w900,
             color: AppTheme.zinc500,
@@ -957,7 +959,7 @@ class _InterventionDetailsScreenState
             Expanded(
               child: _buildMediaBox(
                 Icons.camera_alt_outlined,
-                'PHOTOS',
+                l10n.photos,
                 count: _selectedImages.length.toString(),
                 onTap: _pickImage,
               ),
@@ -966,7 +968,7 @@ class _InterventionDetailsScreenState
             Expanded(
               child: _buildMediaBox(
                 Icons.upload_file_outlined,
-                'DOCUMENTS',
+                l10n.documents,
                 count: i.documents.length.toString(),
               ),
             ),
@@ -993,7 +995,7 @@ class _InterventionDetailsScreenState
           ),
         ],
         const SizedBox(height: 24),
-        _buildAuditCard(),
+        _buildAuditCard(l10n),
       ],
     );
   }
@@ -1043,7 +1045,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildAuditCard() {
+  Widget _buildAuditCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1054,9 +1056,9 @@ class _InterventionDetailsScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'AUDIT TRACEABILITY',
-            style: TextStyle(
+          Text(
+            l10n.auditTraceability,
+            style: const TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w900,
               color: AppTheme.brandGreen,
@@ -1082,9 +1084,9 @@ class _InterventionDetailsScreenState
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'INTERVENTION INITIALIZED ON',
-                    style: TextStyle(
+                  Text(
+                    l10n.interventionInitializedOn,
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
@@ -1107,7 +1109,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildFooter(Intervention i) {
+  Widget _buildFooter(Intervention i, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1122,7 +1124,7 @@ class _InterventionDetailsScreenState
           child: ElevatedButton(
             onPressed: (_isSaving || _isImproving)
                 ? null
-                : () => _showRegisterOptionsModal(context, i),
+                : () => _showRegisterOptionsModal(context, i, l10n),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandGreen,
               foregroundColor: Colors.black,
@@ -1140,14 +1142,14 @@ class _InterventionDetailsScreenState
                       color: Colors.black,
                     ),
                   )
-                : const Row(
+                : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.description_outlined, size: 18),
-                      SizedBox(width: 10),
+                      const Icon(Icons.description_outlined, size: 18),
+                      const SizedBox(width: 10),
                       Text(
-                        'REGISTER INTERVENTION',
-                        style: TextStyle(
+                        l10n.registerInterventionTitle,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
                         ),
@@ -1160,16 +1162,16 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Widget _buildMapSection(Intervention i) {
+  Widget _buildMapSection(Intervention i, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'LOCATION & ACCESS',
-              style: TextStyle(
+            Text(
+              l10n.locationAccess,
+              style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.brandGreen,
@@ -1197,6 +1199,7 @@ class _InterventionDetailsScreenState
   Future<void> _showMaintenanceModal(
     BuildContext context,
     Intervention i,
+    AppLocalizations l10n,
   ) async {
     final titleController = TextEditingController(
       text: TranslationHelper.getLocalizedField(
@@ -1249,9 +1252,9 @@ class _InterventionDetailsScreenState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'CREATE MAINTENANCE PLAN',
-                      style: TextStyle(
+                    Text(
+                      l10n.createMaintenancePlan,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w900,
                         color: AppTheme.brandOrange,
@@ -1273,7 +1276,7 @@ class _InterventionDetailsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildModalField('MAINTENANCE TITLE', titleController),
+                      _buildModalField(l10n.maintenanceTitle, titleController),
                       const SizedBox(height: 20),
 
                       Row(
@@ -1282,9 +1285,9 @@ class _InterventionDetailsScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'START DATE',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.startDate,
+                                  style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w900,
                                     color: AppTheme.zinc500,
@@ -1347,9 +1350,9 @@ class _InterventionDetailsScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'FREQUENCY',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.frequency,
+                                  style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w900,
                                     color: AppTheme.zinc500,
@@ -1375,18 +1378,18 @@ class _InterventionDetailsScreenState
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                      items: const [
+                                      items: [
                                         DropdownMenuItem(
                                           value: 'YEARLY',
-                                          child: Text('YEARLY'),
+                                          child: Text(l10n.yearly),
                                         ),
                                         DropdownMenuItem(
                                           value: 'QUARTERLY',
-                                          child: Text('QUARTERLY'),
+                                          child: Text(l10n.quarterly),
                                         ),
                                         DropdownMenuItem(
                                           value: 'MONTHLY',
-                                          child: Text('MONTHLY'),
+                                          child: Text(l10n.monthly),
                                         ),
                                       ],
                                       onChanged: (v) =>
@@ -1402,7 +1405,7 @@ class _InterventionDetailsScreenState
 
                       const SizedBox(height: 20),
                       _buildModalField(
-                        'DESCRIPTION',
+                        l10n.description,
                         descController,
                         maxLines: 4,
                       ),
@@ -1425,10 +1428,10 @@ class _InterventionDetailsScreenState
                               size: 20,
                             ),
                             const SizedBox(width: 12),
-                            const Expanded(
+                            Expanded(
                               child: Text(
-                                'Interventions will be created automatically for the next 5 years.',
-                                style: TextStyle(
+                                l10n.maintenancePlanAutoInfo,
+                                style: const TextStyle(
                                   color: AppTheme.zinc400,
                                   fontSize: 11,
                                   height: 1.4,
@@ -1481,18 +1484,17 @@ class _InterventionDetailsScreenState
                                       'end_date': endDate.toIso8601String(),
                                     },
                                   });
-
                               if (context.mounted) {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Maintenance plan created successfully',
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.maintenancePlanCreatedSuccess,
+                                      ),
+                                      backgroundColor: AppTheme.brandGreen,
                                     ),
-                                    backgroundColor: AppTheme.brandGreen,
-                                  ),
-                                );
-                              }
+                                  );
+                                }
                             } catch (e) {
                               setModalState(() => isSubmitting = false);
                               if (context.mounted) {
@@ -1518,9 +1520,9 @@ class _InterventionDetailsScreenState
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'CONFIRM PLAN',
-                            style: TextStyle(
+                        : Text(
+                            l10n.confirmPlan,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 14,
                             ),
@@ -1535,7 +1537,7 @@ class _InterventionDetailsScreenState
     );
   }
 
-  void _showRegisterOptionsModal(BuildContext context, Intervention i) {
+  void _showRegisterOptionsModal(BuildContext context, Intervention i, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1557,9 +1559,9 @@ class _InterventionDetailsScreenState
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Text(
-              'SAVE RECORD',
-              style: TextStyle(
+            Text(
+              l10n.saveRecord,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
                 color: Colors.white,
@@ -1567,9 +1569,9 @@ class _InterventionDetailsScreenState
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'CHOOSE SAVE MODE',
-              style: TextStyle(
+            Text(
+              l10n.chooseSaveMode,
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.zinc500,
@@ -1578,7 +1580,7 @@ class _InterventionDetailsScreenState
             const SizedBox(height: 24),
             _buildOptionBtn(
               icon: Icons.save_outlined,
-              label: 'SAVE ONLY',
+              label: l10n.saveOnly,
               onTap: () {
                 Navigator.pop(context);
                 _executeRegister(i.id, mode: 'NONE');
@@ -1587,7 +1589,7 @@ class _InterventionDetailsScreenState
             const SizedBox(height: 12),
             _buildOptionBtn(
               icon: Icons.mail_outline,
-              label: 'SAVE & SEND EMAIL',
+              label: l10n.saveSendEmail,
               onTap: () {
                 Navigator.pop(context);
                 _executeRegister(i.id, mode: 'EMAIL');
@@ -1596,7 +1598,7 @@ class _InterventionDetailsScreenState
             const SizedBox(height: 12),
             _buildOptionBtn(
               icon: Icons.chat_outlined,
-              label: 'SAVE & SEND WHATSAPP',
+              label: l10n.saveSendWhatsapp,
               onTap: () {
                 Navigator.pop(context);
                 _executeRegister(i.id, mode: 'WHATSAPP');

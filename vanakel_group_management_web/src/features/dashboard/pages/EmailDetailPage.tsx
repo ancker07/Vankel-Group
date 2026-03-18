@@ -183,20 +183,20 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                         <div
                             key={msg.id}
                             id={`msg-${msg.id}`}
-                            className={`bg-zinc-950 rounded-[2rem] border transition-all duration-500 ${isLast ? 'border-zinc-800 shadow-2xl' : 'border-zinc-900/50 opacity-70 hover:opacity-100 scale-[0.98] hover:scale-[1]'
+                            className={`bg-white rounded-[2rem] border transition-all duration-500 ${isLast ? 'border-zinc-200 shadow-xl' : 'border-zinc-100 opacity-70 hover:opacity-100 scale-[0.98] hover:scale-[1]'
                                 } overflow-hidden`}
                         >
                             {/* Subject Area */}
                             {index === 0 && (
-                                <div className="p-6 md:p-8 border-b border-zinc-900 bg-zinc-900/20">
-                                    <h1 className="text-xl md:text-3xl font-bold text-white leading-tight break-words">
+                                <div className="p-6 md:p-8 border-b border-zinc-100 bg-zinc-50/50">
+                                    <h1 className="text-xl md:text-3xl font-bold text-zinc-900 leading-tight break-words">
                                         {msg.subject || '(No Subject)'}
                                     </h1>
                                 </div>
                             )}
 
                             {/* Sender/Meta Area */}
-                            <div className={`p-5 md:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${index !== 0 ? 'bg-zinc-900/10' : ''}`}>
+                            <div className={`p-5 md:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${index !== 0 ? 'bg-zinc-50/10' : ''}`}>
                                 <div className="flex items-center gap-3">
                                     <div className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black shadow-inner border shrink-0 ${msg.from_address.includes('vanakelgroup.com')
                                         ? 'bg-brand-green/10 border-brand-green/20 text-brand-green'
@@ -205,7 +205,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                                         {msg.from_name ? msg.from_name.charAt(0).toUpperCase() : '?'}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-sm font-bold text-white truncate">{msg.from_name || 'Unknown'}</p>
+                                        <p className="text-sm font-bold text-zinc-900 truncate">{msg.from_name || 'Unknown'}</p>
                                         <p className="text-[10px] md:text-xs text-zinc-500 font-medium truncate">{msg.from_address}</p>
                                     </div>
                                 </div>
@@ -235,7 +235,7 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                             {/* Content Area */}
                             <div className="p-5 md:p-8">
                                 <div className="flex flex-col space-y-6">
-                                    <div className="text-zinc-300 text-xs md:text-sm leading-relaxed whitespace-pre-wrap font-sans overflow-x-auto">
+                                    <div className="text-zinc-800 text-xs md:text-sm leading-relaxed whitespace-pre-wrap font-sans overflow-x-auto">
                                         {msg.body_html ? (
                                             <div
                                                 className="email-content"
@@ -262,11 +262,11 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                                                         href={`${STORAGE_BASE_URL}/${att.file_path}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-800 rounded-xl hover:border-brand-green/30 hover:bg-zinc-800/50 transition-all group"
+                                                        className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-100 rounded-xl hover:border-brand-green/30 hover:bg-zinc-100 transition-all group"
                                                     >
                                                         <Paperclip size={16} className="text-zinc-600 group-hover:text-brand-green shrink-0" />
                                                         <div className="flex-1 overflow-hidden">
-                                                            <p className="text-[10px] font-bold text-zinc-400 truncate group-hover:text-white">
+                                                            <p className="text-[10px] font-bold text-zinc-600 truncate group-hover:text-black">
                                                                 {att.file_name}
                                                             </p>
                                                         </div>

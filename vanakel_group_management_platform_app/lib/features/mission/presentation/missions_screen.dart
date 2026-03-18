@@ -37,7 +37,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
 
     return Column(
       children: [
-        _buildFilterBar(missions, filter),
+        _buildFilterBar(missions, filter, l10n),
         Expanded(
           child: filteredMissionsAsync.when(
             skipLoadingOnReload: false,
@@ -64,7 +64,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       const SizedBox(height: 24),
                       Text(
                         filter.isActive
-                            ? 'No missions match your filters'
+                            ? l10n.noMissionsMatchFilters
                             : (widget.isAdmin ? l10n.allCaughtUp : l10n.noRequestsYet),
                         style: const TextStyle(
                           color: Colors.white,
@@ -75,7 +75,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       if (filter.isActive)
                         TextButton(
                           onPressed: () => ref.read(missionFilterProvider.notifier).reset(),
-                          child: const Text('Clear Filters', style: TextStyle(color: AppTheme.brandGreen)),
+                          child: Text(l10n.clearFilters, style: const TextStyle(color: AppTheme.brandGreen)),
                         ),
                     ],
                   ).animate().fadeIn().scale(),
@@ -113,7 +113,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Retry Fetching Missions'),
+                    child: Text(l10n.retryFetchingMissions),
                   ),
                 ],
               ),
@@ -124,7 +124,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  Widget _buildFilterBar(List<Mission> missions, MissionFilter filter) {
+  Widget _buildFilterBar(List<Mission> missions, MissionFilter filter, AppLocalizations l10n) {
     if (_searchController.text != filter.searchQuery) {
       _searchController.text = filter.searchQuery;
     }
@@ -156,7 +156,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
               onChanged: (value) => ref.read(missionFilterProvider.notifier).updateSearchQuery(value),
               style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
-                hintText: 'Search missions...',
+                hintText: l10n.searchMissions,
                 hintStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 14),
                 prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.brandGreen),
                 border: InputBorder.none,
@@ -181,39 +181,39 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: filter.urgency?.name.toUpperCase() ?? 'Urgency',
+                  label: filter.urgency != null ? _getUrgencyLabel(filter.urgency!, l10n) : l10n.urgency,
                   icon: Icons.priority_high,
                   isSelected: filter.urgency != null,
-                  onSelected: () => _showUrgencyPicker(filter),
+                  onSelected: () => _showUrgencyPicker(filter, l10n),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: filter.status != null ? _getStatusLabel(filter.status!) : 'Status',
+                  label: filter.status != null ? _getStatusLabel(filter.status!, l10n) : l10n.status,
                   icon: Icons.info_outline,
                   isSelected: filter.status != null,
-                  onSelected: () => _showStatusPicker(filter),
+                  onSelected: () => _showStatusPicker(filter, l10n),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: filter.sector ?? 'Sector',
+                  label: filter.sector ?? l10n.sector,
                   icon: Icons.category_outlined,
                   isSelected: filter.sector != null,
-                  onSelected: () => _showSectorPicker(missions, filter),
+                  onSelected: () => _showSectorPicker(missions, filter, l10n),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
                   label: filter.buildingId != null 
                     ? (missions.firstWhere((m) => m.buildingId == filter.buildingId, orElse: () => missions.first).address)
-                    : 'Building',
+                    : l10n.building,
                   icon: Icons.business_outlined,
                   isSelected: filter.buildingId != null,
-                  onSelected: () => _showBuildingPicker(missions, filter),
+                  onSelected: () => _showBuildingPicker(missions, filter, l10n),
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
                   label: filter.date != null 
                     ? "${filter.date!.day}/${filter.date!.month}/${filter.date!.year}"
-                    : 'Date',
+                    : l10n.date,
                   icon: Icons.calendar_today_outlined,
                   isSelected: filter.date != null,
                   onSelected: () => _showDatePicker(context, filter),
@@ -226,7 +226,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showUrgencyPicker(MissionFilter filter) {
+  void _showUrgencyPicker(MissionFilter filter, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.zinc950,
@@ -241,7 +241,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Filter by Urgency', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(l10n.filterByUrgency, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close, color: Colors.white, size: 20),
@@ -254,14 +254,14 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 child: Column(
                   children: [
                     ListTile(
-                      title: const Text('All urgencies', style: TextStyle(color: Colors.white)),
+                      title: Text(l10n.allUrgencies, style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         ref.read(missionFilterProvider.notifier).updateUrgency(null);
                         Navigator.pop(context);
                       },
                     ),
                     ...MissionUrgency.values.map((u) => ListTile(
-                      title: Text(u.name.toUpperCase(), style: const TextStyle(color: Colors.white)),
+                      title: Text(_getUrgencyLabel(u, l10n), style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         ref.read(missionFilterProvider.notifier).updateUrgency(u);
                         Navigator.pop(context);
@@ -277,22 +277,33 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  String _getStatusLabel(MissionStatus status) {
-    switch (status) {
-      case MissionStatus.pending:
-        return 'Pending Request';
-      case MissionStatus.approved:
-        return 'Accepted';
-      case MissionStatus.rejected:
-        return 'Rejected';
-      case MissionStatus.completed:
-        return 'Completed';
-      case MissionStatus.needsReview:
-        return 'Needs Review';
+  String _getUrgencyLabel(MissionUrgency urgency, AppLocalizations l10n) {
+    switch (urgency) {
+      case MissionUrgency.low:
+        return l10n.low;
+      case MissionUrgency.normal:
+        return l10n.normal;
+      case MissionUrgency.urgent:
+        return l10n.urgent;
     }
   }
 
-  void _showStatusPicker(MissionFilter filter) {
+  String _getStatusLabel(MissionStatus status, AppLocalizations l10n) {
+    switch (status) {
+      case MissionStatus.pending:
+        return l10n.pendingRequest;
+      case MissionStatus.approved:
+        return l10n.accepted;
+      case MissionStatus.rejected:
+        return l10n.rejected;
+      case MissionStatus.completed:
+        return l10n.completed;
+      case MissionStatus.needsReview:
+        return l10n.needsReview;
+    }
+  }
+
+  void _showStatusPicker(MissionFilter filter, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.zinc950,
@@ -307,7 +318,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Filter by Status', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(l10n.filterByStatus, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close, color: Colors.white, size: 20),
@@ -320,7 +331,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 child: Column(
                   children: [
                     ListTile(
-                      title: const Text('All statuses', style: TextStyle(color: Colors.white)),
+                      title: Text(l10n.allStatuses, style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         ref.read(missionFilterProvider.notifier).updateStatus(null);
                         Navigator.pop(context);
@@ -331,7 +342,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       s == MissionStatus.approved || 
                       s == MissionStatus.rejected
                     ).map((s) => ListTile(
-                      title: Text(_getStatusLabel(s), style: const TextStyle(color: Colors.white)),
+                      title: Text(_getStatusLabel(s, l10n), style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         ref.read(missionFilterProvider.notifier).updateStatus(s);
                         Navigator.pop(context);
@@ -347,7 +358,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showSectorPicker(List<Mission> missions, MissionFilter filter) {
+  void _showSectorPicker(List<Mission> missions, MissionFilter filter, AppLocalizations l10n) {
     final sectors = missions.map((m) => m.sector).whereType<String>().toSet().toList();
     sectors.sort();
 
@@ -365,7 +376,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Filter by Sector', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(l10n.filterBySector, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close, color: Colors.white, size: 20),
@@ -378,16 +389,16 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 child: Column(
                   children: [
                     ListTile(
-                      title: const Text('All sectors', style: TextStyle(color: Colors.white)),
+                      title: Text(l10n.allSectors, style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         ref.read(missionFilterProvider.notifier).updateSector(null);
                         Navigator.pop(context);
                       },
                     ),
                     if (sectors.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('No sectors available', style: TextStyle(color: AppTheme.zinc500)),
+                       Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(l10n.noSectorsAvailable, style: const TextStyle(color: AppTheme.zinc500)),
                       )
                     else
                       ...sectors.map((s) => ListTile(
@@ -407,7 +418,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
     );
   }
 
-  void _showBuildingPicker(List<Mission> missions, MissionFilter filter) {
+  void _showBuildingPicker(List<Mission> missions, MissionFilter filter, AppLocalizations l10n) {
     final buildingIds = missions.map((m) => m.buildingId).whereType<String>().toSet().toList();
     
     showModalBottomSheet(
@@ -428,7 +439,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Filter by Building', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(l10n.filterByBuilding, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close, color: Colors.white, size: 20),
@@ -437,7 +448,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
               ),
               const SizedBox(height: 10),
               ListTile(
-                title: const Text('All buildings', style: TextStyle(color: Colors.white)),
+                title: Text(l10n.allBuildings, style: const TextStyle(color: Colors.white)),
                 onTap: () {
                   ref.read(missionFilterProvider.notifier).updateBuilding(null);
                   Navigator.pop(context);
@@ -445,8 +456,8 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
               ),
               Expanded(
                 child: buildingIds.isEmpty
-                  ? const Center(
-                      child: Text('No buildings available', style: TextStyle(color: AppTheme.zinc500)),
+                  ? Center(
+                      child: Text(l10n.noBuildingsAvailable, style: const TextStyle(color: AppTheme.zinc500)),
                     )
                   : ListView.builder(
                       controller: scrollController,
@@ -561,23 +572,24 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
   bool _isExpanded = false;
 
   // Helper to get status label from _MissionsScreenState
-  String _getStatusLabel(MissionStatus status) {
+  String _getStatusLabel(MissionStatus status, AppLocalizations l10n) {
     switch (status) {
       case MissionStatus.pending:
-        return 'Pending Request';
+        return l10n.pendingRequest;
       case MissionStatus.approved:
-        return 'Accepted';
+        return l10n.accepted;
       case MissionStatus.rejected:
-        return 'Rejected';
+        return l10n.rejected;
       case MissionStatus.completed:
-        return 'Completed';
+        return l10n.completed;
       case MissionStatus.needsReview:
-        return 'Needs Review';
+        return l10n.needsReview;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _getStatusColor(widget.mission.status);
 
     return Container(
@@ -617,7 +629,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       const Icon(Icons.auto_awesome, size: 12, color: Colors.purpleAccent),
                       const SizedBox(width: 8),
                       Text(
-                        'AI DETECTED MISSION',
+                        l10n.aiDetectedMission,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -715,10 +727,10 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildBadge(
-                          _getStatusLabel(widget.mission.status),
+                          _getStatusLabel(widget.mission.status, l10n),
                           statusColor,
                         ),
-                        _buildUrgencyBadge(widget.mission.urgency),
+                        _buildUrgencyBadge(widget.mission.urgency, l10n),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -799,7 +811,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                                   Row(
                                     children: [
                                       Text(
-                                        _isExpanded ? 'Show less' : 'Read more',
+                                        _isExpanded ? l10n.showLess : l10n.readMore,
                                         style: const TextStyle(
                                           color: AppTheme.brandGreen,
                                           fontSize: 11,
@@ -837,7 +849,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      widget.mission.syndicName ?? widget.mission.extractedSyndicName ?? 'No Syndic',
+                                      widget.mission.syndicName ?? widget.mission.extractedSyndicName ?? l10n.noSyndic,
                                       style: const TextStyle(
                                         fontSize: 11,
                                         color: AppTheme.zinc500,
@@ -908,11 +920,11 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                                 ),
                                 elevation: 0,
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'DETAILS',
+                                    l10n.details,
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w900,
@@ -971,10 +983,11 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
   }
 
   Future<void> _handleApprove(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await _showConfirmDialog(
       context: context,
-      title: 'Approve Mission',
-      content: 'Are you sure you want to approve this mission and turn it into an intervention?',
+      title: l10n.approveMission,
+      content: l10n.approveMissionConfirm,
       mission: widget.mission,
       isApprove: true,
     );
@@ -987,7 +1000,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
             );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mission approved successfully'), backgroundColor: Colors.green),
+            SnackBar(content: Text(l10n.missionApprovedSuccess), backgroundColor: Colors.green),
           );
         }
       } catch (e) {
@@ -1001,10 +1014,11 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
   }
 
   Future<void> _handleReject(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await _showConfirmDialog(
       context: context,
-      title: 'Reject Mission',
-      content: 'Are you sure you want to reject this mission?',
+      title: l10n.rejectMission,
+      content: l10n.rejectMissionConfirm,
       mission: widget.mission,
       isApprove: false,
     );
@@ -1014,7 +1028,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
         await ref.read(missionListProvider.notifier).rejectMission(widget.mission.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mission rejected'), backgroundColor: Colors.red),
+            SnackBar(content: Text(l10n.missionRejected), backgroundColor: Colors.red),
           );
         }
       } catch (e) {
@@ -1038,201 +1052,204 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
 
     return showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: AppTheme.zinc950,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: AppTheme.zinc800),
-          ),
-          title: Row(
-            children: [
-              Icon(
-                isApprove ? Icons.check_circle_outline : Icons.error_outline,
-                color: isApprove ? AppTheme.brandGreen : Colors.red,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: AppTheme.zinc950,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppTheme.zinc800),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  isApprove ? Icons.check_circle_outline : Icons.error_outline,
+                  color: isApprove ? AppTheme.brandGreen : Colors.red,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    content,
+                    style: const TextStyle(color: AppTheme.zinc300),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.zinc900.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.zinc800),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.mission,
+                          style: const TextStyle(
+                            color: AppTheme.zinc500,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          mission.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (mission.documents.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.reviewDocuments,
+                      style: const TextStyle(
+                        color: AppTheme.zinc500,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...mission.documents.map((doc) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.zinc900,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.zinc800),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.description_outlined, size: 16, color: AppTheme.brandGreen),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    doc.fileName,
+                                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )),
+                  ],
+                  if (isApprove) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.interventionDateOptional,
+                      style: const TextStyle(
+                        color: AppTheme.zinc500,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.dark(
+                                  primary: AppTheme.brandGreen,
+                                  onPrimary: Colors.black,
+                                  surface: AppTheme.zinc900,
+                                  onSurface: Colors.white,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (date != null) {
+                          setState(() => selectedDate = date);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.zinc900,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppTheme.zinc800),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: selectedDate != null ? AppTheme.brandGreen : AppTheme.zinc500,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              selectedDate != null
+                                  ? "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}"
+                                  : l10n.selectDatePlaceholder,
+                              style: TextStyle(
+                                color: selectedDate != null ? Colors.white : AppTheme.zinc500,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (selectedDate != null) ...[
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 16),
+                                onPressed: () => setState(() => selectedDate = null),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.cancel, style: const TextStyle(color: AppTheme.zinc500)),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {
+                  'confirmed': true,
+                  'date': selectedDate?.toIso8601String(),
+                }),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isApprove ? AppTheme.brandGreen : Colors.red,
+                  foregroundColor: isApprove ? Colors.black : Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text(isApprove ? l10n.approve : l10n.reject),
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  content,
-                  style: const TextStyle(color: AppTheme.zinc300),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.zinc900.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.zinc800),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'MISSION',
-                        style: TextStyle(
-                          color: AppTheme.zinc500,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        mission.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (mission.documents.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'REVIEW DOCUMENTS',
-                    style: TextStyle(
-                      color: AppTheme.zinc500,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...mission.documents.map((doc) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.zinc900,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppTheme.zinc800),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.description_outlined, size: 16, color: AppTheme.brandGreen),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  doc.fileName,
-                                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )),
-                ],
-                if (isApprove) ...[
-                  const SizedBox(height: 16),
-                  const Text(
-                    'INTERVENTION DATE (OPTIONAL)',
-                    style: TextStyle(
-                      color: AppTheme.zinc500,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.dark(
-                                primary: AppTheme.brandGreen,
-                                onPrimary: Colors.black,
-                                surface: AppTheme.zinc900,
-                                onSurface: Colors.white,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (date != null) {
-                        setState(() => selectedDate = date);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.zinc900,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.zinc800),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today,
-                            size: 16,
-                            color: selectedDate != null ? AppTheme.brandGreen : AppTheme.zinc500,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            selectedDate != null
-                                ? "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}"
-                                : 'Select date...',
-                            style: TextStyle(
-                              color: selectedDate != null ? Colors.white : AppTheme.zinc500,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (selectedDate != null) ...[
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 16),
-                              onPressed: () => setState(() => selectedDate = null),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: AppTheme.zinc500)),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, {
-                'confirmed': true,
-                'date': selectedDate?.toIso8601String(),
-              }),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isApprove ? AppTheme.brandGreen : Colors.red,
-                foregroundColor: isApprove ? Colors.black : Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text(isApprove ? 'Approve' : 'Reject'),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -1255,22 +1272,22 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
     );
   }
 
-  Widget _buildUrgencyBadge(MissionUrgency urgency) {
+  Widget _buildUrgencyBadge(MissionUrgency urgency, AppLocalizations l10n) {
     Color color;
     String label;
 
     switch (urgency) {
       case MissionUrgency.urgent:
         color = Colors.redAccent;
-        label = 'URGENT';
+        label = l10n.urgent;
         break;
       case MissionUrgency.normal:
         color = Colors.blueAccent;
-        label = 'NORMAL';
+        label = l10n.normal;
         break;
       case MissionUrgency.low:
         color = AppTheme.zinc500;
-        label = 'LOW';
+        label = l10n.low;
         break;
     }
 

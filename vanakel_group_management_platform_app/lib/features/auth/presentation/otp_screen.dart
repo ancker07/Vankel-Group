@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import 'providers/auth_state_provider.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   const OtpScreen({super.key});
@@ -32,10 +34,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   void _verifyOtp() {
+    final l10n = AppLocalizations.of(context)!;
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter all 6 digits')),
+        SnackBar(content: Text(l10n.enterAllDigits)),
       );
       return;
     }
@@ -44,6 +47,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authStateProvider);
 
     // Listen for errors
@@ -67,6 +71,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           icon: const Icon(Icons.arrow_back, color: AppTheme.zinc300),
           onPressed: () => context.pop(),
         ),
+        actions: const [
+          LanguageSelector(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -91,7 +98,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ),
               const SizedBox(height: 40),
               Text(
-                'Verify Email', // Fallback if no l10n
+                l10n.verifyEmail,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -100,7 +107,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
               const SizedBox(height: 12),
               Text(
-                'We have sent a 6-digit code to your email. Please enter it below to verify your account.',
+                l10n.otpSentMessage,
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
@@ -171,9 +178,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           color: Colors.black,
                         ),
                       )
-                    : const Text(
-                        'Verify',
-                        style: TextStyle(
+                    : Text(
+                        l10n.verify,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ).animate().fadeIn(delay: 1000.ms).scale(),
@@ -181,23 +188,22 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Didn't receive the code? ",
-                    style: TextStyle(color: AppTheme.zinc500),
+                  Text(
+                    "${l10n.didntReceiveCode} ",
+                    style: const TextStyle(color: AppTheme.zinc500),
                   ),
                   TextButton(
                     onPressed: () {
                       // Trigger resend
                       final email = authState.user?.email;
                       if (email != null) {
-                         // Implement resend OTP if needed, 
-                         // for now we re-trigger signup logic if possible or just show a message
+                         // Implement resend OTP if needed
                          ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('OTP resent successfully'))
+                           SnackBar(content: Text(l10n.otpResentSuccess))
                          );
                       }
                     },
-                    child: const Text('Resend'),
+                    child: Text(l10n.resend),
                   ),
                 ],
               ).animate().fadeIn(delay: 1100.ms),

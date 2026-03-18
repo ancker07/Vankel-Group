@@ -12,6 +12,7 @@ import '../domain/intervention.dart';
 import 'providers/intervention_filter_provider.dart';
 import 'providers/intervention_provider.dart';
 import 'providers/intervention_list_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class InterventionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -31,21 +32,73 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     super.dispose();
   }
 
+  String _getStatusLabel(InterventionStatus status, AppLocalizations l10n) {
+    switch (status) {
+      case InterventionStatus.pending:
+        return l10n.inProgress;
+      case InterventionStatus.delayed:
+        return l10n.delayed;
+      case InterventionStatus.completed:
+        return l10n.completed;
+    }
+  }
+
+  String _getUrgencyLabel(String urgency, AppLocalizations l10n) {
+    switch (urgency.toUpperCase()) {
+      case 'LOW':
+        return l10n.low;
+      case 'MEDIUM':
+        return l10n.medium;
+      case 'HIGH':
+        return l10n.high;
+      case 'CRITICAL':
+        return l10n.critical;
+      default:
+        return urgency;
+    }
+  }
+
+  String _getSectorLabel(String sector, AppLocalizations l10n) {
+    switch (sector.toUpperCase()) {
+      case 'ELECTRICITE':
+        return l10n.electricity;
+      case 'CARRELAGE':
+        return l10n.tiling;
+      case 'SANITAIRE':
+        return l10n.sanitary;
+      case 'CHAUFFAGE':
+        return l10n.heating;
+      case 'PLOMBERIE':
+        return l10n.plumbing;
+      case 'PEINTURE':
+        return l10n.painting;
+      case 'MENUISERIE':
+        return l10n.woodwork;
+      case 'GENERAL':
+        return l10n.general;
+      case 'AUTRE':
+        return l10n.other;
+      default:
+        return sector;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredInterventionsAsync = ref.watch(filteredInterventionListProvider);
     final filter = ref.watch(interventionFilterProvider);
     final buildingsAsync = ref.watch(buildingListProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
-        _buildTopBar(filter),
-        _buildFilterBar(filter, buildingsAsync),
+        _buildTopBar(filter, l10n),
+        _buildFilterBar(filter, buildingsAsync, l10n),
         Expanded(
           child: filteredInterventionsAsync.when(
             skipLoadingOnReload: false,
             data: (interventions) {
-              if (interventions.isEmpty) return _buildEmptyState(filter.isActive);
+              if (interventions.isEmpty) return _buildEmptyState(filter.isActive, l10n);
               
               return RefreshIndicator(
                 onRefresh: () => ref.read(interventionListProvider.notifier).refresh(),
@@ -65,14 +118,14 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppTheme.brandGreen),
             ),
-            error: (error, stack) => _buildErrorState(error),
+            error: (error, stack) => _buildErrorState(error, l10n),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTopBar(InterventionFilter filter) {
+  Widget _buildTopBar(InterventionFilter filter, AppLocalizations l10n) {
     if (_searchController.text != filter.searchQuery) {
       _searchController.text = filter.searchQuery;
     }
@@ -102,7 +155,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
           onChanged: (v) => ref.read(interventionFilterProvider.notifier).updateSearchQuery(v),
           style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
-            hintText: 'Search interventions...',
+            hintText: l10n.searchInterventions,
             hintStyle: const TextStyle(color: AppTheme.zinc500, fontSize: 14),
             prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.brandGreen),
             border: InputBorder.none,
@@ -124,7 +177,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     );
   }
 
-  Widget _buildFilterBar(InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync) {
+  Widget _buildFilterBar(InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync, AppLocalizations l10n) {
     return Container(
       height: 50,
       color: AppTheme.zinc950,
@@ -133,37 +186,37 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           _FilterChip(
-            label: filter.status?.label ?? 'Status',
+            label: filter.status != null ? _getStatusLabel(filter.status!, l10n) : l10n.status,
             isActive: filter.status != null,
-            onTap: () => _showStatusPicker(context, filter),
+            onTap: () => _showStatusPicker(context, filter, l10n),
             onClear: filter.status != null ? () => ref.read(interventionFilterProvider.notifier).updateStatus(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: filter.sectorId ?? 'Sector',
+            label: filter.sectorId != null ? _getSectorLabel(filter.sectorId!, l10n) : l10n.sector,
             isActive: filter.sectorId != null,
-            onTap: () => _showSectorPicker(context, filter),
+            onTap: () => _showSectorPicker(context, filter, l10n),
             onClear: filter.sectorId != null ? () => ref.read(interventionFilterProvider.notifier).updateSector(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: filter.urgency ?? 'Urgency',
+            label: filter.urgency != null ? _getUrgencyLabel(filter.urgency!, l10n) : l10n.urgency,
             isActive: filter.urgency != null,
-            onTap: () => _showUrgencyPicker(context, filter),
+            onTap: () => _showUrgencyPicker(context, filter, l10n),
             onClear: filter.urgency != null ? () => ref.read(interventionFilterProvider.notifier).updateUrgency(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: filter.buildingId != null 
-              ? (buildingsAsync.value?.firstWhere((b) => b['id'].toString() == filter.buildingId, orElse: () => null)?['address'] ?? 'Building')
-              : 'Building',
+              ? (buildingsAsync.value?.firstWhere((b) => b['id'].toString() == filter.buildingId, orElse: () => null)?['address'] ?? l10n.building)
+              : l10n.building,
             isActive: filter.buildingId != null,
-            onTap: () => _showBuildingPicker(context, filter, buildingsAsync),
+            onTap: () => _showBuildingPicker(context, filter, buildingsAsync, l10n),
             onClear: filter.buildingId != null ? () => ref.read(interventionFilterProvider.notifier).updateBuilding(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: filter.scheduledDate != null ? DateFormat('MMM d, y').format(filter.scheduledDate!) : 'Date',
+            label: filter.scheduledDate != null ? DateFormat('MMM d, y').format(filter.scheduledDate!) : l10n.date,
             isActive: filter.scheduledDate != null,
             onTap: () => _showDatePicker(context, filter),
             onClear: filter.scheduledDate != null ? () => ref.read(interventionFilterProvider.notifier).updateDate(null) : null,
@@ -173,8 +226,8 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
             Center(
               child: GestureDetector(
                 onTap: () => ref.read(interventionFilterProvider.notifier).reset(),
-                child: const Text(
-                  'RESET',
+                child: Text(
+                  l10n.clearFilters.toUpperCase(),
                   style: const TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
                 ),
               ),
@@ -185,11 +238,11 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     );
   }
 
-  void _showStatusPicker(BuildContext context, InterventionFilter filter) {
+  void _showStatusPicker(BuildContext context, InterventionFilter filter, AppLocalizations l10n) {
     final options = [
-      {'label': 'In progress', 'value': InterventionStatus.pending},
-      {'label': 'Delayed', 'value': InterventionStatus.delayed},
-      {'label': 'Completed', 'value': InterventionStatus.completed},
+      {'label': l10n.inProgress, 'value': InterventionStatus.pending},
+      {'label': l10n.delayed, 'value': InterventionStatus.delayed},
+      {'label': l10n.completed, 'value': InterventionStatus.completed},
     ];
 
     showModalBottomSheet(
@@ -207,7 +260,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
               decoration: BoxDecoration(color: AppTheme.zinc800, borderRadius: BorderRadius.circular(2)),
             ),
             const SizedBox(height: 20),
-            const Text('Select Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(l10n.selectStatus, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 16),
             ...options.map((o) => ListTile(
                   title: Text(o['label'] as String, textAlign: TextAlign.center, style: TextStyle(color: filter.status == o['value'] ? AppTheme.brandGreen : Colors.white)),
@@ -223,21 +276,21 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     );
   }
 
-  void _showSectorPicker(BuildContext context, InterventionFilter filter) {
+  void _showSectorPicker(BuildContext context, InterventionFilter filter, AppLocalizations l10n) {
     final sectors = ['ELECTRICITE', 'CARRELAGE', 'SANITAIRE', 'CHAUFFAGE', 'PLOMBERIE', 'PEINTURE', 'MENUISERIE', 'GENERAL', 'AUTRE'];
-    _showPicker(context, 'Select Sector', sectors, filter.sectorId, (v) {
+    _showPicker(context, l10n.selectSector, sectors, filter.sectorId, (v) {
       ref.read(interventionFilterProvider.notifier).updateSector(v);
-    });
+    }, l10n);
   }
 
-  void _showUrgencyPicker(BuildContext context, InterventionFilter filter) {
+  void _showUrgencyPicker(BuildContext context, InterventionFilter filter, AppLocalizations l10n) {
     final values = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-    _showPicker(context, 'Select Urgency', values, filter.urgency, (v) {
+    _showPicker(context, l10n.selectUrgency, values, filter.urgency, (v) {
       ref.read(interventionFilterProvider.notifier).updateUrgency(v);
-    });
+    }, l10n);
   }
 
-  void _showBuildingPicker(BuildContext context, InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync) {
+  void _showBuildingPicker(BuildContext context, InterventionFilter filter, AsyncValue<List<dynamic>> buildingsAsync, AppLocalizations l10n) {
     if (buildingsAsync.value == null) return;
     final items = buildingsAsync.value!.map((b) => {'id': b['id'].toString(), 'label': b['address'] as String}).toList();
     
@@ -245,7 +298,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
       context: context,
       backgroundColor: AppTheme.zinc950,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         minChildSize: 0.4,
@@ -260,7 +313,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
               decoration: BoxDecoration(color: AppTheme.zinc800, borderRadius: BorderRadius.circular(2)),
             ),
             const SizedBox(height: 20),
-            const Text('Select Building', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(l10n.selectBuilding, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
@@ -299,12 +352,12 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     }
   }
 
-  void _showPicker(BuildContext context, String title, List<String> options, String? current, Function(String) onSelect) {
+  void _showPicker(BuildContext context, String title, List<String> options, String? current, Function(String) onSelect, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.zinc950,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.5,
         minChildSize: 0.3,
@@ -327,8 +380,15 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
                 itemCount: options.length,
                 itemBuilder: (context, idx) {
                   final o = options[idx];
+                  String displayLabel = o;
+                  if (title == l10n.selectUrgency) {
+                    displayLabel = _getUrgencyLabel(o, l10n);
+                  } else if (title == l10n.selectSector) {
+                    displayLabel = _getSectorLabel(o, l10n);
+                  }
+                  
                   return ListTile(
-                    title: Text(o, textAlign: TextAlign.center, style: TextStyle(color: current == o ? AppTheme.brandGreen : Colors.white)),
+                    title: Text(displayLabel, textAlign: TextAlign.center, style: TextStyle(color: current == o ? AppTheme.brandGreen : Colors.white)),
                     onTap: () {
                       onSelect(o);
                       Navigator.pop(context);
@@ -343,7 +403,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     );
   }
 
-  Widget _buildEmptyState(bool isFiltered) {
+  Widget _buildEmptyState(bool isFiltered, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -355,7 +415,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            isFiltered ? 'No matches found' : 'No interventions found',
+            isFiltered ? l10n.noMatchesFound : l10n.noInterventionsFound,
             style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
@@ -363,7 +423,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     );
   }
 
-  Widget _buildErrorState(Object error) {
+  Widget _buildErrorState(Object error, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -379,7 +439,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Retry'),
+            child: Text(l10n.retry),
           ),
         ],
       ),
@@ -442,8 +502,9 @@ class _InterventionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _getStatusColor(intervention.status);
-    final statusLabel = intervention.status.label;
+    final statusLabel = _getStatusLabel(intervention.status, l10n);
     final dateStr = DateFormat('M/d/yyyy').format(intervention.scheduledDate);
 
     return Container(
@@ -547,7 +608,7 @@ class _InterventionCard extends StatelessWidget {
                             ),
                             if (intervention.urgency != null) ...[
                               const SizedBox(height: 6),
-                              _buildBadge(intervention.urgency!, _getUrgencyColor(intervention.urgency)),
+                              _buildBadge(_getUrgencyLabel(intervention.urgency!, l10n), _getUrgencyColor(intervention.urgency)),
                             ],
                           ],
                         ),
@@ -664,7 +725,7 @@ class _InterventionCard extends StatelessWidget {
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  intervention.syndicName ?? intervention.extractedSyndicName ?? 'No Syndic',
+                                  intervention.syndicName ?? intervention.extractedSyndicName ?? l10n.noSyndic,
                                   style: TextStyle(fontSize: 11, color: AppTheme.zinc500, fontWeight: FontWeight.bold),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -675,8 +736,8 @@ class _InterventionCard extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'VIEW SLIP',
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen, letterSpacing: 1.2),
+                              l10n.viewSlip,
+                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.brandGreen, letterSpacing: 1.2),
                             ),
                             const SizedBox(width: 4),
                             const Icon(Icons.chevron_right, size: 14, color: AppTheme.brandGreen),
@@ -692,6 +753,32 @@ class _InterventionCard extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05);
+  }
+
+  String _getStatusLabel(InterventionStatus status, AppLocalizations l10n) {
+    switch (status) {
+      case InterventionStatus.pending:
+        return l10n.inProgress;
+      case InterventionStatus.delayed:
+        return l10n.delayed;
+      case InterventionStatus.completed:
+        return l10n.completed;
+    }
+  }
+
+  String _getUrgencyLabel(String urgency, AppLocalizations l10n) {
+    switch (urgency.toUpperCase()) {
+      case 'LOW':
+        return l10n.low;
+      case 'MEDIUM':
+        return l10n.medium;
+      case 'HIGH':
+        return l10n.high;
+      case 'CRITICAL':
+        return l10n.critical;
+      default:
+        return urgency;
+    }
   }
 
   Future<void> _openMap(String address) async {

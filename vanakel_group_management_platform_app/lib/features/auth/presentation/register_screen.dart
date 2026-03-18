@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import 'providers/auth_state_provider.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   final String? initialRole;
@@ -106,12 +107,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppTheme.zinc300),
-                  onPressed: () => context.pop(),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: AppTheme.zinc300),
+                    onPressed: () => context.pop(),
+                  ),
+                  const LanguageSelector(),
+                ],
               ),
               const SizedBox(height: 8),
               Center(

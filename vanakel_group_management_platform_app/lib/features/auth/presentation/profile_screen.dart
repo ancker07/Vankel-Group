@@ -94,12 +94,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildSectionTitle(l10n.information),
                     const SizedBox(height: 16),
                     _buildInfoCard([
-                      _buildInfoTile(Icons.email_outlined, 'Email', user.email),
-                      _buildInfoTile(Icons.phone_outlined, 'Phone', user.phone),
+                      _buildInfoTile(Icons.email_outlined, l10n.emailLabel, user.email),
+                      _buildInfoTile(Icons.phone_outlined, l10n.phoneLabel, user.phone),
                       _buildInfoTile(
                         Icons.info_outline,
-                        'Bio',
-                        user.bio ?? 'No bio provided.',
+                        l10n.bio,
+                        user.bio ?? l10n.noBioProvided,
                       ),
                     ]),
                     const SizedBox(height: 24),
@@ -111,7 +111,7 @@ class ProfileScreen extends ConsumerWidget {
                         _buildInfoTile(
                           Icons.business_outlined,
                           l10n.companyName,
-                          user.companyName ?? 'Vanakel Group',
+                          user.companyName ?? l10n.appTitle,
                         ),
                       ]),
                     ] else ...[
@@ -184,7 +184,12 @@ class ProfileScreen extends ConsumerWidget {
         border: Border.all(color: AppTheme.brandGreen.withOpacity(0.3)),
       ),
       child: Text(
-        role == UserRole.admin ? l10n.admin.toUpperCase() : role.name.toUpperCase(),
+        (role == UserRole.admin
+                ? l10n.admin
+                : role == UserRole.syndic
+                    ? l10n.syndic
+                    : l10n.technician)
+            .toUpperCase(),
         style: const TextStyle(
           color: AppTheme.brandGreen,
           fontSize: 10,
@@ -317,6 +322,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
   }
 
   Future<void> _handlePasswordChange() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -330,8 +336,8 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password changed successfully'),
+          SnackBar(
+            content: Text(l10n.passwordUpdated),
             backgroundColor: AppTheme.brandGreen,
           ),
         );
@@ -396,7 +402,7 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
                     () => setState(() => _obscureConfirm = !_obscureConfirm),
                 validator: (value) {
                   if (value != _newPasswordController.text) {
-                    return 'Passwords do not match';
+                    return l10n.passwordsMismatch;
                   }
                   return null;
                 },
@@ -477,11 +483,12 @@ class _ChangePasswordDialogState extends ConsumerState<ChangePasswordDialog> {
       validator:
           validator ??
           (value) {
+            final l10n = AppLocalizations.of(context)!;
             if (value == null || value.isEmpty) {
-              return 'Please enter $label';
+              return l10n.fieldRequired(label);
             }
             if (value.length < 8) {
-              return 'Minimum 8 characters required';
+              return l10n.minChars(8);
             }
             return null;
           },

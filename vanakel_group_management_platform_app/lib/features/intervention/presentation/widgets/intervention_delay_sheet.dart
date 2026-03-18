@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class InterventionDelaySheet extends StatefulWidget {
   final String? initialReason;
@@ -23,24 +24,35 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
   late TextEditingController _detailsController;
   DateTime? _selectedDate;
 
-  final List<Map<String, String>> _delayReasons = [
-    {'id': 'missing_part', 'label': 'Pièce manquante / Missing part'},
-    {'id': 'no_access', 'label': 'Accès impossible / No access'},
-    {
-      'id': 'client_unavailable',
-      'label': 'Client indisponible / Client unavailable',
-    },
-    {
-      'id': 'waiting_validation',
-      'label': 'En attente de validation / Waiting validation',
-    },
-    {'id': 'weather', 'label': 'Intempéries / Bad weather'},
-    {
-      'id': 'subcontractor',
-      'label': 'Sous-traitant indisponible / Subcontractor unavailable',
-    },
-    {'id': 'other', 'label': 'Autre / Other'},
+  final List<String> _delayReasonIds = [
+    'missing_part',
+    'no_access',
+    'client_unavailable',
+    'waiting_validation',
+    'weather',
+    'subcontractor',
+    'other',
   ];
+
+  String _getReasonLabel(String id, AppLocalizations l10n) {
+    switch (id) {
+      case 'missing_part':
+        return l10n.delayReasonMissingPart;
+      case 'no_access':
+        return l10n.delayReasonNoAccess;
+      case 'client_unavailable':
+        return l10n.delayReasonClientUnavailable;
+      case 'waiting_validation':
+        return l10n.delayReasonWaitingValidation;
+      case 'weather':
+        return l10n.delayReasonWeather;
+      case 'subcontractor':
+        return l10n.delayReasonSubcontractor;
+      case 'other':
+      default:
+        return l10n.delayReasonOther;
+    }
+  }
 
   @override
   void initState() {
@@ -85,6 +97,7 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: EdgeInsets.only(
         left: 24,
@@ -103,9 +116,9 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'DELAY REASON',
-                style: TextStyle(
+              Text(
+                l10n.delayReasonHeader,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
                   color: AppTheme.brandOrange,
@@ -121,9 +134,9 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
           const SizedBox(height: 24),
 
           // Reason selector
-          const Text(
-            'WHY IS IT DELAYED?',
-            style: TextStyle(
+          Text(
+            l10n.whyIsItDelayed,
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
               color: AppTheme.zinc500,
@@ -141,9 +154,9 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedReason,
-                hint: const Text(
-                  'Select a reason',
-                  style: TextStyle(color: AppTheme.zinc500, fontSize: 14),
+                hint: Text(
+                  l10n.selectAReason,
+                  style: const TextStyle(color: AppTheme.zinc500, fontSize: 14),
                 ),
                 isExpanded: true,
                 dropdownColor: AppTheme.zinc900,
@@ -151,11 +164,11 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
                   Icons.keyboard_arrow_down,
                   color: AppTheme.zinc500,
                 ),
-                items: _delayReasons.map((reason) {
+                items: _delayReasonIds.map((id) {
                   return DropdownMenuItem<String>(
-                    value: reason['id'],
+                    value: id,
                     child: Text(
-                      reason['label']!,
+                      _getReasonLabel(id, l10n),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -171,9 +184,9 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
           const SizedBox(height: 24),
 
           // Details
-          const Text(
-            'ADDITIONAL DETAILS',
-            style: TextStyle(
+          Text(
+            l10n.additionalDetails,
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
               color: AppTheme.zinc500,
@@ -186,7 +199,7 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
             maxLines: 3,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
-              hintText: 'Enter specific details about the delay...',
+              hintText: l10n.enterSpecificDetails,
               fillColor: AppTheme.zinc900,
               filled: true,
               border: OutlineInputBorder(
@@ -202,9 +215,9 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
           const SizedBox(height: 24),
 
           // Reschedule date
-          const Text(
-            'NEW SCHEDULED DATE (OPTIONAL)',
-            style: TextStyle(
+          Text(
+            l10n.newScheduledDate,
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w900,
               color: AppTheme.zinc500,
@@ -232,7 +245,7 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
                   Text(
                     _selectedDate != null
                         ? DateFormat('EEEE, MMM d, y').format(_selectedDate!)
-                        : 'Select new date',
+                        : l10n.selectNewDate,
                     style: TextStyle(
                       color: _selectedDate != null
                           ? Colors.white
@@ -277,9 +290,9 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text(
-                'CONFIRM DELAY',
-                style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+              child: Text(
+                l10n.confirmDelay,
+                style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
               ),
             ),
           ),

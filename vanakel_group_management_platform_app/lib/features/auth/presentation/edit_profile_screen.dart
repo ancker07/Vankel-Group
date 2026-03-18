@@ -80,9 +80,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update profile: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.profileUpdateError(e.toString()),
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -218,13 +222,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               const SizedBox(height: 20),
               _buildTextField(
                 controller: _phoneController,
-                label: 'Phone',
+                label: l10n.phoneLabel,
                 icon: Icons.phone_outlined,
               ),
               const SizedBox(height: 20),
               _buildTextField(
                 controller: _bioController,
-                label: 'Bio',
+                label: l10n.bio,
                 icon: Icons.info_outline,
                 maxLines: 3,
               ),
@@ -294,7 +298,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ),
           validator: (value) {
             if (enabled && (value == null || value.isEmpty)) {
-              return 'Please enter $label';
+              return AppLocalizations.of(context)!.fieldRequired(label);
             }
             return null;
           },

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api/api_constants.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -21,10 +22,11 @@ class MissionDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final missionAsync = ref.watch(missionDetailProvider(missionId));
     final authState = ref.watch(authStateProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mission Details'),
+        title: Text(l10n.missionDetails),
         actions: [
           if (authState.user?.role == UserRole.admin)
             IconButton(
@@ -58,9 +60,9 @@ class MissionDetailsScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => _handleApprove(context, ref, mission),
+                    onPressed: () => _handleApprove(context, ref, mission, l10n),
                     icon: const Icon(Icons.check),
-                    label: const Text('Approve Mission'),
+                    label: Text(l10n.approveMission),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandGreen,
                       foregroundColor: Colors.black,
@@ -73,9 +75,9 @@ class MissionDetailsScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _handleReject(context, ref, mission),
+                    onPressed: () => _handleReject(context, ref, mission, l10n),
                     icon: const Icon(Icons.close),
-                    label: const Text('Reject Mission'),
+                    label: Text(l10n.rejectMission),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -100,7 +102,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               ElevatedButton(
                 onPressed: () =>
                     ref.invalidate(missionDetailProvider(missionId)),
-                child: const Text('Retry'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -109,18 +111,18 @@ class MissionDetailsScreen extends ConsumerWidget {
     );
   }
 
-  String _getStatusLabel(MissionStatus status) {
+  String _getStatusLabel(MissionStatus status, AppLocalizations l10n) {
     switch (status) {
       case MissionStatus.pending:
-        return 'Pending Request';
+        return l10n.pendingRequest;
       case MissionStatus.approved:
-        return 'Accepted';
+        return l10n.accepted;
       case MissionStatus.rejected:
-        return 'Rejected';
+        return l10n.rejected;
       case MissionStatus.completed:
-        return 'Completed';
+        return l10n.completed;
       case MissionStatus.needsReview:
-        return 'Needs Review';
+        return l10n.needsReview;
     }
   }
 
@@ -170,7 +172,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _getStatusLabel(mission.status),
+                  _getStatusLabel(mission.status, AppLocalizations.of(context)!),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -178,7 +180,9 @@ class MissionDetailsScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'Created ${DateFormat('MMM d, y - HH:mm').format(mission.createdAt)}',
+                  AppLocalizations.of(context)!.createdOn(
+                    DateFormat('MMM d, y - HH:mm').format(mission.createdAt),
+                  ),
                   style: const TextStyle(fontSize: 14, color: AppTheme.zinc500),
                 ),
               ],
@@ -225,7 +229,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'AI Detected',
+                        AppLocalizations.of(context)!.aiDetected,
                         style: TextStyle(
                           fontSize: 10,
                           color: Colors.purple[200],
@@ -236,7 +240,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                   ),
                 ),
               ],
-              _buildUrgencyBadge(mission.urgency),
+              _buildUrgencyBadge(mission.urgency, AppLocalizations.of(context)!),
             ],
           ),
           const SizedBox(height: 16),
@@ -289,9 +293,9 @@ class MissionDetailsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Description',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.description,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -317,22 +321,22 @@ class MissionDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUrgencyBadge(MissionUrgency urgency) {
+  Widget _buildUrgencyBadge(MissionUrgency urgency, AppLocalizations l10n) {
     Color color;
     String label;
 
     switch (urgency) {
       case MissionUrgency.urgent:
         color = Colors.red;
-        label = 'Urgent';
+        label = l10n.urgent;
         break;
       case MissionUrgency.normal:
         color = Colors.orange;
-        label = 'Normal';
+        label = l10n.normal;
         break;
       case MissionUrgency.low:
         color = Colors.blue;
-        label = 'Low';
+        label = l10n.low;
         break;
     }
 
@@ -365,9 +369,9 @@ class MissionDetailsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Attachments',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.attachments,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -436,7 +440,9 @@ class MissionDetailsScreen extends ConsumerWidget {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Could not open ${document.fileName}'),
+                        content: Text(
+                          AppLocalizations.of(context)!.couldNotOpen(document.fileName),
+                        ),
                       ),
                     );
                   }
@@ -454,13 +460,14 @@ class MissionDetailsScreen extends ConsumerWidget {
       ),
     );
   }
-  Future<void> _handleApprove(BuildContext context, WidgetRef ref, Mission mission) async {
+  Future<void> _handleApprove(BuildContext context, WidgetRef ref, Mission mission, AppLocalizations l10n) async {
     final result = await _showConfirmDialog(
       context: context,
-      title: 'Approve Mission',
-      content: 'Are you sure you want to approve this mission and turn it into an intervention?',
+      title: l10n.approveMission,
+      content: l10n.approveMissionConfirm,
       mission: mission,
       isApprove: true,
+      l10n: l10n,
     );
 
     if (result != null && result['confirmed'] == true) {
@@ -471,7 +478,7 @@ class MissionDetailsScreen extends ConsumerWidget {
         );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mission approved successfully'), backgroundColor: Colors.green),
+            SnackBar(content: Text(l10n.missionApprovedSuccess), backgroundColor: Colors.green),
           );
           // Go back to the list
           context.pop();
@@ -486,13 +493,14 @@ class MissionDetailsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleReject(BuildContext context, WidgetRef ref, Mission mission) async {
+  Future<void> _handleReject(BuildContext context, WidgetRef ref, Mission mission, AppLocalizations l10n) async {
     final result = await _showConfirmDialog(
       context: context,
-      title: 'Reject Mission',
-      content: 'Are you sure you want to reject this mission?',
+      title: l10n.rejectMission,
+      content: l10n.rejectMissionConfirm,
       mission: mission,
       isApprove: false,
+      l10n: l10n,
     );
 
     if (result != null && result['confirmed'] == true) {
@@ -500,7 +508,7 @@ class MissionDetailsScreen extends ConsumerWidget {
         await ref.read(missionListProvider.notifier).rejectMission(mission.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mission rejected'), backgroundColor: Colors.red),
+            SnackBar(content: Text(l10n.missionRejected), backgroundColor: Colors.red),
           );
           // Go back to the list
           context.pop();
@@ -521,6 +529,7 @@ class MissionDetailsScreen extends ConsumerWidget {
     required String content,
     required Mission mission,
     required bool isApprove,
+    required AppLocalizations l10n,
   }) {
     DateTime? selectedDate;
 
@@ -566,9 +575,9 @@ class MissionDetailsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'MISSION',
-                        style: TextStyle(
+                      Text(
+                        l10n.missionHeader,
+                        style: const TextStyle(
                           color: AppTheme.zinc500,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -594,9 +603,9 @@ class MissionDetailsScreen extends ConsumerWidget {
                 ),
                 if (isApprove) ...[
                   const SizedBox(height: 20),
-                  const Text(
-                    'INTERVENTION DATE (OPTIONAL)',
-                    style: TextStyle(
+                  Text(
+                    l10n.interventionDateOptional,
+                    style: const TextStyle(
                       color: AppTheme.zinc500,
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
@@ -647,7 +656,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                           Text(
                             selectedDate != null
                                 ? DateFormat('dd/MM/yyyy').format(selectedDate!)
-                                : 'Choose a date...',
+                                : l10n.chooseADate,
                             style: TextStyle(
                               color: selectedDate != null ? Colors.white : AppTheme.zinc500,
                               fontSize: 14,
@@ -674,7 +683,7 @@ class MissionDetailsScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('CANCEL', style: TextStyle(color: AppTheme.zinc500, fontWeight: FontWeight.w900, fontSize: 12)),
+              child: Text(l10n.cancel.toUpperCase(), style: const TextStyle(color: AppTheme.zinc500, fontWeight: FontWeight.w900, fontSize: 12)),
             ),
             const SizedBox(width: 8),
             ElevatedButton(
@@ -690,7 +699,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(
-                isApprove ? 'APPROVE' : 'REJECT',
+                isApprove ? l10n.approve : l10n.reject,
                 style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
               ),
             ),

@@ -190,6 +190,12 @@ abstract class AppLocalizations {
   /// **'Admin'**
   String get admin;
 
+  /// No description provided for @technician.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician'**
+  String get technician;
+
   /// No description provided for @selectRole.
   ///
   /// In en, this message translates to:
@@ -577,7 +583,7 @@ abstract class AppLocalizations {
   /// No description provided for @maintenance.
   ///
   /// In en, this message translates to:
-  /// **'Maintenance'**
+  /// **'MAINTENANCE'**
   String get maintenance;
 
   /// No description provided for @search.
@@ -609,6 +615,906 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All Syndics'**
   String get allSyndics;
+
+  /// No description provided for @searchInterventions.
+  ///
+  /// In en, this message translates to:
+  /// **'Search interventions...'**
+  String get searchInterventions;
+
+  /// No description provided for @selectStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Status'**
+  String get selectStatus;
+
+  /// No description provided for @selectSector.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Sector'**
+  String get selectSector;
+
+  /// No description provided for @selectUrgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Urgency'**
+  String get selectUrgency;
+
+  /// No description provided for @selectBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Building'**
+  String get selectBuilding;
+
+  /// No description provided for @noMatchesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found'**
+  String get noMatchesFound;
+
+  /// No description provided for @noInterventionsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No interventions found'**
+  String get noInterventionsFound;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @viewSlip.
+  ///
+  /// In en, this message translates to:
+  /// **'VIEW SLIP'**
+  String get viewSlip;
+
+  /// No description provided for @medium.
+  ///
+  /// In en, this message translates to:
+  /// **'MEDIUM'**
+  String get medium;
+
+  /// No description provided for @high.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH'**
+  String get high;
+
+  /// No description provided for @critical.
+  ///
+  /// In en, this message translates to:
+  /// **'CRITICAL'**
+  String get critical;
+
+  /// No description provided for @searchMissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Search missions...'**
+  String get searchMissions;
+
+  /// No description provided for @urgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgency'**
+  String get urgency;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @sector.
+  ///
+  /// In en, this message translates to:
+  /// **'Sector'**
+  String get sector;
+
+  /// No description provided for @building.
+  ///
+  /// In en, this message translates to:
+  /// **'Building'**
+  String get building;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @filterByUrgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Urgency'**
+  String get filterByUrgency;
+
+  /// No description provided for @filterByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Status'**
+  String get filterByStatus;
+
+  /// No description provided for @filterBySector.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Sector'**
+  String get filterBySector;
+
+  /// No description provided for @filterByBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by Building'**
+  String get filterByBuilding;
+
+  /// No description provided for @allStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get allStatuses;
+
+  /// No description provided for @allUrgencies.
+  ///
+  /// In en, this message translates to:
+  /// **'All urgencies'**
+  String get allUrgencies;
+
+  /// No description provided for @allSectors.
+  ///
+  /// In en, this message translates to:
+  /// **'All sectors'**
+  String get allSectors;
+
+  /// No description provided for @allBuildings.
+  ///
+  /// In en, this message translates to:
+  /// **'All buildings'**
+  String get allBuildings;
+
+  /// No description provided for @noSectorsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No sectors available'**
+  String get noSectorsAvailable;
+
+  /// No description provided for @noBuildingsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No buildings available'**
+  String get noBuildingsAvailable;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Filters'**
+  String get clearFilters;
+
+  /// No description provided for @noMissionsMatchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No missions match your filters'**
+  String get noMissionsMatchFilters;
+
+  /// No description provided for @pendingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Request'**
+  String get pendingRequest;
+
+  /// No description provided for @accepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get accepted;
+
+  /// No description provided for @rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get rejected;
+
+  /// No description provided for @needsReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Review'**
+  String get needsReview;
+
+  /// No description provided for @aiDetectedMission.
+  ///
+  /// In en, this message translates to:
+  /// **'AI DETECTED MISSION'**
+  String get aiDetectedMission;
+
+  /// No description provided for @retryFetchingMissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry Fetching Missions'**
+  String get retryFetchingMissions;
+
+  /// No description provided for @showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get showLess;
+
+  /// No description provided for @readMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more'**
+  String get readMore;
+
+  /// No description provided for @noSyndic.
+  ///
+  /// In en, this message translates to:
+  /// **'No Syndic'**
+  String get noSyndic;
+
+  /// No description provided for @details.
+  ///
+  /// In en, this message translates to:
+  /// **'DETAILS'**
+  String get details;
+
+  /// No description provided for @approveMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Mission'**
+  String get approveMission;
+
+  /// No description provided for @approveMissionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to approve this mission and turn it into an intervention?'**
+  String get approveMissionConfirm;
+
+  /// No description provided for @missionApprovedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission approved successfully'**
+  String get missionApprovedSuccess;
+
+  /// No description provided for @rejectMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject Mission'**
+  String get rejectMission;
+
+  /// No description provided for @rejectMissionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to reject this mission?'**
+  String get rejectMissionConfirm;
+
+  /// No description provided for @missionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission rejected'**
+  String get missionRejected;
+
+  /// No description provided for @mission.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSION'**
+  String get mission;
+
+  /// No description provided for @reviewDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'REVIEW DOCUMENTS'**
+  String get reviewDocuments;
+
+  /// No description provided for @interventionDateOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'INTERVENTION DATE (OPTIONAL)'**
+  String get interventionDateOptional;
+
+  /// No description provided for @selectDatePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date...'**
+  String get selectDatePlaceholder;
+
+  /// No description provided for @approve.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE'**
+  String get approve;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECT'**
+  String get reject;
+
+  /// No description provided for @urgent.
+  ///
+  /// In en, this message translates to:
+  /// **'URGENT'**
+  String get urgent;
+
+  /// No description provided for @normal.
+  ///
+  /// In en, this message translates to:
+  /// **'NORMAL'**
+  String get normal;
+
+  /// No description provided for @low.
+  ///
+  /// In en, this message translates to:
+  /// **'LOW'**
+  String get low;
+
+  /// No description provided for @electricity.
+  ///
+  /// In en, this message translates to:
+  /// **'ELECTRICITY'**
+  String get electricity;
+
+  /// No description provided for @tiling.
+  ///
+  /// In en, this message translates to:
+  /// **'TILING'**
+  String get tiling;
+
+  /// No description provided for @sanitary.
+  ///
+  /// In en, this message translates to:
+  /// **'SANITARY'**
+  String get sanitary;
+
+  /// No description provided for @heating.
+  ///
+  /// In en, this message translates to:
+  /// **'HEATING'**
+  String get heating;
+
+  /// No description provided for @plumbing.
+  ///
+  /// In en, this message translates to:
+  /// **'PLUMBING'**
+  String get plumbing;
+
+  /// No description provided for @painting.
+  ///
+  /// In en, this message translates to:
+  /// **'PAINTING'**
+  String get painting;
+
+  /// No description provided for @woodwork.
+  ///
+  /// In en, this message translates to:
+  /// **'WOODWORK'**
+  String get woodwork;
+
+  /// No description provided for @general.
+  ///
+  /// In en, this message translates to:
+  /// **'GENERAL'**
+  String get general;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'OTHER'**
+  String get other;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'LOADING...'**
+  String get loading;
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'ERROR'**
+  String get error;
+
+  /// No description provided for @onSiteContact.
+  ///
+  /// In en, this message translates to:
+  /// **'ON-SITE CONTACT'**
+  String get onSiteContact;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'NAME'**
+  String get name;
+
+  /// No description provided for @phoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GSM / TEL'**
+  String get phoneTitle;
+
+  /// No description provided for @emailOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'EMAIL (OPTIONAL)'**
+  String get emailOptional;
+
+  /// No description provided for @syndicCustomerInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNDIC / CUSTOMER INFO'**
+  String get syndicCustomerInfo;
+
+  /// No description provided for @selectCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Customer...'**
+  String get selectCustomer;
+
+  /// No description provided for @errorLoadingSyndics.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading syndics'**
+  String get errorLoadingSyndics;
+
+  /// No description provided for @interventionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'INTERVENTION DESCRIPTION'**
+  String get interventionDescription;
+
+  /// No description provided for @updateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'UPDATE STATUS'**
+  String get updateStatus;
+
+  /// No description provided for @technicalObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'TECHNICAL OBSERVATIONS'**
+  String get technicalObservations;
+
+  /// No description provided for @photos.
+  ///
+  /// In en, this message translates to:
+  /// **'PHOTOS'**
+  String get photos;
+
+  /// No description provided for @documents.
+  ///
+  /// In en, this message translates to:
+  /// **'DOCUMENTS'**
+  String get documents;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'REGISTER'**
+  String get register;
+
+  /// No description provided for @interventionRegisteredSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Intervention registered successfully'**
+  String get interventionRegisteredSuccess;
+
+  /// No description provided for @technicalFeedbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical feedback or observations...'**
+  String get technicalFeedbackHint;
+
+  /// No description provided for @improveWithAi.
+  ///
+  /// In en, this message translates to:
+  /// **'IMPROVE WITH AI'**
+  String get improveWithAi;
+
+  /// No description provided for @noteImprovedWithAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Note improved with AI'**
+  String get noteImprovedWithAi;
+
+  /// No description provided for @mediaAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'MEDIA & AUDIT'**
+  String get mediaAudit;
+
+  /// No description provided for @auditTraceability.
+  ///
+  /// In en, this message translates to:
+  /// **'AUDIT TRACEABILITY'**
+  String get auditTraceability;
+
+  /// No description provided for @interventionInitializedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'INTERVENTION INITIALIZED ON'**
+  String get interventionInitializedOn;
+
+  /// No description provided for @locationAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'LOCATION & ACCESS'**
+  String get locationAccess;
+
+  /// No description provided for @createMaintenancePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'CREATE MAINTENANCE PLAN'**
+  String get createMaintenancePlan;
+
+  /// No description provided for @maintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MAINTENANCE TITLE'**
+  String get maintenanceTitle;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'START DATE'**
+  String get startDate;
+
+  /// No description provided for @frequency.
+  ///
+  /// In en, this message translates to:
+  /// **'FREQUENCY'**
+  String get frequency;
+
+  /// No description provided for @yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'YEARLY'**
+  String get yearly;
+
+  /// No description provided for @quarterly.
+  ///
+  /// In en, this message translates to:
+  /// **'QUARTERLY'**
+  String get quarterly;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'MONTHLY'**
+  String get monthly;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'DESCRIPTION'**
+  String get description;
+
+  /// No description provided for @maintenancePlanAutoInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Interventions will be created automatically for the next 5 years.'**
+  String get maintenancePlanAutoInfo;
+
+  /// No description provided for @confirmPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM PLAN'**
+  String get confirmPlan;
+
+  /// No description provided for @maintenancePlanCreatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance plan created successfully'**
+  String get maintenancePlanCreatedSuccess;
+
+  /// No description provided for @saveRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE RECORD'**
+  String get saveRecord;
+
+  /// No description provided for @chooseSaveMode.
+  ///
+  /// In en, this message translates to:
+  /// **'CHOOSE SAVE MODE'**
+  String get chooseSaveMode;
+
+  /// No description provided for @saveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE ONLY'**
+  String get saveOnly;
+
+  /// No description provided for @saveSendEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE & SEND EMAIL'**
+  String get saveSendEmail;
+
+  /// No description provided for @saveSendWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'SAVE & SEND WHATSAPP'**
+  String get saveSendWhatsapp;
+
+  /// No description provided for @registerInterventionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'REGISTER INTERVENTION'**
+  String get registerInterventionTitle;
+
+  /// No description provided for @missionDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission Details'**
+  String get missionDetails;
+
+  /// No description provided for @chooseADate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date...'**
+  String get chooseADate;
+
+  /// No description provided for @missionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'MISSION'**
+  String get missionHeader;
+
+  /// No description provided for @attachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachments;
+
+  /// No description provided for @couldNotOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open {fileName}'**
+  String couldNotOpen(Object fileName);
+
+  /// No description provided for @aiDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Detected'**
+  String get aiDetected;
+
+  /// No description provided for @createdOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}'**
+  String createdOn(Object date);
+
+  /// No description provided for @delayReasonHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'DELAY REASON'**
+  String get delayReasonHeader;
+
+  /// No description provided for @whyIsItDelayed.
+  ///
+  /// In en, this message translates to:
+  /// **'WHY IS IT DELAYED?'**
+  String get whyIsItDelayed;
+
+  /// No description provided for @selectAReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a reason'**
+  String get selectAReason;
+
+  /// No description provided for @additionalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'ADDITIONAL DETAILS'**
+  String get additionalDetails;
+
+  /// No description provided for @enterSpecificDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter specific details about the delay...'**
+  String get enterSpecificDetails;
+
+  /// No description provided for @newScheduledDate.
+  ///
+  /// In en, this message translates to:
+  /// **'NEW SCHEDULED DATE (OPTIONAL)'**
+  String get newScheduledDate;
+
+  /// No description provided for @selectNewDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select new date'**
+  String get selectNewDate;
+
+  /// No description provided for @confirmDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM DELAY'**
+  String get confirmDelay;
+
+  /// No description provided for @extractedSyndicUnmatched.
+  ///
+  /// In en, this message translates to:
+  /// **'EXTRACTED SYNDIC (UNMATCHED)'**
+  String get extractedSyndicUnmatched;
+
+  /// No description provided for @notMatchedToDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'NOT MATCHED TO DATABASE'**
+  String get notMatchedToDatabase;
+
+  /// No description provided for @syndicManager.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNDIC / MANAGER'**
+  String get syndicManager;
+
+  /// No description provided for @delayReasonMissingPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing part'**
+  String get delayReasonMissingPart;
+
+  /// No description provided for @delayReasonNoAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get delayReasonNoAccess;
+
+  /// No description provided for @delayReasonClientUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Client unavailable'**
+  String get delayReasonClientUnavailable;
+
+  /// No description provided for @delayReasonWaitingValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting validation'**
+  String get delayReasonWaitingValidation;
+
+  /// No description provided for @delayReasonWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad weather'**
+  String get delayReasonWeather;
+
+  /// No description provided for @delayReasonSubcontractor.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcontractor unavailable'**
+  String get delayReasonSubcontractor;
+
+  /// No description provided for @delayReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get delayReasonOther;
+
+  /// No description provided for @bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Bio'**
+  String get bio;
+
+  /// No description provided for @noBioProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'No bio provided'**
+  String get noBioProvided;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phoneLabel;
+
+  /// No description provided for @passwordsMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsMismatch;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter {field}'**
+  String fieldRequired(Object field);
+
+  /// No description provided for @minChars.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum {count} characters required'**
+  String minChars(Object count);
+
+  /// No description provided for @profileUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update profile: {error}'**
+  String profileUpdateError(Object error);
+
+  /// No description provided for @forgotPasswordDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t worry! It happens. Please enter the email address associated with your account.'**
+  String get forgotPasswordDesc;
+
+  /// No description provided for @sendResetLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get sendResetLink;
+
+  /// No description provided for @resetLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset link sent to your email.'**
+  String get resetLinkSent;
+
+  /// No description provided for @rememberPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember password?'**
+  String get rememberPassword;
+
+  /// No description provided for @verifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Email'**
+  String get verifyEmail;
+
+  /// No description provided for @otpSentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We have sent a 6-digit code to your email. Please enter it below to verify your account.'**
+  String get otpSentMessage;
+
+  /// No description provided for @verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verify;
+
+  /// No description provided for @didntReceiveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive the code?'**
+  String get didntReceiveCode;
+
+  /// No description provided for @resend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get resend;
+
+  /// No description provided for @enterAllDigits.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter all 6 digits'**
+  String get enterAllDigits;
+
+  /// No description provided for @otpResentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP resent successfully'**
+  String get otpResentSuccess;
+
+  /// No description provided for @adminRoleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Central Management & Control'**
+  String get adminRoleSubtitle;
+
+  /// No description provided for @syndicRoleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Overview & Requests'**
+  String get syndicRoleSubtitle;
 }
 
 class _AppLocalizationsDelegate

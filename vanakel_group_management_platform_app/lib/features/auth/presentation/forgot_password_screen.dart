@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/language_selector.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -21,6 +23,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
       appBar: AppBar(
@@ -29,6 +32,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           icon: const Icon(Icons.arrow_back, color: AppTheme.zinc300),
           onPressed: () => context.pop(),
         ),
+        actions: const [
+          LanguageSelector(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -60,7 +66,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 40),
               Text(
-                'Forgot Password?',
+                l10n.forgotPassword,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -68,7 +74,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.2),
               const SizedBox(height: 12),
               Text(
-                'Don\'t worry! It happens. Please enter the email address associated with your account.',
+                l10n.forgotPasswordDesc,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.zinc500),
@@ -76,9 +82,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 40),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email Address',
-                  prefixIcon: Icon(Icons.email_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.email,
+                  prefixIcon: const Icon(Icons.email_outlined),
                 ),
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2),
               const SizedBox(height: 32),
@@ -86,8 +92,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 onPressed: () {
                   // TODO: Implement password reset logic
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password reset link sent to your email.'),
+                    SnackBar(
+                      content: Text(l10n.resetLinkSent),
                       backgroundColor: AppTheme.brandGreen,
                     ),
                   );
@@ -96,19 +102,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   backgroundColor: AppTheme.brandGreen,
                   foregroundColor: Colors.black,
                 ),
-                child: const Text('Send Reset Link'),
+                child: Text(l10n.sendResetLink),
               ).animate().fadeIn(delay: 500.ms).scale(),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Remember password? ',
-                    style: TextStyle(color: AppTheme.zinc500),
+                  Text(
+                    '${l10n.rememberPassword} ',
+                    style: const TextStyle(color: AppTheme.zinc500),
                   ),
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Log In'),
+                    child: Text(l10n.login),
                   ),
                 ],
               ).animate().fadeIn(delay: 600.ms),
