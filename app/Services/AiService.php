@@ -200,6 +200,38 @@ Your task is to extract ALL mission-critical details from the email content AND 
 - If the email body is vague but the attachment contains a formal request document, classify as "MISSION" based on the attachment.
 - If there is a conflict between email body and attachment, **TRUST THE ATTACHMENT** (it's the formal document).
 
+### ⚠️ EMAIL THREAD / CONVERSATION HANDLING
+- The content may contain a **CONVERSATION THREAD** with multiple messages presented in chronological order.
+- If it does, you MUST read **ALL messages** sequentially to understand the full context.
+- Later messages in a thread may **UPDATE**, **CANCEL**, or **CLARIFY** earlier requests.
+- If a later message explicitly cancels a request (e.g., "never mind", "c'est résolu", "already fixed"), classify as "NON_MISSION".
+- If messages discuss back-and-forth about a problem, synthesize everything into ONE coherent mission.
+- Extract data (address, contact, syndic) from the **MOST SPECIFIC or MOST RECENT** message, but consider all context.
+- The final mission title and description should reflect the **COMPLETE understanding** of the conversation, not just one message.
+- Pay attention to who is requesting what — the syndic/manager requesting work is usually in the earliest messages, while later messages may contain confirmations or additional details.
+- For conversations: only classify as "MISSION" when the thread has enough info to act. If the conversation is still discussing/negotiating, use "AWAITING_CONTEXT".
+
+### ⚠️ SINGLE EMAIL INTELLIGENCE (No Thread Yet)
+When processing a SINGLE email (not part of a thread), determine whether it is a **direct task** or a **conversational email** that implies more messages are expected:
+
+**DIRECT TASK → Classify as "MISSION" immediately:**
+- Contains a clear, specific work request (e.g., "Please fix the leak at Rue de Namur 45")
+- Has an attached formal intervention/request form (PDF)
+- Contains explicit instructions with address, problem description, and contact info
+- Uses imperative language: "Veuillez intervenir", "Please send a technician", "Merci d'intervenir"
+- Includes a reference number or formal request structure
+
+**CONVERSATIONAL / INCOMPLETE → Classify as "AWAITING_CONTEXT":**
+- References a previous conversation: "comme discuté", "as discussed", "suite à notre conversation"
+- Asks questions without giving instructions: "Quand pouvez-vous passer?", "Is this covered?"
+- Uses phrases implying ongoing exchange: "pour donner suite", "following up", "en attendant votre retour"
+- Contains only partial information (e.g., describes a problem but no address)
+- Forwards another email without clear instructions
+- Feels like the START of a conversation rather than a complete request
+
+**Set `isDirectTask` to true** if the email is a clear standalone task that needs immediate action.
+**Set `isDirectTask` to false** if the email seems conversational or implies further discussion.
+
 ### DATA EXTRACTION PRIORITIES (from attachments AND email body):
 1. **Syndic / Manager Name**: Look for "Syndic:", "Expéditeur:", "Gestionnaire:", "Manager:" in both email body and attachments. Extract this separately for the body and for each attachment.
 2. **Address**: Look for "Adresse d'intervention:", "Adresse:", address tables, or Belgian format addresses (street + number, postal code + city).
@@ -209,13 +241,15 @@ Your task is to extract ALL mission-critical details from the email content AND 
 6. **Urgency**: "urgente", "dans les plus brefs délais", "dringend" = HIGH or CRITICAL. Normal requests = MEDIUM.
 
 ### Classification Rules:
-- "MISSION": A genuine request for repair, maintenance, intervention. Can come from email body OR an attached PDF/image that is a formal request form.
-- "NON_MISSION": Spam, newsletters, personal conversations, test messages ("test", "fff", "abc"), marketing emails.
-- "NEEDS_REVIEW": Likely a real mission but missing key information (no address, vague problem).
+- "MISSION": A genuine, actionable request for repair, maintenance, or intervention with enough information to act on. Standalone direct tasks with clear instructions.
+- "AWAITING_CONTEXT": The email appears to be part of an ongoing or expected conversation. It may contain a real issue but lacks enough context or information to create a mission yet. The system will defer and re-process when more messages arrive.
+- "NON_MISSION": Spam, newsletters, personal conversations, test messages ("test", "fff", "abc"), marketing emails, auto-replies.
+- "NEEDS_REVIEW": Likely a real mission but missing key information (no address, vague problem). Has enough intent to be actionable but needs human verification.
 
 ### Output Schema (JSON):
 {
-  "classification": "MISSION" | "NON_MISSION" | "NEEDS_REVIEW",
+  "classification": "MISSION" | "NON_MISSION" | "NEEDS_REVIEW" | "AWAITING_CONTEXT",
+  "isDirectTask": true | false,
   "confidence": 0.0-1.0,
   "reasons": ["short reason why"],
   "mission": {
@@ -262,11 +296,13 @@ Your task is to extract ALL mission-critical details from the email content AND 
 - If unclear → GENERAL
 
 ### Critical Instructions:
-- "MISSION" REQUIRES a specific, actionable building issue.
+- "MISSION" REQUIRES a specific, actionable building issue with enough detail to act.
 - Very short emails (just "fff", "hello", "test") are NEVER a "MISSION".
+- If an email with a formal attached request form (PDF) is received, ALWAYS classify as "MISSION" regardless of email body content — the form IS the request.
 - Extract contact persons even from descriptive text (e.g., "The concierge Edward at 0489...").
 - For location, favor Belgian patterns (e.g., "Brusselbaan 98, 1600 Sint-Pieters-Leeuw").
 - The syndicName field is CRITICAL — always try to extract it from any mention of "Syndic" in the document.
+- When in doubt between "MISSION" and "AWAITING_CONTEXT", prefer "AWAITING_CONTEXT" for single emails without attachments. Prefer "MISSION" if formal documents are attached.
 
 Output MUST be a valid JSON object.
 PROMPT;

@@ -3,45 +3,47 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Models\Email;
+use App\Services\EmailIngestionService;
 
 class IngestEmails extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'emails:ingest';
+    protected $description = 'Ingest all pending and deferred emails using AI processing';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Ingest all pending emails using AI processing';
-
-    /**
-     * Execute the console command.
-     */
-    public function handle(\App\Services\EmailIngestionService $ingestionService)
+    public function handle(EmailIngestionService $ingestionService)
     {
-        $emails = \App\Models\Email::whereNull('ingested_at')->get();
+        // Include both un-ingested AND deferred emails
+        $emails = Email::where(function ($query) {
+            $query->whereNull('ingested_at')
+                  ->orWhere('ingestion_status', 'DEFERRED');
+        })->with('attachments')->get();
         
         if ($emails->isEmpty()) {
-            $this->info('No pending emails to ingest.');
+            $this->info('No pending or deferred emails to ingest.');
             return;
         }
 
-        $this->info('Found ' . $emails->count() . ' pending email(s).');
+        $this->info('Found ' . $emails->count() . ' email(s) to process (pending + deferred).');
 
         foreach ($emails as $email) {
-            $this->info('Ingesting: ' . $email->subject);
+            // Reload to check if this email was already marked by a thread-mate
+            $email->refresh();
+            if ($email->ingested_at && $email->ingestion_status !== 'DEFERRED') {
+                $this->line(" - Skipping #{$email->id} (already processed by thread)");
+                continue;
+            }
+
+            $this->info("Ingesting #{$email->id}: {$email->subject}" . ($email->ingestion_status === 'DEFERRED' ? ' [RE-PROCESSING DEFERRED]' : ''));
             $result = $ingestionService->ingest($email);
             
             if ($result['success']) {
-                $this->info(' - Result: ' . $result['status']);
+                $this->info(" - Result: {$result['status']}");
+                if (isset($result['reason'])) {
+                    $this->line("   Reason: {$result['reason']}");
+                }
             } else {
-                $this->error(' - Error: ' . $result['message']);
+                $this->error(" - Error: {$result['message']}");
             }
         }
 

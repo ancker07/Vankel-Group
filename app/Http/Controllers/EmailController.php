@@ -166,10 +166,24 @@ class EmailController extends Controller
 
     public function ingestAll()
     {
-        $emails = Email::whereNull('ingested_at')->with('attachments')->get();
+        // Include both un-ingested AND deferred emails
+        $emails = Email::where(function ($query) {
+            $query->whereNull('ingested_at')
+                  ->orWhere('ingestion_status', 'DEFERRED');
+        })->with('attachments')->get();
         $results = [];
 
         foreach ($emails as $email) {
+            // Reload to check if this email was already marked by a thread-mate
+            $email->refresh();
+            if ($email->ingested_at && $email->ingestion_status !== 'DEFERRED') {
+                $results[] = [
+                    'email_id' => $email->id,
+                    'result' => ['success' => true, 'status' => 'SKIPPED', 'message' => 'Already ingested by thread processing']
+                ];
+                continue;
+            }
+
             $results[] = [
                 'email_id' => $email->id,
                 'result' => $this->ingestionService->ingest($email)

@@ -22,6 +22,8 @@ class Mission {
   final String? buildingId;
   final String? syndicId;
   final String? syndicName;
+  final String? syndicEmail;
+  final String? syndicPhone;
   final String? extractedSyndicName;
   final String? sector;
   final List<Document> documents;
@@ -43,6 +45,8 @@ class Mission {
     this.buildingId,
     this.syndicId,
     this.syndicName,
+    this.syndicEmail,
+    this.syndicPhone,
     this.extractedSyndicName,
     this.sector,
     this.isAiDetected = false,
@@ -67,6 +71,8 @@ class Mission {
     String? buildingId,
     String? syndicId,
     String? syndicName,
+    String? syndicEmail,
+    String? syndicPhone,
     String? extractedSyndicName,
     String? sector,
   }) {
@@ -88,6 +94,8 @@ class Mission {
       buildingId: buildingId ?? this.buildingId,
       syndicId: syndicId ?? this.syndicId,
       syndicName: syndicName ?? this.syndicName,
+      syndicEmail: syndicEmail ?? this.syndicEmail,
+      syndicPhone: syndicPhone ?? this.syndicPhone,
       extractedSyndicName: extractedSyndicName ?? this.extractedSyndicName,
       sector: sector ?? this.sector,
     );

@@ -32,7 +32,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // TODO: Edit Mission
+                context.push('/create-mission');
               },
             ),
         ],
@@ -48,6 +48,12 @@ class MissionDetailsScreen extends ConsumerWidget {
               _buildInfoCard(context, mission),
               const SizedBox(height: 24),
               _buildDescriptionCard(context, mission),
+              // Syndic contact info
+              if (mission.syndicName != null ||
+                  mission.extractedSyndicName != null) ...[
+                const SizedBox(height: 24),
+                _buildSyndicContactCard(context, mission),
+              ],
               if (mission.documents.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 _buildDocumentsSection(mission, context),
@@ -568,7 +574,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.zinc900.withOpacity(0.5),
+                    color: AppTheme.zinc900.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppTheme.zinc800),
                   ),
@@ -705,6 +711,126 @@ class MissionDetailsScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSyndicContactCard(BuildContext context, Mission mission) {
+    final l10n = AppLocalizations.of(context)!;
+    final name = mission.syndicName ?? mission.extractedSyndicName ?? 'Unknown';
+    final email = mission.syndicEmail;
+    final phone = mission.syndicPhone;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.brandGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.business_center_outlined,
+                  color: AppTheme.brandGreen,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                l10n.syndicCustomerInfo,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: AppTheme.zinc800, height: 1),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              const Icon(Icons.business, size: 16, color: AppTheme.zinc500),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (email != null) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri(scheme: 'mailto', path: email);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.email_outlined, size: 16, color: AppTheme.zinc500),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.brandGreen,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppTheme.brandGreen,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (phone != null) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri(scheme: 'tel', path: phone);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.phone_outlined, size: 16, color: AppTheme.zinc500),
+                  const SizedBox(width: 10),
+                  Text(
+                    phone,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.brandGreen,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppTheme.brandGreen,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -30,40 +30,157 @@ class EmailIngestionService
         }
 
         try {
-            // Build content string with clear structure for AI
-            $content = "=== EMAIL METADATA ===\n";
-            $content .= "From: {$email->from_address}\n";
-            $content .= "Subject: {$email->subject}\n";
-            $content .= "Date: {$email->received_at}\n\n";
-            $content .= "=== EMAIL BODY ===\n{$email->body_text}\n";
+            // ========= THREAD / CONVERSATION DETECTION =========
+            $conversation = $email->getConversation();
+            $isThread = $conversation->count() > 1;
 
-            $attachmentsForAi = [];
-            
-            foreach ($email->attachments as $attachment) {
-                // Prepare for AI if it's an image or PDF
-                if (str_starts_with($attachment->mime_type ?? '', 'image/') || ($attachment->mime_type ?? '') === 'application/pdf') {
-                    $filePath = storage_path('app/public/' . $attachment->file_path);
-                    if (file_exists($filePath)) {
-                        $attachmentsForAi[] = [
-                            'name' => $attachment->file_name,
-                            'mime_type' => $attachment->mime_type,
-                            'data' => base64_encode(file_get_contents($filePath))
-                        ];
-                        $content .= "\n[ATTACHMENT: {$attachment->file_name} — READ ALL TEXT, TABLES, AND DATA FROM THIS DOCUMENT]\n";
+            // If this email is part of a thread, check for existing processing
+            if ($isThread) {
+                // Check if any thread email was DEFERRED — if so, re-process the FULL thread
+                $deferredInThread = $conversation->where('id', '!=', $email->id)
+                    ->where('ingestion_status', 'DEFERRED')
+                    ->first();
+
+                if ($deferredInThread) {
+                    // Clear deferred status so the full thread gets re-analyzed
+                    foreach ($conversation as $e) {
+                        if ($e->ingestion_status === 'DEFERRED') {
+                            $e->update([
+                                'ingested_at' => null,
+                                'ingestion_status' => 'PENDING',
+                                'ingestion_reason' => 'Re-processing: new message arrived in thread'
+                            ]);
+                        }
                     }
-                } else {
-                    $content .= "\nAttachment (non-readable): {$attachment->file_name}\n";
+                    // Refresh the conversation after clearing
+                    $conversation = $email->getConversation();
+                }
+
+                // Skip if thread was already fully processed (not deferred)
+                $alreadyProcessed = $conversation->where('id', '!=', $email->id)
+                    ->whereNotNull('ingested_at')
+                    ->whereIn('ingestion_status', ['PROCESSED', 'IGNORED', 'SKIPPED'])
+                    ->first();
+
+                if ($alreadyProcessed) {
+                    $email->update([
+                        'ingested_at' => now(),
+                        'ingestion_status' => 'SKIPPED',
+                        'ingestion_reason' => "Thread already processed via email #{$alreadyProcessed->id}"
+                    ]);
+                    return [
+                        'success' => true,
+                        'status' => 'SKIPPED',
+                        'message' => "Thread already processed via email #{$alreadyProcessed->id}"
+                    ];
+                }
+            }
+
+            // ========= AUTO-EXPIRE OLD DEFERRED EMAILS =========
+            $forceProcess = false;
+            if ($email->ingestion_status === 'DEFERRED' && $email->updated_at) {
+                $hoursSinceDeferred = now()->diffInHours($email->updated_at);
+                if ($hoursSinceDeferred >= 48) {
+                    $forceProcess = true;
+                    Log::info("Force-processing deferred email #{$email->id} (deferred for {$hoursSinceDeferred}h)");
+                }
+            }
+
+            // ========= BUILD CONTENT FOR AI =========
+            $content = '';
+            $attachmentsForAi = [];
+
+            if ($isThread) {
+                $content .= "=== CONVERSATION THREAD ({$conversation->count()} messages) ===\n";
+                $content .= "⚠️ This email is part of a conversation. Read ALL messages below in order to understand the full context.\n\n";
+
+                $messageNum = 0;
+                foreach ($conversation as $threadEmail) {
+                    $messageNum++;
+                    $content .= "--- [Message {$messageNum} of {$conversation->count()}] ---\n";
+                    $content .= "From: {$threadEmail->from_address}\n";
+                    $content .= "Subject: {$threadEmail->subject}\n";
+                    $content .= "Date: {$threadEmail->received_at}\n";
+                    $content .= "Body:\n{$threadEmail->body_text}\n\n";
+
+                    foreach ($threadEmail->attachments as $attachment) {
+                        if (str_starts_with($attachment->mime_type ?? '', 'image/') || ($attachment->mime_type ?? '') === 'application/pdf') {
+                            $filePath = storage_path('app/public/' . $attachment->file_path);
+                            if (file_exists($filePath)) {
+                                $attachmentsForAi[] = [
+                                    'name' => $attachment->file_name,
+                                    'mime_type' => $attachment->mime_type,
+                                    'data' => base64_encode(file_get_contents($filePath))
+                                ];
+                                $content .= "[ATTACHMENT from Message {$messageNum}: {$attachment->file_name} — READ ALL TEXT, TABLES, AND DATA FROM THIS DOCUMENT]\n";
+                            }
+                        } else {
+                            $content .= "Attachment (non-readable) from Message {$messageNum}: {$attachment->file_name}\n";
+                        }
+                    }
+                    $content .= "\n";
+                }
+
+                $content .= "=== END OF CONVERSATION THREAD ===\n";
+                $content .= "Based on the COMPLETE conversation above, determine if this thread represents a mission request and extract all relevant data.\n";
+            } else {
+                $content .= "=== SINGLE EMAIL (Not part of a thread) ===\n";
+                $content .= "From: {$email->from_address}\n";
+                $content .= "Subject: {$email->subject}\n";
+                $content .= "Date: {$email->received_at}\n\n";
+                $content .= "=== EMAIL BODY ===\n{$email->body_text}\n";
+
+                foreach ($email->attachments as $attachment) {
+                    if (str_starts_with($attachment->mime_type ?? '', 'image/') || ($attachment->mime_type ?? '') === 'application/pdf') {
+                        $filePath = storage_path('app/public/' . $attachment->file_path);
+                        if (file_exists($filePath)) {
+                            $attachmentsForAi[] = [
+                                'name' => $attachment->file_name,
+                                'mime_type' => $attachment->mime_type,
+                                'data' => base64_encode(file_get_contents($filePath))
+                            ];
+                            $content .= "\n[ATTACHMENT: {$attachment->file_name} — READ ALL TEXT, TABLES, AND DATA FROM THIS DOCUMENT]\n";
+                        }
+                    } else {
+                        $content .= "\nAttachment (non-readable): {$attachment->file_name}\n";
+                    }
                 }
             }
 
             $aiData = $this->aiService->extractEmailData($content, $attachmentsForAi);
 
-            if ($aiData['classification'] === 'NON_MISSION') {
+            // ========= HANDLE AWAITING_CONTEXT (DEFER) =========
+            if ($aiData['classification'] === 'AWAITING_CONTEXT' && !$forceProcess) {
                 $email->update([
-                    'ingested_at' => now(),
-                    'ingestion_status' => 'IGNORED',
-                    'ingestion_reason' => $aiData['reasons'][0] ?? 'Classified as non-mission'
+                    'ingestion_status' => 'DEFERRED',
+                    'ingestion_reason' => $aiData['reasons'][0] ?? 'Awaiting more context from conversation',
+                    'extracted_data' => $aiData
                 ]);
+                Log::info("Email #{$email->id} deferred: awaiting context. Reason: " . ($aiData['reasons'][0] ?? 'N/A'));
+                return [
+                    'success' => true,
+                    'status' => 'DEFERRED',
+                    'reason' => $aiData['reasons'][0] ?? 'Awaiting more context'
+                ];
+            }
+
+            // If AI said AWAITING_CONTEXT but we're force-processing, treat as NEEDS_REVIEW
+            if ($aiData['classification'] === 'AWAITING_CONTEXT' && $forceProcess) {
+                $aiData['classification'] = 'NEEDS_REVIEW';
+                $aiData['reasons'][] = 'Auto-escalated from DEFERRED after 48h timeout';
+            }
+
+            if ($aiData['classification'] === 'NON_MISSION') {
+                $emailsToMark = $isThread ? $conversation : collect([$email]);
+                foreach ($emailsToMark as $e) {
+                    if (!$e->ingested_at) {
+                        $e->update([
+                            'ingested_at' => now(),
+                            'ingestion_status' => 'IGNORED',
+                            'ingestion_reason' => $aiData['reasons'][0] ?? 'Classified as non-mission'
+                        ]);
+                    }
+                }
                 return [
                     'success' => true,
                     'status' => 'IGNORED',
@@ -71,7 +188,7 @@ class EmailIngestionService
                 ];
             }
 
-            return DB::transaction(function () use ($email, $aiData) {
+            return DB::transaction(function () use ($email, $aiData, $isThread, $conversation) {
                 $missionData = $aiData['mission'] ?? [];
                 $rawAddress = $missionData['address']['raw'] ?? null;
                 
@@ -91,7 +208,6 @@ class EmailIngestionService
                 $syndicFromBody = $missionData['syndicFromBody'] ?? null;
                 $syndicFromAttachments = $missionData['syndicFromAttachments'] ?? null;
 
-                // Conflict Resolution: Prioritize attachments
                 if ($syndicFromAttachments) {
                     $extractedSyndicName = $syndicFromAttachments;
                 } elseif ($syndicFromBody) {
@@ -102,12 +218,10 @@ class EmailIngestionService
                     $syndicId = $this->matchSyndic($extractedSyndicName);
                 }
 
-                // Fallback: use building's syndic if no AI match
                 if (!$syndicId && $building && $building->syndic_id) {
                     $syndicId = $building->syndic_id;
                 }
 
-                // If we matched a syndic AND created/found a building without one, link them
                 if ($syndicId && $building && !$building->syndic_id) {
                     $building->update(['syndic_id' => $syndicId]);
                 }
@@ -147,24 +261,33 @@ class EmailIngestionService
                         'on_site_contact_email' => $missionData['contactOnSite']['email'] ?? null,
                     ]);
 
-                    // Link attachments to mission as documents
-                    foreach ($email->attachments as $attachment) {
-                        $mission->documents()->create([
-                            'file_path' => $attachment->file_path,
-                            'file_name' => $attachment->file_name,
-                            'file_type' => $attachment->mime_type,
-                        ]);
+                    // Link attachments from ALL thread emails to mission as documents
+                    $emailsForAttachments = $isThread ? $conversation : collect([$email]);
+                    foreach ($emailsForAttachments as $threadEmail) {
+                        foreach ($threadEmail->attachments as $attachment) {
+                            $mission->documents()->create([
+                                'file_path' => $attachment->file_path,
+                                'file_name' => $attachment->file_name,
+                                'file_type' => $attachment->mime_type,
+                            ]);
+                        }
                     }
                 }
 
                 $status = $mission ? 'PROCESSED' : ($aiData['classification'] === 'NEEDS_REVIEW' ? 'NEEDS_REVIEW' : 'IGNORED');
-                
-                $email->update([
-                    'ingested_at' => now(),
-                    'ingestion_status' => $status,
-                    'ingestion_reason' => $aiData['reasons'][0] ?? null,
-                    'extracted_data' => $aiData
-                ]);
+
+                // Mark ALL thread emails as ingested
+                $emailsToMark = $isThread ? $conversation : collect([$email]);
+                foreach ($emailsToMark as $e) {
+                    if (!$e->ingested_at || $e->ingestion_status === 'DEFERRED') {
+                        $e->update([
+                            'ingested_at' => now(),
+                            'ingestion_status' => $status,
+                            'ingestion_reason' => $aiData['reasons'][0] ?? null,
+                            'extracted_data' => $e->id === $email->id ? $aiData : null
+                        ]);
+                    }
+                }
 
                 return [
                     'success' => true,
@@ -172,6 +295,8 @@ class EmailIngestionService
                     'mission_id' => $mission ? $mission->id : null,
                     'building_id' => $building ? $building->id : null,
                     'syndic_id' => $syndicId,
+                    'is_thread' => $isThread,
+                    'thread_emails_count' => $isThread ? $conversation->count() : 1,
                     'extracted_data' => $aiData
                 ];
             });
@@ -257,4 +382,3 @@ class EmailIngestionService
         return null;
     }
 }
-
