@@ -246,7 +246,8 @@ class EmailController extends Controller
                     $subject, 
                     $email->message_id, 
                     $references,
-                    $attachmentPaths
+                    $attachmentPaths,
+                    $fromAddress
                 )
             );
 

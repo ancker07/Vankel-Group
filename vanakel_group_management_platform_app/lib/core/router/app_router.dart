@@ -23,6 +23,7 @@ import '../../features/auth/presentation/waiting_approval_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/management/presentation/management_screen.dart';
 import '../../features/report/presentation/reports_screen.dart';
+import '../../features/mission/domain/mission.dart';
 import '../../features/maintenance/presentation/maintenance_plans_screen.dart';
 import '../../shared/layout/admin_layout.dart';
 import '../../shared/layout/syndic_layout.dart';
@@ -217,6 +218,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                       return MissionDetailsScreen(missionId: id);
                     },
                   ),
+                  GoRoute(
+                    path: 'create',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => CreateMissionScreen(
+                      mission: state.extra as Mission?,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -281,7 +289,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'create',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const CreateMissionScreen(),
+                    builder: (context, state) => CreateMissionScreen(
+                      mission: state.extra as Mission?,
+                    ),
                   ),
                   GoRoute(
                     path: 'details/:id',

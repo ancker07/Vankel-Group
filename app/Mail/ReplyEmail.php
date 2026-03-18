@@ -15,18 +15,20 @@ class ReplyEmail extends Mailable
     public $replySubject;
     public $messageId;
     public $references;
+    public $fromAddress;
     public $attachmentsList;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($replyBody, $replySubject, $messageId = null, $references = null, $attachments = [])
+    public function __construct($replyBody, $replySubject, $messageId = null, $references = null, $attachments = [], $fromAddress = null)
     {
         $this->replyBody = $replyBody;
         $this->replySubject = $replySubject;
         $this->messageId = $messageId;
         $this->references = $references;
         $this->attachmentsList = $attachments;
+        $this->fromAddress = $fromAddress;
     }
 
     /**
@@ -35,6 +37,7 @@ class ReplyEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: $this->fromAddress,
             subject: $this->replySubject,
             tags: ['reply'],
         );

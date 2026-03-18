@@ -8,4 +8,5 @@ abstract class MissionRepository {
   Future<Mission> rejectMission(String id);
   Future<Mission> createMission(Map<String, dynamic> data);
   Future<Mission> createMissionWithFiles(FormData data);
+  Future<Mission> updateMissionWithFiles(String id, FormData data);
 }

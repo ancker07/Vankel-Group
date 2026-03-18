@@ -16,7 +16,8 @@ import '../../intervention/presentation/providers/intervention_provider.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 
 class CreateMissionScreen extends ConsumerStatefulWidget {
-  const CreateMissionScreen({super.key});
+  final Mission? mission;
+  const CreateMissionScreen({super.key, this.mission});
 
   @override
   ConsumerState<CreateMissionScreen> createState() =>
@@ -25,10 +26,10 @@ class CreateMissionScreen extends ConsumerStatefulWidget {
 
 class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _addressController = TextEditingController();
-  MissionUrgency _urgency = MissionUrgency.normal;
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _addressController;
+  late MissionUrgency _urgency;
   bool _isLoading = false;
   List<dynamic> _syndics = [];
   String? _selectedSyndicId;
@@ -40,6 +41,12 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
   @override
   void initState() {
     super.initState();
+    _titleController = TextEditingController(text: widget.mission?.title);
+    _descriptionController = TextEditingController(text: widget.mission?.description);
+    _addressController = TextEditingController(text: widget.mission?.address);
+    _urgency = widget.mission?.urgency ?? MissionUrgency.normal;
+    _selectedSyndicId = widget.mission?.syndicId;
+    
     _fetchSyndics();
   }
 
@@ -60,7 +67,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
         _syndics = syndics;
         // Pre-select first syndic if user is syndic and syndics are available
         final authState = ref.read(authStateProvider);
-        if (authState.user?.role == UserRole.syndic && syndics.isNotEmpty) {
+        if (_selectedSyndicId == null && authState.user?.role == UserRole.syndic && syndics.isNotEmpty) {
           _selectedSyndicId = syndics[0]['id'].toString();
         }
       });
@@ -129,13 +136,14 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           'urgency': _urgency.name.toUpperCase(),
           'role': user?.role.name.toUpperCase() ?? 'SYNDIC',
           'syndicId': _selectedSyndicId,
-          'status': 'PENDING',
+          'status': widget.mission?.status.name.toUpperCase() ?? 'PENDING',
           'category': 'GENERAL',
           'sector': 'GENERAL',
           'onSiteContactName': user?.name ?? 'Unknown',
           'onSiteContactPhone': user?.phone ?? '+123456789',
           'onSiteContactEmail': user?.email ?? '',
           'type': 'mission',
+          if (widget.mission != null) '_method': 'PUT',
         };
 
         final formData = FormData.fromMap(formDataMap);
@@ -166,15 +174,27 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           );
         }
 
-        await ref
-            .read(missionRepositoryProvider)
-            .createMissionWithFiles(formData);
+        if (widget.mission != null) {
+          // Update existing mission
+          await ref
+              .read(missionRepositoryProvider)
+              .updateMissionWithFiles(widget.mission!.id, formData);
+        } else {
+          // Create new mission
+          await ref
+              .read(missionRepositoryProvider)
+              .createMissionWithFiles(formData);
+        }
+        
         ref.invalidate(missionListProvider);
+        if (widget.mission != null) {
+          ref.invalidate(missionDetailProvider(widget.mission!.id));
+        }
 
         if (mounted) {
           context.pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Request sent successfully')),
+            SnackBar(content: Text(widget.mission != null ? 'Mission updated successfully' : 'Request sent successfully')),
           );
         }
       } catch (e) {

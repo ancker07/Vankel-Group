@@ -28,13 +28,20 @@ class MissionDetailsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.missionDetails),
         actions: [
-          if (authState.user?.role == UserRole.admin)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                context.push('/create-mission');
-              },
-            ),
+          missionAsync.when(
+            data: (mission) => authState.user?.role == UserRole.admin || authState.user?.role == UserRole.syndic
+                ? IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      final isAdmin = authState.user?.role == UserRole.admin;
+                      final route = isAdmin ? '/admin/missions/create' : '/syndic/missions/create';
+                      context.push(route, extra: mission);
+                    },
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
         ],
       ),
       body: missionAsync.when(
