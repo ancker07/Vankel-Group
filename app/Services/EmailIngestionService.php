@@ -303,6 +303,14 @@ class EmailIngestionService
 
         } catch (\Exception $e) {
             Log::error("Email Ingestion Error: " . $e->getMessage());
+            
+            // Mark as error in DB so it shows in UI
+            $email->update([
+                'ingested_at' => now(),
+                'ingestion_status' => 'ERROR',
+                'ingestion_reason' => $e->getMessage()
+            ]);
+
             return [
                 'success' => false,
                 'status' => 'ERROR',

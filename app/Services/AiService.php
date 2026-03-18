@@ -251,7 +251,7 @@ When processing a SINGLE email (not part of a thread), determine whether it is a
   "classification": "MISSION" | "NON_MISSION" | "NEEDS_REVIEW" | "AWAITING_CONTEXT",
   "isDirectTask": true | false,
   "confidence": 0.0-1.0,
-  "reasons": ["short reason why"],
+  "reasons": ["A single detailed string explaining EXACTLY why this classification was chosen, why it is/isn't a mission, and why it is/isn't awaiting context."],
   "mission": {
     "title": {
       "en": "Short descriptive title in English",
