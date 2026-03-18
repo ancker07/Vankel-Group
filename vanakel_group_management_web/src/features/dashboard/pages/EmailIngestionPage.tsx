@@ -135,10 +135,10 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-1.5">
                                                     <div className="font-bold text-white truncate max-w-md">{email.subject}</div>
-                                                    {email.thread_id && (
+                                                    {email.thread_count && email.thread_count > 1 && (
                                                         <div className="flex items-center gap-1.5 text-brand-green bg-brand-green/10 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest w-fit border border-brand-green/20">
                                                             <MessageSquare size={10} />
-                                                            Ongoing Conversation
+                                                            Ongoing Conversation ({email.thread_count})
                                                         </div>
                                                     )}
                                                     {email.attachments && email.attachments.length > 0 && (
@@ -219,10 +219,10 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                         <div key={email.id} className="p-4 space-y-4">
                             <div className="space-y-2">
                                 <div className="font-bold text-white leading-tight break-words">{email.subject}</div>
-                                {email.thread_id && (
+                                {email.thread_count && email.thread_count > 1 && (
                                     <div className="flex items-center gap-1.5 text-brand-green bg-brand-green/10 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest w-fit border border-brand-green/20">
                                         <MessageSquare size={10} />
-                                        Ongoing Conversation
+                                        Ongoing Conversation ({email.thread_count})
                                     </div>
                                 )}
                                 <div className="flex flex-col text-xs text-zinc-500">

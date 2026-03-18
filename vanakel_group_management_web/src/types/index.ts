@@ -345,4 +345,5 @@ export interface Email {
   updated_at: string;
   attachments?: EmailAttachment[];
   thread?: Email[];
+  thread_count?: number;
 }

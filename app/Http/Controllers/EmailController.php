@@ -27,10 +27,10 @@ class EmailController extends Controller
         $user = auth('sanctum')->user();
 
         // Group by thread_id, falling back to message_id for unique emails
-        // Then take the latest message from each group
+        // Then take the latest message from each group and count total messages in group
         $query = Email::with('attachments')
-            ->select('emails.*')
-            ->join(DB::raw('(SELECT MAX(id) as max_id FROM emails GROUP BY COALESCE(thread_id, message_id)) as latest_emails'), 'emails.id', '=', 'latest_emails.max_id')
+            ->select('emails.*', 'thread_counts.total_count as thread_count')
+            ->join(DB::raw('(SELECT MAX(id) as max_id, COUNT(*) as total_count FROM emails GROUP BY COALESCE(thread_id, message_id)) as thread_counts'), 'emails.id', '=', 'thread_counts.max_id')
             ->orderBy('received_at', 'desc');
 
         if ($user && $user->role === 'SYNDIC') {
