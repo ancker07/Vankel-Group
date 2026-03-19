@@ -411,29 +411,29 @@ class InterventionController extends Controller
             'onSiteContactEmail' => 'sometimes|nullable|string',
         ]);
 
-        if (isset($validated['sector'])) {
+        if (array_key_exists('sector', $validated)) {
             $validated['category'] = $validated['sector'];
         }
 
-        if (isset($validated['onSiteContactName'])) {
+        if (array_key_exists('onSiteContactName', $validated)) {
             $validated['on_site_contact_name'] = $validated['onSiteContactName'];
             unset($validated['onSiteContactName']);
         }
-        if (isset($validated['onSiteContactPhone'])) {
+        if (array_key_exists('onSiteContactPhone', $validated)) {
             $validated['on_site_contact_phone'] = $validated['onSiteContactPhone'];
             unset($validated['onSiteContactPhone']);
         }
-        if (isset($validated['onSiteContactEmail'])) {
+        if (array_key_exists('onSiteContactEmail', $validated)) {
             $validated['on_site_contact_email'] = $validated['onSiteContactEmail'];
             unset($validated['onSiteContactEmail']);
         }
 
-        if (isset($validated['buildingId'])) {
+        if (array_key_exists('buildingId', $validated)) {
             $validated['building_id'] = $validated['buildingId'];
             unset($validated['buildingId']);
         }
 
-        if (isset($validated['syndicId'])) {
+        if (array_key_exists('syndicId', $validated)) {
             $validated['syndic_id'] = $validated['syndicId'];
             unset($validated['syndicId']);
         }

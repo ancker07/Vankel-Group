@@ -742,4 +742,46 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get syndicRoleSubtitle => 'Vastgoedoverzicht & Aanvragen';
+
+  @override
+  String get subject => 'Onderwerp';
+
+  @override
+  String get updateRequest => 'Aanvraag bijwerken';
+
+  @override
+  String get newRequest => 'Nieuwe aanvraag';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get gallery => 'Galerij';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get images => 'Afbeeldingen';
+
+  @override
+  String get onSiteContactName => 'Naam contact ter plaatse';
+
+  @override
+  String get onSiteContactPhone => 'GSM / TEL contact ter plaatse';
+
+  @override
+  String get onSiteContactEmail => 'E-mail contact ter plaatse';
+
+  @override
+  String get required => 'Verplicht';
+
+  @override
+  String get enterSubject => 'bijv. Waterlek';
+
+  @override
+  String get selectBuildingHint => 'Selecteer gebouw...';
+
+  @override
+  String get selectSyndicHint => 'Selecteer syndicus...';
 }

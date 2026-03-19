@@ -244,5 +244,19 @@
   "enterAllDigits": "Veuillez saisir les 6 chiffres",
   "otpResentSuccess": "OTP renvoyé avec succès",
   "adminRoleSubtitle": "Gestion et contrôle centralisés",
-  "syndicRoleSubtitle": "Aperçu des propriétés et demandes"
+  "syndicRoleSubtitle": "Aperçu des propriétés et demandes",
+  "subject": "Sujet",
+  "updateRequest": "Mettre à jour la demande",
+  "newRequest": "Nouvelle demande",
+  "camera": "Caméra",
+  "gallery": "Galerie",
+  "document": "Document",
+  "images": "Images",
+  "onSiteContactName": "Nom du contact sur place",
+  "onSiteContactPhone": "GSM / TEL du contact sur place",
+  "onSiteContactEmail": "E-mail du contact sur place",
+  "required": "Requis",
+  "enterSubject": "ex: Fuite d'eau",
+  "selectBuildingHint": "Choisir un immeuble...",
+  "selectSyndicHint": "Choisir un syndic..."
 }

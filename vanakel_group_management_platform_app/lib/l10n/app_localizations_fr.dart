@@ -745,4 +745,46 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get syndicRoleSubtitle => 'Aperçu des propriétés et demandes';
+
+  @override
+  String get subject => 'Sujet';
+
+  @override
+  String get updateRequest => 'Mettre à jour la demande';
+
+  @override
+  String get newRequest => 'Nouvelle demande';
+
+  @override
+  String get camera => 'Caméra';
+
+  @override
+  String get gallery => 'Galerie';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get images => 'Images';
+
+  @override
+  String get onSiteContactName => 'Nom du contact sur place';
+
+  @override
+  String get onSiteContactPhone => 'GSM / TEL du contact sur place';
+
+  @override
+  String get onSiteContactEmail => 'E-mail du contact sur place';
+
+  @override
+  String get required => 'Requis';
+
+  @override
+  String get enterSubject => 'ex: Fuite d\'eau';
+
+  @override
+  String get selectBuildingHint => 'Choisir un immeuble...';
+
+  @override
+  String get selectSyndicHint => 'Choisir un syndic...';
 }

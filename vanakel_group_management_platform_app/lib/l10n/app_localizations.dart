@@ -1515,6 +1515,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Property Overview & Requests'**
   String get syndicRoleSubtitle;
+
+  /// No description provided for @subject.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get subject;
+
+  /// No description provided for @updateRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Request'**
+  String get updateRequest;
+
+  /// No description provided for @newRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'New Request'**
+  String get newRequest;
+
+  /// No description provided for @camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// No description provided for @document.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get document;
+
+  /// No description provided for @images.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get images;
+
+  /// No description provided for @onSiteContactName.
+  ///
+  /// In en, this message translates to:
+  /// **'On-Site Contact Name'**
+  String get onSiteContactName;
+
+  /// No description provided for @onSiteContactPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'On-Site Contact Phone'**
+  String get onSiteContactPhone;
+
+  /// No description provided for @onSiteContactEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'On-Site Contact Email'**
+  String get onSiteContactEmail;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @enterSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Water Leak'**
+  String get enterSubject;
+
+  /// No description provided for @selectBuildingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select building...'**
+  String get selectBuildingHint;
+
+  /// No description provided for @selectSyndicHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select syndic...'**
+  String get selectSyndicHint;
 }
 
 class _AppLocalizationsDelegate

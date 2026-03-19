@@ -247,5 +247,19 @@
   "enterAllDigits": "Please enter all 6 digits",
   "otpResentSuccess": "OTP resent successfully",
   "adminRoleSubtitle": "Central Management & Control",
-  "syndicRoleSubtitle": "Property Overview & Requests"
+  "syndicRoleSubtitle": "Property Overview & Requests",
+  "subject": "Subject",
+  "updateRequest": "Update Request",
+  "newRequest": "New Request",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "document": "Document",
+  "images": "Images",
+  "onSiteContactName": "On-Site Contact Name",
+  "onSiteContactPhone": "On-Site Contact Phone",
+  "onSiteContactEmail": "On-Site Contact Email",
+  "required": "Required",
+  "enterSubject": "e.g., Water Leak",
+  "selectBuildingHint": "Select building...",
+  "selectSyndicHint": "Select syndic..."
 }

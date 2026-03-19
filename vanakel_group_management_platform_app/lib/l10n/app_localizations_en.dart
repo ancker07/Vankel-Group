@@ -741,4 +741,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syndicRoleSubtitle => 'Property Overview & Requests';
+
+  @override
+  String get subject => 'Subject';
+
+  @override
+  String get updateRequest => 'Update Request';
+
+  @override
+  String get newRequest => 'New Request';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get images => 'Images';
+
+  @override
+  String get onSiteContactName => 'On-Site Contact Name';
+
+  @override
+  String get onSiteContactPhone => 'On-Site Contact Phone';
+
+  @override
+  String get onSiteContactEmail => 'On-Site Contact Email';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get enterSubject => 'e.g., Water Leak';
+
+  @override
+  String get selectBuildingHint => 'Select building...';
+
+  @override
+  String get selectSyndicHint => 'Select syndic...';
 }

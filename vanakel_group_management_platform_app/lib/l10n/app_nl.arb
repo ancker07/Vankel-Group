@@ -244,5 +244,19 @@
   "enterAllDigits": "Voer alle 6 cijfers in",
   "otpResentSuccess": "OTP succesvol opnieuw verzonden",
   "adminRoleSubtitle": "Centraal Beheer & Controle",
-  "syndicRoleSubtitle": "Vastgoedoverzicht & Aanvragen"
+  "syndicRoleSubtitle": "Vastgoedoverzicht & Aanvragen",
+  "subject": "Onderwerp",
+  "updateRequest": "Aanvraag bijwerken",
+  "newRequest": "Nieuwe aanvraag",
+  "camera": "Camera",
+  "gallery": "Galerij",
+  "document": "Document",
+  "images": "Afbeeldingen",
+  "onSiteContactName": "Naam contact ter plaatse",
+  "onSiteContactPhone": "GSM / TEL contact ter plaatse",
+  "onSiteContactEmail": "E-mail contact ter plaatse",
+  "required": "Verplicht",
+  "enterSubject": "bijv. Waterlek",
+  "selectBuildingHint": "Selecteer gebouw...",
+  "selectSyndicHint": "Selecteer syndicus..."
 }

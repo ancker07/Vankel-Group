@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:dio/dio.dart';
+import '../../../../core/providers/locale_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/enums/user_role_enum.dart';
 import '../domain/mission.dart';
@@ -52,7 +54,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     _contactPhoneController = TextEditingController(text: widget.mission?.onSiteContactPhone);
     _contactEmailController = TextEditingController(text: widget.mission?.onSiteContactEmail);
     _urgency = widget.mission?.urgency ?? MissionUrgency.normal;
-    _sector = widget.mission?.sector ?? 'GENERAL';
+    _sector = widget.mission?.sector?.toUpperCase() ?? 'GENERAL';
     _selectedSyndicId = widget.mission?.syndicId;
     
     _fetchSyndics();
@@ -222,12 +224,36 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: AppTheme.brandBlack,
+      backgroundColor: AppTheme.zinc950,
       appBar: AppBar(
-        title: Text(widget.mission != null ? 'Update Request' : 'New Request'),
+        title: Text(widget.mission != null ? l10n.updateRequest : l10n.newRequest),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          PopupMenuButton<Locale>(
+            icon: const Icon(Icons.language, color: Colors.white),
+            onSelected: (newLocale) {
+              ref.read(localeProvider.notifier).setLocale(newLocale);
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: Locale('en'),
+                child: Text('English'),
+              ),
+              const PopupMenuItem(
+                value: Locale('fr'),
+                child: Text('Français'),
+              ),
+              const PopupMenuItem(
+                value: Locale('nl'),
+                child: Text('Nederlands'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -238,23 +264,23 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLabel('Subject'),
+                  _buildLabel(l10n.subject),
                   TextFormField(
                     controller: _titleController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('e.g., Water Leak'),
+                    decoration: _buildInputDecoration(l10n.enterSubject),
                     validator: (value) =>
-                        value == null || value.isEmpty ? 'Required' : null,
+                        value == null || value.isEmpty ? l10n.required : null,
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel('Address'),
+                  _buildLabel(l10n.building),
                   TextFormField(
                     controller: _addressController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('Select building...'),
+                    decoration: _buildInputDecoration(l10n.selectBuildingHint),
                     validator: (value) =>
-                        value == null || value.isEmpty ? 'Required' : null,
+                        value == null || value.isEmpty ? l10n.required : null,
                   ),
                   const SizedBox(height: 20),
 
@@ -267,19 +293,19 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildLabel('Syndic'),
+                            _buildLabel(l10n.syndic),
                             DropdownButtonFormField<String>(
                               initialValue: _selectedSyndicId,
                               dropdownColor: AppTheme.zinc900,
                               style: const TextStyle(color: Colors.white),
                               decoration: _buildInputDecoration(
-                                'Select syndic...',
+                                l10n.selectSyndicHint,
                               ),
                               items: _syndics.map((syndic) {
                                 return DropdownMenuItem<String>(
                                   value: syndic['id'].toString(),
                                   child: Text(
-                                    syndic['company_name'] ?? 'Unknown Syndic',
+                                    syndic['company_name'] ?? l10n.noSyndic,
                                   ),
                                 );
                               }).toList(),
@@ -290,7 +316,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                               },
                               validator: (value) =>
                                   value == null || value.isEmpty
-                                  ? 'Required'
+                                  ? l10n.required
                                   : null,
                             ),
                             const SizedBox(height: 20),
@@ -301,23 +327,42 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                     },
                   ),
 
-                  _buildLabel('Description'),
+                  _buildLabel(l10n.description),
                   TextFormField(
                     controller: _descriptionController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('Describe the issue...'),
+                    decoration: _buildInputDecoration(l10n.description),
                     maxLines: 4,
                     validator: (value) =>
-                        value == null || value.isEmpty ? 'Required' : null,
+                        value == null || value.isEmpty ? l10n.required : null,
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel('Sector'),
+                  _buildLabel(l10n.sector),
                   DropdownButtonFormField<String>(
-                    value: _sector,
+                    value: [
+                      'GENERAL',
+                      'ELECTRICITY',
+                      'TILING',
+                      'SANITARY',
+                      'HEATING',
+                      'PLUMBING',
+                      'PAINTING',
+                      'WOODWORK',
+                      'OTHER',
+                      'ÉLECTRICITÉ',
+                      'CARRELAGE',
+                      'SANITAIRE',
+                      'CHAUFFAGE',
+                      'PLOMBERIE',
+                      'PEINTURE',
+                      'MENUISERIE',
+                      'GÉNÉRAL',
+                      'AUTRE',
+                    ].contains(_sector.toUpperCase()) ? _sector.toUpperCase() : 'GENERAL',
                     dropdownColor: AppTheme.zinc900,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('Select sector...'),
+                    decoration: _buildInputDecoration(l10n.selectSector),
                     items: [
                       'GENERAL',
                       'ELECTRICITY',
@@ -328,10 +373,30 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                       'PAINTING',
                       'WOODWORK',
                       'OTHER',
+                      'ÉLECTRICITÉ',
+                      'CARRELAGE',
+                      'SANITAIRE',
+                      'CHAUFFAGE',
+                      'PLOMBERIE',
+                      'PEINTURE',
+                      'MENUISERIE',
+                      'GÉNÉRAL',
+                      'AUTRE',
                     ].map((sector) {
+                      String label = sector;
+                      if (sector == 'GENERAL') label = l10n.general;
+                      if (sector == 'ELECTRICITY' || sector == 'ÉLECTRICITÉ') label = l10n.electricity;
+                      if (sector == 'TILING' || sector == 'CARRELAGE') label = l10n.tiling;
+                      if (sector == 'SANITARY' || sector == 'SANITAIRE') label = l10n.sanitary;
+                      if (sector == 'HEATING' || sector == 'CHAUFFAGE') label = l10n.heating;
+                      if (sector == 'PLUMBING' || sector == 'PLOMBERIE') label = l10n.plumbing;
+                      if (sector == 'PAINTING' || sector == 'PEINTURE') label = l10n.painting;
+                      if (sector == 'WOODWORK' || sector == 'MENUISERIE') label = l10n.woodwork;
+                      if (sector == 'OTHER' || sector == 'AUTRE') label = l10n.other;
+                      
                       return DropdownMenuItem<String>(
                         value: sector,
-                        child: Text(sector),
+                        child: Text(label),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -340,40 +405,45 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel('On-Site Contact Name'),
+                  _buildLabel(l10n.onSiteContactName),
                   TextFormField(
                     controller: _contactNameController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('Contact name'),
+                    decoration: _buildInputDecoration(l10n.name),
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel('On-Site Contact Phone'),
+                  _buildLabel(l10n.onSiteContactPhone),
                   TextFormField(
                     controller: _contactPhoneController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('Contact phone'),
+                    decoration: _buildInputDecoration(l10n.phoneTitle),
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel('On-Site Contact Email'),
+                  _buildLabel(l10n.onSiteContactEmail),
                   TextFormField(
                     controller: _contactEmailController,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _buildInputDecoration('Contact email'),
+                    decoration: _buildInputDecoration(l10n.emailOptional),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel('Urgency'),
+                  _buildLabel(l10n.urgency),
                   Row(
                     children: MissionUrgency.values.map((urgency) {
                       final isSelected = _urgency == urgency;
+                      String label = urgency.name.toUpperCase();
+                      if (urgency == MissionUrgency.low) label = l10n.low;
+                      if (urgency == MissionUrgency.normal) label = l10n.normal;
+                      if (urgency == MissionUrgency.urgent) label = l10n.urgent;
+                      
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ChoiceChip(
-                          label: Text(urgency.name.toUpperCase()),
+                          label: Text(label),
                           selected: isSelected,
                           onSelected: (selected) {
                             if (selected) setState(() => _urgency = urgency);
@@ -399,7 +469,132 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  _buildAttachmentSection(),
+                  _buildLabel(l10n.attachments),
+                  Row(
+                    children: [
+                      _buildFileButton(
+                        icon: Icons.camera_alt_outlined,
+                        label: l10n.camera,
+                        onTap: () => _pickImage(ImageSource.camera),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFileButton(
+                        icon: Icons.photo_library_outlined,
+                        label: l10n.gallery,
+                        onTap: () => _pickImage(ImageSource.gallery),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildFileButton(
+                        icon: Icons.description_outlined,
+                        label: l10n.document,
+                        onTap: () => _pickDocument(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (_images.isNotEmpty) ...[
+                    _buildLabel(l10n.images),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _images.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppTheme.zinc800),
+                                    image: DecorationImage(
+                                      image: FileImage(_images[index]),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () => _removeImage(index),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  if (_documents.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildLabel(l10n.documents),
+                    const SizedBox(height: 8),
+                    Column(
+                      children: List.generate(_documents.length, (index) {
+                        final doc = _documents[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.zinc900,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppTheme.zinc800),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.description,
+                                color: AppTheme.brandGreen,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  path.basename(doc.path),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                  size: 16,
+                                ),
+                                onPressed: () => _removeDocument(index),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
 
                   const SizedBox(height: 100), // Space for submit button
                 ],
@@ -450,141 +645,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     );
   }
 
-  Widget _buildAttachmentSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel('Attachments'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            _buildAddAttachmentButton(
-              icon: Icons.camera_alt_outlined,
-              label: 'Camera',
-              onTap: () => _pickImage(ImageSource.camera),
-            ),
-            const SizedBox(width: 12),
-            _buildAddAttachmentButton(
-              icon: Icons.photo_library_outlined,
-              label: 'Gallery',
-              onTap: () => _pickImage(ImageSource.gallery),
-            ),
-            const SizedBox(width: 12),
-            _buildAddAttachmentButton(
-              icon: Icons.description_outlined,
-              label: 'Document',
-              onTap: _pickDocument,
-            ),
-          ],
-        ),
-        if (_images.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _buildLabel('Images (${_images.length})'),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _images.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.zinc800),
-                          image: DecorationImage(
-                            image: FileImage(_images[index]),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: () => _removeImage(index),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-        if (_documents.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _buildLabel('Documents (${_documents.length})'),
-          const SizedBox(height: 8),
-          Column(
-            children: _documents.asMap().entries.map((entry) {
-              final index = entry.key;
-              final file = entry.value;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.zinc900,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.zinc800),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.description_outlined,
-                      color: AppTheme.zinc500,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        path.basename(file.path),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.red,
-                        size: 20,
-                      ),
-                      onPressed: () => _removeDocument(index),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildAddAttachmentButton({
+  Widget _buildFileButton({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
