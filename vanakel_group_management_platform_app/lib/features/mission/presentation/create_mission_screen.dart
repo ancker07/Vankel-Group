@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:dio/dio.dart';
-import '../../../../core/providers/locale_provider.dart';
+import '../../../../shared/widgets/language_selector.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/enums/user_role_enum.dart';
+import '../../../../core/utils/translation_helper.dart';
 import '../domain/mission.dart';
 import 'providers/mission_provider.dart';
 import 'providers/mission_list_provider.dart';
@@ -35,6 +36,9 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
   late final TextEditingController _contactPhoneController;
   late final TextEditingController _contactEmailController;
   late MissionUrgency _urgency;
+  bool _isTitleDirty = false;
+  bool _isDescriptionDirty = false;
+  Locale? _previousLocale;
   String _sector = 'GENERAL';
   bool _isLoading = false;
   List<dynamic> _syndics = [];
@@ -53,11 +57,81 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     _contactNameController = TextEditingController(text: widget.mission?.onSiteContactName);
     _contactPhoneController = TextEditingController(text: widget.mission?.onSiteContactPhone);
     _contactEmailController = TextEditingController(text: widget.mission?.onSiteContactEmail);
+    
+    // Add listeners to track if user has manually edited the fields
+    _titleController.addListener(() {
+      if (_titleController.text != widget.mission?.title && 
+          _titleController.text != widget.mission?.titleEn &&
+          _titleController.text != widget.mission?.titleFr &&
+          _titleController.text != widget.mission?.titleNl) {
+        _isTitleDirty = true;
+      }
+    });
+    
+    _descriptionController.addListener(() {
+      if (_descriptionController.text != widget.mission?.description &&
+          _descriptionController.text != widget.mission?.descriptionEn &&
+          _descriptionController.text != widget.mission?.descriptionFr &&
+          _descriptionController.text != widget.mission?.descriptionNl) {
+        _isDescriptionDirty = true;
+      }
+    });
+
     _urgency = widget.mission?.urgency ?? MissionUrgency.normal;
     _sector = widget.mission?.sector?.toUpperCase() ?? 'GENERAL';
     _selectedSyndicId = widget.mission?.syndicId;
     
     _fetchSyndics();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocale = Localizations.localeOf(context);
+    
+    if (_previousLocale == null) {
+      // First time initialization with localized strings
+      if (widget.mission != null) {
+        _titleController.text = TranslationHelper.getLocalizedField(
+          context: context,
+          enValue: widget.mission!.titleEn,
+          frValue: widget.mission!.titleFr,
+          nlValue: widget.mission!.titleNl,
+          fallback: widget.mission!.title,
+        );
+        _descriptionController.text = TranslationHelper.getLocalizedField(
+          context: context,
+          enValue: widget.mission!.descriptionEn,
+          frValue: widget.mission!.descriptionFr,
+          nlValue: widget.mission!.descriptionNl,
+          fallback: widget.mission!.description,
+        );
+      }
+      _previousLocale = currentLocale;
+    } else if (_previousLocale != currentLocale) {
+      // Locale changed, update controllers if not dirty
+      if (widget.mission != null) {
+        if (!_isTitleDirty) {
+          _titleController.text = TranslationHelper.getLocalizedField(
+            context: context,
+            enValue: widget.mission!.titleEn,
+            frValue: widget.mission!.titleFr,
+            nlValue: widget.mission!.titleNl,
+            fallback: widget.mission!.title,
+          );
+        }
+        if (!_isDescriptionDirty) {
+          _descriptionController.text = TranslationHelper.getLocalizedField(
+            context: context,
+            enValue: widget.mission!.descriptionEn,
+            frValue: widget.mission!.descriptionFr,
+            nlValue: widget.mission!.descriptionNl,
+            fallback: widget.mission!.description,
+          );
+        }
+      }
+      _previousLocale = currentLocale;
+    }
   }
 
   @override
@@ -232,27 +306,8 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
         title: Text(widget.mission != null ? l10n.updateRequest : l10n.newRequest),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          PopupMenuButton<Locale>(
-            icon: const Icon(Icons.language, color: Colors.white),
-            onSelected: (newLocale) {
-              ref.read(localeProvider.notifier).setLocale(newLocale);
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: Locale('en'),
-                child: Text('English'),
-              ),
-              const PopupMenuItem(
-                value: Locale('fr'),
-                child: Text('Français'),
-              ),
-              const PopupMenuItem(
-                value: Locale('nl'),
-                child: Text('Nederlands'),
-              ),
-            ],
-          ),
+        actions: const [
+          LanguageSelector(),
         ],
       ),
       body: Stack(
