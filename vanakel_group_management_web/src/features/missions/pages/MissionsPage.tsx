@@ -14,6 +14,7 @@ interface MissionsPageProps {
     onCreateClick: () => void;
     onApprove: (mission: Mission) => void;
     onReject: (mission: Mission) => void;
+    onUpdate?: (id: string, payload: any) => void;
     t: any;
     role?: string;
     lang: Language;
@@ -22,7 +23,7 @@ interface MissionsPageProps {
 }
 
 
-const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, t, role, lang, onRefresh, isRefreshing }) => {
+const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, onUpdate, t, role, lang, onRefresh, isRefreshing }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
     const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
@@ -382,10 +383,12 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                         mission={selectedMission}
                         onClose={() => setSelectedMission(null)}
                         building={buildings.find(b => String(b.id) === String(selectedMission.buildingId))}
+                        buildings={buildings}
                         syndic={syndics.find(s => String(s.id) === String(selectedMission.syndicId || buildings.find(b => String(b.id) === String(selectedMission.buildingId))?.linkedSyndicId))}
                         lang={lang}
                         onApprove={onApprove}
                         onReject={onReject}
+                        onUpdate={onUpdate}
                         role={role}
                     />
                 )

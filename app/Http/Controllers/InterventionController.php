@@ -395,6 +395,71 @@ class InterventionController extends Controller
         ]);
     }
 
+    public function updateMission(Request $request, $id)
+    {
+        $mission = Mission::findOrFail($id);
+        
+        $validated = $request->validate([
+            'title' => 'sometimes|string',
+            'description' => 'sometimes|string',
+            'sector' => 'sometimes|string',
+            'urgency' => 'sometimes|string',
+            'buildingId' => 'sometimes|nullable|string',
+            'syndicId' => 'sometimes|nullable|string',
+            'onSiteContactName' => 'sometimes|nullable|string',
+            'onSiteContactPhone' => 'sometimes|nullable|string',
+            'onSiteContactEmail' => 'sometimes|nullable|string',
+        ]);
+
+        if (isset($validated['sector'])) {
+            $validated['category'] = $validated['sector'];
+        }
+
+        if (isset($validated['onSiteContactName'])) {
+            $validated['on_site_contact_name'] = $validated['onSiteContactName'];
+            unset($validated['onSiteContactName']);
+        }
+        if (isset($validated['onSiteContactPhone'])) {
+            $validated['on_site_contact_phone'] = $validated['onSiteContactPhone'];
+            unset($validated['onSiteContactPhone']);
+        }
+        if (isset($validated['onSiteContactEmail'])) {
+            $validated['on_site_contact_email'] = $validated['onSiteContactEmail'];
+            unset($validated['onSiteContactEmail']);
+        }
+
+        if (isset($validated['buildingId'])) {
+            $validated['building_id'] = $validated['buildingId'];
+            unset($validated['buildingId']);
+        }
+
+        if (isset($validated['syndicId'])) {
+            $validated['syndic_id'] = $validated['syndicId'];
+            unset($validated['syndicId']);
+        }
+
+        // Re-translate if title or description changed
+        if ($request->has('title') || $request->has('description')) {
+            $newTitle = $validated['title'] ?? $mission->title;
+            $newDesc = $validated['description'] ?? $mission->description;
+            $translations = $this->aiService->translateToFill($newTitle, $newDesc);
+            
+            $validated['title_en'] = $translations['title']['en'] ?? $newTitle;
+            $validated['title_fr'] = $translations['title']['fr'] ?? $newTitle;
+            $validated['title_nl'] = $translations['title']['nl'] ?? $newTitle;
+            $validated['description_en'] = $translations['description']['en'] ?? $newDesc;
+            $validated['description_fr'] = $translations['description']['fr'] ?? $newDesc;
+            $validated['description_nl'] = $translations['description']['nl'] ?? $newDesc;
+        }
+
+        $mission->update($validated);
+        
+        return response()->json([
+            'message' => 'Mission updated successfully',
+            'mission' => $mission->fresh()->load(['documents', 'building', 'syndic'])
+        ]);
+    }
+
     public function updateIntervention(Request $request, $id)
     {
         $intervention = Intervention::findOrFail($id);

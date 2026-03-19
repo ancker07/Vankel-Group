@@ -925,6 +925,26 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateMission = async (id: string, payload: any) => {
+    try {
+      const response = await dataService.updateMission(id, payload);
+      const updatedMission = response.mission;
+      
+      setMissions(prev => prev.map(m => m.id === id ? {
+        ...m,
+        ...updatedMission,
+        id: String(updatedMission.id),
+        buildingId: updatedMission.building_id ? String(updatedMission.building_id) : m.buildingId,
+        syndicId: updatedMission.syndic_id ? String(updatedMission.syndic_id) : m.syndicId
+      } : m));
+      
+      addToast('Success', 'Mission updated successfully');
+    } catch (error) {
+      console.error('Failed to update mission:', error);
+      addToast('Error', 'Failed to update mission.');
+    }
+  };
+
   const handleEditMaintenance = async (id: string, plan: Partial<MaintenancePlan>) => {
     try {
       await dataService.updateMaintenancePlan(id, plan);
@@ -1221,6 +1241,7 @@ const App: React.FC = () => {
                           onCreateClick={() => setShowCreateModal(true)}
                           onApprove={(m) => setMissionActionModal({ type: 'APPROVE', mission: m })}
                           onReject={(m) => setMissionActionModal({ type: 'REJECT', mission: m })}
+                          onUpdate={handleUpdateMission}
                           t={t}
                           role={role || 'SYNDIC'}
                           lang={lang}

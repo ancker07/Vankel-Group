@@ -30,6 +30,10 @@ export const dataService = {
         const response = await apiClient.post(`/missions/${id}/reject`);
         return response.data;
     },
+    updateMission: async (id: string, payload: any) => {
+        const response = await apiClient.put(`/missions/${id}`, payload);
+        return response.data;
+    },
     updateIntervention: async (id: string, payload: any) => {
         let method = 'PUT';
         let body = payload;

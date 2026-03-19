@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Save, Shield, Cpu, Key, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Sparkles, Save, Shield, Cpu, Key, AlertCircle, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { Language } from '@/types';
 
@@ -15,6 +15,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showApiKey, setShowApiKey] = useState(false);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -129,13 +130,20 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
                             </label>
                             <div className="relative">
                                 <input
-                                    type="password"
+                                    type={showApiKey ? 'text' : 'password'}
                                     value={apiKey}
                                     onChange={(e) => setApiKey(e.target.value)}
                                     placeholder="Enter your API key here..."
                                     className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl py-3.5 md:py-4 px-4 md:px-5 text-white focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-all font-mono text-xs md:text-sm"
                                 />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowApiKey(!showApiKey)}
+                                        className="p-1 hover:bg-zinc-800 rounded-lg text-zinc-600 hover:text-brand-green transition-all"
+                                    >
+                                        {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
                                     <Shield size={18} className="text-zinc-700" />
                                 </div>
                             </div>

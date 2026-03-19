@@ -47,6 +47,7 @@ Route::get('/missions', [InterventionController::class, 'getMissions']);
 Route::get('/missions/{id}', [InterventionController::class, 'getMissionById']);
 Route::post('/missions/{id}/approve', [InterventionController::class, 'approveMission']);
 Route::post('/missions/{id}/reject', [InterventionController::class, 'rejectMission']);
+Route::put('/missions/{id}', [InterventionController::class, 'updateMission']);
 Route::get('/interventions', [InterventionController::class, 'getInterventions']);
 Route::get('/interventions/{id}', [InterventionController::class, 'getInterventionById']);
 Route::put('/interventions/{id}', [InterventionController::class, 'updateIntervention']);
