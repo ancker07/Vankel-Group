@@ -26,6 +26,9 @@ class Mission {
   final String? syndicPhone;
   final String? extractedSyndicName;
   final String? sector;
+  final String? onSiteContactName;
+  final String? onSiteContactPhone;
+  final String? onSiteContactEmail;
   final List<Document> documents;
 
   const Mission({
@@ -49,6 +52,9 @@ class Mission {
     this.syndicPhone,
     this.extractedSyndicName,
     this.sector,
+    this.onSiteContactName,
+    this.onSiteContactPhone,
+    this.onSiteContactEmail,
     this.isAiDetected = false,
     this.documents = const [],
   });
@@ -75,6 +81,10 @@ class Mission {
     String? syndicPhone,
     String? extractedSyndicName,
     String? sector,
+    String? onSiteContactName,
+    String? onSiteContactPhone,
+    String? onSiteContactEmail,
+    List<Document>? documents,
   }) {
     return Mission(
       id: id ?? this.id,
@@ -98,6 +108,10 @@ class Mission {
       syndicPhone: syndicPhone ?? this.syndicPhone,
       extractedSyndicName: extractedSyndicName ?? this.extractedSyndicName,
       sector: sector ?? this.sector,
+      onSiteContactName: onSiteContactName ?? this.onSiteContactName,
+      onSiteContactPhone: onSiteContactPhone ?? this.onSiteContactPhone,
+      onSiteContactEmail: onSiteContactEmail ?? this.onSiteContactEmail,
+      documents: documents ?? this.documents,
     );
   }
 }

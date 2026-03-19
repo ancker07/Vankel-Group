@@ -29,16 +29,22 @@ class MissionDetailsScreen extends ConsumerWidget {
         title: Text(l10n.missionDetails),
         actions: [
           missionAsync.when(
-            data: (mission) => authState.user?.role == UserRole.admin || authState.user?.role == UserRole.syndic
-                ? IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      final isAdmin = authState.user?.role == UserRole.admin;
-                      final route = isAdmin ? '/admin/missions/create' : '/syndic/missions/create';
-                      context.push(route, extra: mission);
-                    },
-                  )
-                : const SizedBox.shrink(),
+            data: (mission) {
+              final isEditable = (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview);
+              final canEdit = (authState.user?.role == UserRole.admin && isEditable) || 
+                             (authState.user?.role == UserRole.syndic && isEditable);
+              
+              if (!canEdit) return const SizedBox.shrink();
+              
+              return IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  final isAdmin = authState.user?.role == UserRole.admin;
+                  final route = isAdmin ? '/admin/missions/create' : '/syndic/missions/create';
+                  context.push(route, extra: mission);
+                },
+              );
+            },
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
           ),
@@ -60,6 +66,10 @@ class MissionDetailsScreen extends ConsumerWidget {
                   mission.extractedSyndicName != null) ...[
                 const SizedBox(height: 24),
                 _buildSyndicContactCard(context, mission),
+              ],
+              if (mission.onSiteContactName != null || mission.onSiteContactPhone != null || mission.onSiteContactEmail != null) ...[
+                const SizedBox(height: 24),
+                _buildOnSiteContactCard(context, mission),
               ],
               if (mission.documents.isNotEmpty) ...[
                 const SizedBox(height: 24),
@@ -812,6 +822,127 @@ class MissionDetailsScreen extends ConsumerWidget {
             ),
           ],
           if (phone != null) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri(scheme: 'tel', path: phone);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.phone_outlined, size: 16, color: AppTheme.zinc500),
+                  const SizedBox(width: 10),
+                  Text(
+                    phone,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.brandGreen,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppTheme.brandGreen,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOnSiteContactCard(BuildContext context, Mission mission) {
+    final l10n = AppLocalizations.of(context)!;
+    final name = mission.onSiteContactName;
+    final email = mission.onSiteContactEmail;
+    final phone = mission.onSiteContactPhone;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.person_outline,
+                  color: Colors.orange,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                l10n.onSiteContact,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: AppTheme.zinc800, height: 1),
+          const SizedBox(height: 14),
+          if (name != null && name.isNotEmpty)
+            Row(
+              children: [
+                const Icon(Icons.person, size: 16, color: AppTheme.zinc500),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          if (email != null && email.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri(scheme: 'mailto', path: email);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                }
+              },
+              child: Row(
+                children: [
+                  const Icon(Icons.email_outlined, size: 16, color: AppTheme.zinc500),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.brandGreen,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppTheme.brandGreen,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (phone != null && phone.isNotEmpty) ...[
             const SizedBox(height: 10),
             GestureDetector(
               onTap: () async {

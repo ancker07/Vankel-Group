@@ -85,8 +85,10 @@ class MissionRepositoryImpl implements MissionRepository {
   @override
   Future<Mission> updateMissionWithFiles(String id, FormData data) async {
     try {
-      final response = await _dio.post('${ApiConstants.interventions}/$id', data: data);
-      return MissionModel.fromJson(response.data['data']).toEntity();
+      final response = await _dio.post(
+          ApiConstants.missionUpdate.replaceFirst('{id}', id),
+          data: data);
+      return MissionModel.fromJson(response.data['mission']).toEntity();
     } on DioException catch (e) {
       throw handleDioError(e);
     }

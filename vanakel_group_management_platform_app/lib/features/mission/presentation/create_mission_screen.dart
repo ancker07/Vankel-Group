@@ -29,7 +29,11 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _addressController;
+  late final TextEditingController _contactNameController;
+  late final TextEditingController _contactPhoneController;
+  late final TextEditingController _contactEmailController;
   late MissionUrgency _urgency;
+  String _sector = 'GENERAL';
   bool _isLoading = false;
   List<dynamic> _syndics = [];
   String? _selectedSyndicId;
@@ -44,7 +48,11 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     _titleController = TextEditingController(text: widget.mission?.title);
     _descriptionController = TextEditingController(text: widget.mission?.description);
     _addressController = TextEditingController(text: widget.mission?.address);
+    _contactNameController = TextEditingController(text: widget.mission?.onSiteContactName);
+    _contactPhoneController = TextEditingController(text: widget.mission?.onSiteContactPhone);
+    _contactEmailController = TextEditingController(text: widget.mission?.onSiteContactEmail);
     _urgency = widget.mission?.urgency ?? MissionUrgency.normal;
+    _sector = widget.mission?.sector ?? 'GENERAL';
     _selectedSyndicId = widget.mission?.syndicId;
     
     _fetchSyndics();
@@ -55,6 +63,9 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
+    _contactNameController.dispose();
+    _contactPhoneController.dispose();
+    _contactEmailController.dispose();
     super.dispose();
   }
 
@@ -137,11 +148,11 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           'role': user?.role.name.toUpperCase() ?? 'SYNDIC',
           'syndicId': _selectedSyndicId,
           'status': widget.mission?.status.name.toUpperCase() ?? 'PENDING',
-          'category': 'GENERAL',
-          'sector': 'GENERAL',
-          'onSiteContactName': user?.name ?? 'Unknown',
-          'onSiteContactPhone': user?.phone ?? '+123456789',
-          'onSiteContactEmail': user?.email ?? '',
+          'category': _sector,
+          'sector': _sector,
+          'onSiteContactName': _contactNameController.text.isNotEmpty ? _contactNameController.text : (user?.name ?? 'Unknown'),
+          'onSiteContactPhone': _contactPhoneController.text.isNotEmpty ? _contactPhoneController.text : (user?.phone ?? '+123456789'),
+          'onSiteContactEmail': _contactEmailController.text.isNotEmpty ? _contactEmailController.text : (user?.email ?? ''),
           'type': 'mission',
           if (widget.mission != null) '_method': 'PUT',
         };
@@ -214,7 +225,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
       appBar: AppBar(
-        title: const Text('New Request'),
+        title: Text(widget.mission != null ? 'Update Request' : 'New Request'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -301,6 +312,60 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                   ),
                   const SizedBox(height: 20),
 
+                  _buildLabel('Sector'),
+                  DropdownButtonFormField<String>(
+                    value: _sector,
+                    dropdownColor: AppTheme.zinc900,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _buildInputDecoration('Select sector...'),
+                    items: [
+                      'GENERAL',
+                      'ELECTRICITY',
+                      'TILING',
+                      'SANITARY',
+                      'HEATING',
+                      'PLUMBING',
+                      'PAINTING',
+                      'WOODWORK',
+                      'OTHER',
+                    ].map((sector) {
+                      return DropdownMenuItem<String>(
+                        value: sector,
+                        child: Text(sector),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) setState(() => _sector = value);
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  _buildLabel('On-Site Contact Name'),
+                  TextFormField(
+                    controller: _contactNameController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _buildInputDecoration('Contact name'),
+                  ),
+                  const SizedBox(height: 20),
+
+                  _buildLabel('On-Site Contact Phone'),
+                  TextFormField(
+                    controller: _contactPhoneController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _buildInputDecoration('Contact phone'),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 20),
+
+                  _buildLabel('On-Site Contact Email'),
+                  TextFormField(
+                    controller: _contactEmailController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _buildInputDecoration('Contact email'),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 20),
+
                   _buildLabel('Urgency'),
                   Row(
                     children: MissionUrgency.values.map((urgency) {
@@ -368,9 +433,11 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                           color: Colors.black,
                         ),
                       )
-                    : const Text(
-                        'Submit Request',
-                        style: TextStyle(
+                    : Text(
+                        widget.mission != null
+                            ? 'Update Request'
+                            : 'Submit Request',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

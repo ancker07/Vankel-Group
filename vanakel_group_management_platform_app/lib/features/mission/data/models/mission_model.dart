@@ -23,6 +23,9 @@ class MissionModel extends Mission {
     super.syndicPhone,
     super.extractedSyndicName,
     super.sector,
+    super.onSiteContactName,
+    super.onSiteContactPhone,
+    super.onSiteContactEmail,
     super.isAiDetected = false,
     super.documents = const [],
   });
@@ -51,6 +54,9 @@ class MissionModel extends Mission {
           : DateTime.now(),
       buildingId: json['building_id']?.toString() ?? json['buildingId']?.toString(),
       sector: json['sector'] as String?,
+      onSiteContactName: json['on_site_contact_name'] as String? ?? json['onSiteContactName'] as String?,
+      onSiteContactPhone: json['on_site_contact_phone'] as String? ?? json['onSiteContactPhone'] as String?,
+      onSiteContactEmail: json['on_site_contact_email'] as String? ?? json['onSiteContactEmail'] as String?,
       isAiDetected:
           json['is_ai_detected'] == 1 || json['is_ai_detected'] == true,
       documents:
@@ -147,6 +153,9 @@ class MissionModel extends Mission {
       syndicPhone: syndicPhone,
       extractedSyndicName: extractedSyndicName,
       sector: sector,
+      onSiteContactName: onSiteContactName,
+      onSiteContactPhone: onSiteContactPhone,
+      onSiteContactEmail: onSiteContactEmail,
       isAiDetected: isAiDetected,
       documents: documents,
     );

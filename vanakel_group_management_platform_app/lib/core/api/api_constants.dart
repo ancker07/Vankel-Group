@@ -31,6 +31,7 @@ class ApiConstants {
 
   // Mission Endpoints
   static const String missions = '/missions';
+  static const String missionUpdate = '/missions/{id}';
   static const String approveMission = '/missions/{id}/approve';
   static const String rejectMission = '/missions/{id}/reject';
   

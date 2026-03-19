@@ -454,6 +454,29 @@ class InterventionController extends Controller
 
         $mission->update($validated);
         
+        // Handle additional file uploads if any
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $path = $file->store('documents', 'public');
+                $mission->documents()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+            }
+        }
+
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $file) {
+                $path = $file->store('photos', 'public');
+                $mission->documents()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+            }
+        }
+
         return response()->json([
             'message' => 'Mission updated successfully',
             'mission' => $mission->fresh()->load(['documents', 'building', 'syndic'])
