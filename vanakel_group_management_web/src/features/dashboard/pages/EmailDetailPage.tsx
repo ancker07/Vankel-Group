@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mail, Calendar, ArrowLeft, Paperclip, Download, Clock, Trash2, Send, CheckCircle2, X } from 'lucide-react';
+import { parseISO, compareAsc } from 'date-fns';
 import { Email, Language } from '@/types';
 import { dataService } from '@/services/dataService';
 import { STORAGE_BASE_URL } from '@/lib/apiClient';
@@ -33,7 +34,13 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
 
                 // Use the thread provided by the backend, fallback to the email itself
                 if (data.thread && data.thread.length > 0) {
-                    setThread(data.thread);
+                    setThread(data.thread.sort((a, b) => {
+                        const dateA = a.received_at ? parseISO(a.received_at) : new Date(0);
+                        const dateB = b.received_at ? parseISO(b.received_at) : new Date(0);
+                        const dateCompare = compareAsc(dateA, dateB);
+                        if (dateCompare !== 0) return dateCompare;
+                        return a.id - b.id;
+                    }));
                 } else {
                     setThread([data]);
                 }
@@ -161,7 +168,13 @@ const EmailDetailPage: React.FC<EmailDetailPageProps> = ({ lang }) => {
                                     const data = await dataService.getEmailById(email.id);
                                     setEmail(data);
                                     if (data.thread && data.thread.length > 0) {
-                                        setThread(data.thread);
+                                        setThread(data.thread.sort((a, b) => {
+                                            const dateA = a.received_at ? parseISO(a.received_at) : new Date(0);
+                                            const dateB = b.received_at ? parseISO(b.received_at) : new Date(0);
+                                            const dateCompare = compareAsc(dateA, dateB);
+                                            if (dateCompare !== 0) return dateCompare;
+                                            return a.id - b.id;
+                                        }));
                                     } else {
                                         setThread([data]);
                                     }

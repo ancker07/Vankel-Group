@@ -12,7 +12,7 @@ interface EmailReplyFormProps {
 
 const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuccess }) => {
     const [body, setBody] = useState('');
-    const [account, setAccount] = useState<'no-reply' | 'redirection'>('no-reply');
+    const [account, setAccount] = useState<'no-reply' | 'redirection'>('redirection');
     const [isSending, setIsSending] = useState(false);
     const [isImproving, setIsImproving] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
@@ -97,28 +97,6 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <button
                             type="button"
-                            onClick={() => setAccount('no-reply')}
-                            className={`flex items-center gap-5 p-5 rounded-3xl border-2 transition-all text-left relative overflow-hidden group ${account === 'no-reply'
-                                ? 'bg-brand-green/[0.03] border-brand-green/50 text-white shadow-[0_10px_30px_-10px_rgba(34,197,94,0.1)]'
-                                : 'bg-zinc-900/30 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-900/50'
-                                }`}
-                        >
-                            {account === 'no-reply' && (
-                                <div className="absolute top-0 right-0 p-2 bg-brand-green text-black rounded-bl-2xl shadow-lg">
-                                    <CheckCircle2 size={14} />
-                                </div>
-                            )}
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border transition-all ${account === 'no-reply' ? 'bg-brand-green/20 text-brand-green border-brand-green/30 shadow-[0_0_20px_rgba(34,197,94,0.2)]' : 'bg-zinc-950 text-zinc-700 border-zinc-800'}`}>
-                                <Shield size={22} />
-                            </div>
-                            <div className="min-w-0">
-                                <p className={`text-sm font-black truncate transition-colors ${account === 'no-reply' ? 'text-white' : 'text-zinc-500'}`}>no-reply@vanakelgroup.com</p>
-                                <p className="text-[10px] opacity-60 font-black uppercase tracking-tighter mt-1">Official Property Management</p>
-                            </div>
-                        </button>
-
-                        <button
-                            type="button"
                             onClick={() => setAccount('redirection')}
                             className={`flex items-center gap-5 p-5 rounded-3xl border-2 transition-all text-left relative overflow-hidden group ${account === 'redirection'
                                 ? 'bg-blue-500/[0.03] border-blue-500/50 text-white shadow-[0_10px_30px_-10px_rgba(59,130,246,0.1)]'
@@ -136,6 +114,28 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
                             <div className="min-w-0">
                                 <p className={`text-sm font-black truncate transition-colors ${account === 'redirection' ? 'text-white' : 'text-zinc-500'}`}>Redirection@vanakelgroup.com</p>
                                 <p className="text-[10px] opacity-60 font-black uppercase tracking-tighter mt-1">Direct Support Channel</p>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setAccount('no-reply')}
+                            className={`flex items-center gap-5 p-5 rounded-3xl border-2 transition-all text-left relative overflow-hidden group ${account === 'no-reply'
+                                ? 'bg-brand-green/[0.03] border-brand-green/50 text-white shadow-[0_10px_30px_-10px_rgba(34,197,94,0.1)]'
+                                : 'bg-zinc-900/30 border-zinc-800/50 text-zinc-500 hover:border-zinc-700 hover:bg-zinc-900/50'
+                                }`}
+                        >
+                            {account === 'no-reply' && (
+                                <div className="absolute top-0 right-0 p-2 bg-brand-green text-black rounded-bl-2xl shadow-lg">
+                                    <CheckCircle2 size={14} />
+                                </div>
+                            )}
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border transition-all ${account === 'no-reply' ? 'bg-brand-green/20 text-brand-green border-brand-green/30 shadow-[0_0_20px_rgba(34,197,94,0.2)]' : 'bg-zinc-950 text-zinc-700 border-zinc-800'}`}>
+                                <Shield size={22} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className={`text-sm font-black truncate transition-colors ${account === 'no-reply' ? 'text-white' : 'text-zinc-500'}`}>no-reply@vanakelgroup.com</p>
+                                <p className="text-[10px] opacity-60 font-black uppercase tracking-tighter mt-1">Official Property Management</p>
                             </div>
                         </button>
                     </div>
