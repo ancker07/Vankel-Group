@@ -26,6 +26,11 @@ class Mission extends Model
         return $this->belongsTo(Syndic::class);
     }
 
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
     public function email()
     {
         return $this->belongsTo(Email::class, 'source_message_id', 'message_id');

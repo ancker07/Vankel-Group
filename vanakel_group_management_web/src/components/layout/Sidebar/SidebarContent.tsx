@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare, Bell } from 'lucide-react';
+import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare, Bell, Users } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { Role } from '@/types';
 
@@ -100,6 +100,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             active={activeTab === 'contacts'}
                             onClick={() => handleTabClick('contacts')}
                         />
+                        <SidebarItem
+                            icon={<Users size={20} className="text-emerald-400" />}
+                            label={t.team_menu || 'Team'}
+                            active={activeTab === 'team'}
+                            onClick={() => handleTabClick('team')}
+                        />
                         <div id="header-settings">
                             <SidebarItem icon={<Settings size={20} />} label={t.settings} active={activeTab === 'settings'} onClick={() => handleTabClick('settings')} />
                         </div>
@@ -161,6 +167,14 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                                 active={activeTab === 'contacts'}
                                 onClick={() => handleTabClick('contacts')}
                             />
+                            {role === 'ADMIN' && (
+                                <SidebarItem
+                                    icon={<Users size={20} className="text-emerald-400" />}
+                                    label={t.team_menu || 'Team'}
+                                    active={activeTab === 'team'}
+                                    onClick={() => handleTabClick('team')}
+                                />
+                            )}
                         </>
                     )}
                 </>

@@ -258,5 +258,7 @@
   "required": "Requis",
   "enterSubject": "ex: Fuite d'eau",
   "selectBuildingHint": "Choisir un immeuble...",
-  "selectSyndicHint": "Choisir un syndic..."
+  "selectSyndicHint": "Choisir un syndic...",
+  "directions": "Itinéraire",
+  "openGps": "Ouvrir le GPS"
 }

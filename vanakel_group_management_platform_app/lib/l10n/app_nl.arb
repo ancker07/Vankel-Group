@@ -258,5 +258,7 @@
   "required": "Verplicht",
   "enterSubject": "bijv. Waterlek",
   "selectBuildingHint": "Selecteer gebouw...",
-  "selectSyndicHint": "Selecteer syndicus..."
+  "selectSyndicHint": "Selecteer syndicus...",
+  "directions": "Route",
+  "openGps": "GPS openen"
 }

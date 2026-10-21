@@ -29,6 +29,9 @@ class User extends Authenticatable
         'bio',
         'image_url',
         'fcm_token',
+        'latitude',
+        'longitude',
+        'location_updated_at',
     ];
 
     /**
@@ -51,6 +54,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'location_updated_at' => 'datetime',
         ];
     }
 }

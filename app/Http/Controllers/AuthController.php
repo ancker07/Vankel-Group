@@ -5,10 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Mail\OtpMail;
 use App\Services\NotificationService as PushNotificationService;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -27,120 +24,40 @@ class AuthController extends Controller
         $this->pushNotificationService = $pushNotificationService;
     }
 
-    public function signup(Request $request)
+    /**
+     * Create a user account. Only ADMIN / SUPERADMIN can call this (see routes);
+     * only a SUPERADMIN may create another ADMIN.
+     */
+    public function storeUser(Request $request)
     {
-        $validated = $request->validate([
+        $creator = $request->user();
+        $allowedRoles = $creator->role === 'SUPERADMIN' ? 'SYNDIC,PROFESSIONAL,ADMIN' : 'SYNDIC,PROFESSIONAL';
+
+        $request->validate([
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:ADMIN,SYNDIC',
+            'phone' => 'nullable|string|max:20',
+            'role' => 'required|string|in:' . $allowedRoles,
             'companyName' => 'nullable|string|max:255',
         ]);
 
-        if ($request->role === 'ADMIN' || $request->role === 'SUPERADMIN') {
-            $user = User::create([
-                'name' => $request->firstName . ' ' . $request->lastName,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => $request->role,
-                'phone' => $request->phone,
-                'company_name' => 'Vankel Group',
-                'status' => 'PENDING',
-            ]);
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Admin profile details saved. Awaiting super admin approval.',
-                'token' => $token,
-                'user' => $user
-            ]);
-        }
-
-        if ($request->role === 'SYNDIC') {
-            // Trigger OTP for Syndic
-            return $this->sendOtp($request);
-        }
+        $user = User::create([
+            'name' => $request->firstName . ' ' . $request->lastName,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'phone' => $request->phone,
+            'company_name' => $request->role === 'ADMIN' ? 'Vankel Group' : $request->companyName,
+            'status' => 'APPROVED',
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Profile details saved. Proceeding to verification.'
-        ]);
-    }
-
-    public function sendOtp(Request $request)
-    {
-        $request->validate(['email' => 'required|email']);
-        $email = $request->email;
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        // Store OTP in cache for 10 minutes
-        Cache::put('otp_' . $email, $otp, now()->addMinutes(10));
-
-        // Send Email
-        try {
-            Mail::to($email)->send(new OtpMail($otp));
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'OTP sent successfully.'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to send OTP: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function verifyOtp(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'otp' => 'required|string|size:6',
-            'firstName' => 'required|string',
-            'lastName' => 'required|string',
-            'password' => 'required|string',
-            'phone' => 'nullable|string',
-            'role' => 'required|string',
-            'companyName' => 'nullable|string',
-        ]);
-
-        $cachedOtp = Cache::get('otp_' . $request->email);
-
-        if ($cachedOtp && $cachedOtp === $request->otp) {
-            Cache::forget('otp_' . $request->email);
-
-            // Create the user now that OTP is verified
-            $user = User::create([
-                'name' => $request->firstName . ' ' . $request->lastName,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => $request->role,
-                'phone' => $request->phone,
-                'company_name' => $request->companyName,
-                'status' => $request->role === 'SYNDIC' ? 'APPROVED' : 'PENDING',
-            ]);
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'success' => true,
-                'message' => $request->role === 'SYNDIC' 
-                    ? 'Email verified and account created successfully.' 
-                    : 'Email verified and account created successfully. Awaiting admin approval.',
-                'token' => $token,
-                'user' => $user
-            ]);
-        }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid or expired OTP.'
-        ], 422);
+            'message' => 'User account created successfully.',
+            'user' => $user
+        ], 201);
     }
 
     public function login(Request $request)

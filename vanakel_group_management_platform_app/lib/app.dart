@@ -6,6 +6,10 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/location_service.dart';
+import 'core/api/dio_client.dart';
+import 'core/enums/user_role_enum.dart';
+import 'features/auth/presentation/providers/auth_state_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 
 class VanakelApp extends ConsumerStatefulWidget {
@@ -15,10 +19,32 @@ class VanakelApp extends ConsumerStatefulWidget {
   ConsumerState<VanakelApp> createState() => _VanakelAppState();
 }
 
-class _VanakelAppState extends ConsumerState<VanakelApp> {
+class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObserver {
+  late final LocationService _locationService = LocationService(ref.read(dioProvider));
+
+  /// Only staff (admins / technicians) share their location; syndics are clients.
+  bool _shouldTrack(AuthState auth) =>
+      auth.status == AuthStatus.authenticated && auth.user != null && auth.user!.role != UserRole.syndic;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Tracking keeps running in the background; restart it if the OS stopped it
+    if (state == AppLifecycleState.resumed && _shouldTrack(ref.read(authStateProvider))) {
+      _locationService.start();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    ref.listenManual<AuthState>(authStateProvider, (previous, next) {
+      if (_shouldTrack(next)) {
+        _locationService.start();
+      } else {
+        _locationService.stop();
+      }
+    }, fireImmediately: true);
     NotificationService().onNotificationUpdate = () {
       if (mounted) {
         ref.invalidate(notificationProvider);
@@ -30,6 +56,8 @@ class _VanakelAppState extends ConsumerState<VanakelApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _locationService.stop();
     NotificationService().onNotificationUpdate = null;
     super.dispose();
   }

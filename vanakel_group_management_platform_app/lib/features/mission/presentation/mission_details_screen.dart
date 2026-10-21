@@ -12,6 +12,8 @@ import '../../intervention/domain/document.dart';
 import '../domain/mission.dart';
 import './providers/mission_list_provider.dart';
 import '../../../core/utils/translation_helper.dart';
+import '../../../core/services/map_service.dart';
+import '../../../shared/widgets/mission_map.dart';
 
 class MissionDetailsScreen extends ConsumerWidget {
   final String missionId;
@@ -59,6 +61,10 @@ class MissionDetailsScreen extends ConsumerWidget {
               _buildStatusSection(context, ref, mission),
               const SizedBox(height: 24),
               _buildInfoCard(context, mission),
+              if (mission.address.isNotEmpty && mission.address != 'No Address') ...[
+                const SizedBox(height: 16),
+                _buildMapCard(context, mission),
+              ],
               const SizedBox(height: 24),
               _buildDescriptionCard(context, mission),
               // Syndic contact info
@@ -76,8 +82,8 @@ class MissionDetailsScreen extends ConsumerWidget {
                 _buildDocumentsSection(mission, context),
               ],
               const SizedBox(height: 32),
-              // Action Buttons for Admin
-              if (authState.user?.role == UserRole.admin &&
+              // Action Buttons: only the super admin can change a mission's status
+              if ((authState.user?.isSuperAdmin ?? false) &&
                   (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview)) ...[
                 const SizedBox(height: 16),
                 SizedBox(
@@ -301,6 +307,44 @@ class MissionDetailsScreen extends ConsumerWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// Small map of the mission location with a button that opens GPS navigation
+  /// from the user's current position to the mission.
+  Widget _buildMapCard(BuildContext context, Mission mission) {
+    final l10n = AppLocalizations.of(context)!;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.zinc950,
+          border: Border.all(color: AppTheme.zinc800),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            MissionMap(address: mission.address),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => MapService.openDirections(mission.address),
+                  icon: const Icon(Icons.navigation),
+                  label: Text(l10n.openGps),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandGreen,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

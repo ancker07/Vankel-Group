@@ -9,6 +9,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TeamController;
 
 Route::get('/maintenance-plans', [MaintenanceController::class, 'index']);
 Route::post('/maintenance-plans', [MaintenanceController::class, 'store']);
@@ -28,25 +29,33 @@ Route::get('/settings/ai', [SettingController::class, 'getAiSettings']);
 Route::post('/settings/ai', [SettingController::class, 'updateAiSettings']);
 Route::post('/ai/improve', [SettingController::class, 'improveNote']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/signup', [AuthController::class, 'signup']);
-Route::post('/send-otp', [AuthController::class, 'sendOtp']);
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-Route::get('/users/pending', [AuthController::class, 'getPendingUsers']);
-Route::get('/users/all', [AuthController::class, 'getAllUsers']);
-Route::get('/superadmin/stats', [AuthController::class, 'getSuperAdminStats']);
-Route::post('/superadmin/admins', [AuthController::class, 'storeAdmin']);
-Route::post('/superadmin/send-notification', [NotificationController::class, 'sendBroadcast']);
-Route::post('/superadmin/test-notification', [NotificationController::class, 'sendTestNotification']);
-Route::get('/superadmin/notifications/history', [NotificationController::class, 'getHistory']);
-Route::post('/users/{id}/approve', [AuthController::class, 'approveUser']);
-Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser']);
+// Public self-registration is disabled: accounts are created by an ADMIN or SUPERADMIN only.
+// Staff (mobile app) report their current position; syndics are not tracked
+Route::post('/location', [TeamController::class, 'updateLocation'])->middleware('role:ADMIN,SUPERADMIN,PROFESSIONAL');
+Route::middleware('role:ADMIN,SUPERADMIN')->group(function () {
+    Route::get('/team', [TeamController::class, 'index']);
+    Route::get('/interventions/{id}/assignments', [TeamController::class, 'interventionAssignments']);
+    Route::post('/users', [AuthController::class, 'storeUser']);
+    Route::get('/users/pending', [AuthController::class, 'getPendingUsers']);
+    Route::get('/users/all', [AuthController::class, 'getAllUsers']);
+    Route::post('/users/{id}/approve', [AuthController::class, 'approveUser']);
+    Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser']);
+});
+Route::middleware('role:SUPERADMIN')->group(function () {
+    Route::get('/superadmin/stats', [AuthController::class, 'getSuperAdminStats']);
+    Route::post('/superadmin/admins', [AuthController::class, 'storeAdmin']);
+    Route::post('/superadmin/send-notification', [NotificationController::class, 'sendBroadcast']);
+    Route::post('/superadmin/test-notification', [NotificationController::class, 'sendTestNotification']);
+    Route::get('/superadmin/notifications/history', [NotificationController::class, 'getHistory']);
+    // Only the super admin can change a mission's status
+    Route::post('/missions/{id}/approve', [InterventionController::class, 'approveMission']);
+    Route::post('/missions/{id}/reject', [InterventionController::class, 'rejectMission']);
+});
 Route::post('/interventions', [InterventionController::class, 'store']);
 Route::get('/buildings', [InterventionController::class, 'getBuildings']);
 Route::get('/syndics', [InterventionController::class, 'getSyndics']);
 Route::get('/missions', [InterventionController::class, 'getMissions']);
 Route::get('/missions/{id}', [InterventionController::class, 'getMissionById']);
-Route::post('/missions/{id}/approve', [InterventionController::class, 'approveMission']);
-Route::post('/missions/{id}/reject', [InterventionController::class, 'rejectMission']);
 Route::put('/missions/{id}', [InterventionController::class, 'updateMission']);
 Route::get('/interventions', [InterventionController::class, 'getInterventions']);
 Route::get('/interventions/{id}', [InterventionController::class, 'getInterventionById']);

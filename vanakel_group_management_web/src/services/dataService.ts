@@ -22,8 +22,16 @@ export const dataService = {
         const response = await apiClient.post('/interventions', formData);
         return response.data;
     },
-    approveMission: async (id: string, scheduledDate?: string) => {
-        const response = await apiClient.post(`/missions/${id}/approve`, { scheduled_date: scheduledDate });
+    approveMission: async (id: string, scheduledDate?: string, assignedUserId?: string) => {
+        const response = await apiClient.post(`/missions/${id}/approve`, { scheduled_date: scheduledDate, assigned_user_id: assignedUserId || null });
+        return response.data;
+    },
+    getTeam: async () => {
+        const response = await apiClient.get('/team');
+        return response.data;
+    },
+    getInterventionAssignments: async (id: string) => {
+        const response = await apiClient.get(`/interventions/${id}/assignments`);
         return response.data;
     },
     rejectMission: async (id: string) => {

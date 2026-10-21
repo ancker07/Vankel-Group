@@ -93,6 +93,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const currentSyndic = syndics.find(s => s.id === internalSyndicId) || syndic;
   const currentProfessional = professionals.find(p => p.id === internalProId) || professional;
 
+  // Who was assigned to this intervention and when (admins only)
+  const [assignments, setAssignments] = useState<any[]>([]);
+  useEffect(() => {
+    if (role !== 'ADMIN' && role !== 'SUPERADMIN') return;
+    dataService.getInterventionAssignments(intervention.id)
+      .then(setAssignments)
+      .catch(() => setAssignments([]));
+  }, [intervention.id, intervention.proId, role]);
+
   const [photos, setPhotos] = useState<{ url: string, file?: File }[]>(
     (intervention.photos || []).map(url => ({ url }))
   );
@@ -500,6 +509,18 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.pro}</p>
                 <p className="font-bold text-sm md:text-lg">{currentProfessional ? currentProfessional.companyName : t.unassigned}</p>
                 <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{currentProfessional ? currentProfessional.contactPerson : '-'}</p>
+                {assignments.length > 0 && (
+                  <div className="mt-3 space-y-1">
+                    <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t.assignment_history || 'Assignment history'}</p>
+                    {assignments.map(a => (
+                      <p key={a.id} className="text-[10px] text-zinc-500">
+                        <span className="font-bold text-zinc-300">{a.user?.name || '-'}</span>{' '}
+                        {new Date(a.assigned_at).toLocaleDateString()} → {a.unassigned_at ? new Date(a.unassigned_at).toLocaleDateString() : '…'}
+                        {a.assigned_by && <span className="text-zinc-600"> ({a.assigned_by.name})</span>}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.scheduled_maintenance}</p>

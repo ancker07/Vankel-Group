@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Search, Filter, Calendar, MessageSquare } from 'lucide-react';
+import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Search, Filter, Calendar, MessageSquare, Navigation } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -131,12 +131,13 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
+                                            // Opens Google Maps navigation from the user's current position to the mission
+                                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${b?.address}, ${b?.city}`)}&travelmode=driving`, '_blank');
                                         }}
-                                        className="absolute bottom-4 right-4 p-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all z-20 shadow-lg backdrop-blur-md"
-                                        title={t.viewOnMaps}
+                                        className="absolute bottom-4 right-4 px-2.5 py-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all z-20 shadow-lg backdrop-blur-md flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest"
+                                        title={t.directions}
                                     >
-                                        <MapPin size={14} />
+                                        <Navigation size={14} /> {t.directions}
                                     </button>
                                 )}
                             </div>
@@ -213,7 +214,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 </div>
 
                                 {/* Action Buttons - Moved to bottom and stacked/row based on width */}
-                                {role !== 'SYNDIC' && m.status === 'PENDING' && (
+                                {role === 'SUPERADMIN' && m.status === 'PENDING' && (
                                     <div className="flex gap-2 p-4 border-t border-zinc-900/50 bg-zinc-950/50">
                                         <button
                                             onClick={(e) => {

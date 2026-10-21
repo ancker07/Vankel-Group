@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/mission.dart';
 import 'providers/mission_list_provider.dart';
 import 'providers/mission_filter_provider.dart';
 import '../../../core/utils/translation_helper.dart';
+import '../../../core/services/map_service.dart';
+import '../../../shared/widgets/mission_map.dart';
+import '../../auth/presentation/providers/auth_state_provider.dart';
 
 class MissionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -652,33 +654,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       border: Border(bottom: BorderSide(color: AppTheme.zinc800.withOpacity(0.5))),
                     ),
                     child: ClipRRect(
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: Icon(
-                              Icons.map_outlined,
-                              size: 40,
-                              color: AppTheme.zinc800,
-                            ),
-                          ),
-                          // Overlay Map Image (Placeholder for now, but stylized)
-                          Opacity(
-                            opacity: 0.15,
-                            child: Image.network(
-                              "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop",
-                              width: double.infinity,
-                              height: 120,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          // Grid Overlay
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: MapGridPainter(),
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: MissionMap(address: widget.mission.address, height: 120),
                     ),
                   ),
                   // Gradient Overlay
@@ -710,7 +686,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppTheme.brandGreen.withOpacity(0.3)),
                         ),
-                        child: const Icon(Icons.location_on, size: 16, color: AppTheme.brandGreen),
+                        child: const Icon(Icons.navigation, size: 16, color: AppTheme.brandGreen),
                       ),
                     ),
                   ),
@@ -881,7 +857,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                         ),
                         Row(
                           children: [
-                            if (widget.isAdmin && (widget.mission.status == MissionStatus.pending || widget.mission.status == MissionStatus.needsReview)) ...[
+                            if ((ref.watch(authStateProvider).user?.isSuperAdmin ?? false) && (widget.mission.status == MissionStatus.pending || widget.mission.status == MissionStatus.needsReview)) ...[
                               _buildActionButton(
                                 context,
                                 ref,
@@ -950,21 +926,8 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1);
   }
 
-  Future<void> _openMap(String address) async {
-    final encodedAddress = Uri.encodeComponent(address);
-    final googleMapsUrl = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedAddress");
-    final appleMapsUrl = Uri.parse("https://maps.apple.com/?q=$encodedAddress");
-
-    try {
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-      } else if (await canLaunchUrl(appleMapsUrl)) {
-        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      debugPrint('Error opening maps: $e');
-    }
-  }
+  // GPS navigation from the user's position to the mission
+  Future<void> _openMap(String address) => MapService.openDirections(address);
 
   Widget _buildActionButton(BuildContext context, WidgetRef ref, IconData icon, Color color, VoidCallback onPressed) {
     return InkWell(
@@ -1312,25 +1275,4 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
-}
-
-class MapGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppTheme.zinc800.withOpacity(0.2)
-      ..strokeWidth = 0.5;
-
-    const double step = 20;
-
-    for (double i = 0; i < size.width; i += step) {
-      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
-    }
-    for (double i = 0; i < size.height; i += step) {
-      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

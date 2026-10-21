@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Mail, MapPin, ShieldCheck, User, Phone, AtSign, FileText, Calendar, Clock, AlertCircle, Edit2, Save, Undo2 } from 'lucide-react';
+import { X, Mail, MapPin, ShieldCheck, User, Phone, AtSign, FileText, Calendar, Clock, AlertCircle, Edit2, Save, Undo2, Navigation } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document, Urgency, Sector } from '@/types';
 import { TRANSLATIONS, URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -48,7 +48,8 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
     });
 
     const isPending = mission.status === 'PENDING';
-    const showAdminActions = isPending && role !== 'SYNDIC';
+    // Only the super admin can change a mission's status
+    const showAdminActions = isPending && role === 'SUPERADMIN';
     const canEdit = role === 'SUPERADMIN' || role === 'ADMIN';
 
     const urgencyInfo = editData.urgency ? (URGENCY.find(u => u.id === editData.urgency) || URGENCY[0]) : null;
@@ -289,12 +290,13 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                                 {currentBuilding?.address && (
                                                     <button
                                                         onClick={() => {
-                                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${currentBuilding?.address}, ${currentBuilding?.city}`)}`, '_blank');
+                                                            // Opens Google Maps navigation from the user's current position to the mission
+                                                            window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${currentBuilding?.address}, ${currentBuilding?.city}`)}&travelmode=driving`, '_blank');
                                                         }}
-                                                        className="p-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all shrink-0 shadow-lg backdrop-blur-md"
-                                                        title={t.viewOnMaps}
+                                                        className="px-2.5 py-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all shrink-0 shadow-lg backdrop-blur-md flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest"
+                                                        title={t.directions}
                                                     >
-                                                        <MapPin size={14} />
+                                                        <Navigation size={14} /> {t.directions}
                                                     </button>
                                                 )}
                                             </div>

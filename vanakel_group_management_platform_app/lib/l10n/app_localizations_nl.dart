@@ -784,4 +784,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get selectSyndicHint => 'Selecteer syndicus...';
+
+  @override
+  String get directions => 'Route';
+
+  @override
+  String get openGps => 'GPS openen';
 }

@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Mission;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -32,35 +35,74 @@ class NotificationService
      * @param array $data Additional data
      * @return bool
      */
-    public function sendNotification(string $token, string $title, string $body, array $data = []): bool
+    public function sendNotification(string $token, string $title, string $body, array $data = [], bool $important = false): bool
     {
-        return $this->sendMessage(['token' => $token], $title, $body, $data);
+        return $this->sendMessage(['token' => $token], $title, $body, $data, $important);
     }
 
     /**
      * Send a notification to a specific topic (e.g., 'all_users').
      */
-    public function sendToTopic(string $topic, string $title, string $body, array $data = []): bool
+    public function sendToTopic(string $topic, string $title, string $body, array $data = [], bool $important = false): bool
     {
-        return $this->sendMessage(['topic' => $topic], $title, $body, $data);
+        return $this->sendMessage(['topic' => $topic], $title, $body, $data, $important);
     }
 
     /**
      * Send a notification to multiple tokens.
      */
-    public function sendToMultiple(array $tokens, string $title, string $body, array $data = []): array
+    public function sendToMultiple(array $tokens, string $title, string $body, array $data = [], bool $important = false): array
     {
         $results = [];
         foreach ($tokens as $token) {
-            $results[$token] = $this->sendNotification($token, $title, $body, $data);
+            $results[$token] = $this->sendNotification($token, $title, $body, $data, $important);
         }
         return $results;
     }
 
     /**
-     * Shared logic for sending messages.
+     * Push a "new mission" alert to every ADMIN / SUPERADMIN phone and store it in-app.
+     * HIGH / URGENT missions are sent as important notifications.
      */
-    protected function sendMessage(array $target, string $title, string $body, array $data = []): bool
+    public function notifyNewMission(Mission $mission): void
+    {
+        $important = in_array(strtoupper((string) $mission->urgency), ['HIGH', 'URGENT'], true);
+        $title = ($important ? '🚨 Urgent mission: ' : 'New Mission: ') . $mission->title;
+        $body = "Urgency: {$mission->urgency}. " . ($mission->source_type === 'EMAIL' ? 'Received by email.' : 'Requested by a Syndic.');
+        $data = ['type' => 'mission', 'mission_id' => $mission->id, 'important' => $important ? '1' : '0'];
+
+        $translated = (new AiService())->translateToFill($title, $body);
+
+        foreach (User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->get() as $admin) {
+            if ($admin->fcm_token) {
+                try {
+                    $this->sendNotification($admin->fcm_token, $title, $body, $data, $important);
+                } catch (\Exception $e) {
+                    Log::error('FCM: new mission push failed for user ' . $admin->id . ': ' . $e->getMessage());
+                }
+            }
+
+            Notification::create([
+                'user_id' => $admin->id,
+                'title' => $title,
+                'title_en' => $translated['title']['en'] ?? null,
+                'title_fr' => $translated['title']['fr'] ?? null,
+                'title_nl' => $translated['title']['nl'] ?? null,
+                'body' => $body,
+                'body_en' => $translated['description']['en'] ?? null,
+                'body_fr' => $translated['description']['fr'] ?? null,
+                'body_nl' => $translated['description']['nl'] ?? null,
+                'type' => 'mission',
+                'data' => $data,
+            ]);
+        }
+    }
+
+    /**
+     * Shared logic for sending messages.
+     * Important messages use max priority on Android and "time-sensitive" on iOS.
+     */
+    protected function sendMessage(array $target, string $title, string $body, array $data = [], bool $important = false): bool
     {
         $accessToken = $this->getAccessToken();
         if (!$accessToken) {
@@ -92,6 +134,14 @@ class NotificationService
                 ],
             ],
         ];
+
+        if ($important) {
+            $message['android']['notification']['notification_priority'] = 'PRIORITY_MAX';
+            $message['android']['notification']['default_vibrate_timings'] = true;
+            $message['apns']['headers'] = ['apns-priority' => '10'];
+            $message['apns']['payload']['aps']['interruption-level'] = 'time-sensitive';
+            $data['important'] = '1';
+        }
 
         if (!empty($data)) {
             $message['data'] = array_map('strval', $data);

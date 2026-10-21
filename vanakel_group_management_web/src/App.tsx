@@ -21,11 +21,11 @@ import EmailDetailPage from '@/features/dashboard/pages/EmailDetailPage';
 import SuperAdminDashboard from '@/features/dashboard/pages/SuperAdminDashboard';
 import SuperAdminLogin from '@/features/auth/pages/SuperAdminLogin';
 import LoginPage from '@/features/auth/pages/LoginPage';
-import SignupForm from '@/features/auth/components/SignupForm';
 import ProfilePage from '@/features/auth/pages/ProfilePage';
 import AiSettingsPage from '@/features/dashboard/pages/AiSettingsPage';
 import ContactsPage from '@/features/dashboard/pages/ContactsPage';
 import PushNotificationsPage from '@/features/dashboard/pages/PushNotificationsPage';
+import TeamPage from '@/features/team/pages/TeamPage';
 
 import BuildingProfile from '@/features/buildings/pages/BuildingProfile';
 import InterventionSlip from '@/features/interventions/components/InterventionSlip';
@@ -150,6 +150,7 @@ const App: React.FC = () => {
   const [profileInitialTab, setProfileInitialTab] = useState<'data' | 'history' | 'notes' | 'plan' | 'docs' | 'entretien'>('data');
   const [missionActionModal, setMissionActionModal] = useState<{ type: 'APPROVE' | 'REJECT'; mission: Mission } | null>(null);
   const [missionDate, setMissionDate] = useState('');
+  const [missionAssignee, setMissionAssignee] = useState('');
   const [listModal, setListModal] = useState<{ isOpen: boolean; title: string; items: (Intervention | Mission)[] }>({ isOpen: false, title: '', items: [] });
   const [isTourActive, setIsTourActive] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
@@ -281,7 +282,7 @@ const App: React.FC = () => {
               timestamp: d.created_at
             };
           }),
-          proId: String(i.professional_id || ''),
+          proId: String(i.pro_id || i.professional_id || ''),
           urgency: i.urgency as Urgency,
           onSiteContactName: i.on_site_contact_name,
           onSiteContactPhone: i.on_site_contact_phone,
@@ -872,9 +873,9 @@ const App: React.FC = () => {
     }
   };
 
-  const handleApproveMission = async (mission: Mission, scheduledDate?: string) => {
+  const handleApproveMission = async (mission: Mission, scheduledDate?: string, assignedUserId?: string) => {
     try {
-      const response = await dataService.approveMission(mission.id, scheduledDate);
+      const response = await dataService.approveMission(mission.id, scheduledDate, assignedUserId);
       const serverIntervention = response.intervention;
 
       const newInt: Intervention = {
@@ -897,7 +898,7 @@ const App: React.FC = () => {
           url: `${STORAGE_BASE_URL}/${d.file_path}`,
           timestamp: d.created_at
         })),
-        proId: '',
+        proId: String(serverIntervention.pro_id || ''),
         urgency: serverIntervention.urgency as Urgency,
         onSiteContactName: serverIntervention.on_site_contact_name,
         onSiteContactPhone: serverIntervention.on_site_contact_phone,
@@ -1030,21 +1031,12 @@ const App: React.FC = () => {
                 navigate('/pending-approval');
               }
             }}
-            onSignup={() => {
-              const r = location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN';
-              navigate('/signup', { state: { role: r } });
-            }}
             onBack={() => navigate('/')}
           />
         } />
 
-        <Route path="/signup" element={
-          <SignupForm
-            onSubmit={handleSignupSubmit}
-            onBack={() => navigate('/')}
-            lang={lang}
-          />
-        } />
+        {/* Self-signup is disabled: accounts are created by an admin / super admin */}
+        <Route path="/signup" element={<Navigate to="/" replace />} />
 
         <Route path="/superadmin/login" element={
           <SuperAdminLogin
@@ -1258,6 +1250,7 @@ const App: React.FC = () => {
                       <Route path="ai-settings" element={role === 'SUPERADMIN' ? <AiSettingsPage lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
                       <Route path="push-notifications" element={role === 'SUPERADMIN' ? <PushNotificationsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="contacts" element={<ContactsPage lang={lang} />} />
+                      <Route path="team" element={role === 'SUPERADMIN' || role === 'ADMIN' ? <TeamPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                     </Routes>
                   </main>
                 </div>
@@ -1278,7 +1271,7 @@ const App: React.FC = () => {
                   <InterventionSlip
                     intervention={selectedIntervention}
                     building={buildings.find(b => b.id === selectedIntervention.buildingId)!}
-                    professional={professionals.find(p => p.id === selectedIntervention.professionalId)}
+                    professional={professionals.find(p => p.id === selectedIntervention.proId)}
                     syndic={selectedIntSyndic}
                     syndics={syndics}
                     professionals={professionals}
@@ -1319,7 +1312,7 @@ const App: React.FC = () => {
 
 
                 {missionActionModal && (
-                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} onCancel={() => setMissionActionModal(null)} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); }} t={t} />
+                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), role: u.role }))} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
                 )}
                 {deletePlanId && (
                   <ConfirmationModal is onClose={() => setDeletePlanId(null)} onConfirm={handleDeleteMaintenance} title={t.confirmDeleteTitle || 'Confirm Deletion'} message={t.confirmDeleteMaintMsg || 'Delete this maintenance plan?'} confirmLabel={t.btnDelete || 'Delete'} cancelLabel={t.btnCancel || 'Cancel'} />

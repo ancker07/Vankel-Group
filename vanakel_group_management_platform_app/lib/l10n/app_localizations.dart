@@ -1599,6 +1599,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select syndic...'**
   String get selectSyndicHint;
+
+  /// No description provided for @directions.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get directions;
+
+  /// No description provided for @openGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open GPS'**
+  String get openGps;
 }
 
 class _AppLocalizationsDelegate

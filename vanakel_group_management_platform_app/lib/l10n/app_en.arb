@@ -261,5 +261,7 @@
   "required": "Required",
   "enterSubject": "e.g., Water Leak",
   "selectBuildingHint": "Select building...",
-  "selectSyndicHint": "Select syndic..."
+  "selectSyndicHint": "Select syndic...",
+  "directions": "Directions",
+  "openGps": "Open GPS"
 }

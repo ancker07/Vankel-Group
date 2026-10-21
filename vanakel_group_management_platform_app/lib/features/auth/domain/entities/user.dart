@@ -12,6 +12,10 @@ class User {
   final int? propertyCount;
   final bool isApproved;
 
+  /// SUPERADMIN is mapped to [UserRole.admin]; this keeps the distinction
+  /// (only the super admin can approve / reject missions).
+  final bool isSuperAdmin;
+
   const User({
     required this.id,
     required this.name,
@@ -23,6 +27,7 @@ class User {
     this.companyName,
     this.propertyCount,
     this.isApproved = false,
+    this.isSuperAdmin = false,
   });
 
   User copyWith({
@@ -36,6 +41,7 @@ class User {
     String? companyName,
     int? propertyCount,
     bool? isApproved,
+    bool? isSuperAdmin,
   }) {
     return User(
       id: id ?? this.id,
@@ -48,6 +54,7 @@ class User {
       companyName: companyName ?? this.companyName,
       propertyCount: propertyCount ?? this.propertyCount,
       isApproved: isApproved ?? this.isApproved,
+      isSuperAdmin: isSuperAdmin ?? this.isSuperAdmin,
     );
   }
 }

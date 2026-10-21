@@ -111,7 +111,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                                 ) : (
 
                                     <>
-                                        <button onClick={() => setRoleSelectionMode('SIGNUP')} className="text-sm font-bold text-white hover:text-brand-green transition-colors">
+                                        <button onClick={() => setRoleSelectionMode('LOGIN')} className="text-sm font-bold text-white hover:text-brand-green transition-colors">
                                             {t.get_started || 'Get Started'}
                                         </button>
                                         <button onClick={() => setRoleSelectionMode('LOGIN')} className="bg-white text-black px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all">
@@ -157,7 +157,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                                 </button>
                             ) : (
                                 <>
-                                    <button onClick={() => setRoleSelectionMode('SIGNUP')} className="w-full text-left text-sm font-bold text-white hover:text-brand-green">{t.get_started || 'Get Started'}</button>
+                                    <button onClick={() => setRoleSelectionMode('LOGIN')} className="w-full text-left text-sm font-bold text-white hover:text-brand-green">{t.get_started || 'Get Started'}</button>
                                     <button onClick={() => setRoleSelectionMode('LOGIN')} className="w-full bg-white text-black px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-center">{t.login || 'Login'}</button>
                                 </>
                             )}
@@ -196,7 +196,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                             </button>
                         ) : (
                             <button
-                                onClick={() => setRoleSelectionMode('SIGNUP')}
+                                onClick={() => setRoleSelectionMode('LOGIN')}
                                 className="group relative px-8 py-4 bg-brand-green text-brand-black rounded-full font-black text-sm uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-[0_0_40px_-10px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_-15px_rgba(34,197,94,0.5)] flex items-center gap-2"
                             >
                                 {t.get_started} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

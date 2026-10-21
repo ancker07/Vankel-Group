@@ -9,6 +9,9 @@ interface MissionActionModalProps {
     mission: Mission;
     missionDate: string;
     setMissionDate: (date: string) => void;
+    assignableUsers?: { id: string; name: string; role: string }[];
+    assignedUserId?: string;
+    setAssignedUserId?: (id: string) => void;
     onCancel: () => void;
     onConfirm: () => void;
     t: any;
@@ -19,6 +22,9 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
     mission,
     missionDate,
     setMissionDate,
+    assignableUsers = [],
+    assignedUserId = '',
+    setAssignedUserId,
     onCancel,
     onConfirm,
     t
@@ -71,6 +77,21 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                             onClick={(e) => (e.target as any).showPicker?.()}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-brand-green outline-none cursor-pointer transition-all"
                         />
+                    </div>
+                )}
+                {type === 'APPROVE' && setAssignedUserId && (
+                    <div className="mb-6 text-left space-y-1.5">
+                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t.assign_to_user || 'Link to user (optional)'}</label>
+                        <select
+                            value={assignedUserId}
+                            onChange={e => setAssignedUserId(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-brand-green outline-none cursor-pointer transition-all"
+                        >
+                            <option value="">{t.assign_none || '— No user —'}</option>
+                            {assignableUsers.map(u => (
+                                <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                            ))}
+                        </select>
                     </div>
                 )}
                 <div className="flex gap-3">

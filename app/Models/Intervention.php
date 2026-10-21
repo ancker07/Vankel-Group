@@ -26,6 +26,11 @@ class Intervention extends Model
         return $this->belongsTo(User::class, 'pro_id');
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class)->orderByDesc('assigned_at');
+    }
+
     public function syndic()
     {
         return $this->belongsTo(Syndic::class);

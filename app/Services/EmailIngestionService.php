@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\Log;
 class EmailIngestionService
 {
     protected $aiService;
+    protected $notificationService;
 
-    public function __construct(AiService $aiService)
+    public function __construct(AiService $aiService, NotificationService $notificationService)
     {
         $this->aiService = $aiService;
+        $this->notificationService = $notificationService;
     }
 
     public function ingest(Email $email)
@@ -188,7 +190,7 @@ class EmailIngestionService
                 ];
             }
 
-            return DB::transaction(function () use ($email, $aiData, $isThread, $conversation) {
+            $result = DB::transaction(function () use ($email, $aiData, $isThread, $conversation) {
                 $missionData = $aiData['mission'] ?? [];
                 $rawAddress = $missionData['address']['raw'] ?? null;
                 
@@ -300,6 +302,17 @@ class EmailIngestionService
                     'extracted_data' => $aiData
                 ];
             });
+
+            // Push the new mission to admins once it is committed (outside the transaction)
+            if (!empty($result['mission_id'])) {
+                try {
+                    $this->notificationService->notifyNewMission(Mission::find($result['mission_id']));
+                } catch (\Exception $e) {
+                    Log::error("New mission notification failed: " . $e->getMessage());
+                }
+            }
+
+            return $result;
 
         } catch (\Exception $e) {
             Log::error("Email Ingestion Error: " . $e->getMessage());

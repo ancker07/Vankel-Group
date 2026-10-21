@@ -92,11 +92,16 @@ class NotificationController extends Controller
             'user_ids' => 'required_if:target,specific|array',
             'user_ids.*' => 'exists:users,id',
             'data' => 'nullable|array',
+            'important' => 'nullable|boolean',
         ]);
 
         $title = $request->title;
         $body = $request->body;
         $data = $request->data ?? [];
+        $important = $request->boolean('important');
+        if ($important) {
+            $data['important'] = '1';
+        }
 
         $aiService = new \App\Services\AiService();
         $translated = $aiService->translateToFill($title, $body);
@@ -114,8 +119,8 @@ class NotificationController extends Controller
                 return response()->json(['message' => 'No users with registered devices found.'], 404);
             }
 
-            $results = $this->notificationService->sendToMultiple($tokens, $title, $body, $data);
-            
+            $results = $this->notificationService->sendToMultiple($tokens, $title, $body, $data, $important);
+
             $successCount = count(array_filter($results));
             $totalCount = count($tokens);
 
@@ -167,7 +172,7 @@ class NotificationController extends Controller
                 return response()->json(['message' => 'Selected users have no registered devices.'], 404);
             }
 
-            $results = $this->notificationService->sendToMultiple($tokens, $title, $body, $data);
+            $results = $this->notificationService->sendToMultiple($tokens, $title, $body, $data, $important);
             $successCount = count(array_filter($results));
 
             NotificationLog::create([
@@ -229,7 +234,9 @@ class NotificationController extends Controller
         $result = $this->notificationService->sendNotification(
             $request->token,
             $request->title,
-            $request->body
+            $request->body,
+            [],
+            $request->boolean('important')
         );
 
         return response()->json([

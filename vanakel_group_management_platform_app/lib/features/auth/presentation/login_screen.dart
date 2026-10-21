@@ -257,25 +257,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ).animate().fadeIn(delay: 400.ms).scale(),
               ],
 
-              const SizedBox(height: 32),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${l10n.dontHaveAccount} ',
-                    style: const TextStyle(color: AppTheme.zinc500),
-                  ),
-                  TextButton(
-                    onPressed: () => context.push(
-                      _selectedRole != null
-                          ? '/register?role=$_selectedRole'
-                          : '/register',
-                    ),
-                    child: Text(l10n.createAccount),
-                  ),
-                ],
-              ).animate().fadeIn(delay: 600.ms),
             ],
           ),
         ),

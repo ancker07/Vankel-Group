@@ -7,7 +7,6 @@ import '../enums/user_role_enum.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
-import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/otp_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/dashboard/admin_dashboard/admin_dashboard.dart';
@@ -150,13 +149,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
-      ),
-      GoRoute(
-        path: '/register',
-        builder: (context, state) {
-          final role = state.uri.queryParameters['role'];
-          return RegisterScreen(initialRole: role);
-        },
       ),
       GoRoute(
         path: '/forgot-password',

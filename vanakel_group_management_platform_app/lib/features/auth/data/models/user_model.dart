@@ -13,6 +13,7 @@ class UserModel extends User {
     super.companyName,
     super.propertyCount,
     super.isApproved = false,
+    super.isSuperAdmin = false,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +32,8 @@ class UserModel extends User {
           json['is_approved'] == true ||
           json['status'] == 'APPROVED' ||
           json['status'] == 'ACTIVE',
+      isSuperAdmin: (json['role'] as String?)?.toUpperCase() == 'SUPERADMIN' ||
+          json['is_super_admin'] == true,
     );
   }
 
@@ -46,6 +49,7 @@ class UserModel extends User {
       'company_name': companyName,
       'property_count': propertyCount,
       'is_approved': isApproved ? 1 : 0,
+      'is_super_admin': isSuperAdmin,
     };
   }
 
@@ -81,6 +85,7 @@ class UserModel extends User {
       companyName: companyName,
       propertyCount: propertyCount,
       isApproved: isApproved,
+      isSuperAdmin: isSuperAdmin,
     );
   }
 }

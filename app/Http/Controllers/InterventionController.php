@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assignment;
 use App\Models\Building;
 use App\Models\Intervention;
 use App\Models\Mission;
@@ -80,37 +81,8 @@ class InterventionController extends Controller
                 'on_site_contact_email' => $validated['onSiteContactEmail'] ?? null,
             ]);
 
-            // Notify Admins about new Mission
-            $title = "New Mission: {$entity->title}";
-            $body = "Urgency: {$entity->urgency}. Requested by a Syndic.";
-            
-            $aiService = new \App\Services\AiService();
-            $translated = $aiService->translateToFill($title, $body);
-
-            $admins = User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->get();
-            foreach ($admins as $admin) {
-                if ($admin->fcm_token) {
-                    $this->pushNotificationService->sendNotification(
-                        $admin->fcm_token,
-                        $title,
-                        $body
-                    );
-                }
-
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'title' => $title,
-                    'title_en' => $translated['title']['en'] ?? null,
-                    'title_fr' => $translated['title']['fr'] ?? null,
-                    'title_nl' => $translated['title']['nl'] ?? null,
-                    'body' => $body,
-                    'body_en' => $translated['description']['en'] ?? null,
-                    'body_fr' => $translated['description']['fr'] ?? null,
-                    'body_nl' => $translated['description']['nl'] ?? null,
-                    'type' => 'mission',
-                    'data' => ['mission_id' => $entity->id]
-                ]);
-            }
+            // Notify Admins about new Mission (push to phone + in-app)
+            $this->pushNotificationService->notifyNewMission($entity);
         } else {
             $entity = Intervention::create([
                 'building_id' => $building->id,
@@ -247,6 +219,10 @@ class InterventionController extends Controller
 
     public function approveMission(Request $request, $id)
     {
+        $request->validate([
+            'assigned_user_id' => ['nullable', \Illuminate\Validation\Rule::exists('users', 'id')->whereIn('role', ['PROFESSIONAL', 'ADMIN', 'SUPERADMIN'])],
+        ]);
+
         try {
             return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id) {
                 $mission = Mission::with('documents')->findOrFail($id);
@@ -289,12 +265,15 @@ class InterventionController extends Controller
                     ], 422);
                 }
 
-                $mission->update(['status' => 'APPROVED']);
+                $assignedUserId = $request->assigned_user_id ? (int) $request->assigned_user_id : null;
+
+                $mission->update(['status' => 'APPROVED', 'assigned_user_id' => $assignedUserId]);
 
                 // 3. Create an Intervention based on the mission
                 $intervention = Intervention::create([
                     'building_id' => $buildingId,
                     'syndic_id' => $mission->syndic_id,
+                    'pro_id' => $assignedUserId,
                     'title' => $mission->title ?? 'Approved Mission',
                     'title_en' => $mission->title_en,
                     'title_fr' => $mission->title_fr,
@@ -323,12 +302,16 @@ class InterventionController extends Controller
                     ]);
                 }
 
-                // 5. Notify Syndic about Approval
+                // 5. Link the mission to the chosen user and keep a history of who worked on it
+                if ($assignedUserId) {
+                    Assignment::record($intervention->id, $mission->id, $assignedUserId, $request->user()?->id);
+                    $this->notifyAssignedUser(User::find($assignedUserId), $intervention);
+                }
+
+                // 6. Notify Syndic about Approval
                 if ($mission->syndic_id) {
-                    // Attempt to find the user linked to this syndic company or using the ID directly
-                    $syndic = User::where('id', $mission->syndic_id)
-                                 ->orWhere('role', 'SYNDIC') // Fallback if needed, but not ideal
-                                 ->first();
+                    // Only notify the syndic of this mission (no fallback: it would notify a random syndic)
+                    $syndic = User::where('id', $mission->syndic_id)->where('role', 'SYNDIC')->first();
                     
                     if ($syndic) {
                         $title = "Mission Approved!";
@@ -505,6 +488,7 @@ class InterventionController extends Controller
         ]);
 
         $oldStatus = $intervention->status;
+        $oldProId = $intervention->pro_id;
 
         if (array_key_exists('syndic_id', $validated) && ($validated['syndic_id'] === 'null' || $validated['syndic_id'] === '')) {
             $validated['syndic_id'] = null;
@@ -552,24 +536,13 @@ class InterventionController extends Controller
             }
         }
 
-        // Notify Professional about Assignment
-        if (isset($updateData['pro_id']) && $updateData['pro_id'] != $intervention->getOriginal('pro_id')) {
-            $professional = User::find($updateData['pro_id']);
-            if ($professional) {
-                $title = "New Assignment";
-                $body = "You have been assigned to a new intervention: '{$intervention->title}'.";
+        // Record the assignment history and notify the newly assigned user
+        if (array_key_exists('pro_id', $updateData) && $updateData['pro_id'] != $oldProId) {
+            $missionId = Assignment::where('intervention_id', $intervention->id)->whereNotNull('mission_id')->value('mission_id');
+            Assignment::record($intervention->id, $missionId, $updateData['pro_id'] ? (int) $updateData['pro_id'] : null, auth('sanctum')->id());
 
-                if ($professional->fcm_token) {
-                    $this->pushNotificationService->sendNotification($professional->fcm_token, $title, $body);
-                }
-
-                Notification::createWithTranslation([
-                    'user_id' => $professional->id,
-                    'title' => $title,
-                    'body' => $body,
-                    'type' => 'intervention',
-                    'data' => ['intervention_id' => $intervention->id]
-                ]);
+            if ($updateData['pro_id']) {
+                $this->notifyAssignedUser(User::find($updateData['pro_id']), $intervention);
             }
         }
 
@@ -600,6 +573,30 @@ class InterventionController extends Controller
         return response()->json([
             'message' => 'Intervention updated successfully',
             'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic'])
+        ]);
+    }
+
+    protected function notifyAssignedUser(?User $user, Intervention $intervention): void
+    {
+        if (!$user) {
+            return;
+        }
+
+        $title = "New Assignment";
+        $body = "You have been assigned to a new intervention: '{$intervention->title}'.";
+
+        if ($user->fcm_token) {
+            try {
+                $this->pushNotificationService->sendNotification($user->fcm_token, $title, $body, ['type' => 'intervention', 'intervention_id' => $intervention->id]);
+            } catch (\Exception $e) {}
+        }
+
+        Notification::createWithTranslation([
+            'user_id' => $user->id,
+            'title' => $title,
+            'body' => $body,
+            'type' => 'intervention',
+            'data' => ['intervention_id' => $intervention->id]
         ]);
     }
 
