@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@vanakel.com'],
             [
                 'name' => 'Super Admin',
-                'password' => bcrypt('admin123'),
+                'password' => bcrypt('admin@001!'),
                 'role' => 'SUPERADMIN',
                 'status' => 'APPROVED',
             ]
