@@ -26,6 +26,8 @@ import AiSettingsPage from '@/features/dashboard/pages/AiSettingsPage';
 import ContactsPage from '@/features/dashboard/pages/ContactsPage';
 import PushNotificationsPage from '@/features/dashboard/pages/PushNotificationsPage';
 import TeamPage from '@/features/team/pages/TeamPage';
+import AccessPage from '@/features/access/pages/AccessPage';
+import { setAuthUser, clearAuthUser, usePermissions } from '@/lib/permissions';
 
 import BuildingProfile from '@/features/buildings/pages/BuildingProfile';
 import InterventionSlip from '@/features/interventions/components/InterventionSlip';
@@ -92,6 +94,21 @@ const App: React.FC = () => {
     return saved === 'true';
   });
   const [fullUserData, setFullUserData] = useState<any>(null);
+  const can = usePermissions();
+
+  // Refresh the user's role permissions from the API (they can change at any time)
+  useEffect(() => {
+    if (!role || !localStorage.getItem('vanakel_authToken')) return;
+    dataService.getMe()
+      .then(res => {
+        if (!res?.user) return;
+        const changed = JSON.stringify(res.user.permissions) !== localStorage.getItem('vanakel_permissions');
+        setAuthUser(res.user);
+        // Permissions were missing or changed: reload the data they control
+        if (changed) refreshGlobalData(true);
+      })
+      .catch(() => { /* 401 handled on next action; keep cached permissions */ });
+  }, [role]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -158,13 +175,16 @@ const App: React.FC = () => {
   const refreshGlobalData = async (silent = false) => {
     if (!silent) setIsRefreshing(true);
     try {
+      // Only load what the role may see; one refused request must not blank the whole app
+      const load = <T,>(allowed: boolean, request: () => Promise<T>) =>
+        allowed ? request().catch(() => [] as unknown as T) : Promise.resolve([] as unknown as T);
       const [apiBuildings, apiMissions, apiInterventions, apiSyndics, apiPendingUsers, apiMaintenancePlans] = await Promise.all([
-        dataService.getBuildings(),
-        dataService.getMissions(),
-        dataService.getInterventions(),
-        dataService.getSyndics(),
-        dataService.getPendingUsers(),
-        dataService.getMaintenancePlans()
+        load(can('buildings.view'), dataService.getBuildings),
+        load(can('missions.view'), dataService.getMissions),
+        load(can('interventions.view'), dataService.getInterventions),
+        load(can('buildings.view'), dataService.getSyndics),
+        load(can('users.view'), dataService.getPendingUsers),
+        load(can('maintenance.view'), dataService.getMaintenancePlans)
       ]);
 
       if (apiBuildings) {
@@ -346,9 +366,9 @@ const App: React.FC = () => {
         setMaintenancePlans(mappedPlans);
       }
 
-      if (role === 'SUPERADMIN' || role === 'ADMIN') {
+      if (role !== 'SYNDIC' && can('users.view')) {
         try {
-          if (role === 'SUPERADMIN') {
+          if (can('stats.view')) {
             const stats = await dataService.getSuperAdminStats();
             setSuperAdminStats(stats);
           }
@@ -494,6 +514,8 @@ const App: React.FC = () => {
   }, [interventions, lang]);
 
   const handleLogout = () => {
+    clearAuthUser();
+    localStorage.removeItem('vanakel_authToken');
     setRole(null);
     localStorage.removeItem('vanakel_role');
     localStorage.removeItem('vanakel_userName');
@@ -1019,6 +1041,7 @@ const App: React.FC = () => {
               if (token) {
                 localStorage.setItem('vanakel_authToken', token);
               }
+              setAuthUser(user);
               
               const isUserApproved = user?.status === 'APPROVED' || user?.status === 'ACTIVE' || !token;
               setIsApproved(isUserApproved);
@@ -1041,7 +1064,8 @@ const App: React.FC = () => {
         <Route path="/superadmin/login" element={
           <SuperAdminLogin
             lang={lang}
-            onLogin={(name, resolvedEmail, token) => {
+            onLogin={(name, resolvedEmail, token, user) => {
+              setAuthUser(user);
               setRole('SUPERADMIN');
               localStorage.setItem('vanakel_role', 'SUPERADMIN');
               setUserName(name || 'Super Admin');
@@ -1195,10 +1219,10 @@ const App: React.FC = () => {
                           <GestionPage buildings={buildings} interventions={allInterventions} missions={missions} syndics={syndics} professionals={professionals} lang={lang} />
                         )
                       } />
-                      <Route path="reports" element={role !== 'SYNDIC' ? <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} /> : <Navigate to="/syndic/management" replace />} />
-                      <Route path="email_ingestion" element={role !== 'SYNDIC' ? <EmailIngestionPage isIngesting={isIngesting} onIngestClick={handleEmailIngestion} emailLogs={emailLogs} lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
-                      <Route path="emails" element={role !== 'SYNDIC' ? <EmailsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
-                      <Route path="emails/:id" element={role !== 'SYNDIC' ? <EmailDetailPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="reports" element={role !== 'SYNDIC' && can('reports.view') ? <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} /> : <Navigate to="/syndic/management" replace />} />
+                      <Route path="email_ingestion" element={role !== 'SYNDIC' && can('emails.manage') ? <EmailIngestionPage isIngesting={isIngesting} onIngestClick={handleEmailIngestion} emailLogs={emailLogs} lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="emails" element={role !== 'SYNDIC' && can('emails.view') ? <EmailsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="emails/:id" element={role !== 'SYNDIC' && can('emails.view') ? <EmailDetailPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="notifications" element={
                         <SyndicNotificationsPage
                           notifications={notifications}
@@ -1244,13 +1268,14 @@ const App: React.FC = () => {
                       } />
                       <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} userData={fullUserData} />} />
 
-                      <Route path="entretien_list" element={role !== 'SYNDIC' ? <MaintenancePage lang={lang} maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="entretien_list" element={role !== 'SYNDIC' && can('maintenance.view') ? <MaintenancePage lang={lang} maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
 
                       <Route path="settings" element={<div className="flex flex-col items-center justify-center h-full text-zinc-600">Settings Module under construction</div>} />
-                      <Route path="ai-settings" element={role === 'SUPERADMIN' ? <AiSettingsPage lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
-                      <Route path="push-notifications" element={role === 'SUPERADMIN' ? <PushNotificationsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
-                      <Route path="contacts" element={<ContactsPage lang={lang} />} />
-                      <Route path="team" element={role === 'SUPERADMIN' || role === 'ADMIN' ? <TeamPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="ai-settings" element={can('settings.ai') ? <AiSettingsPage lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="push-notifications" element={can('notifications.broadcast') ? <PushNotificationsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="contacts" element={can('contacts.view') ? <ContactsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="team" element={can('team.view') ? <TeamPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="access" element={can('users.view', 'roles.manage') ? <AccessPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                     </Routes>
                   </main>
                 </div>

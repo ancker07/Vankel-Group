@@ -12,6 +12,7 @@ import { dataService } from '@/services/dataService';
 import { generateInterventionPDF } from '@/utils/pdfGenerator';
 import vankerLogo from '@/assets/logo_vankel.jpeg';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
+import { usePermissions } from '@/lib/permissions';
 
 interface SlipProps {
   intervention: Intervention;
@@ -93,10 +94,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const currentSyndic = syndics.find(s => s.id === internalSyndicId) || syndic;
   const currentProfessional = professionals.find(p => p.id === internalProId) || professional;
 
-  // Who was assigned to this intervention and when (admins only)
+  const can = usePermissions();
+  // Who was assigned to this intervention and when (staff only)
   const [assignments, setAssignments] = useState<any[]>([]);
   useEffect(() => {
-    if (role !== 'ADMIN' && role !== 'SUPERADMIN') return;
+    if (role === 'SYNDIC' || !can('interventions.view')) return;
     dataService.getInterventionAssignments(intervention.id)
       .then(setAssignments)
       .catch(() => setAssignments([]));

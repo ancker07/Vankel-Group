@@ -33,7 +33,7 @@ class EmailController extends Controller
             ->join(DB::raw('(SELECT MAX(id) as max_id, COUNT(*) as total_count FROM emails GROUP BY COALESCE(thread_id, message_id)) as thread_counts'), 'emails.id', '=', 'thread_counts.max_id')
             ->orderBy('received_at', 'desc');
 
-        if ($user && $user->role === 'SYNDIC') {
+        if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
                 $q->where('from_address', $user->email)
                   ->orWhere('to_address', 'like', '%' . $user->email . '%');
@@ -70,7 +70,7 @@ class EmailController extends Controller
               ->orWhere('message_id', $threadId);
         });
 
-        if ($user && $user->role === 'SYNDIC') {
+        if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
                 $q->where('from_address', $user->email)
                   ->orWhere('to_address', 'like', '%' . $user->email . '%');

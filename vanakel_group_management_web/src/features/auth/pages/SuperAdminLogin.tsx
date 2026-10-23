@@ -7,7 +7,7 @@ import { authService } from '../services/authService';
 import logo from '@/assets/vankel_bg_2.png';
 
 interface SuperAdminLoginProps {
-    onLogin: (name: string, email: string, token?: string) => void;
+    onLogin: (name: string, email: string, token?: string, user?: any) => void;
     onBack: () => void;
     lang: Language;
 }
@@ -42,7 +42,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin, onBack, lang
             });
 
             if (data.success) {
-                onLogin(data.user?.name || 'Super Admin', email, data.token);
+                onLogin(data.user?.name || 'Super Admin', email, data.token, data.user);
             } else {
                 setError(data.message || 'Invalid Super Admin credentials');
             }

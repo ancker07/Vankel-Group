@@ -8,7 +8,6 @@ import 'core/providers/locale_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/location_service.dart';
 import 'core/api/dio_client.dart';
-import 'core/enums/user_role_enum.dart';
 import 'features/auth/presentation/providers/auth_state_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 
@@ -22,9 +21,9 @@ class VanakelApp extends ConsumerStatefulWidget {
 class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObserver {
   late final LocationService _locationService = LocationService(ref.read(dioProvider));
 
-  /// Only staff (admins / technicians) share their location; syndics are clients.
+  /// Only users whose role has the location.share permission share their location.
   bool _shouldTrack(AuthState auth) =>
-      auth.status == AuthStatus.authenticated && auth.user != null && auth.user!.role != UserRole.syndic;
+      auth.status == AuthStatus.authenticated && (auth.user?.can('location.share') ?? false);
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

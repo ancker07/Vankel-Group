@@ -5,6 +5,7 @@ import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 import MissionDetailsModal from '../components/MissionDetailsModal';
+import { usePermissions } from '@/lib/permissions';
 
 
 interface MissionsPageProps {
@@ -24,6 +25,7 @@ interface MissionsPageProps {
 
 
 const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, onUpdate, t, role, lang, onRefresh, isRefreshing }) => {
+    const can = usePermissions();
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
     const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
@@ -214,7 +216,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                 </div>
 
                                 {/* Action Buttons - Moved to bottom and stacked/row based on width */}
-                                {role === 'SUPERADMIN' && m.status === 'PENDING' && (
+                                {can('missions.approve') && m.status === 'PENDING' && (
                                     <div className="flex gap-2 p-4 border-t border-zinc-900/50 bg-zinc-950/50">
                                         <button
                                             onClick={(e) => {

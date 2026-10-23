@@ -82,8 +82,8 @@ class MissionDetailsScreen extends ConsumerWidget {
                 _buildDocumentsSection(mission, context),
               ],
               const SizedBox(height: 32),
-              // Action Buttons: only the super admin can change a mission's status
-              if ((authState.user?.isSuperAdmin ?? false) &&
+              // Action Buttons: need the missions.approve permission
+              if ((authState.user?.can('missions.approve') ?? false) &&
                   (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview)) ...[
                 const SizedBox(height: 16),
                 SizedBox(

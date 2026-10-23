@@ -73,7 +73,8 @@ class NotificationService
 
         $translated = (new AiService())->translateToFill($title, $body);
 
-        foreach (User::whereIn('role', ['ADMIN', 'SUPERADMIN'])->get() as $admin) {
+        // Every staff member whose role can see missions (admins, super admins, …)
+        foreach (User::withPermission('missions.view')->staff()->get() as $admin) {
             if ($admin->fcm_token) {
                 try {
                     $this->sendNotification($admin->fcm_token, $title, $body, $data, $important);

@@ -26,6 +26,38 @@ export const dataService = {
         const response = await apiClient.post(`/missions/${id}/approve`, { scheduled_date: scheduledDate, assigned_user_id: assignedUserId || null });
         return response.data;
     },
+    getMe: async () => {
+        const response = await apiClient.get('/me');
+        return response.data;
+    },
+    getRoles: async () => {
+        const response = await apiClient.get('/roles');
+        return response.data;
+    },
+    getPermissionCatalog: async () => {
+        const response = await apiClient.get('/permissions');
+        return response.data;
+    },
+    createRole: async (payload: { name: string; label: string; description?: string; portal: string; permissions: string[] }) => {
+        const response = await apiClient.post('/roles', payload);
+        return response.data;
+    },
+    updateRole: async (id: number, payload: { label?: string; description?: string; portal?: string; permissions?: string[] }) => {
+        const response = await apiClient.put(`/roles/${id}`, payload);
+        return response.data;
+    },
+    deleteRole: async (id: number) => {
+        const response = await apiClient.delete(`/roles/${id}`);
+        return response.data;
+    },
+    createUser: async (payload: { firstName: string; lastName: string; email: string; password: string; phone?: string; role: string; companyName?: string }) => {
+        const response = await apiClient.post('/users', payload);
+        return response.data;
+    },
+    updateUserRole: async (id: string, role: string) => {
+        const response = await apiClient.put(`/users/${id}/role`, { role });
+        return response.data;
+    },
     getTeam: async () => {
         const response = await apiClient.get('/team');
         return response.data;

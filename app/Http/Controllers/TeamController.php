@@ -13,7 +13,7 @@ class TeamController extends Controller
      */
     public function index()
     {
-        $users = User::whereIn('role', ['ADMIN', 'SUPERADMIN', 'PROFESSIONAL'])
+        $users = User::staff()
             ->where('status', '!=', 'DEACTIVATED')
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'phone', 'role', 'status', 'image_url', 'latitude', 'longitude', 'location_updated_at']);

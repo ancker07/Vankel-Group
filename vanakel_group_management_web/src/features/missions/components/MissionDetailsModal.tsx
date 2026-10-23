@@ -4,6 +4,7 @@ import { X, Mail, MapPin, ShieldCheck, User, Phone, AtSign, FileText, Calendar, 
 import { Mission, Building, Syndic, Language, Document, Urgency, Sector } from '@/types';
 import { TRANSLATIONS, URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
+import { usePermissions } from '@/lib/permissions';
 
 interface MissionDetailsModalProps {
     mission: Mission;
@@ -48,9 +49,10 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
     });
 
     const isPending = mission.status === 'PENDING';
-    // Only the super admin can change a mission's status
-    const showAdminActions = isPending && role === 'SUPERADMIN';
-    const canEdit = role === 'SUPERADMIN' || role === 'ADMIN';
+    const can = usePermissions();
+    // Changing a mission's status needs the missions.approve permission
+    const showAdminActions = isPending && can('missions.approve');
+    const canEdit = role !== 'SYNDIC' && can('missions.update');
 
     const urgencyInfo = editData.urgency ? (URGENCY.find(u => u.id === editData.urgency) || URGENCY[0]) : null;
 

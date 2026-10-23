@@ -16,6 +16,9 @@ class User {
   /// (only the super admin can approve / reject missions).
   final bool isSuperAdmin;
 
+  /// Permission keys of the user's role (from the API). Use [can] to check.
+  final List<String> permissions;
+
   const User({
     required this.id,
     required this.name,
@@ -28,7 +31,11 @@ class User {
     this.propertyCount,
     this.isApproved = false,
     this.isSuperAdmin = false,
+    this.permissions = const [],
   });
+
+  /// True if the user's role has the permission (the super admin has all).
+  bool can(String permission) => isSuperAdmin || permissions.contains(permission);
 
   User copyWith({
     int? id,
@@ -42,6 +49,7 @@ class User {
     int? propertyCount,
     bool? isApproved,
     bool? isSuperAdmin,
+    List<String>? permissions,
   }) {
     return User(
       id: id ?? this.id,
@@ -55,6 +63,7 @@ class User {
       propertyCount: propertyCount ?? this.propertyCount,
       isApproved: isApproved ?? this.isApproved,
       isSuperAdmin: isSuperAdmin ?? this.isSuperAdmin,
+      permissions: permissions ?? this.permissions,
     );
   }
 }

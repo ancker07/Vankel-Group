@@ -7,7 +7,7 @@ import { authService } from '../services/authService';
 import logo from '@/assets/vankel_bg_2.png';
 
 interface LoginPageProps {
-    onLogin: (name: string, email: string, token?: string) => void;
+    onLogin: (name: string, email: string, token?: string, user?: any) => void;
     onBack: () => void;
     onSignup?: () => void;
     lang: Language;
@@ -41,13 +41,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
             });
 
             if (data.success) {
-                onLogin(data.user?.name || email.split('@')[0], email, data.token);
+                onLogin(data.user?.name || email.split('@')[0], email, data.token, data.user);
             } else {
-                if (password === 'demo123') {
-                    onLogin(email.split('@')[0], email);
-                    return;
-                }
-
                 if (data.message && data.message.includes('pending')) {
                     localStorage.setItem('vanakel_userEmail', email);
                     window.location.replace('/pending-approval');
@@ -56,12 +51,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
 
                 setError(data.message || 'Invalid credentials');
             }
-        } catch (err) {
-            if (password === 'demo123') {
-                onLogin(email, email);
-                return;
-            }
-            setError('Could not connect to the authentication server');
+        } catch (err: any) {
+            setError(err?.response?.data?.message || 'Could not connect to the authentication server');
         } finally {
             setIsLoading(false);
         }

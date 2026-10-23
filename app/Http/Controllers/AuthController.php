@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\NotificationService as PushNotificationService;
 use Illuminate\Support\Facades\Hash;
@@ -25,23 +26,25 @@ class AuthController extends Controller
     }
 
     /**
-     * Create a user account. Only ADMIN / SUPERADMIN can call this (see routes);
-     * only a SUPERADMIN may create another ADMIN.
+     * Create a user account with any existing role (requires users.create).
+     * The creator can only give a role whose permissions they hold themselves.
      */
     public function storeUser(Request $request)
     {
-        $creator = $request->user();
-        $allowedRoles = $creator->role === 'SUPERADMIN' ? 'SYNDIC,PROFESSIONAL,ADMIN' : 'SYNDIC,PROFESSIONAL';
-
         $request->validate([
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|string|in:' . $allowedRoles,
+            'role' => 'required|string|exists:roles,name',
             'companyName' => 'nullable|string|max:255',
         ]);
+
+        $role = Role::where('name', $request->role)->firstOrFail();
+        if (!$request->user()->canAssignRole($role)) {
+            return response()->json(['success' => false, 'message' => 'You cannot give this role: it has permissions you do not have.'], 403);
+        }
 
         $user = User::create([
             'name' => $request->firstName . ' ' . $request->lastName,
@@ -49,7 +52,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'phone' => $request->phone,
-            'company_name' => $request->role === 'ADMIN' ? 'Vankel Group' : $request->companyName,
+            'company_name' => $request->companyName ?: ($role->portal === 'admin' ? 'Vankel Group' : null),
             'status' => 'APPROVED',
         ]);
 
@@ -72,11 +75,14 @@ class AuthController extends Controller
 
         if ($user && Hash::check($request->password, $user->password)) {
             $requestedRole = strtoupper($request->role);
-            $userRole = strtoupper($user->role);
 
-            // Allow SUPERADMIN to login as ADMIN
-            $roleMatch = ($userRole === $requestedRole) || 
-                         ($requestedRole === 'ADMIN' && $userRole === 'SUPERADMIN');
+            // The login screen picks a portal: SYNDIC = client app, ADMIN = staff app
+            // (any staff role, incl. custom ones), SUPERADMIN = super admin only.
+            $roleMatch = match ($requestedRole) {
+                'SUPERADMIN' => $user->isSuperAdmin(),
+                'SYNDIC' => $user->isClient(),
+                default => !$user->isClient(),
+            };
 
             if ($roleMatch) {
                 // Check status
@@ -89,13 +95,7 @@ class AuthController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'role' => $user->role,
-                        'status' => $user->status,
-                    ],
+                    'user' => $user->toAuthArray(),
                     'token' => $user->createToken('auth_token')->plainTextToken
                 ]);
             }
@@ -105,6 +105,38 @@ class AuthController extends Controller
             'success' => false,
             'message' => 'Invalid credentials or role mismatch'
         ], 401);
+    }
+
+    /** The logged-in user with role, portal and permissions (apps refresh access with this). */
+    public function me(Request $request)
+    {
+        return response()->json(['success' => true, 'user' => $request->user()->toAuthArray()]);
+    }
+
+    /** Change a user's role (requires users.update). */
+    public function updateUserRole(Request $request, $id)
+    {
+        $request->validate(['role' => 'required|string|exists:roles,name']);
+
+        $actor = $request->user();
+        $user = User::findOrFail($id);
+        $role = Role::where('name', $request->role)->firstOrFail();
+
+        if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Only a super admin can change a super admin.'], 403);
+        }
+        if ($user->id === $actor->id) {
+            return response()->json(['success' => false, 'message' => 'You cannot change your own role.'], 422);
+        }
+        if (!$actor->canAssignRole($role)) {
+            return response()->json(['success' => false, 'message' => 'You cannot give this role: it has permissions you do not have.'], 403);
+        }
+
+        $user->update(['role' => $role->name]);
+        // Sign the user out everywhere so the new access applies immediately
+        $user->tokens()->delete();
+
+        return response()->json(['success' => true, 'message' => 'Role updated.', 'user' => $user]);
     }
 
     public function getPendingUsers()
@@ -130,9 +162,15 @@ class AuthController extends Controller
 
     public function getAllUsers()
     {
-        $users = User::where('role', '!=', 'SUPERADMIN')
+        $users = User::with('roleModel')
+                     ->where('role', '!=', 'SUPERADMIN')
                      ->orderBy('created_at', 'desc')
-                     ->get();
+                     ->get()
+                     ->each(function ($user) {
+                         $user->setAttribute('role_label', $user->roleModel?->label ?? $user->role);
+                         $user->setAttribute('portal', $user->portal());
+                         $user->unsetRelation('roleModel');
+                     });
         
         return response()->json($users);
     }
@@ -191,6 +229,11 @@ class AuthController extends Controller
 
     public function storeAdmin(Request $request)
     {
+        $adminRole = Role::where('name', 'ADMIN')->first();
+        if ($adminRole && !$request->user()->canAssignRole($adminRole)) {
+            return response()->json(['success' => false, 'message' => 'You cannot create admin accounts.'], 403);
+        }
+
         $validated = $request->validate([
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
@@ -217,10 +260,10 @@ class AuthController extends Controller
     public function checkStatus(Request $request) 
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'nullable|email'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = $request->user();
 
         if ($user) {
             return response()->json([
@@ -238,14 +281,14 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'bio' => 'nullable|string',
             'image' => 'nullable|image|max:2048'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
@@ -274,10 +317,10 @@ class AuthController extends Controller
     public function getProfile(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'nullable|email'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
@@ -298,6 +341,9 @@ class AuthController extends Controller
                 'image_url' => $user->image_url ? asset('storage/' . $user->image_url) : null,
                 'company_name' => $user->company_name,
                 'status' => $user->status,
+                'role_label' => $user->roleModel?->label ?? $user->role,
+                'portal' => $user->portal(),
+                'permissions' => $user->permissionKeys(),
                 'created_at' => $user->created_at,
                 'properties_count' => \App\Models\Building::where('syndic_id', $user->id)->count(),
                 'interventions_count' => \App\Models\Intervention::whereHas('building', function($q) use ($user) {
@@ -310,12 +356,12 @@ class AuthController extends Controller
     public function changePassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             'current_password' => 'required',
             'new_password' => 'required|min:8|confirmed',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = $request->user();
 
         if (!$user || !Hash::check($request->current_password, $user->password)) {
             return response()->json([
@@ -337,21 +383,21 @@ class AuthController extends Controller
     public function updateFcmToken(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'nullable|email',
             'fcm_token' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = $request->user();
 
         if (!$user) {
-            Log::warning("FCM: Attempted token update for non-existent user: {$request->email}");
+            Log::warning("FCM: Attempted token update for non-existent user: {$user?->email}");
             return response()->json([
                 'success' => false,
                 'message' => 'User not found'
             ], 404);
         }
 
-        Log::info("FCM: Updating token for {$request->email}. New token: " . substr($request->fcm_token, 0, 15) . "...");
+        Log::info("FCM: Updating token for {$user?->email}. New token: " . substr($request->fcm_token, 0, 15) . "...");
         $user->update(['fcm_token' => $request->fcm_token]);
 
         return response()->json([

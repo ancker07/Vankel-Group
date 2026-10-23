@@ -14,6 +14,7 @@ class UserModel extends User {
     super.propertyCount,
     super.isApproved = false,
     super.isSuperAdmin = false,
+    super.permissions = const [],
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -22,7 +23,8 @@ class UserModel extends User {
       name: json['name'] as String,
       email: json['email'] as String,
       phone: json['phone'] as String? ?? '',
-      role: _parseRole(json['role'] as String?),
+      // Custom roles of the client app ("portal": "syndic") behave like syndics
+      role: json['portal'] == 'syndic' ? UserRole.syndic : _parseRole(json['role'] as String?),
       bio: json['bio'] as String?,
       profileImageUrl:
           json['profile_image_url'] as String? ?? json['image_url'] as String?,
@@ -34,6 +36,7 @@ class UserModel extends User {
           json['status'] == 'ACTIVE',
       isSuperAdmin: (json['role'] as String?)?.toUpperCase() == 'SUPERADMIN' ||
           json['is_super_admin'] == true,
+      permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? const [],
     );
   }
 
@@ -50,6 +53,7 @@ class UserModel extends User {
       'property_count': propertyCount,
       'is_approved': isApproved ? 1 : 0,
       'is_super_admin': isSuperAdmin,
+      'permissions': permissions,
     };
   }
 
@@ -86,6 +90,7 @@ class UserModel extends User {
       propertyCount: propertyCount,
       isApproved: isApproved,
       isSuperAdmin: isSuperAdmin,
+      permissions: permissions,
     );
   }
 }

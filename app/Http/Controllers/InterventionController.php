@@ -55,7 +55,13 @@ class InterventionController extends Controller
         }
 
         $entity = null;
-        $type = $request->input('type', ($validated['role'] === 'SYNDIC' ? 'mission' : 'intervention'));
+        $user = $request->user();
+        // Client users can only send mission requests; staff create interventions directly
+        $type = $user->isClient() ? 'mission' : $request->input('type', 'intervention');
+        $required = $type === 'mission' ? 'missions.create' : 'interventions.create';
+        if (!$user->hasPermission($required)) {
+            return response()->json(['success' => false, 'message' => 'You are not allowed to perform this action.'], 403);
+        }
 
         $translations = $this->aiService->translateToFill($validated['title'], $validated['description']);
 
@@ -153,7 +159,7 @@ class InterventionController extends Controller
 
         $query = Mission::with(['documents', 'email', 'building', 'syndic'])->latest();
 
-        if ($user && $user->role === 'SYNDIC') {
+        if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
                 $q->where('syndic_id', $user->id)
                   ->orWhere('on_site_contact_email', $user->email)
@@ -171,7 +177,7 @@ class InterventionController extends Controller
         $user = auth('sanctum')->user();
         $query = Mission::with(['documents', 'email', 'building']);
         
-        if ($user && $user->role === 'SYNDIC') {
+        if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
                 $q->where('syndic_id', $user->id)
                   ->orWhere('on_site_contact_email', $user->email)
@@ -191,7 +197,7 @@ class InterventionController extends Controller
         
         $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
 
-        if ($user && $user->role === 'SYNDIC') {
+        if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
                 $q->where('syndic_id', $user->id)
                   ->orWhere('on_site_contact_email', $user->email);
@@ -206,7 +212,7 @@ class InterventionController extends Controller
         $user = auth('sanctum')->user();
         $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
 
-        if ($user && $user->role === 'SYNDIC') {
+        if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
                 $q->where('syndic_id', $user->id)
                   ->orWhere('on_site_contact_email', $user->email);
@@ -220,7 +226,7 @@ class InterventionController extends Controller
     public function approveMission(Request $request, $id)
     {
         $request->validate([
-            'assigned_user_id' => ['nullable', \Illuminate\Validation\Rule::exists('users', 'id')->whereIn('role', ['PROFESSIONAL', 'ADMIN', 'SUPERADMIN'])],
+            'assigned_user_id' => ['nullable', \Illuminate\Validation\Rule::in(User::staff()->pluck('id')->all())],
         ]);
 
         try {

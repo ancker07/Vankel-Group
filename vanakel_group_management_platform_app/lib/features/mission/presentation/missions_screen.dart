@@ -857,7 +857,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                         ),
                         Row(
                           children: [
-                            if ((ref.watch(authStateProvider).user?.isSuperAdmin ?? false) && (widget.mission.status == MissionStatus.pending || widget.mission.status == MissionStatus.needsReview)) ...[
+                            if ((ref.watch(authStateProvider).user?.can('missions.approve') ?? false) && (widget.mission.status == MissionStatus.pending || widget.mission.status == MissionStatus.needsReview)) ...[
                               _buildActionButton(
                                 context,
                                 ref,
