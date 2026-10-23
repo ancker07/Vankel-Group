@@ -12,6 +12,7 @@ import { dataService } from '@/services/dataService';
 import { generateInterventionPDF } from '@/utils/pdfGenerator';
 import vankerLogo from '@/assets/logo_vankel.jpeg';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
+import DictationButton from '@/components/common/DictationButton';
 import { usePermissions } from '@/lib/permissions';
 
 interface SlipProps {
@@ -117,7 +118,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [isImproving, setIsImproving] = useState(false);
   const [isImprovingDetails, setIsImprovingDetails] = useState(false);
   const isSyndic = role === 'SYNDIC';
-  const [isEditable, setIsEditable] = useState(!readOnly && intervention.status !== 'COMPLETED' && !isSyndic);
+  const [isEditable, setIsEditable] = useState(!readOnly && (intervention.status !== 'COMPLETED' || can('interventions.reopen')) && !isSyndic);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
@@ -793,6 +794,13 @@ const InterventionSlip: React.FC<SlipProps> = ({
                           {isImprovingDetails ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} {isImprovingDetails ? t.working : t.improveAI_text}
                         </button>
                       )}
+                      {isEditable && (
+                        <DictationButton
+                          lang={lang}
+                          t={t}
+                          onText={text => setDelayDetails(prev => (prev ? `${prev.trimEnd()} ${text}` : text))}
+                        />
+                      )}
                     </div>
                     <textarea
                       value={delayDetails}
@@ -839,6 +847,13 @@ const InterventionSlip: React.FC<SlipProps> = ({
                   >
                     <Upload size={12} /> {t.docs}
                   </button>
+                  {isEditable && (
+                    <DictationButton
+                      lang={lang}
+                      t={t}
+                      onText={text => setAdminNote(prev => (prev ? `${prev.trimEnd()} ${text}` : text))}
+                    />
+                  )}
                   {isEditable && (
                     <button
                       onClick={handleImprove}

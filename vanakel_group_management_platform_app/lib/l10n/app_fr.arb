@@ -260,5 +260,12 @@
   "selectBuildingHint": "Choisir un immeuble...",
   "selectSyndicHint": "Choisir un syndic...",
   "directions": "Itinéraire",
-  "openGps": "Ouvrir le GPS"
+  "openGps": "Ouvrir le GPS",
+  "endOfMission": "Fin de mission",
+  "noCompletedMissions": "Aucune mission terminée pour le moment.",
+  "dictate": "Dicter",
+  "stopDictation": "Arrêter",
+  "listening": "À l'écoute… parlez maintenant",
+  "speechUnavailable": "La dictée vocale n'est pas disponible sur cet appareil.",
+  "missionLocked": "Cette mission est terminée. Seul un admin peut la modifier."
 }

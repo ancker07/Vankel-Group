@@ -790,4 +790,27 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get openGps => 'GPS openen';
+
+  @override
+  String get endOfMission => 'Einde missie';
+
+  @override
+  String get noCompletedMissions => 'Nog geen afgeronde missies.';
+
+  @override
+  String get dictate => 'Dicteren';
+
+  @override
+  String get stopDictation => 'Stoppen';
+
+  @override
+  String get listening => 'Aan het luisteren… spreek nu';
+
+  @override
+  String get speechUnavailable =>
+      'Spraakdictatie is niet beschikbaar op dit toestel.';
+
+  @override
+  String get missionLocked =>
+      'Deze missie is afgerond. Alleen een admin kan ze wijzigen.';
 }

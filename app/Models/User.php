@@ -14,6 +14,27 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected static function booted(): void
+    {
+        // Only one super admin and one admin may exist, whatever creates the user (API, tinker, seeder)
+        static::saving(function (User $user) {
+            if ($user->isDirty('role') && $message = static::singleRoleTaken($user->role, $user->getKey())) {
+                throw new \RuntimeException($message);
+            }
+        });
+    }
+
+    /** Error message if $role is a one-user role that someone else already has, else null. */
+    public static function singleRoleTaken(?string $role, $exceptUserId = null): ?string
+    {
+        $label = PermissionCatalog::SINGLE_USER_ROLES[$role] ?? null;
+        if (!$label || !static::where('role', $role)->when($exceptUserId, fn ($q) => $q->whereKeyNot($exceptUserId))->exists()) {
+            return null;
+        }
+
+        return "There can only be one {$label}.";
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -108,8 +129,9 @@ class User extends Authenticatable
 
     public function canAssignRole(Role $role): bool
     {
+        // There is only one super admin: the role can never be given to anyone
         if ($role->isSuperAdmin()) {
-            return $this->isSuperAdmin();
+            return false;
         }
 
         return $this->canGrant($role->permissionKeys());

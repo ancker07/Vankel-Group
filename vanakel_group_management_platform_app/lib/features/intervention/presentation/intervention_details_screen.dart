@@ -13,6 +13,8 @@ import 'widgets/intervention_delay_sheet.dart';
 import '../../../../core/utils/translation_helper.dart';
 
 import '../../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/dictation_button.dart';
+import '../../auth/presentation/providers/auth_state_provider.dart';
 
 class InterventionDetailsScreen extends ConsumerStatefulWidget {
   final String interventionId;
@@ -264,6 +266,12 @@ class _InterventionDetailsScreenState
       body: interventionAsync.when(
         data: (intervention) {
           _initializeControllers(intervention);
+          // A completed mission is read-only unless the role may reopen it (admin)
+          final locked = intervention.status == InterventionStatus.completed &&
+              !(ref.watch(authStateProvider).user?.can('interventions.reopen') ?? false);
+          Widget editable(Widget child) => locked
+              ? IgnorePointer(child: Opacity(opacity: 0.6, child: child))
+              : child;
           return Column(
             children: [
               Expanded(
@@ -272,23 +280,45 @@ class _InterventionDetailsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildContactSection(intervention, l10n),
+                      if (locked) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.brandGreen.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.lock_outline, color: AppTheme.brandGreen, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(l10n.missionLocked,
+                                    style: const TextStyle(color: Colors.white, fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      editable(_buildContactSection(intervention, l10n)),
                       const SizedBox(height: 24),
                       _buildDescriptionSection(intervention, l10n),
                       const SizedBox(height: 24),
                       _buildMapSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      _buildStatusSection(intervention, l10n),
+                      editable(_buildStatusSection(intervention, l10n)),
                       const SizedBox(height: 24),
-                      _buildFeedbackSection(intervention, l10n),
+                      editable(_buildFeedbackSection(intervention, l10n)),
                       const SizedBox(height: 24),
-                      _buildMediaAuditSection(intervention, l10n),
+                      editable(_buildMediaAuditSection(intervention, l10n)),
                       const SizedBox(height: 40),
                     ],
                   ),
                 ),
               ),
-              _buildFooter(intervention, l10n),
+              if (!locked) _buildFooter(intervention, l10n),
             ],
           );
         },
@@ -779,6 +809,8 @@ class _InterventionDetailsScreenState
                 ),
               ),
               const SizedBox(width: 16),
+              DictationButton(controller: _adminNoteController),
+              const SizedBox(width: 8),
               _buildSmallBtn(Icons.camera_alt_outlined, l10n.photos, _pickImage),
               const SizedBox(width: 8),
               _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, () {}),

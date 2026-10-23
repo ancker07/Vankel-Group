@@ -1,3 +1,4 @@
+import '../../features/intervention/presentation/completed_missions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -191,6 +192,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'maintenance',
                     builder: (context, state) => const MaintenancePlansScreen(),
                   ),
+                  GoRoute(
+                    path: 'completed',
+                    builder: (context, state) => const CompletedMissionsScreen(isAdmin: true),
+                  ),
                 ],
               ),
             ],
@@ -268,6 +273,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/syndic/dashboard',
                 builder: (context, state) => const SyndicDashboard(),
+                routes: [
+                  GoRoute(
+                    path: 'completed',
+                    builder: (context, state) => const CompletedMissionsScreen(isAdmin: false),
+                  ),
+                ],
               ),
             ],
           ),

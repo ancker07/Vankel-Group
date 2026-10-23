@@ -793,4 +793,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get openGps => 'Ouvrir le GPS';
+
+  @override
+  String get endOfMission => 'Fin de mission';
+
+  @override
+  String get noCompletedMissions => 'Aucune mission terminée pour le moment.';
+
+  @override
+  String get dictate => 'Dicter';
+
+  @override
+  String get stopDictation => 'Arrêter';
+
+  @override
+  String get listening => 'À l\'écoute… parlez maintenant';
+
+  @override
+  String get speechUnavailable =>
+      'La dictée vocale n\'est pas disponible sur cet appareil.';
+
+  @override
+  String get missionLocked =>
+      'Cette mission est terminée. Seul un admin peut la modifier.';
 }

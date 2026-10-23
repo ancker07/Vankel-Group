@@ -27,6 +27,7 @@ import ContactsPage from '@/features/dashboard/pages/ContactsPage';
 import PushNotificationsPage from '@/features/dashboard/pages/PushNotificationsPage';
 import TeamPage from '@/features/team/pages/TeamPage';
 import AccessPage from '@/features/access/pages/AccessPage';
+import CompletedMissionsPage from '@/features/interventions/pages/CompletedMissionsPage';
 import { setAuthUser, clearAuthUser, usePermissions } from '@/lib/permissions';
 
 import BuildingProfile from '@/features/buildings/pages/BuildingProfile';
@@ -1247,6 +1248,12 @@ const App: React.FC = () => {
                           onRefresh={() => refreshGlobalData()}
                           isRefreshing={isRefreshing}
                         />
+                      } />
+
+                      <Route path="completed" element={
+                        can('interventions.view') ? (
+                          <CompletedMissionsPage interventions={allInterventions} buildings={buildings} professionals={professionals} onSelect={setSelectedInterventionId} lang={lang} />
+                        ) : <Navigate to="dashboard" replace />
                       } />
 
                       <Route path="missions" element={

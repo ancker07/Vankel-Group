@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare, Bell, Users, KeyRound } from 'lucide-react';
+import { Building2, LayoutDashboard, ShieldCheck, Clock, ClipboardList, RotateCcw, FileText, Mail, Settings, User, Sparkles, MessageSquare, Bell, Users, KeyRound, CheckCircle2 } from 'lucide-react';
 import SidebarItem from './SidebarItem';
 import { Role } from '@/types';
 import { usePermissions } from '@/lib/permissions';
@@ -41,6 +41,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             <div id="nav-ongoing">
                                 <SidebarItem icon={<Clock size={20} />} label={t.interventions || 'Interventions'} active={activeTab === 'ongoing'} onClick={() => handleTabClick('ongoing')} badge={stats.ongoing} />
                             </div>
+                            <SidebarItem icon={<CheckCircle2 size={20} className="text-brand-green" />} label={t.end_of_mission || 'End of mission'} active={activeTab === 'completed'} onClick={() => handleTabClick('completed')} />
                             <div id="nav-management">
                                 <SidebarItem icon={<FileText size={20} />} label={t.management || 'History & Documents'} active={activeTab === 'management'} onClick={() => handleTabClick('management')} />
                             </div>
@@ -92,6 +93,9 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                             <div id="nav-missions">
                                 <SidebarItem icon={<ClipboardList size={20} className="text-orange-400" />} label={t.missions || 'Missions'} active={activeTab === 'missions'} onClick={() => handleTabClick('missions')} badge={stats.missions} />
                             </div>
+                        )}
+                        {can('interventions.view') && (
+                            <SidebarItem icon={<CheckCircle2 size={20} className="text-brand-green" />} label={t.end_of_mission || 'End of mission'} active={activeTab === 'completed'} onClick={() => handleTabClick('completed')} />
                         )}
                         {can('maintenance.view') && (
                             <SidebarItem icon={<RotateCcw size={20} className="text-orange-500" />} label={t.maintenance || 'Maintenance'} active={activeTab === 'entretien_list'} onClick={() => handleTabClick('entretien_list')} />

@@ -13,6 +13,9 @@ class PermissionCatalog
 {
     public const SUPERADMIN = 'SUPERADMIN';
 
+    /** Roles that only one user may have at a time (one super admin, one admin for the owner). */
+    public const SINGLE_USER_ROLES = ['SUPERADMIN' => 'super admin', 'ADMIN' => 'admin'];
+
     /** group => [key => label] */
     public const PERMISSIONS = [
         'Missions' => [
@@ -25,6 +28,7 @@ class PermissionCatalog
             'interventions.view' => 'View interventions',
             'interventions.create' => 'Create interventions',
             'interventions.update' => 'Edit interventions and assign workers',
+            'interventions.reopen' => 'Change a completed intervention (edit or reopen it)',
             'interventions.send_report' => 'Send intervention reports',
         ],
         'Maintenance' => [
@@ -69,9 +73,9 @@ class PermissionCatalog
         'ADMIN' => ['Admin', 'admin', [
             'missions.view', 'missions.create', 'missions.update',
             'interventions.view', 'interventions.create', 'interventions.update', 'interventions.send_report',
-            'maintenance.view', 'maintenance.manage', 'buildings.view', 'reports.view',
+            'interventions.reopen', 'maintenance.view', 'maintenance.manage', 'buildings.view', 'reports.view',
             'emails.view', 'emails.manage', 'contacts.view', 'contacts.manage',
-            'team.view', 'location.share', 'users.view', 'users.create', 'users.update', 'ai.use',
+            'team.view', 'location.share', 'users.view', 'ai.use',
         ]],
         'PROFESSIONAL' => ['Technician', 'admin', [
             'missions.view', 'interventions.view', 'interventions.update',

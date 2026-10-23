@@ -153,6 +153,22 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 isSelected: location == '/admin/dashboard/maintenance',
               ),
             ],
+            // End of mission: completed missions, for everyone
+            Builder(builder: (context) {
+              final path = authState.user?.role == UserRole.syndic
+                  ? '/syndic/dashboard/completed'
+                  : '/admin/dashboard/completed';
+              return _buildDrawerItem(
+                context,
+                icon: Icons.task_alt_outlined,
+                label: l10n.endOfMission,
+                onTap: () {
+                  Navigator.pop(context);
+                  context.push(path);
+                },
+                isSelected: location == path,
+              );
+            }),
             const Divider(color: AppTheme.zinc800, indent: 20, endIndent: 20),
             _buildDrawerItem(
               context,

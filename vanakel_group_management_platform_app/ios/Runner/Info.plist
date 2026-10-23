@@ -30,6 +30,10 @@
 	<string>Vanakel Group shares your location with your team while you are working, even when the app is in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Vanakel Group uses your location so your team can see where you are and to guide you to missions.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Vanakel Group uses the microphone so you can dictate mission notes.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Vanakel Group turns your voice into text for mission notes.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

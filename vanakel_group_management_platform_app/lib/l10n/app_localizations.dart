@@ -1611,6 +1611,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open GPS'**
   String get openGps;
+
+  /// No description provided for @endOfMission.
+  ///
+  /// In en, this message translates to:
+  /// **'End of mission'**
+  String get endOfMission;
+
+  /// No description provided for @noCompletedMissions.
+  ///
+  /// In en, this message translates to:
+  /// **'No completed missions yet.'**
+  String get noCompletedMissions;
+
+  /// No description provided for @dictate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dictate'**
+  String get dictate;
+
+  /// No description provided for @stopDictation.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stopDictation;
+
+  /// No description provided for @listening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening… speak now'**
+  String get listening;
+
+  /// No description provided for @speechUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice dictation is not available on this device.'**
+  String get speechUnavailable;
+
+  /// No description provided for @missionLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This mission is completed. Only an admin can change it.'**
+  String get missionLocked;
 }
 
 class _AppLocalizationsDelegate

@@ -263,5 +263,12 @@
   "selectBuildingHint": "Select building...",
   "selectSyndicHint": "Select syndic...",
   "directions": "Directions",
-  "openGps": "Open GPS"
+  "openGps": "Open GPS",
+  "endOfMission": "End of mission",
+  "noCompletedMissions": "No completed missions yet.",
+  "dictate": "Dictate",
+  "stopDictation": "Stop",
+  "listening": "Listening… speak now",
+  "speechUnavailable": "Voice dictation is not available on this device.",
+  "missionLocked": "This mission is completed. Only an admin can change it."
 }

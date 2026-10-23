@@ -496,6 +496,14 @@ class InterventionController extends Controller
         $oldStatus = $intervention->status;
         $oldProId = $intervention->pro_id;
 
+        // A completed mission is locked: only roles with interventions.reopen (admin) may change it
+        if ($oldStatus === 'COMPLETED' && !$request->user()->hasPermission('interventions.reopen')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This mission is completed. Only an admin can change it.',
+            ], 403);
+        }
+
         if (array_key_exists('syndic_id', $validated) && ($validated['syndic_id'] === 'null' || $validated['syndic_id'] === '')) {
             $validated['syndic_id'] = null;
         }

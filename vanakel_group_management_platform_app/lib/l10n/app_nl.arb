@@ -260,5 +260,12 @@
   "selectBuildingHint": "Selecteer gebouw...",
   "selectSyndicHint": "Selecteer syndicus...",
   "directions": "Route",
-  "openGps": "GPS openen"
+  "openGps": "GPS openen",
+  "endOfMission": "Einde missie",
+  "noCompletedMissions": "Nog geen afgeronde missies.",
+  "dictate": "Dicteren",
+  "stopDictation": "Stoppen",
+  "listening": "Aan het luisteren… spreek nu",
+  "speechUnavailable": "Spraakdictatie is niet beschikbaar op dit toestel.",
+  "missionLocked": "Deze missie is afgerond. Alleen een admin kan ze wijzigen."
 }

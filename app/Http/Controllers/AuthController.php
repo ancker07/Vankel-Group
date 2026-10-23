@@ -42,6 +42,12 @@ class AuthController extends Controller
         ]);
 
         $role = Role::where('name', $request->role)->firstOrFail();
+        if ($role->isSuperAdmin()) {
+            return response()->json(['success' => false, 'message' => 'There can only be one super admin.'], 422);
+        }
+        if ($message = User::singleRoleTaken($role->name)) {
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
         if (!$request->user()->canAssignRole($role)) {
             return response()->json(['success' => false, 'message' => 'You cannot give this role: it has permissions you do not have.'], 403);
         }
@@ -123,10 +129,16 @@ class AuthController extends Controller
         $role = Role::where('name', $request->role)->firstOrFail();
 
         if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'Only a super admin can change a super admin.'], 403);
+            return response()->json(['success' => false, 'message' => 'The super admin\'s role cannot be changed.'], 403);
         }
         if ($user->id === $actor->id) {
             return response()->json(['success' => false, 'message' => 'You cannot change your own role.'], 422);
+        }
+        if ($role->isSuperAdmin()) {
+            return response()->json(['success' => false, 'message' => 'There can only be one super admin.'], 422);
+        }
+        if ($message = User::singleRoleTaken($role->name, $user->id ?? null)) {
+            return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$actor->canAssignRole($role)) {
             return response()->json(['success' => false, 'message' => 'You cannot give this role: it has permissions you do not have.'], 403);
@@ -232,6 +244,9 @@ class AuthController extends Controller
         $adminRole = Role::where('name', 'ADMIN')->first();
         if ($adminRole && !$request->user()->canAssignRole($adminRole)) {
             return response()->json(['success' => false, 'message' => 'You cannot create admin accounts.'], 403);
+        }
+        if ($message = User::singleRoleTaken('ADMIN')) {
+            return response()->json(['success' => false, 'message' => $message], 422);
         }
 
         $validated = $request->validate([
