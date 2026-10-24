@@ -267,10 +267,15 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                     )}
 
 <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900/50">
-                                         {i.professional && (
+                                         {i.professional ? (
                                              <div className="flex items-center gap-2 text-xs text-zinc-400">
                                                  <User size={12} className="text-brand-green shrink-0" />
                                                  <span className="truncate font-medium text-brand-green">{i.professional.name}</span>
+                                             </div>
+                                         ) : (
+                                             <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                                 <User size={12} className="text-zinc-600 shrink-0" />
+                                                 <span className="truncate font-medium text-zinc-500">{t.unassigned || 'Unassigned'}</span>
                                              </div>
                                          )}
                                          <div className="flex items-center gap-2 text-xs text-zinc-400">
