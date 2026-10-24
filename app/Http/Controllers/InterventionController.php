@@ -103,13 +103,20 @@ class InterventionController extends Controller
                 'description_fr' => $translations['description']['fr'] ?? $validated['description'],
                 'description_nl' => $translations['description']['nl'] ?? $validated['description'],
                 'urgency' => $validated['urgency'],
-                'status' => $validated['status'] ?? 'PENDING',
+                'status' => (($validated['status'] ?? null) === 'COMPLETED' && !$user->hasPermission('interventions.reopen'))
+                    ? 'PENDING'
+                    : ($validated['status'] ?? 'PENDING'),
                 'category' => $validated['sector'] ?? 'GENERAL',
                 'sector' => $validated['sector'] ?? 'GENERAL',
                 'on_site_contact_name' => $validated['onSiteContactName'] ?? null,
                 'on_site_contact_phone' => $validated['onSiteContactPhone'] ?? null,
                 'on_site_contact_email' => $validated['onSiteContactEmail'] ?? null,
             ]);
+
+            if ($entity->pro_id) {
+                Assignment::record($entity->id, null, (int) $entity->pro_id, $user->id);
+                $this->notifyAssignedUser(User::find($entity->pro_id), $entity);
+            }
         }
 
         // 2. Handle file uploads
@@ -501,6 +508,14 @@ class InterventionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'This mission is completed. Only an admin can change it.',
+            ], 403);
+        }
+
+        if (($validated['status'] ?? null) === 'COMPLETED' && $oldStatus !== 'COMPLETED'
+            && !$request->user()->hasPermission('interventions.reopen')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only an admin can mark a mission as completed.',
             ], 403);
         }
 

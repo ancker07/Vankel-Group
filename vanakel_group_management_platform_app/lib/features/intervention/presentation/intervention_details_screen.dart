@@ -14,6 +14,7 @@ import '../../../../core/utils/translation_helper.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/dictation_button.dart';
+import '../../../shared/widgets/team_member_tracker.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 
 class InterventionDetailsScreen extends ConsumerStatefulWidget {
@@ -308,6 +309,10 @@ class _InterventionDetailsScreenState
                       const SizedBox(height: 24),
                       _buildMapSection(intervention, l10n),
                       const SizedBox(height: 24),
+                      if (ref.watch(authStateProvider).user?.can('team.view') ?? false) ...[
+                        TeamMemberTracker(interventionId: widget.interventionId),
+                        const SizedBox(height: 24),
+                      ],
                       editable(_buildStatusSection(intervention, l10n)),
                       const SizedBox(height: 24),
                       editable(_buildFeedbackSection(intervention, l10n)),

@@ -16,23 +16,25 @@ class User extends Authenticatable
 
     protected static function booted(): void
     {
-        // Only one super admin and one admin may exist, whatever creates the user (API, tinker, seeder)
+        // Role limits apply whatever creates the user (API, tinker, seeder)
         static::saving(function (User $user) {
-            if ($user->isDirty('role') && $message = static::singleRoleTaken($user->role, $user->getKey())) {
+            if ($user->isDirty('role') && $message = static::roleLimitReached($user->role, $user->getKey())) {
                 throw new \RuntimeException($message);
             }
         });
     }
 
-    /** Error message if $role is a one-user role that someone else already has, else null. */
-    public static function singleRoleTaken(?string $role, $exceptUserId = null): ?string
+    /** Error message if $role already has its maximum number of users (ignoring $exceptUserId), else null. */
+    public static function roleLimitReached(?string $role, $exceptUserId = null): ?string
     {
-        $label = PermissionCatalog::SINGLE_USER_ROLES[$role] ?? null;
-        if (!$label || !static::where('role', $role)->when($exceptUserId, fn ($q) => $q->whereKeyNot($exceptUserId))->exists()) {
+        [$max, $message] = PermissionCatalog::ROLE_LIMITS[$role] ?? [null, null];
+        if (!$max) {
             return null;
         }
 
-        return "There can only be one {$label}.";
+        $count = static::where('role', $role)->when($exceptUserId, fn ($q) => $q->whereKeyNot($exceptUserId))->count();
+
+        return $count >= $max ? $message : null;
     }
 
     /**
@@ -129,9 +131,9 @@ class User extends Authenticatable
 
     public function canAssignRole(Role $role): bool
     {
-        // There is only one super admin: the role can never be given to anyone
+        // Only a super admin can make someone else a super admin
         if ($role->isSuperAdmin()) {
-            return false;
+            return $this->isSuperAdmin();
         }
 
         return $this->canGrant($role->permissionKeys());

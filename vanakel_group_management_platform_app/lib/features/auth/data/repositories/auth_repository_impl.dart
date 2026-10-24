@@ -250,6 +250,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    // Detach this phone from the account so the next user doesn't get its pushes
+    try {
+      await _dio.post(ApiConstants.updateFcmToken, data: {'fcm_token': ''});
+    } catch (_) {}
     await _tokenService.clearAll();
   }
 

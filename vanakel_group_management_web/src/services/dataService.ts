@@ -62,6 +62,10 @@ export const dataService = {
         const response = await apiClient.get('/team');
         return response.data;
     },
+    getInterventionTracking: async (id: string) => {
+        const response = await apiClient.get(`/interventions/${id}/tracking`);
+        return response.data;
+    },
     getInterventionAssignments: async (id: string) => {
         const response = await apiClient.get(`/interventions/${id}/assignments`);
         return response.data;

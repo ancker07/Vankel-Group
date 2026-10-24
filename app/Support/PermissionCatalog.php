@@ -13,8 +13,11 @@ class PermissionCatalog
 {
     public const SUPERADMIN = 'SUPERADMIN';
 
-    /** Roles that only one user may have at a time (one super admin, one admin for the owner). */
-    public const SINGLE_USER_ROLES = ['SUPERADMIN' => 'super admin', 'ADMIN' => 'admin'];
+    /** Roles with a maximum number of users: two super admins (Bilal, Zain), one admin for the owner. */
+    public const ROLE_LIMITS = [
+        'SUPERADMIN' => [2, 'There can only be two super admins.'],
+        'ADMIN' => [1, 'There can only be one admin.'],
+    ];
 
     /** group => [key => label] */
     public const PERMISSIONS = [

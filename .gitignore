@@ -43,3 +43,4 @@ build/
 .DS_Store
 Thumbs.db
 /public/vanakelgroup.json
+/public/vankelgroup.json

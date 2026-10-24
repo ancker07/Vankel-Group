@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Assignment;
+use App\Models\Intervention;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -38,6 +39,31 @@ class TeamController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * The team member currently on an intervention, who assigned them, and their live position.
+     */
+    public function interventionTracking($id)
+    {
+        $intervention = Intervention::findOrFail($id);
+
+        $current = Assignment::with('assignedBy:id,name')
+            ->where('intervention_id', $intervention->id)
+            ->whereNull('unassigned_at')
+            ->latest('assigned_at')
+            ->first();
+
+        $userId = $current?->user_id ?? $intervention->pro_id;
+        $member = $userId
+            ? User::find($userId, ['id', 'name', 'phone', 'email', 'role', 'latitude', 'longitude', 'location_updated_at'])
+            : null;
+
+        return response()->json([
+            'member' => $member,
+            'assigned_by' => $current?->assignedBy?->only(['id', 'name']),
+            'assigned_at' => $current?->assigned_at,
+        ]);
     }
 
     /**

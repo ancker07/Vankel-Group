@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/auth_token_service.dart';
@@ -68,7 +69,14 @@ class AuthNotifier extends Notifier<AuthState> {
   bool _isInitialized = false;
   void _init() {
     _isInitialized = true;
-    
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+      final user = state.user;
+      if (state.status == AuthStatus.authenticated && user != null) {
+        _repository.updateFcmToken(user.email, fcmToken).catchError((_) {});
+      }
+    });
+
     Future.delayed(const Duration(seconds: 2), () {
       if (state.status == AuthStatus.initial) {
         state = state.copyWith(isSplashDone: true);

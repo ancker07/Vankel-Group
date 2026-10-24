@@ -42,10 +42,7 @@ class AuthController extends Controller
         ]);
 
         $role = Role::where('name', $request->role)->firstOrFail();
-        if ($role->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'There can only be one super admin.'], 422);
-        }
-        if ($message = User::singleRoleTaken($role->name)) {
+        if ($message = User::roleLimitReached($role->name)) {
             return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$request->user()->canAssignRole($role)) {
@@ -134,10 +131,7 @@ class AuthController extends Controller
         if ($user->id === $actor->id) {
             return response()->json(['success' => false, 'message' => 'You cannot change your own role.'], 422);
         }
-        if ($role->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'There can only be one super admin.'], 422);
-        }
-        if ($message = User::singleRoleTaken($role->name, $user->id ?? null)) {
+        if ($message = User::roleLimitReached($role->name, $user->id)) {
             return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$actor->canAssignRole($role)) {
@@ -172,10 +166,12 @@ class AuthController extends Controller
         ]);
     }
 
-    public function getAllUsers()
+    public function getAllUsers(Request $request)
     {
+        // Super admins see each other; nobody else sees super admin accounts
         $users = User::with('roleModel')
-                     ->where('role', '!=', 'SUPERADMIN')
+                     ->unless($request->user()->isSuperAdmin(), fn ($q) => $q->where('role', '!=', 'SUPERADMIN'))
+                     ->whereKeyNot($request->user()->id)
                      ->orderBy('created_at', 'desc')
                      ->get()
                      ->each(function ($user) {
@@ -245,7 +241,7 @@ class AuthController extends Controller
         if ($adminRole && !$request->user()->canAssignRole($adminRole)) {
             return response()->json(['success' => false, 'message' => 'You cannot create admin accounts.'], 403);
         }
-        if ($message = User::singleRoleTaken('ADMIN')) {
+        if ($message = User::roleLimitReached('ADMIN')) {
             return response()->json(['success' => false, 'message' => $message], 422);
         }
 
@@ -399,7 +395,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'nullable|email',
-            'fcm_token' => 'required|string',
+            'fcm_token' => 'present|nullable|string',
         ]);
 
         $user = $request->user();
@@ -412,8 +408,15 @@ class AuthController extends Controller
             ], 404);
         }
 
-        Log::info("FCM: Updating token for {$user?->email}. New token: " . substr($request->fcm_token, 0, 15) . "...");
-        $user->update(['fcm_token' => $request->fcm_token]);
+        $token = $request->fcm_token ?: null;
+
+        if ($token) {
+            // One phone belongs to one account: detach it from anyone else who used it before
+            User::where('fcm_token', $token)->where('id', '!=', $user->id)->update(['fcm_token' => null]);
+        }
+
+        Log::info("FCM: Updating token for {$user->email}: " . ($token ? substr($token, 0, 15) . '...' : 'cleared'));
+        $user->update(['fcm_token' => $token]);
 
         return response()->json([
             'success' => true,

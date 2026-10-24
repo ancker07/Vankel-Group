@@ -105,6 +105,26 @@ const InterventionSlip: React.FC<SlipProps> = ({
       .catch(() => setAssignments([]));
   }, [intervention.id, intervention.proId, role]);
 
+  // Live position of the assigned team member, refreshed every 10 seconds
+  const [tracking, setTracking] = useState<any>(null);
+  useEffect(() => {
+    if (role === 'SYNDIC' || !can('team.view')) return;
+    const load = () => dataService.getInterventionTracking(intervention.id).then(setTracking).catch(() => {});
+    load();
+    const timer = setInterval(load, 10000);
+    return () => clearInterval(timer);
+  }, [intervention.id, internalProId, role]);
+
+  const timeAgo = (iso: string) => {
+    const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.round(seconds / 3600)} h ago`;
+    return new Date(iso).toLocaleString();
+  };
+  const isLocationFresh = !!tracking?.member?.location_updated_at
+    && Date.now() - new Date(tracking.member.location_updated_at).getTime() < 5 * 60 * 1000;
+
   const [photos, setPhotos] = useState<{ url: string, file?: File }[]>(
     (intervention.photos || []).map(url => ({ url }))
   );
@@ -560,6 +580,64 @@ const InterventionSlip: React.FC<SlipProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Team member on this intervention: who, assigned by whom, live position */}
+        {tracking?.member && (
+          <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                <User size={14} className="text-brand-green" /> {t.team_member || 'Team member'}
+              </p>
+              <div>
+                <p className="text-xl font-black text-white">{tracking.member.name}</p>
+                {tracking.member.phone && (
+                  <a href={`tel:${tracking.member.phone}`} className="text-sm text-zinc-400 flex items-center gap-1.5 mt-1 hover:text-brand-green">
+                    <Smartphone size={12} /> {tracking.member.phone}
+                  </a>
+                )}
+              </div>
+              {tracking.assigned_by && (
+                <div>
+                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.assigned_by || 'Assigned by'}</p>
+                  <p className="text-sm font-bold text-zinc-300">
+                    {tracking.assigned_by.name}
+                    {tracking.assigned_at && <span className="text-zinc-500 font-medium"> · {new Date(tracking.assigned_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>}
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-zinc-500 flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${isLocationFresh ? 'bg-brand-green animate-pulse' : 'bg-zinc-600'}`}></span>
+                {tracking.member.location_updated_at
+                  ? `${t.location_updated || 'Location updated'} ${timeAgo(tracking.member.location_updated_at)}`
+                  : (t.location_unknown || 'No location shared yet')}
+              </p>
+            </div>
+            {tracking.member.latitude != null && tracking.member.longitude != null ? (
+              <div className="space-y-2">
+                <div className="h-48 rounded-xl overflow-hidden border border-zinc-800">
+                  <iframe
+                    title="team-member-location"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    style={{ border: 0 }}
+                    src={`https://maps.google.com/maps?q=${tracking.member.latitude},${tracking.member.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                  ></iframe>
+                </div>
+                <button
+                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${tracking.member.latitude},${tracking.member.longitude}`, '_blank')}
+                  className="w-full py-2.5 rounded-xl bg-brand-green/10 text-brand-green border border-brand-green/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-green hover:text-brand-black transition-all"
+                >
+                  <MapPin size={14} /> {t.open_in_maps || 'Open in Google Maps'}
+                </button>
+              </div>
+            ) : (
+              <div className="h-48 rounded-xl border border-dashed border-zinc-800 flex items-center justify-center text-sm text-zinc-600">
+                {t.location_unknown || 'No location shared yet'}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* CONTACT SUR PLACE - INTERVENTION SPECIFIC */}
         <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 relative overflow-hidden">

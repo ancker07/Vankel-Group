@@ -51,6 +51,7 @@ Route::get('/interventions/{id}', [InterventionController::class, 'getInterventi
 Route::put('/interventions/{id}', [InterventionController::class, 'updateIntervention'])->middleware('permission:interventions.update');
 Route::post('/interventions/{id}/send-report', [InterventionController::class, 'sendReport'])->middleware('permission:interventions.send_report');
 Route::get('/interventions/{id}/assignments', [TeamController::class, 'interventionAssignments'])->middleware('permission:interventions.view');
+Route::get('/interventions/{id}/tracking', [TeamController::class, 'interventionTracking'])->middleware('permission:team.view');
 
 // Buildings & syndic companies
 Route::get('/buildings', [InterventionController::class, 'getBuildings'])->middleware('permission:buildings.view');

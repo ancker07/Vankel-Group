@@ -16,7 +16,9 @@ class NotificationService
 
     public function __construct()
     {
-        $this->serviceAccountPath = base_path('public/vankelgroup.json');
+        $this->serviceAccountPath = file_exists(base_path('public/vanakelgroup.json'))
+            ? base_path('public/vanakelgroup.json')
+            : base_path('public/vankelgroup.json');
         
         if (file_exists($this->serviceAccountPath)) {
             $json = json_decode(file_get_contents($this->serviceAccountPath), true);
@@ -157,6 +159,11 @@ class NotificationService
         if ($response->successful()) {
             Log::info('FCM: Notification sent successfully to target: ' . json_encode($target));
             return true;
+        }
+
+        // Token no longer valid (app uninstalled / reinstalled): stop sending to it
+        if (isset($target['token']) && ($response->status() === 404 || str_contains($response->body(), 'UNREGISTERED'))) {
+            User::where('fcm_token', $target['token'])->update(['fcm_token' => null]);
         }
 
         Log::error('FCM API Error (' . $response->status() . '): ' . $response->body());

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -12,10 +13,14 @@ class RoleController extends Controller
     /**
      * All roles with their permissions and number of users.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $actor = $request->user();
+
         $roles = Role::with('permissions:id,key')->withCount('users')->orderByDesc('is_system')->orderBy('label')->get()
             ->map(fn (Role $role) => [
+                'assignable' => $actor->canAssignRole($role),
+                'full' => User::roleLimitReached($role->name) !== null,
                 'id' => $role->id,
                 'name' => $role->name,
                 'label' => $role->label,

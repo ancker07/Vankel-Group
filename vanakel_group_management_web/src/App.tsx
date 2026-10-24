@@ -686,9 +686,10 @@ const App: React.FC = () => {
         // Refresh allUsers and stats too
         refreshGlobalData(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create admin', error);
-      addToast('Error', 'Failed to create admin account.');
+      const data = error?.response?.data;
+      addToast('Error', data?.message || Object.values(data?.errors || {}).flat()[0] as string || 'Failed to create admin account.');
     }
   };
 

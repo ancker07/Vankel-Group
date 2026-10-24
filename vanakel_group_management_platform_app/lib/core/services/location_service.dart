@@ -9,10 +9,10 @@ import '../api/api_constants.dart';
 /// (Android foreground service with a notification / iOS background location).
 class LocationService {
   /// Minimum time between two uploads, to save battery and requests.
-  static const Duration minUploadInterval = Duration(minutes: 2);
+  static const Duration minUploadInterval = Duration(seconds: 15);
 
   /// Only report a new position after moving this many meters.
-  static const int distanceFilterMeters = 50;
+  static const int distanceFilterMeters = 10;
 
   final Dio _dio;
   StreamSubscription<Position>? _subscription;

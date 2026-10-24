@@ -13,6 +13,8 @@ interface RoleRow {
     portal: 'admin' | 'syndic';
     is_system: boolean;
     is_super_admin: boolean;
+    assignable: boolean;
+    full: boolean;
     users_count: number;
     permissions: string[];
 }
@@ -77,7 +79,8 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
 
     useEffect(() => { load(); }, []);
 
-    const assignableRoles = roles.filter(r => !r.is_super_admin);
+    const assignableRoles = roles.filter(r => r.assignable);
+    const creatableRoles = assignableRoles.filter(r => !r.full);
 
     const filteredUsers = useMemo(() => users.filter(u =>
         `${u.name} ${u.email} ${u.role_label || u.role}`.toLowerCase().includes(search.toLowerCase())
@@ -198,7 +201,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         </div>
                         {can('users.create') && (
                             <button
-                                onClick={() => setUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', role: assignableRoles[0]?.name || '', companyName: '' })}
+                                onClick={() => { setError(''); setUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', role: creatableRoles[0]?.name || '', companyName: '' }); }}
                                 className="px-4 py-2.5 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2"
                             >
                                 <Plus size={16} /> {t.access_create_user || 'Create user'}
@@ -326,6 +329,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                 );
                             })}
                         </div>
+                        {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
                         <div className="flex gap-3">
                             <button onClick={() => setRoleForm(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
                             <button disabled={isSaving || !roleForm.label || (!roleForm.id && !roleForm.name)} onClick={saveRole} className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50">{t.save || 'Save'}</button>
@@ -359,10 +363,11 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                             <div className="space-y-1.5 col-span-2">
                                 <label className={labelClass}>{t.access_role || 'Role'}</label>
                                 <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} className={inputClass}>
-                                    {assignableRoles.map(r => <option key={r.name} value={r.name}>{r.label}</option>)}
+                                    {creatableRoles.map(r => <option key={r.name} value={r.name}>{r.label}</option>)}
                                 </select>
                             </div>
                         </div>
+                        {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
                         <p className="text-xs text-zinc-500">{t.access_password_note || 'Share this password with the user privately and ask them to change it after their first login.'}</p>
                         <div className="flex gap-3">
                             <button onClick={() => setUserForm(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
