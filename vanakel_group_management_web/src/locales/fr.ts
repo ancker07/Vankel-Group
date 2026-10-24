@@ -656,4 +656,19 @@ export default {
     from_label: 'De',
     technical_feedback_placeholder: 'Feedback technique ou observations...',
     no_technical_observations: 'Aucune observation technique enregistrée.',
+
+    // Suivi en direct – membre de l'équipe sur intervention
+    team_member: 'Membre de l\'équipe assigné',
+    assigned_by: 'Assigné par',
+    live_tracking: 'Suivi en direct',
+    live_position: 'Position en direct',
+    location_updated: 'Position mise à jour',
+    location_unknown: 'Aucune position partagée',
+    no_gps_signal: 'Signal GPS non disponible',
+    open_in_maps: 'Ouvrir dans Google Maps',
+    copy_coords: 'Copier les coordonnées',
+    coords_copied: 'Coordonnées copiées !',
+    tracking_refreshing: 'Actualisation automatique toutes les 10s',
+    tracking_no_member: 'Aucun membre assigné',
+    tracking_not_available: 'Suivi en direct non disponible pour cette intervention',
 };

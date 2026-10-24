@@ -107,13 +107,35 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
   // Live position of the assigned team member, refreshed every 10 seconds
   const [tracking, setTracking] = useState<any>(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState(false);
+  const [coordsCopied, setCoordsCopied] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
   useEffect(() => {
     if (role === 'SYNDIC' || !can('team.view')) return;
-    const load = () => dataService.getInterventionTracking(intervention.id).then(setTracking).catch(() => {});
+    const load = () => {
+      setTrackingLoading(true);
+      setTrackingError(false);
+      dataService.getInterventionTracking(intervention.id)
+        .then(data => {
+          setTracking(data);
+          setLastRefreshed(new Date());
+        })
+        .catch(() => setTrackingError(true))
+        .finally(() => setTrackingLoading(false));
+    };
     load();
     const timer = setInterval(load, 10000);
     return () => clearInterval(timer);
   }, [intervention.id, internalProId, role]);
+
+  const copyCoords = (lat: number, lng: number) => {
+    navigator.clipboard.writeText(`${lat}, ${lng}`).then(() => {
+      setCoordsCopied(true);
+      setTimeout(() => setCoordsCopied(false), 2000);
+    });
+  };
 
   const timeAgo = (iso: string) => {
     const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
@@ -581,61 +603,204 @@ const InterventionSlip: React.FC<SlipProps> = ({
           </div>
         </div>
 
-        {/* Team member on this intervention: who, assigned by whom, live position */}
-        {tracking?.member && (
-          <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <User size={14} className="text-brand-green" /> {t.team_member || 'Team member'}
-              </p>
-              <div>
-                <p className="text-xl font-black text-white">{tracking.member.name}</p>
-                {tracking.member.phone && (
-                  <a href={`tel:${tracking.member.phone}`} className="text-sm text-zinc-400 flex items-center gap-1.5 mt-1 hover:text-brand-green">
-                    <Smartphone size={12} /> {tracking.member.phone}
-                  </a>
+        {/* ====================================================
+             LIVE TRACKING — Team Member on this Intervention
+        ===================================================== */}
+        {!isSyndic && can('team.view') && (
+          <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden">
+            {/* Section Header */}
+            <div className="flex items-center justify-between px-5 md:px-8 pt-5 md:pt-6 pb-3 border-b border-zinc-900">
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  <MapPin size={16} className="text-brand-green" />
+                  {tracking?.member?.latitude != null && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-brand-green animate-ping" />
+                  )}
+                </div>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                  {t.live_tracking || 'Live Tracking'}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {lastRefreshed && (
+                  <p className="text-[9px] text-zinc-600 font-medium hidden md:block">
+                    {t.tracking_refreshing || 'Auto-refreshing every 10s'} · {t.location_updated || 'Updated'} {timeAgo(lastRefreshed.toISOString())}
+                  </p>
+                )}
+                {trackingLoading && (
+                  <Loader2 size={12} className="text-zinc-500 animate-spin" />
                 )}
               </div>
-              {tracking.assigned_by && (
-                <div>
-                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{t.assigned_by || 'Assigned by'}</p>
-                  <p className="text-sm font-bold text-zinc-300">
-                    {tracking.assigned_by.name}
-                    {tracking.assigned_at && <span className="text-zinc-500 font-medium"> · {new Date(tracking.assigned_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>}
-                  </p>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 md:p-8">
+              {trackingError ? (
+                /* Error state */
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-red-950/30 border border-red-900/40">
+                  <AlertCircle size={16} className="text-red-500 shrink-0" />
+                  <p className="text-sm text-red-400">{t.tracking_not_available || 'Live tracking not available for this intervention'}</p>
+                </div>
+              ) : tracking === null ? (
+                /* Initial loading state */
+                <div className="flex items-center gap-3 p-6 rounded-xl border border-dashed border-zinc-800">
+                  <Loader2 size={18} className="text-zinc-500 animate-spin" />
+                  <p className="text-sm text-zinc-500">Loading tracking data…</p>
+                </div>
+              ) : !tracking.member ? (
+                /* No member assigned */
+                <div className="flex items-center gap-3 p-5 rounded-xl border border-dashed border-zinc-800">
+                  <User size={16} className="text-zinc-600 shrink-0" />
+                  <p className="text-sm text-zinc-600">{t.tracking_no_member || 'No team member assigned'}</p>
+                </div>
+              ) : (
+                /* Member found — show full tracking card */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left: Member Info */}
+                  <div className="space-y-5">
+                    {/* Avatar + name */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-brand-green/10 border border-brand-green/20 flex items-center justify-center shrink-0">
+                        <User size={22} className="text-brand-green" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-0.5">
+                          {t.team_member || 'Assigned Team Member'}
+                        </p>
+                        <p className="text-xl font-black text-white truncate">{tracking.member.name}</p>
+                        {tracking.member.phone && (
+                          <a
+                            href={`tel:${tracking.member.phone}`}
+                            className="text-sm text-zinc-400 flex items-center gap-1.5 mt-1 hover:text-brand-green transition-colors"
+                          >
+                            <Smartphone size={12} />
+                            {tracking.member.phone}
+                          </a>
+                        )}
+                        {tracking.member.email && (
+                          <a
+                            href={`mailto:${tracking.member.email}`}
+                            className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5 hover:text-brand-green transition-colors"
+                          >
+                            <Mail size={11} />
+                            {tracking.member.email}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Assigned by */}
+                    {tracking.assigned_by && (
+                      <div className="bg-zinc-900 rounded-xl p-3.5 border border-zinc-800">
+                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">
+                          {t.assigned_by || 'Assigned by'}
+                        </p>
+                        <p className="text-sm font-bold text-zinc-200">{tracking.assigned_by.name}</p>
+                        {tracking.assigned_at && (
+                          <p className="text-[10px] text-zinc-500 mt-0.5">
+                            {new Date(tracking.assigned_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* GPS status badge */}
+                    <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border ${
+                      isLocationFresh
+                        ? 'bg-brand-green/10 border-brand-green/30'
+                        : tracking.member.latitude != null
+                          ? 'bg-orange-950/30 border-orange-900/40'
+                          : 'bg-zinc-900 border-zinc-800'
+                    }`}>
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                        isLocationFresh ? 'bg-brand-green animate-pulse' : tracking.member.latitude != null ? 'bg-orange-400' : 'bg-zinc-600'
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-xs font-bold ${
+                          isLocationFresh ? 'text-brand-green' : tracking.member.latitude != null ? 'text-orange-300' : 'text-zinc-500'
+                        }`}>
+                          {tracking.member.location_updated_at
+                            ? `${t.location_updated || 'Location updated'} ${timeAgo(tracking.member.location_updated_at)}`
+                            : (t.location_unknown || 'No location shared yet')}
+                        </p>
+                        {isLocationFresh && (
+                          <p className="text-[9px] text-brand-green/70 mt-0.5">
+                            {t.live_position || 'Live position'}
+                          </p>
+                        )}
+                        {!isLocationFresh && tracking.member.latitude != null && (
+                          <p className="text-[9px] text-orange-500/70 mt-0.5">
+                            Last known position (stale)
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Coordinate copy */}
+                    {tracking.member.latitude != null && tracking.member.longitude != null && (
+                      <button
+                        onClick={() => copyCoords(tracking.member.latitude, tracking.member.longitude)}
+                        className="flex items-center gap-2 text-xs text-zinc-500 hover:text-brand-green transition-colors"
+                      >
+                        <Eye size={12} />
+                        {coordsCopied
+                          ? (t.coords_copied || 'Coordinates copied!')
+                          : `${tracking.member.latitude.toFixed(5)}, ${tracking.member.longitude.toFixed(5)}`}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Right: Map */}
+                  <div className="space-y-2">
+                    {tracking.member.latitude != null && tracking.member.longitude != null ? (
+                      <>
+                        <div className="h-52 rounded-xl overflow-hidden border border-zinc-800 relative group">
+                          {/* Live indicator overlay */}
+                          <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-zinc-950/80 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-zinc-800">
+                            <span className={`w-1.5 h-1.5 rounded-full ${ isLocationFresh ? 'bg-brand-green animate-pulse' : 'bg-orange-400' }`} />
+                            <span className="text-[9px] font-black uppercase text-zinc-300 tracking-widest">
+                              {isLocationFresh ? 'LIVE' : 'LAST KNOWN'}
+                            </span>
+                          </div>
+                          {/* OpenStreetMap embed — no API key required */}
+                          <iframe
+                            title="team-member-location"
+                            width="100%"
+                            height="100%"
+                            frameBorder="0"
+                            style={{ border: 0, filter: 'invert(0.85) hue-rotate(180deg)' }}
+                            src={`https://www.openstreetmap.org/export/embed.html?bbox=${tracking.member.longitude - 0.005},${tracking.member.latitude - 0.003},${tracking.member.longitude + 0.005},${tracking.member.latitude + 0.003}&layer=mapnik&marker=${tracking.member.latitude},${tracking.member.longitude}`}
+                            allowFullScreen
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${tracking.member.latitude},${tracking.member.longitude}`, '_blank')}
+                            className="py-2.5 rounded-xl bg-brand-green/10 text-brand-green border border-brand-green/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-green hover:text-black transition-all"
+                          >
+                            <MapPin size={13} /> {t.open_in_maps || 'Google Maps'}
+                          </button>
+                          <button
+                            onClick={() => copyCoords(tracking.member.latitude, tracking.member.longitude)}
+                            className="py-2.5 rounded-xl bg-zinc-900 text-zinc-400 border border-zinc-800 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:border-zinc-600 hover:text-white transition-all"
+                          >
+                            <Eye size={13} /> {coordsCopied ? '✓ Copied' : (t.copy_coords || 'Copy coords')}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="h-52 rounded-xl border border-dashed border-zinc-800 flex flex-col items-center justify-center gap-3 bg-zinc-900/30">
+                        <MapPin size={28} className="text-zinc-700" />
+                        <div className="text-center">
+                          <p className="text-sm font-bold text-zinc-600">{t.no_gps_signal || 'GPS signal not available'}</p>
+                          <p className="text-xs text-zinc-700 mt-1">{t.location_unknown || 'No location shared yet'}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              <p className="text-xs text-zinc-500 flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isLocationFresh ? 'bg-brand-green animate-pulse' : 'bg-zinc-600'}`}></span>
-                {tracking.member.location_updated_at
-                  ? `${t.location_updated || 'Location updated'} ${timeAgo(tracking.member.location_updated_at)}`
-                  : (t.location_unknown || 'No location shared yet')}
-              </p>
             </div>
-            {tracking.member.latitude != null && tracking.member.longitude != null ? (
-              <div className="space-y-2">
-                <div className="h-48 rounded-xl overflow-hidden border border-zinc-800">
-                  <iframe
-                    title="team-member-location"
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    style={{ border: 0 }}
-                    src={`https://maps.google.com/maps?q=${tracking.member.latitude},${tracking.member.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                  ></iframe>
-                </div>
-                <button
-                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${tracking.member.latitude},${tracking.member.longitude}`, '_blank')}
-                  className="w-full py-2.5 rounded-xl bg-brand-green/10 text-brand-green border border-brand-green/20 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-brand-green hover:text-brand-black transition-all"
-                >
-                  <MapPin size={14} /> {t.open_in_maps || 'Open in Google Maps'}
-                </button>
-              </div>
-            ) : (
-              <div className="h-48 rounded-xl border border-dashed border-zinc-800 flex items-center justify-center text-sm text-zinc-600">
-                {t.location_unknown || 'No location shared yet'}
-              </div>
-            )}
           </div>
         )}
 

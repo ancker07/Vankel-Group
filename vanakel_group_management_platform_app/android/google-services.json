@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "744378933025",
+    "project_id": "vanakel-group-5cd15",
+    "storage_bucket": "vanakel-group-5cd15.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:744378933025:android:3e1a37d92856bc45bc2860",
+        "android_client_info": {
+          "package_name": "com.vanakelgroup.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKjbFZV_aYd-DtnP9AiUbQkuIW82H05FE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

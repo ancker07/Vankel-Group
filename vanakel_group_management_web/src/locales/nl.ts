@@ -659,4 +659,19 @@ export default {
     from_label: 'Van',
     technical_feedback_placeholder: 'Technische feedback of observaties...',
     no_technical_observations: 'Geen technische observaties vastgelegd.',
+
+    // Live tracking – teamlid op interventie
+    team_member: 'Toegewezen teamlid',
+    assigned_by: 'Toegewezen door',
+    live_tracking: 'Live tracking',
+    live_position: 'Live positie',
+    location_updated: 'Locatie bijgewerkt',
+    location_unknown: 'Nog geen locatie gedeeld',
+    no_gps_signal: 'GPS-signaal niet beschikbaar',
+    open_in_maps: 'Openen in Google Maps',
+    copy_coords: 'Coördinaten kopiëren',
+    coords_copied: 'Coördinaten gekopiëerd!',
+    tracking_refreshing: 'Automatisch vernieuwen elke 10s',
+    tracking_no_member: 'Geen teamlid toegewezen',
+    tracking_not_available: 'Live tracking niet beschikbaar voor deze interventie',
 };

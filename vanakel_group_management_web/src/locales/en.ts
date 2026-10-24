@@ -660,4 +660,19 @@ export default {
     from_label: 'From',
     technical_feedback_placeholder: 'Technical feedback or observations...',
     no_technical_observations: 'No technical observations recorded.',
+
+    // Live tracking – team member on intervention
+    team_member: 'Assigned Team Member',
+    assigned_by: 'Assigned by',
+    live_tracking: 'Live Tracking',
+    live_position: 'Live Position',
+    location_updated: 'Location updated',
+    location_unknown: 'No location shared yet',
+    no_gps_signal: 'GPS signal not available',
+    open_in_maps: 'Open in Google Maps',
+    copy_coords: 'Copy coordinates',
+    coords_copied: 'Coordinates copied!',
+    tracking_refreshing: 'Auto-refreshing every 10s',
+    tracking_no_member: 'No team member assigned',
+    tracking_not_available: 'Live tracking not available for this intervention',
 };
