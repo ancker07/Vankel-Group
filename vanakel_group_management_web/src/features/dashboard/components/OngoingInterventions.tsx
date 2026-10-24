@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar } from 'lucide-react';
-import { Intervention, Building, Syndic, Language, Document } from '@/types';
+import { Intervention, Building, Syndic, Language, Document, User as UserType } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
@@ -266,20 +266,26 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                         </div>
                                     )}
 
-                                    <div className="mt-auto space-y-2 pt-4 border-t border-zinc-900/50">
-                                        <div className="flex items-center gap-2 text-xs text-zinc-400">
-                                            <ShieldCheck size={12} className="text-zinc-600 shrink-0" />
-                                            <span className="truncate">{s?.companyName || i.extractedSyndicName || t.unassigned}</span>
-                                        </div>
-                                        {(i.onSiteContactName || (b?.tenants && b.tenants.length > 0)) && (
-                                            <div className="flex items-center gap-2 text-xs text-zinc-400">
-                                                <User size={12} className="text-zinc-600 shrink-0" />
-                                                <span className="truncate">
-                                                    {i.onSiteContactName || `${b?.tenants[0].firstName} ${b?.tenants[0].lastName}`}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
+<div className="mt-auto space-y-2 pt-4 border-t border-zinc-900/50">
+                                         {i.professional && (
+                                             <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                                 <User size={12} className="text-brand-green shrink-0" />
+                                                 <span className="truncate font-medium text-brand-green">{i.professional.name}</span>
+                                             </div>
+                                         )}
+                                         <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                             <ShieldCheck size={12} className="text-zinc-600 shrink-0" />
+                                             <span className="truncate">{s?.companyName || i.extractedSyndicName || t.unassigned}</span>
+                                         </div>
+                                         {(i.onSiteContactName || (b?.tenants && b.tenants.length > 0)) && (
+                                             <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                                 <User size={12} className="text-zinc-600 shrink-0" />
+                                                 <span className="truncate">
+                                                     {i.onSiteContactName || `${b?.tenants[0].firstName} ${b?.tenants[0].lastName}`}
+                                                 </span>
+                                             </div>
+                                         )}
+                                     </div>
                                     <div className="pt-4 mt-4 border-t border-zinc-900/50">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-brand-green flex items-center gap-1 group-hover:gap-2 transition-all">
                                             {t.viewSlip || 'VIEW SLIP'} <ChevronRight size={12} />

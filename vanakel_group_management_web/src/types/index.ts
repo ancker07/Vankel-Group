@@ -89,6 +89,15 @@ export interface Syndic {
   address: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role?: string;
+  company_name?: string;
+}
+
 export interface Intervention {
   id: string;
   buildingId: string;
@@ -109,6 +118,7 @@ export interface Intervention {
   photos: string[]; // Photos are stored separately and NOT included in PDF reports
   documents: Document[]; // Documents are stored separately and NOT included in PDF reports
   proId: string;
+  professional?: User;
   signature?: string;
   completedAt?: string;
   adminFeedback?: string;
