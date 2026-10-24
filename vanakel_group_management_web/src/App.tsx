@@ -304,6 +304,14 @@ const App: React.FC = () => {
             };
           }),
           proId: String(i.pro_id || i.professional_id || ''),
+          professional: i.professional ? {
+            id: String(i.professional.id),
+            name: i.professional.name,
+            email: i.professional.email,
+            phone: i.professional.phone,
+            role: i.professional.role,
+            company_name: i.professional.company_name,
+          } : undefined,
           urgency: i.urgency as Urgency,
           onSiteContactName: i.on_site_contact_name,
           onSiteContactPhone: i.on_site_contact_phone,
