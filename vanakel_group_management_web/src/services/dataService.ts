@@ -58,6 +58,10 @@ export const dataService = {
         const response = await apiClient.put(`/users/${id}/role`, { role });
         return response.data;
     },
+    resetUserPassword: async (id: string, password: string) => {
+        const response = await apiClient.post(`/users/${id}/reset-password`, { password });
+        return response.data;
+    },
     getTeam: async () => {
         const response = await apiClient.get('/team');
         return response.data;

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { KeyRound, Users, Plus, Pencil, Trash2, X, ShieldCheck, Lock, Search } from 'lucide-react';
+import { KeyRound, Users, Plus, Pencil, Trash2, X, ShieldCheck, Lock, Search, RotateCcw } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { TRANSLATIONS } from '@/utils/constants';
 import { Language } from '@/types';
@@ -56,6 +56,8 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
     const [roleForm, setRoleForm] = useState<Partial<RoleRow> | null>(null);
     const [userForm, setUserForm] = useState<Record<string, string> | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<RoleRow | null>(null);
+    const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
+    const [newPassword, setNewPassword] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     const load = async () => {
@@ -145,6 +147,21 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
         }
     };
 
+    const resetPassword = async () => {
+        if (!resetPasswordUser || newPassword.length < 8) return;
+        setIsSaving(true);
+        setError('');
+        try {
+            await dataService.resetUserPassword(String(resetPasswordUser.id), newPassword);
+            setResetPasswordUser(null);
+            setNewPassword('');
+        } catch (e) {
+            setError(errorMessage(e));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const togglePermission = (key: string) => {
         if (!roleForm) return;
         const current = roleForm.permissions || [];
@@ -215,14 +232,25 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                     <p className="font-bold text-white truncate">{u.name}</p>
                                     <p className="text-xs text-zinc-500 truncate">{u.email}{u.phone ? ` · ${u.phone}` : ''} · {u.status}</p>
                                 </div>
-                                {can('users.update') ? (
-                                    <select value={u.role} onChange={e => changeUserRole(u, e.target.value)} className={`${inputClass} md:w-56`}>
-                                        {!roles.some(r => r.name === u.role) && <option value={u.role}>{u.role_label || u.role}</option>}
-                                        {assignableRoles.map(r => <option key={r.name} value={r.name}>{r.label}</option>)}
-                                    </select>
-                                ) : (
-                                    <span className="px-2 py-1 rounded text-[10px] font-black uppercase bg-brand-green/10 text-brand-green border border-brand-green/20">{u.role_label || u.role}</span>
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {can('users.update') ? (
+                                        <select value={u.role} onChange={e => changeUserRole(u, e.target.value)} className={`${inputClass} md:w-56`}>
+                                            {!roles.some(r => r.name === u.role) && <option value={u.role}>{u.role_label || u.role}</option>}
+                                            {assignableRoles.map(r => <option key={r.name} value={r.name}>{r.label}</option>)}
+                                        </select>
+                                    ) : (
+                                        <span className="px-2 py-1 rounded text-[10px] font-black uppercase bg-brand-green/10 text-brand-green border border-brand-green/20">{u.role_label || u.role}</span>
+                                    )}
+                                    {can('users.update') && (
+                                        <button
+                                            onClick={() => { setError(''); setNewPassword(''); setResetPasswordUser(u); }}
+                                            className="p-2.5 rounded-xl text-zinc-400 hover:text-brand-green hover:bg-zinc-900 border border-zinc-800 shrink-0"
+                                            title={t.access_reset_password || 'Reset password'}
+                                        >
+                                            <RotateCcw size={16} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         ))}
                         {filteredUsers.length === 0 && <p className="p-8 text-center text-zinc-600 text-sm">{t.access_no_users || 'No users found.'}</p>}
@@ -378,6 +406,29 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                             >
                                 {t.access_create_user || 'Create user'}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Reset password */}
+            {resetPasswordUser && (
+                <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-black text-white uppercase">{t.access_reset_password || 'Reset password'}</h3>
+                            <button onClick={() => setResetPasswordUser(null)} className="text-zinc-500 hover:text-white"><X size={20} /></button>
+                        </div>
+                        <p className="text-sm text-zinc-400">{resetPasswordUser.name} · {resetPasswordUser.email}</p>
+                        <div className="space-y-1.5">
+                            <label className={labelClass}>{t.access_new_password || 'New password (min. 8)'}</label>
+                            <input type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className={inputClass} />
+                        </div>
+                        {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
+                        <p className="text-xs text-zinc-500">{t.access_reset_password_note || 'This signs the user out everywhere. Share the new password with them privately.'}</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setResetPasswordUser(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
+                            <button disabled={isSaving || newPassword.length < 8} onClick={resetPassword} className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50">{t.save || 'Save'}</button>
                         </div>
                     </div>
                 </div>

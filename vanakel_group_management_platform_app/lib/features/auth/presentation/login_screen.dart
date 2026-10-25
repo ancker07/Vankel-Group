@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/presentation/providers/auth_state_provider.dart';
@@ -214,16 +213,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
-
-                const SizedBox(height: 12),
-
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => context.push('/forgot-password'),
-                    child: Text(l10n.forgotPassword),
-                  ),
-                ).animate().fadeIn(delay: 300.ms),
 
                 const SizedBox(height: 32),
 

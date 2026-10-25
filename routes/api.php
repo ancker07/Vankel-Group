@@ -100,6 +100,7 @@ Route::post('/superadmin/admins', [AuthController::class, 'storeAdmin'])->middle
 Route::post('/users/{id}/approve', [AuthController::class, 'approveUser'])->middleware('permission:users.update');
 Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser'])->middleware('permission:users.update');
 Route::put('/users/{id}/role', [AuthController::class, 'updateUserRole'])->middleware('permission:users.update');
+Route::post('/users/{id}/reset-password', [AuthController::class, 'resetPassword'])->middleware('permission:users.update');
 
 // Roles & permissions (the role list is also needed by the "create user" form)
 Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:roles.manage,users.create,users.update');

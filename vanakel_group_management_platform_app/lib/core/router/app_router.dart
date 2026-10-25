@@ -9,7 +9,6 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
 import '../../features/auth/presentation/otp_screen.dart';
-import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/dashboard/admin_dashboard/admin_dashboard.dart';
 import '../../features/dashboard/syndic_dashboard/syndic_dashboard.dart';
 import '../../features/mission/presentation/missions_screen.dart';
@@ -51,12 +50,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isOnboarding = state.uri.path == '/onboarding';
       final isLoginPage = state.uri.path == '/login';
       final isRegisterPage = state.uri.path == '/register';
-      final isForgotPasswordPage = state.uri.path == '/forgot-password';
       final isOtpPage = state.uri.path == '/otp';
       final isWaitingApprovalPage = state.uri.path == '/waiting-approval';
 
       final isAuthPage =
-          isOnboarding || isLoginPage || isRegisterPage || isForgotPasswordPage || isOtpPage;
+          isOnboarding || isLoginPage || isRegisterPage || isOtpPage;
 
       // 0. Splash State: Only force Splash Screen if we are in the initial state 
       // AND not already authenticated (to avoid loops during refreshes)
@@ -136,10 +134,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
-      ),
-      GoRoute(
-        path: '/forgot-password',
-        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(

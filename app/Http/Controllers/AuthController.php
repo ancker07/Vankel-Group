@@ -145,6 +145,25 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'message' => 'Role updated.', 'user' => $user]);
     }
 
+    /** Admin sets a new password for a user (requires users.update). Self-service reset is disabled. */
+    public function resetPassword(Request $request, $id)
+    {
+        $request->validate(['password' => 'required|string|min:8']);
+
+        $actor = $request->user();
+        $user = User::findOrFail($id);
+
+        if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
+            return response()->json(['success' => false, 'message' => 'The super admin\'s password can only be reset by a super admin.'], 403);
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+        // Sign the user out everywhere so the old password stops working immediately
+        $user->tokens()->delete();
+
+        return response()->json(['success' => true, 'message' => 'Password reset.']);
+    }
+
     public function getPendingUsers()
     {
         $users = User::where('status', 'PENDING')
