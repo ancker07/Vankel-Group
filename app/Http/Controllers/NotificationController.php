@@ -25,16 +25,6 @@ class NotificationController extends Controller
     public function getUserNotifications(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            // If they are calling by email in some cases (mobile app sometimes does this if not using sanctum properly yet)
-            if ($request->has('email')) {
-                $user = User::where('email', $request->email)->first();
-            }
-        }
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
 
         // Get notifications specific to user OR to their role
         $notifications = Notification::where(function($query) use ($user) {
@@ -52,9 +42,19 @@ class NotificationController extends Controller
     /**
      * Mark a notification as read.
      */
-    public function markAsRead($id)
+    public function markAsRead(Request $request, $id)
     {
+        $user = $request->user();
         $notification = Notification::findOrFail($id);
+
+        $ownsIt = $notification->user_id === $user->id
+            || ($notification->user_id === null && $notification->role === $user->role)
+            || ($notification->user_id === null && $notification->role === null);
+
+        if (!$ownsIt) {
+            return response()->json(['message' => 'Not found.'], 404);
+        }
+
         $notification->update(['is_read' => true]);
         return response()->json(['success' => true]);
     }
@@ -65,13 +65,6 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request)
     {
         $user = $request->user();
-        if (!$user && $request->has('email')) {
-            $user = User::where('email', $request->email)->first();
-        }
-
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
 
         Notification::where('user_id', $user->id)
             ->orWhere('role', $user->role)

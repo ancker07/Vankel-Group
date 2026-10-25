@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/notification_navigator.dart';
+import '../../auth/presentation/providers/auth_state_provider.dart';
 import 'providers/notification_provider.dart';
 import '../domain/entities/notification_item.dart';
 import 'package:intl/intl.dart';
@@ -94,6 +97,12 @@ class _NotificationTile extends ConsumerWidget {
         if (!item.isRead) {
           ref.read(notificationProvider.notifier).markAsRead(item.id);
         }
+        navigateForNotificationData(
+          GoRouter.of(context),
+          ref.read(authStateProvider).user,
+          item.type,
+          item.data,
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(16),

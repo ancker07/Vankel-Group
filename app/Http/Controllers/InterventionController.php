@@ -330,9 +330,11 @@ class InterventionController extends Controller
                         $title = "Mission Approved!";
                         $body = "Your mission '{$mission->title}' has been approved.";
 
+                        $data = ['type' => 'intervention', 'intervention_id' => $intervention->id];
+
                         if ($syndic->fcm_token) {
                             try {
-                                $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                                $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body, $data);
                             } catch (\Exception $e) {}
                         }
 
@@ -341,7 +343,7 @@ class InterventionController extends Controller
                             'title' => $title,
                             'body' => $body,
                             'type' => 'intervention',
-                            'data' => ['intervention_id' => $intervention->id]
+                            'data' => $data
                         ]);
                     }
                 }
@@ -366,13 +368,16 @@ class InterventionController extends Controller
 
         // Notify Syndic about Rejection
         if ($mission->syndic_id) {
-            $syndic = User::find($mission->syndic_id);
+            $syndic = User::where('id', $mission->syndic_id)->where('role', 'SYNDIC')->first();
             if ($syndic) {
                 $title = "Mission Rejected";
                 $body = "Your mission '{$mission->title}' was unfortunately rejected.";
+                $data = ['type' => 'mission', 'mission_id' => $mission->id];
 
                 if ($syndic->fcm_token) {
-                    $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                    try {
+                        $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body, $data);
+                    } catch (\Exception $e) {}
                 }
 
                 Notification::createWithTranslation([
@@ -380,7 +385,7 @@ class InterventionController extends Controller
                     'title' => $title,
                     'body' => $body,
                     'type' => 'mission',
-                    'data' => ['mission_id' => $mission->id]
+                    'data' => $data
                 ]);
             }
         }
@@ -549,9 +554,12 @@ class InterventionController extends Controller
                 if ($syndic) {
                     $title = "Intervention Update";
                     $body = "The status of '{$intervention->title}' has changed to {$updateData['status']}.";
+                    $data = ['type' => 'intervention', 'intervention_id' => $intervention->id];
 
                     if ($syndic->fcm_token) {
-                        $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body);
+                        try {
+                            $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body, $data);
+                        } catch (\Exception $e) {}
                     }
 
                     Notification::createWithTranslation([
@@ -559,7 +567,7 @@ class InterventionController extends Controller
                         'title' => $title,
                         'body' => $body,
                         'type' => 'intervention',
-                        'data' => ['intervention_id' => $intervention->id]
+                        'data' => $data
                     ]);
                 }
             }

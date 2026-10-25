@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +19,10 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   Function? onNotificationUpdate;
+
+  /// Called when the user taps a notification (system push or local) to open
+  /// the app. Receives the notification's `data` payload for deep-linking.
+  Function(Map<String, dynamic>)? onNotificationTap;
 
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'high_importance_channel',
@@ -62,6 +67,14 @@ class NotificationService {
           print('Notification clicked: ${details.payload}');
         }
         onNotificationUpdate?.call();
+        if (details.payload != null && details.payload!.isNotEmpty) {
+          try {
+            final data = Map<String, dynamic>.from(jsonDecode(details.payload!));
+            onNotificationTap?.call(data);
+          } catch (e) {
+            if (kDebugMode) print('Failed to parse notification payload: $e');
+          }
+        }
       },
     );
 
@@ -83,6 +96,7 @@ class NotificationService {
         print('Notification clicked (background): ${message.notification?.title}');
       }
       onNotificationUpdate?.call();
+      onNotificationTap?.call(message.data);
     });
 
     // Check if app was opened from a terminated state via a notification
@@ -94,6 +108,7 @@ class NotificationService {
       // Delay call slightly to ensure UI is ready to navigate/refresh
       Future.delayed(const Duration(milliseconds: 500), () {
         onNotificationUpdate?.call();
+        onNotificationTap?.call(initialMessage.data);
       });
     }
 
@@ -134,7 +149,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
     }
   }

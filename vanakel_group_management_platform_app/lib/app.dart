@@ -8,6 +8,7 @@ import 'core/providers/locale_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/location_service.dart';
 import 'core/api/dio_client.dart';
+import 'core/utils/notification_navigator.dart';
 import 'features/auth/presentation/providers/auth_state_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 
@@ -51,6 +52,13 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
         ref.read(notificationProvider.notifier).fetchNotifications();
       }
     };
+    NotificationService().onNotificationTap = (data) {
+      if (!mounted) return;
+      final router = ref.read(routerProvider);
+      final user = ref.read(authStateProvider).user;
+      final type = data['type'] as String? ?? '';
+      navigateForNotificationData(router, user, type, data);
+    };
   }
 
   @override
@@ -58,6 +66,7 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
     WidgetsBinding.instance.removeObserver(this);
     _locationService.stop();
     NotificationService().onNotificationUpdate = null;
+    NotificationService().onNotificationTap = null;
     super.dispose();
   }
 

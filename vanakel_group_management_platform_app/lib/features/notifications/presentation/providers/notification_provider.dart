@@ -1,21 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/api/dio_client.dart';
-import '../../../../core/services/auth_token_service.dart';
 import '../../domain/entities/notification_item.dart';
 
 class NotificationNotifier extends Notifier<AsyncValue<List<NotificationItem>>> {
   late Dio _dio;
-  late AuthTokenService _tokenService;
 
   @override
   AsyncValue<List<NotificationItem>> build() {
     _dio = ref.watch(dioProvider);
-    _tokenService = ref.watch(authTokenServiceProvider);
-    
+
     // Auto-fetch on initialization
     Future.microtask(() => fetchNotifications());
-    
+
     return const AsyncValue.loading();
   }
 
@@ -27,9 +24,8 @@ class NotificationNotifier extends Notifier<AsyncValue<List<NotificationItem>>> 
     }
     
     try {
-      final email = _tokenService.getEmail();
-      final response = await _dio.get('/notifications', queryParameters: {'email': email});
-      
+      final response = await _dio.get('/notifications');
+
       final List<dynamic> data = response.data;
       final notifications = data.map((json) => NotificationItem.fromJson(json)).toList();
       
@@ -71,9 +67,8 @@ class NotificationNotifier extends Notifier<AsyncValue<List<NotificationItem>>> 
 
   Future<void> markAllAsRead() async {
     try {
-      final email = _tokenService.getEmail();
-      await _dio.post('/notifications/read-all', data: {'email': email});
-      
+      await _dio.post('/notifications/read-all');
+
       if (state.hasValue) {
         final currentList = state.value!;
         final updatedList = currentList.map((n) {
