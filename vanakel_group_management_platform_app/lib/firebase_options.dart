@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -53,10 +50,18 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDKtEv9cPmz1Mzjt3V8w62uWNhIiXl1qh4',
-    appId: '1:995287833944:android:078d6ab5222f3bace7d92d',
-    messagingSenderId: '995287833944',
-    projectId: 'vanakel-group',
-    storageBucket: 'vanakel-group.firebasestorage.app',
+    apiKey: 'AIzaSyBKjbFZV_aYd-DtnP9AiUbQkuIW82H05FE',
+    appId: '1:744378933025:android:3e1a37d92856bc45bc2860',
+    messagingSenderId: '744378933025',
+    projectId: 'vanakel-group-5cd15',
+    storageBucket: 'vanakel-group-5cd15.firebasestorage.app',
+  );
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyCK4rrJumAqCLqmDa-k1HiOQtc81rwYMts',
+    appId: '1:744378933025:ios:876d843bf7c67528bc2860',
+    messagingSenderId: '744378933025',
+    projectId: 'vanakel-group-5cd15',
+    storageBucket: 'vanakel-group-5cd15.firebasestorage.app',
+    iosBundleId: 'com.vanakelgroup.app',
   );
 }
