@@ -33,8 +33,7 @@ class MissionDetailsScreen extends ConsumerWidget {
           missionAsync.when(
             data: (mission) {
               final isEditable = (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview);
-              final canEdit = (authState.user?.role == UserRole.admin && isEditable) || 
-                             (authState.user?.role == UserRole.syndic && isEditable);
+              final canEdit = isEditable && (authState.user?.can('missions.update') ?? false);
               
               if (!canEdit) return const SizedBox.shrink();
               

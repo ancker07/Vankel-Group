@@ -77,22 +77,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 1. Authenticated: Move away from Auth/Splash pages to Dashboard
       if (authState.status == AuthStatus.authenticated) {
         if (isAuthPage || isSplashScreen) {
-          if (authState.user?.role == UserRole.admin) {
-            if (authState.user?.isApproved != true) {
-              return '/waiting-approval';
-            }
-            return '/admin/dashboard';
-          } else if (authState.user?.role == UserRole.syndic) {
-            if (authState.user?.isApproved != true) {
-              return '/waiting-approval';
-            }
-            return '/syndic/dashboard';
-          } else if (authState.user?.role == UserRole.technician) {
-            if (authState.user?.isApproved != true) {
-              return '/waiting-approval';
-            }
-            return '/technician/dashboard';
+          if (authState.user?.isApproved != true) {
+            return '/waiting-approval';
           }
+          return authState.user?.role == UserRole.syndic
+              ? '/syndic/dashboard'
+              : '/admin/dashboard';
         }
 
         // Handle unapproved redirection from any protected route
@@ -102,13 +92,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
         // Handle approved user moving away from waiting screen
         if (authState.user?.isApproved == true && isWaitingApprovalPage) {
-          if (authState.user?.role == UserRole.admin) {
-            return '/admin/dashboard';
-          } else if (authState.user?.role == UserRole.syndic) {
-            return '/syndic/dashboard';
-          } else {
-            return '/technician/dashboard';
-          }
+          return authState.user?.role == UserRole.syndic
+              ? '/syndic/dashboard'
+              : '/admin/dashboard';
         }
 
         return null;

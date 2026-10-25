@@ -29,16 +29,34 @@ class ScaffoldWithNavBar extends ConsumerWidget {
     final unreadCount =
         notificationsAsync.value?.where((n) => !n.isRead).length ?? 0;
 
+    final user = authState.user;
+    bool can(String permission) => user?.can(permission) ?? false;
+
+    // Branch index (fixed by the router's StatefulShellRoute) -> tab spec.
+    // Missions/Interventions are only offered if the user's role grants the
+    // matching permission; Dashboard and Profile are always available.
+    final tabs = [
+      _NavTab(branchIndex: 0, title: l10n.dashboard, visible: true,
+          icon: Icons.dashboard_outlined, selectedIcon: Icons.dashboard, label: l10n.dashboard),
+      _NavTab(branchIndex: 1, title: l10n.missions, visible: can('missions.view'),
+          icon: Icons.assignment_outlined, selectedIcon: Icons.assignment, label: l10n.missions),
+      _NavTab(branchIndex: 2, title: l10n.interventions, visible: can('interventions.view'),
+          icon: Icons.build_outlined, selectedIcon: Icons.build, label: l10n.interventions),
+      _NavTab(branchIndex: 3, title: l10n.profile, visible: true,
+          icon: Icons.person_outline, selectedIcon: Icons.person, label: l10n.profile),
+    ];
+    final visibleTabs = tabs.where((t) => t.visible).toList();
+    final currentTab = tabs.firstWhere(
+      (t) => t.branchIndex == navigationShell.currentIndex,
+      orElse: () => tabs.first,
+    );
+    var selectedIndex = visibleTabs.indexOf(currentTab);
+    if (selectedIndex == -1) selectedIndex = 0;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          navigationShell.currentIndex == 0
-              ? l10n.dashboard.toUpperCase()
-              : navigationShell.currentIndex == 1
-              ? l10n.missions.toUpperCase()
-              : navigationShell.currentIndex == 2
-              ? l10n.interventions.toUpperCase()
-              : l10n.profile.toUpperCase(),
+          currentTab.title.toUpperCase(),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w900,
@@ -121,7 +139,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
               ),
               decoration: const BoxDecoration(color: AppTheme.zinc900),
             ),
-            if (authState.user?.role == UserRole.admin) ...[
+            if (authState.user?.role == UserRole.admin && can('buildings.view'))
               _buildDrawerItem(
                 context,
                 icon: Icons.business_outlined,
@@ -132,6 +150,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 },
                 isSelected: location == '/admin/dashboard/management',
               ),
+            if (authState.user?.role == UserRole.admin && can('reports.view'))
               _buildDrawerItem(
                 context,
                 icon: Icons.assessment_outlined,
@@ -142,6 +161,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 },
                 isSelected: location == '/admin/dashboard/reports',
               ),
+            if (authState.user?.role == UserRole.admin && can('maintenance.view'))
               _buildDrawerItem(
                 context,
                 icon: Icons.settings_backup_restore_outlined,
@@ -152,7 +172,6 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 },
                 isSelected: location == '/admin/dashboard/maintenance',
               ),
-            ],
             // End of mission: completed missions, for everyone
             Builder(builder: (context) {
               final path = authState.user?.role == UserRole.syndic
@@ -185,43 +204,23 @@ class ScaffoldWithNavBar extends ConsumerWidget {
       ),
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
+        selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
+          final tab = visibleTabs[index];
           navigationShell.goBranch(
-            index,
-            initialLocation: index == navigationShell.currentIndex,
+            tab.branchIndex,
+            initialLocation: tab.branchIndex == navigationShell.currentIndex,
           );
         },
         backgroundColor: AppTheme.zinc950,
         indicatorColor: AppTheme.brandGreen.withOpacity(0.2),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.dashboard_outlined),
-            selectedIcon: const Icon(
-              Icons.dashboard,
-              color: AppTheme.brandGreen,
-            ),
-            label: l10n.dashboard,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.assignment_outlined),
-            selectedIcon: const Icon(
-              Icons.assignment,
-              color: AppTheme.brandGreen,
-            ),
-            label: l10n.missions,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.build_outlined),
-            selectedIcon: const Icon(Icons.build, color: AppTheme.brandGreen),
-            label: l10n.interventions,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person, color: AppTheme.brandGreen),
-            label: l10n.profile,
-          ),
-        ],
+        destinations: visibleTabs
+            .map((t) => NavigationDestination(
+                  icon: Icon(t.icon),
+                  selectedIcon: Icon(t.selectedIcon, color: AppTheme.brandGreen),
+                  label: t.label,
+                ))
+            .toList(),
       ),
     );
   }
@@ -252,4 +251,22 @@ class ScaffoldWithNavBar extends ConsumerWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );
   }
+}
+
+class _NavTab {
+  final int branchIndex;
+  final String title;
+  final bool visible;
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+
+  const _NavTab({
+    required this.branchIndex,
+    required this.title,
+    required this.visible,
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+  });
 }

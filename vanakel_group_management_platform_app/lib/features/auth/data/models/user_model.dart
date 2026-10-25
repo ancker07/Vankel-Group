@@ -23,8 +23,11 @@ class UserModel extends User {
       name: json['name'] as String,
       email: json['email'] as String,
       phone: json['phone'] as String? ?? '',
-      // Custom roles of the client app ("portal": "syndic") behave like syndics
-      role: json['portal'] == 'syndic' ? UserRole.syndic : _parseRole(json['role'] as String?),
+      // The backend only has two portals: 'syndic' (client app) and 'admin'
+      // (staff app). Any role the admin panel creates — built-in or custom —
+      // lands in one of these two; what that role can actually see is driven
+      // by `permissions`, not by its name.
+      role: json['portal'] == 'syndic' ? UserRole.syndic : UserRole.admin,
       bio: json['bio'] as String?,
       profileImageUrl:
           json['profile_image_url'] as String? ?? json['image_url'] as String?,
@@ -55,26 +58,6 @@ class UserModel extends User {
       'is_super_admin': isSuperAdmin,
       'permissions': permissions,
     };
-  }
-
-  static UserRole _parseRole(String? role) {
-    switch (role?.toUpperCase()) {
-      case 'ADMIN':
-      case 'SUPERADMIN':
-        return UserRole.admin;
-      case 'SYNDIC':
-        return UserRole.syndic;
-      case 'TECHNICIAN':
-        return UserRole.technician;
-      default:
-        // Try case-insensitive fallback for safety
-        final lowerRole = role?.toLowerCase();
-        if (lowerRole == 'admin' || lowerRole == 'superadmin')
-          return UserRole.admin;
-        if (lowerRole == 'syndic') return UserRole.syndic;
-        if (lowerRole == 'technician') return UserRole.technician;
-        return UserRole.technician; // Default role
-    }
   }
 
   User toEntity() {
