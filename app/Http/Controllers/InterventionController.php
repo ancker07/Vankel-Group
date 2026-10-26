@@ -160,6 +160,49 @@ class InterventionController extends Controller
         return response()->json(Syndic::all());
     }
 
+    /**
+     * Field workers (the PROFESSIONAL / TECHNICIAN role used by the mobile app)
+     * only get the work that is assigned to them. Dispatchers and admins still
+     * see everything so they can assign and manage the whole team.
+     */
+    private function isFieldWorker(?User $user): bool
+    {
+        return $user !== null
+            && !$user->isClient()
+            && in_array(strtoupper((string) $user->role), ['PROFESSIONAL', 'TECHNICIAN'], true);
+    }
+
+    /** Restrict a mission query to the missions assigned to this field worker. */
+    private function onlyAssignedMissions($query, User $user)
+    {
+        return $query->where('assigned_user_id', $user->id);
+    }
+
+    /** Restrict an intervention query to the interventions assigned to this field worker. */
+    private function onlyAssignedInterventions($query, User $user)
+    {
+        return $query->where(function ($q) use ($user) {
+            $q->where('pro_id', $user->id)
+              ->orWhereHas('assignments', function ($assignmentQuery) use ($user) {
+                  $assignmentQuery->where('user_id', $user->id)
+                                  ->whereNull('unassigned_at');
+              });
+        });
+    }
+
+    /** Whether this intervention is currently assigned to the given field worker. */
+    private function interventionBelongsTo(Intervention $intervention, User $user): bool
+    {
+        if ((int) $intervention->pro_id === (int) $user->id) {
+            return true;
+        }
+
+        return $intervention->assignments()
+            ->where('user_id', $user->id)
+            ->whereNull('unassigned_at')
+            ->exists();
+    }
+
     public function getMissions()
     {
         $user = auth('sanctum')->user();
@@ -174,6 +217,8 @@ class InterventionController extends Controller
                       $emailQuery->where('from_address', $user->email);
                   });
             });
+        } elseif ($this->isFieldWorker($user)) {
+            $this->onlyAssignedMissions($query, $user);
         }
 
         return response()->json($query->get());
@@ -192,6 +237,8 @@ class InterventionController extends Controller
                       $emailQuery->where('from_address', $user->email);
                   });
             });
+        } elseif ($this->isFieldWorker($user)) {
+            $this->onlyAssignedMissions($query, $user);
         }
         
         $mission = $query->findOrFail($id);
@@ -209,6 +256,8 @@ class InterventionController extends Controller
                 $q->where('syndic_id', $user->id)
                   ->orWhere('on_site_contact_email', $user->email);
             });
+        } elseif ($this->isFieldWorker($user)) {
+            $this->onlyAssignedInterventions($query, $user);
         }
 
         return response()->json($query->get());
@@ -224,6 +273,8 @@ class InterventionController extends Controller
                 $q->where('syndic_id', $user->id)
                   ->orWhere('on_site_contact_email', $user->email);
             });
+        } elseif ($this->isFieldWorker($user)) {
+            $this->onlyAssignedInterventions($query, $user);
         }
 
         $intervention = $query->findOrFail($id);
@@ -487,6 +538,14 @@ class InterventionController extends Controller
     public function updateIntervention(Request $request, $id)
     {
         $intervention = Intervention::findOrFail($id);
+
+        // A field worker can only update work that is assigned to them.
+        if ($this->isFieldWorker($request->user()) && !$this->interventionBelongsTo($intervention, $request->user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This intervention is not assigned to you.',
+            ], 403);
+        }
         
         $validated = $request->validate([
             'status' => 'sometimes|string',
