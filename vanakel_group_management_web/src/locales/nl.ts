@@ -288,6 +288,7 @@ export default {
     team_subtitle: 'Laatst bekende locatie van elk teamlid',
     team_no_location: 'Nog geen locatie gedeeld',
     team_last_seen: 'Laatst gezien',
+    assigned_to: 'Toegewezen aan',
     assign_to_user: 'Koppelen aan gebruiker (optioneel)',
     assign_none: '— Geen gebruiker —',
     assignment_history: 'Toewijzingsgeschiedenis',

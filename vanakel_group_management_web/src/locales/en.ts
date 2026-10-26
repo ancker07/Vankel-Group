@@ -197,6 +197,7 @@ export default {
     team_subtitle: 'Last known location of each team member',
     team_no_location: 'No location shared yet',
     team_last_seen: 'Last seen',
+    assigned_to: 'Assigned to',
     assign_to_user: 'Link to user (optional)',
     assign_none: '— No user —',
     assignment_history: 'Assignment history',

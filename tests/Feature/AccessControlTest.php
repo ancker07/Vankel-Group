@@ -16,8 +16,8 @@ class AccessControlTest extends TestCase
     private function makeUser(string $role, array $attrs = []): User
     {
         return User::create(array_merge([
-            'name' => $role . ' user',
-            'email' => strtolower($role) . uniqid() . '@test.com',
+            'name' => $role.' user',
+            'email' => strtolower($role).uniqid().'@test.com',
             'password' => 'password123',
             'role' => $role,
             'status' => 'APPROVED',
@@ -29,7 +29,7 @@ class AccessControlTest extends TestCase
         return array_merge([
             'firstName' => 'New',
             'lastName' => 'Person',
-            'email' => 'new' . uniqid() . '@test.com',
+            'email' => 'new'.uniqid().'@test.com',
             'password' => 'password123',
             'phone' => '0470000000',
             'role' => $role,
@@ -96,6 +96,20 @@ class AccessControlTest extends TestCase
         $response = $this->postJson('/api/login', ['email' => 'zain@test.com', 'password' => 'password123', 'role' => 'SUPERADMIN'])
             ->assertOk();
         $this->assertContains('users.create', $response->json('user.permissions'));
+    }
+
+    public function test_admin_gets_operational_and_user_management_permissions_but_cannot_create_users_or_roles(): void
+    {
+        $this->makeUser('ADMIN', ['email' => 'admin@test.com']);
+
+        $response = $this->postJson('/api/login', ['email' => 'admin@test.com', 'password' => 'password123', 'role' => 'ADMIN'])
+            ->assertOk();
+
+        $permissions = $response->json('user.permissions');
+        $this->assertContains('missions.approve', $permissions);
+        $this->assertContains('users.update', $permissions);
+        $this->assertNotContains('users.create', $permissions);
+        $this->assertNotContains('roles.manage', $permissions);
     }
 
     public function test_technician_cannot_complete_but_admin_can(): void

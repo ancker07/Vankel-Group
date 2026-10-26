@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -82,5 +84,35 @@ class PasswordResetTest extends TestCase
         $this->postJson("/api/users/{$target->id}/reset-password", ['password' => 'short'])
             ->assertStatus(422)
             ->assertJsonValidationErrors('password');
+    }
+
+    public function test_limited_user_manager_cannot_reset_a_more_privileged_user(): void
+    {
+        $role = Role::create(['name' => 'SUPPORT', 'label' => 'Support', 'portal' => 'admin']);
+        $role->permissions()->sync(Permission::where('key', 'users.update')->pluck('id'));
+
+        Sanctum::actingAs($this->makeUser('SUPPORT'));
+        $admin = $this->makeUser('ADMIN');
+
+        $this->postJson("/api/users/{$admin->id}/reset-password", ['password' => 'newpassword123'])
+            ->assertForbidden();
+
+        $this->assertTrue(Hash::check('password123', $admin->fresh()->password));
+    }
+
+    public function test_limited_user_manager_cannot_change_a_more_privileged_users_role_or_status(): void
+    {
+        $role = Role::create(['name' => 'SUPPORT', 'label' => 'Support', 'portal' => 'admin']);
+        $role->permissions()->sync(Permission::where('key', 'users.update')->pluck('id'));
+
+        Sanctum::actingAs($this->makeUser('SUPPORT'));
+        $admin = $this->makeUser('ADMIN');
+        $superadmin = $this->makeUser('SUPERADMIN');
+
+        $this->putJson("/api/users/{$admin->id}/role", ['role' => 'PROFESSIONAL'])->assertForbidden();
+        $this->postJson("/api/users/{$superadmin->id}/reject")->assertForbidden();
+
+        $this->assertSame('ADMIN', $admin->fresh()->role);
+        $this->assertSame('APPROVED', $superadmin->fresh()->status);
     }
 }

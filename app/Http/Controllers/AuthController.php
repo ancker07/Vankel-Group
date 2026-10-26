@@ -131,6 +131,9 @@ class AuthController extends Controller
         if ($user->id === $actor->id) {
             return response()->json(['success' => false, 'message' => 'You cannot change your own role.'], 422);
         }
+        if (!$actor->canManageUser($user)) {
+            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+        }
         if ($message = User::roleLimitReached($role->name, $user->id)) {
             return response()->json(['success' => false, 'message' => $message], 422);
         }
@@ -155,6 +158,9 @@ class AuthController extends Controller
 
         if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
             return response()->json(['success' => false, 'message' => 'The super admin\'s password can only be reset by a super admin.'], 403);
+        }
+        if (!$actor->canManageUser($user)) {
+            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
         }
 
         $user->update(['password' => Hash::make($request->password)]);
@@ -202,9 +208,12 @@ class AuthController extends Controller
         return response()->json($users);
     }
 
-    public function approveUser($id)
+    public function approveUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        if (!$request->user()->canManageUser($user)) {
+            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+        }
         $user->update(['status' => 'APPROVED']);
         
         $title = 'Account Approved!';
@@ -228,9 +237,12 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'message' => 'User approved', 'user' => $user]);
     }
 
-    public function rejectUser($id)
+    public function rejectUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        if (!$request->user()->canManageUser($user)) {
+            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+        }
         $user->update(['status' => 'REJECTED']);
 
         $title = 'Account Status Update';

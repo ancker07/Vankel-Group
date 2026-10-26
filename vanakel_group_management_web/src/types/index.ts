@@ -186,6 +186,8 @@ export interface Mission {
   title_fr?: string;
   title_nl?: string;
   proId?: string;
+  assignedUserId?: string;
+  assignedUser?: User;
   syndicId?: string;
   category: string;
   sector: Sector; // Mandatory

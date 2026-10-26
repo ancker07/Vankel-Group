@@ -554,12 +554,18 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 <p className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1.5">{t.pro}</p>
                 <p className="font-bold text-sm md:text-lg">{currentProfessional ? currentProfessional.companyName : t.unassigned}</p>
                 <p className="text-zinc-500 text-[10px] font-black uppercase mt-0.5">{currentProfessional ? currentProfessional.contactPerson : '-'}</p>
+                {currentProfessional?.email && (
+                  <p className="text-zinc-500 text-[10px] flex md:justify-end items-center gap-1.5 mt-1 break-all">
+                    <Mail size={10} /> {currentProfessional.email}
+                  </p>
+                )}
                 {assignments.length > 0 && (
                   <div className="mt-3 space-y-1">
                     <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t.assignment_history || 'Assignment history'}</p>
                     {assignments.map(a => (
                       <p key={a.id} className="text-[10px] text-zinc-500">
-                        <span className="font-bold text-zinc-300">{a.user?.name || '-'}</span>{' '}
+                        <span className="font-bold text-zinc-300">{a.user?.name || '-'}</span>
+                        {a.user?.email && <span className="text-zinc-600"> · {a.user.email}</span>}{' '}
                         {new Date(a.assigned_at).toLocaleDateString()} → {a.unassigned_at ? new Date(a.unassigned_at).toLocaleDateString() : '…'}
                         {a.assigned_by && <span className="text-zinc-600"> ({a.assigned_by.name})</span>}
                       </p>

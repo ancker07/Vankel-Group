@@ -205,6 +205,7 @@ export default {
     team_subtitle: 'Dernière position connue de chaque membre',
     team_no_location: 'Aucune position partagée',
     team_last_seen: 'Vu pour la dernière fois',
+    assigned_to: 'Assigné à',
     assign_to_user: 'Lier à un utilisateur (optionnel)',
     assign_none: '— Aucun utilisateur —',
     assignment_history: 'Historique des affectations',

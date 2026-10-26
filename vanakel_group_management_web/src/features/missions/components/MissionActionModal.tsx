@@ -9,7 +9,7 @@ interface MissionActionModalProps {
     mission: Mission;
     missionDate: string;
     setMissionDate: (date: string) => void;
-    assignableUsers?: { id: string; name: string; role: string }[];
+    assignableUsers?: { id: string; name: string; email?: string; role: string }[];
     assignedUserId?: string;
     setAssignedUserId?: (id: string) => void;
     onCancel: () => void;
@@ -30,6 +30,7 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
     t
 }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
+    const selectedAssignee = assignableUsers.find(u => u.id === assignedUserId);
 
     return (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -89,9 +90,16 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                         >
                             <option value="">{t.assign_none || '— No user —'}</option>
                             {assignableUsers.map(u => (
-                                <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                                <option key={u.id} value={u.id}>
+                                    {u.name}{u.email ? ` — ${u.email}` : ''} ({u.role})
+                                </option>
                             ))}
                         </select>
+                        {selectedAssignee && (
+                            <p className="text-[10px] text-zinc-500 break-all px-1">
+                                {selectedAssignee.name}{selectedAssignee.email ? ` · ${selectedAssignee.email}` : ''}
+                            </p>
+                        )}
                     </div>
                 )}
                 <div className="flex gap-3">

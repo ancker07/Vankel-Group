@@ -6,6 +6,7 @@ use App\Models\Email;
 use App\Models\Mission;
 use App\Services\AiService;
 use App\Services\EmailIngestionService;
+use App\Services\NotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Mockery;
@@ -47,7 +48,9 @@ class EmailIngestionSyndicTest extends TestCase
         $aiServiceMock->shouldReceive('extractEmailData')->andReturn($aiData);
 
         // 3. Run Ingestion
-        $service = new EmailIngestionService($aiServiceMock);
+        $notificationServiceMock = Mockery::mock(NotificationService::class);
+        $notificationServiceMock->shouldReceive('notifyNewMission')->andReturnNull();
+        $service = new EmailIngestionService($aiServiceMock, $notificationServiceMock);
         $result = $service->ingest($email);
 
         // 4. Verification
@@ -92,7 +95,9 @@ class EmailIngestionSyndicTest extends TestCase
         $aiServiceMock->shouldReceive('extractEmailData')->andReturn($aiData);
 
         // 3. Run Ingestion
-        $service = new EmailIngestionService($aiServiceMock);
+        $notificationServiceMock = Mockery::mock(NotificationService::class);
+        $notificationServiceMock->shouldReceive('notifyNewMission')->andReturnNull();
+        $service = new EmailIngestionService($aiServiceMock, $notificationServiceMock);
         $result = $service->ingest($email);
 
         // 4. Verification

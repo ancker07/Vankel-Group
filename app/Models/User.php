@@ -139,6 +139,15 @@ class User extends Authenticatable
         return $this->canGrant($role->permissionKeys());
     }
 
+    /**
+     * Prevent managing (role change, password reset, approve / reject) an
+     * account that currently has access the actor does not have.
+     */
+    public function canManageUser(User $target): bool
+    {
+        return $this->isSuperAdmin() || $this->canGrant($target->roleModel?->permissionKeys() ?? []);
+    }
+
     /** Users whose role grants a permission (super admins always included). */
     public function scopeWithPermission($query, string $key)
     {

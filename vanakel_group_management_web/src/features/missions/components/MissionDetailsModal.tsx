@@ -386,6 +386,27 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                 </div>
                             </section>
 
+                            {mission.assignedUser && (
+                                <section className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-5 space-y-3">
+                                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                                        <User size={14} /> {t.assigned_to || 'Assigned to'}
+                                    </h3>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-zinc-900/80 border border-zinc-800 flex items-center justify-center shrink-0">
+                                            <User size={16} className="text-zinc-500" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-bold text-white truncate">{mission.assignedUser.name}</p>
+                                            {mission.assignedUser.email && (
+                                                <a href={`mailto:${mission.assignedUser.email}`} className="text-[10px] text-zinc-400 hover:text-brand-green break-all flex items-center gap-1">
+                                                    <AtSign size={10} /> {mission.assignedUser.email}
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </section>
+                            )}
+
                         </div>
                     </div>
                 </div>

@@ -65,7 +65,8 @@ class AssignedWorkVisibilityTest extends TestCase
         $this->getJson('/api/missions')
             ->assertOk()
             ->assertJsonCount(1)
-            ->assertJsonPath('0.id', $mine->id);
+            ->assertJsonPath('0.id', $mine->id)
+            ->assertJsonPath('0.assigned_user.email', $professional->email);
 
         $this->getJson("/api/missions/{$mine->id}")->assertOk();
         $this->getJson("/api/missions/{$theirs->id}")->assertNotFound();

@@ -74,7 +74,7 @@ class PermissionCatalog
     public const DEFAULT_ROLES = [
         'SUPERADMIN' => ['Super admin', 'admin', ['*']],
         'ADMIN' => ['Admin', 'admin', [
-            'missions.view', 'missions.create', 'missions.update',
+            'missions.view', 'missions.create', 'missions.update', 'missions.approve',
             'interventions.view', 'interventions.create', 'interventions.update', 'interventions.send_report',
             'interventions.reopen', 'maintenance.view', 'maintenance.manage', 'buildings.view', 'reports.view',
             'emails.view', 'emails.manage', 'contacts.view', 'contacts.manage',

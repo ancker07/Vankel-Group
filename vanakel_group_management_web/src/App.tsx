@@ -242,6 +242,14 @@ const App: React.FC = () => {
           onSiteContactName: m.on_site_contact_name,
           onSiteContactPhone: m.on_site_contact_phone,
           onSiteContactEmail: m.on_site_contact_email,
+          assignedUserId: m.assigned_user_id ? String(m.assigned_user_id) : undefined,
+          assignedUser: m.assigned_user ? {
+            id: String(m.assigned_user.id),
+            name: m.assigned_user.name,
+            email: m.assigned_user.email,
+            phone: m.assigned_user.phone,
+            role: m.assigned_user.role
+          } : undefined,
           syndicId: String(m.syndic_id || ''),
           sourceType: m.source_type,
           sourceMessageId: m.source_message_id,
@@ -1353,7 +1361,7 @@ const App: React.FC = () => {
 
 
                 {missionActionModal && (
-                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), role: u.role }))} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
+                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), email: u.email, role: u.role }))} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
                 )}
                 {deletePlanId && (
                   <ConfirmationModal is onClose={() => setDeletePlanId(null)} onConfirm={handleDeleteMaintenance} title={t.confirmDeleteTitle || 'Confirm Deletion'} message={t.confirmDeleteMaintMsg || 'Delete this maintenance plan?'} confirmLabel={t.btnDelete || 'Delete'} cancelLabel={t.btnCancel || 'Cancel'} />
