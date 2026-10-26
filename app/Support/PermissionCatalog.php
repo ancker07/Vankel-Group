@@ -59,7 +59,7 @@ class PermissionCatalog
         'Users' => [
             'users.view' => 'View users',
             'users.create' => 'Create users',
-            'users.update' => 'Approve / reject users and change their role',
+            'users.update' => 'Approve / reject users, change their role and reset their password',
             'roles.manage' => 'Manage roles and permissions',
         ],
         'System' => [
@@ -78,7 +78,7 @@ class PermissionCatalog
             'interventions.view', 'interventions.create', 'interventions.update', 'interventions.send_report',
             'interventions.reopen', 'maintenance.view', 'maintenance.manage', 'buildings.view', 'reports.view',
             'emails.view', 'emails.manage', 'contacts.view', 'contacts.manage',
-            'team.view', 'location.share', 'users.view', 'ai.use',
+            'team.view', 'location.share', 'users.view', 'users.update', 'ai.use',
         ]],
         'PROFESSIONAL' => ['Technician', 'admin', [
             'missions.view', 'interventions.view', 'interventions.update',

@@ -244,10 +244,12 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                     {can('users.update') && (
                                         <button
                                             onClick={() => { setError(''); setNewPassword(''); setResetPasswordUser(u); }}
-                                            className="p-2.5 rounded-xl text-zinc-400 hover:text-brand-green hover:bg-zinc-900 border border-zinc-800 shrink-0"
-                                            title={t.access_reset_password || 'Reset password'}
+                                            className="px-3 py-2.5 rounded-xl text-zinc-400 hover:text-brand-green hover:bg-zinc-900 border border-zinc-800 shrink-0 flex items-center gap-2"
+                                            title={t.access_reset_password || 'Change password'}
+                                            aria-label={t.access_reset_password || 'Change password'}
                                         >
                                             <RotateCcw size={16} />
+                                            <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">{t.access_reset_password || 'Change password'}</span>
                                         </button>
                                     )}
                                 </div>
@@ -416,7 +418,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                 <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 space-y-4">
                         <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-black text-white uppercase">{t.access_reset_password || 'Reset password'}</h3>
+                            <h3 className="text-lg font-black text-white uppercase">{t.access_reset_password || 'Change password'}</h3>
                             <button onClick={() => setResetPasswordUser(null)} className="text-zinc-500 hover:text-white"><X size={20} /></button>
                         </div>
                         <p className="text-sm text-zinc-400">{resetPasswordUser.name} · {resetPasswordUser.email}</p>
