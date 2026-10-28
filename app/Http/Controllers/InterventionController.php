@@ -567,6 +567,18 @@ class InterventionController extends Controller
         $oldStatus = $intervention->status;
         $oldProId = $intervention->pro_id;
 
+        // Only admin/superadmin can change the intervention status
+        if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
+            $user = $request->user();
+            $isAdminOrSuperAdmin = $user && ($user->isSuperAdmin() || strtoupper((string) $user->role) === 'ADMIN');
+            if (!$isAdminOrSuperAdmin) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only administrators can update intervention status.',
+                ], 403);
+            }
+        }
+
         // A completed mission is locked: only roles with interventions.reopen (admin) may change it
         if ($oldStatus === 'COMPLETED' && !$request->user()->hasPermission('interventions.reopen')) {
             return response()->json([

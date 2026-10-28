@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/enums/user_role_enum.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
 import 'providers/intervention_provider.dart';
@@ -741,6 +742,11 @@ class _InterventionDetailsScreenState
   }
 
   Widget _buildStatusSection(Intervention i, AppLocalizations l10n) {
+    final user = ref.watch(authStateProvider).user;
+    final canChangeStatus = user != null &&
+        (user.isSuperAdmin || user.role == UserRole.admin) &&
+        (i.status != InterventionStatus.completed || user.can('interventions.reopen'));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -767,6 +773,7 @@ class _InterventionDetailsScreenState
                 label: l10n.inProgress,
                 isActive: _localStatus == InterventionStatus.pending,
                 color: AppTheme.zinc500,
+                isEnabled: canChangeStatus,
                 onTap: () =>
                     setState(() => _localStatus = InterventionStatus.pending),
               ),
@@ -777,6 +784,7 @@ class _InterventionDetailsScreenState
                 label: l10n.delayed,
                 isActive: _localStatus == InterventionStatus.delayed,
                 color: AppTheme.brandOrange,
+                isEnabled: canChangeStatus,
                 onTap: () => _handleDelay(i.id, i),
               ),
             ),
@@ -786,6 +794,7 @@ class _InterventionDetailsScreenState
                 label: l10n.completed,
                 isActive: _localStatus == InterventionStatus.completed,
                 color: AppTheme.brandGreen,
+                isEnabled: canChangeStatus,
                 onTap: () =>
                     setState(() => _localStatus = InterventionStatus.completed),
               ),
@@ -1756,32 +1765,37 @@ class _StatusBtn extends StatelessWidget {
   final bool isActive;
   final Color color;
   final VoidCallback onTap;
+  final bool isEnabled;
 
   const _StatusBtn({
     required this.label,
     required this.isActive,
     required this.color,
     required this.onTap,
+    this.isEnabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isActive ? color : AppTheme.zinc800),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: isActive ? color : AppTheme.zinc500,
+      onTap: isEnabled ? onTap : null,
+      child: Opacity(
+        opacity: isEnabled ? 1.0 : 0.5,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: isActive ? color.withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: isActive ? color : AppTheme.zinc800),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: isActive ? color : AppTheme.zinc500,
+              ),
             ),
           ),
         ),

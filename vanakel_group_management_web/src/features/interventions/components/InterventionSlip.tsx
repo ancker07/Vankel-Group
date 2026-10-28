@@ -160,6 +160,8 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [isImproving, setIsImproving] = useState(false);
   const [isImprovingDetails, setIsImprovingDetails] = useState(false);
   const isSyndic = role === 'SYNDIC';
+  const isSuperAdminOrAdmin = role === 'SUPERADMIN' || role === 'ADMIN';
+  const canUpdateStatus = !readOnly && isSuperAdminOrAdmin && (intervention.status !== 'COMPLETED' || can('interventions.reopen'));
   const [isEditable, setIsEditable] = useState(!readOnly && (intervention.status !== 'COMPLETED' || can('interventions.reopen')) && !isSyndic);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -965,9 +967,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
                 ].map(s => (
                   <button
                     key={s.id}
-                    disabled={!isEditable}
+                    disabled={!canUpdateStatus}
                     onClick={() => handleStatusChange(s.id as any)}
-                    className={`py-3 md:py-4 rounded-2xl border font-black text-[9px] md:text-[10px] tracking-widest transition-all min-h-[44px] ${status === s.id ? s.activeColor : 'bg-brand-black ' + s.baseColor} ${!isEditable ? 'cursor-default' : ''}`}
+                    className={`py-3 md:py-4 rounded-2xl border font-black text-[9px] md:text-[10px] tracking-widest transition-all min-h-[44px] ${status === s.id ? s.activeColor : 'bg-brand-black ' + s.baseColor} ${!canUpdateStatus ? 'cursor-not-allowed opacity-60' : ''}`}
                   >
                     {s.label}
                   </button>
@@ -986,8 +988,8 @@ const InterventionSlip: React.FC<SlipProps> = ({
                     <select
                       value={delayReason}
                       onChange={(e) => setDelayReason(e.target.value)}
-                      disabled={!isEditable}
-                      className={`w-full bg-zinc-950 border ${status === 'DELAYED' && !delayReason ? 'border-red-500' : 'border-zinc-800'} px-4 py-3 rounded-xl text-sm font-medium text-white outline-none focus:border-orange-500 transition-all appearance-none`}
+                      disabled={!canUpdateStatus}
+                      className={`w-full bg-zinc-950 border ${status === 'DELAYED' && !delayReason ? 'border-red-500' : 'border-zinc-800'} px-4 py-3 rounded-xl text-sm font-medium text-white outline-none focus:border-orange-500 transition-all appearance-none ${!canUpdateStatus ? 'cursor-not-allowed opacity-60' : ''}`}
                     >
                       <option value="">{t.selectReason}</option>
                       {DELAY_REASONS.map(r => (
