@@ -34,7 +34,7 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl shadow-2xl relative z-20 overflow-hidden p-6 text-center">
+            <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl shadow-2xl relative z-20 p-6 text-center max-h-[90vh] overflow-y-auto">
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${type === 'APPROVE' ? 'bg-brand-green/10 text-brand-green' : 'bg-red-500/10 text-red-500'}`}>
                     {type === 'APPROVE' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
                 </div>
@@ -54,7 +54,7 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                         <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-1.5">
                             <FileText size={12} /> {t.verify_docs || 'Review Documents'}
                         </label>
-                        <div className="space-y-2">
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                             {mission.documents.map((doc, idx) => (
                                 <button
                                     key={doc.id || idx}
