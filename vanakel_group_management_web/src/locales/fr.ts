@@ -566,8 +566,6 @@ export default {
     model_config: 'Configuration du modèle',
     model_config_desc: 'Sélectionnez le moteur d\'IA préféré et fournissez les informations d\'identification.',
     select_ai_model: 'Sélectionner le modèle d\'IA',
-    google_gemini: 'Google Gemini',
-    gemini_desc: 'Modèle rapide et efficace pour l\'extraction et les réécritures courtes.',
     openai_chatgpt: 'OpenAI ChatGPT',
     chatgpt_desc: 'Puissant modèle d\'usage général pour la logique complexe et le contenu long.',
     api_key: 'Clé API',
@@ -577,7 +575,7 @@ export default {
     loading_settings: 'Chargement des paramètres...',
     save_changes: 'Enregistrer les modifications',
     about_ai_integration: 'À propos de l\'intégration de l\'IA',
-    about_ai_desc: 'Vanakel Group utilise l\'IA pour classer automatiquement les e-mails entrants, améliorer les rapports techniques et générer des résumés de bâtiments. Gemini est recommandé pour sa vitesse et sa prise en charge native des fonctionnalités d\'extraction.',
+    about_ai_desc: 'Vanakel Group utilise l\'IA pour classer automatiquement les e-mails entrants, améliorer les rapports techniques et générer des résumés de bâtiments. GPT-5 Mini est recommandé : il lit nativement les PDF et images en pièce jointe tout en gardant une faible consommation de tokens — et de coûts.',
     
     // Boîte de réception & Emails
     inbox_title: 'Boîte de réception',

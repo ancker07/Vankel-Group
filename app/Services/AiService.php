@@ -8,115 +8,109 @@ use Illuminate\Support\Facades\Log;
 
 class AiService
 {
+    /** Cost-efficient, multimodal-capable default: strong at structured extraction, native PDF + image input. */
+    public const DEFAULT_MODEL = 'gpt-5-mini';
+
     public function extractEmailData(string $content, array $attachments = [])
     {
-        $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini-1.5-flash-latest';
-        $apiKey = Setting::where('key', 'ai_api_key')->value('value');
-        
-        if (!$apiKey) {
-            $apiKey = env('GEMINI_API_KEY') ?? env('API_KEY');
-        }
+        return $this->callOpenAi($content, $attachments, $this->resolveModel(), $this->resolveApiKey(), $this->getSystemPrompt());
+    }
+
+    protected function resolveModel(): string
+    {
+        return Setting::where('key', 'ai_model')->value('value') ?: self::DEFAULT_MODEL;
+    }
+
+    protected function resolveApiKey(): string
+    {
+        $apiKey = Setting::where('key', 'ai_api_key')->value('value') ?: env('OPENAI_API_KEY');
 
         if (!$apiKey) {
             Log::error("AI API Key not configured in settings or environment.");
             throw new \Exception("AI API Key not configured.");
         }
 
-        if (str_contains($model, 'gpt')) {
-            return $this->callOpenAi($content, $attachments, $model, $apiKey, $this->getSystemPrompt());
-        } else {
-            return $this->callGemini($content, $attachments, $model, $apiKey, $this->getSystemPrompt());
-        }
+        return $apiKey;
     }
 
+    /**
+     * Calls OpenAI's Responses API, which natively accepts text, images, and PDFs
+     * in one multimodal request (chat completions does not support PDF input).
+     */
     protected function callOpenAi(string $content, array $attachments, string $model, string $apiKey, ?string $systemPrompt = null)
     {
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt ?? $this->getSystemPrompt()],
-            ['role' => 'user', 'content' => $content],
+        $userContent = [
+            ['type' => 'input_text', 'text' => $content],
         ];
 
-        // Basic support for vision if model supports it (optional, focusing on Gemini as primary)
         foreach ($attachments as $att) {
             if (str_starts_with($att['mime_type'], 'image/')) {
-                 $messages[] = [
-                     'role' => 'user',
-                     'content' => [
-                         ['type' => 'text', 'text' => "Attachment: {$att['name']}"],
-                         ['type' => 'image_url', 'image_url' => ['url' => "data:{$att['mime_type']};base64,{$att['data']}"]]
-                     ]
-                 ];
-            }
-        }
-
-        $response = Http::withToken($apiKey)->post('https://api.openai.com/v1/chat/completions', [
-            'model' => $model,
-            'messages' => $messages,
-            'response_format' => ['type' => 'json_object'],
-        ]);
-
-        if ($response->failed()) {
-            Log::error("OpenAI API Error: " . $response->body());
-            throw new \Exception("AI Extraction failed (OpenAI: " . ($response->json('error.message') ?? 'Unknown error') . ")");
-        }
-
-        return json_decode($response->json('choices.0.message.content'), true);
-    }
-
-    protected function callGemini(string $content, array $attachments, string $model, string $apiKey, ?string $systemPrompt = null)
-    {
-        // Use v1 for more stability if available, but v1beta allows recent models
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
-
-        $promptText = ($systemPrompt ? $systemPrompt . "\n\nContent:\n" : "") . $content;
-        $parts = [
-            ['text' => $promptText]
-        ];
-
-        foreach ($attachments as $att) {
-            // Gemini supports images and PDF in multimodal
-            if (str_starts_with($att['mime_type'], 'image/') || $att['mime_type'] === 'application/pdf') {
-                $parts[] = [
-                    'inline_data' => [
-                        'mime_type' => $att['mime_type'],
-                        'data' => $att['data']
-                    ]
+                $userContent[] = [
+                    'type' => 'input_image',
+                    'image_url' => "data:{$att['mime_type']};base64,{$att['data']}",
                 ];
-                $parts[] = ['text' => "Enclosed attachment: " . $att['name']];
+            } elseif ($att['mime_type'] === 'application/pdf') {
+                $userContent[] = [
+                    'type' => 'input_file',
+                    'filename' => $att['name'] ?? 'document.pdf',
+                    'file_data' => "data:{$att['mime_type']};base64,{$att['data']}",
+                ];
             }
         }
 
-        $response = Http::post($url, [
-            'contents' => [
+        $payload = [
+            'model' => $model,
+            'input' => [
+                [
+                    'role' => 'system',
+                    'content' => [['type' => 'input_text', 'text' => $systemPrompt ?? $this->getSystemPrompt()]],
+                ],
                 [
                     'role' => 'user',
-                    'parts' => $parts
-                ]
+                    'content' => $userContent,
+                ],
             ],
-            'generationConfig' => [
-                'response_mime_type' => 'application/json',
-            ]
-        ]);
+            'text' => ['format' => ['type' => 'json_object']],
+        ];
 
-        if ($response->failed()) {
-            $errorMsg = $response->json('error.message') ?? 'Unknown Gemini Error';
-            Log::error("Gemini API Error [" . $model . "]: " . $response->body());
-            throw new \Exception("AI Extraction failed (Gemini: " . $errorMsg . ")");
+        // Reasoning-capable models: keep effort low for extraction/translation tasks.
+        // This is a structured, well-specified task, not an open-ended problem — a high
+        // reasoning budget here just burns tokens without improving the output.
+        if (str_starts_with($model, 'gpt-5') || str_starts_with($model, 'o')) {
+            $payload['reasoning'] = ['effort' => 'low'];
         }
 
-        $resultText = $response->json('candidates.0.content.parts.0.text');
-        
+        $response = Http::withToken($apiKey)->timeout(120)->post('https://api.openai.com/v1/responses', $payload);
+
+        if ($response->failed()) {
+            $errorMsg = $response->json('error.message') ?? 'Unknown error';
+            Log::error("OpenAI API Error [{$model}]: " . $response->body());
+            throw new \Exception("AI Extraction failed (OpenAI: {$errorMsg})");
+        }
+
+        $resultText = $response->json('output_text');
+
         if (!$resultText) {
-             $finishReason = $response->json('candidates.0.finishReason');
-             $safetyRatings = $response->json('candidates.0.safetyRatings');
-             Log::error("Gemini Empty Response. Finish Reason: {$finishReason}. Safety Ratings: " . json_encode($safetyRatings));
-             Log::error("Gemini Context: " . substr($content, 0, 500) . "...");
-             throw new \Exception("AI Extraction failed (Gemini returned empty response: {$finishReason}).");
+            // Fallback: walk the raw output array (some SDKs/models omit the output_text convenience field)
+            foreach ($response->json('output', []) as $item) {
+                foreach ($item['content'] ?? [] as $contentItem) {
+                    if (($contentItem['type'] ?? null) === 'output_text' && !empty($contentItem['text'])) {
+                        $resultText = $contentItem['text'];
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        if (!$resultText) {
+            $status = $response->json('status');
+            Log::error("OpenAI Empty Response. Status: {$status}. Body: " . $response->body());
+            throw new \Exception("AI Extraction failed (OpenAI returned an empty response: {$status}).");
         }
 
         $data = json_decode($resultText, true);
         if (!$data) {
-            Log::error("Gemini JSON parse failed: " . $resultText);
+            Log::error("OpenAI JSON parse failed: " . $resultText);
             throw new \Exception("AI Extraction failed (Invalid JSON output).");
         }
 
@@ -130,7 +124,7 @@ class AiService
     {
         $prompt = <<<PROMPT
 You are a professional translator for a building management system.
-Translate the provided title and technical description into Dutch and English. 
+Translate the provided title and technical description into Dutch and English.
 The input should be considered the primary language (often French, but detect if it's Dutch/English).
 
 Return a valid JSON object with EXACTLY this structure:
@@ -154,12 +148,7 @@ Description Payload:
 {$description}
 PROMPT;
 
-        $model = Setting::where('key', 'ai_model')->value('value') ?? 'gemini-1.5-flash-latest';
-        $apiKey = Setting::where('key', 'ai_api_key')->value('value');
-        
-        if (!$apiKey) {
-            $apiKey = env('GEMINI_API_KEY') ?? env('API_KEY');
-        }
+        $apiKey = Setting::where('key', 'ai_api_key')->value('value') ?: env('OPENAI_API_KEY');
 
         if (!$apiKey) {
             Log::warning("Translation AI fallback: API Key missing.");
@@ -173,11 +162,7 @@ PROMPT;
         $translationSystemPrompt = "You are a professional translator for a building management system. Return ONLY valid JSON.";
 
         try {
-            if (str_contains($model, 'gpt')) {
-                return $this->callOpenAi($prompt, [], $model, $apiKey, $translationSystemPrompt);
-            } else {
-                return $this->callGemini($prompt, [], $model, $apiKey, $translationSystemPrompt);
-            }
+            return $this->callOpenAi($prompt, [], $this->resolveModel(), $apiKey, $translationSystemPrompt);
         } catch (\Exception $e) {
             Log::error("Translation AI Error: " . $e->getMessage());
             return [
@@ -251,7 +236,7 @@ When processing a SINGLE email (not part of a thread), determine whether it is a
   "classification": "MISSION" | "NON_MISSION" | "NEEDS_REVIEW" | "AWAITING_CONTEXT",
   "isDirectTask": true | false,
   "confidence": 0.0-1.0,
-  "reasons": ["A single detailed string explaining EXACTLY why this classification was chosen, why it is/isn't a mission, and why it is/isn't awaiting context."],
+  "reasons": ["A single concise string (1-2 sentences max) explaining why this classification was chosen."],
   "mission": {
     "title": {
       "en": "Short descriptive title in English",
@@ -303,6 +288,7 @@ When processing a SINGLE email (not part of a thread), determine whether it is a
 - For location, favor Belgian patterns (e.g., "Brusselbaan 98, 1600 Sint-Pieters-Leeuw").
 - The syndicName field is CRITICAL — always try to extract it from any mention of "Syndic" in the document.
 - When in doubt between "MISSION" and "AWAITING_CONTEXT", prefer "AWAITING_CONTEXT" for single emails without attachments. Prefer "MISSION" if formal documents are attached.
+- Keep "reasons" and all free-text fields concise and to the point — this is a structured data extraction task, not a narrative report.
 
 Output MUST be a valid JSON object.
 PROMPT;

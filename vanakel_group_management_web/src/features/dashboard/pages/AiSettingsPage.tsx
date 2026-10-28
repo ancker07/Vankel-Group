@@ -3,14 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, Save, Shield, Cpu, Key, AlertCircle, CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { Language } from '@/types';
+import { DEFAULT_AI_MODEL } from '@/services/aiService';
 
 interface AiSettingsPageProps {
     lang: Language;
     t: any;
 }
 
+const AI_MODELS = [
+    { id: 'gpt-5-mini', label: 'GPT-5 Mini', desc: 'Recommended — fast, cost-efficient, reads PDFs/images natively.' },
+    { id: 'gpt-5', label: 'GPT-5', desc: 'Highest accuracy for complex or ambiguous extraction cases.' },
+    { id: 'gpt-5-nano', label: 'GPT-5 Nano', desc: 'Cheapest option for simple text-only rewrites.' },
+];
+
 const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
-    const [model, setModel] = useState('gemini-3-flash-preview');
+    const [model, setModel] = useState(DEFAULT_AI_MODEL);
     const [apiKey, setApiKey] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -22,7 +29,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
             try {
                 const settings = await dataService.getAiSettings();
                 if (settings) {
-                    setModel(settings.model || 'gemini-3-flash-preview');
+                    setModel(settings.model || DEFAULT_AI_MODEL);
                     setApiKey(settings.apiKey || '');
                 }
             } catch (error) {
@@ -91,34 +98,24 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
                                 <Cpu size={14} />
                                 {t?.select_ai_model || 'Select AI Model'}
                             </label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => setModel('gemini-3-flash-preview')}
-                                    className={`p-5 rounded-2xl border transition-all text-left flex flex-col gap-2 ${model.startsWith('gemini')
-                                            ? 'bg-brand-green/10 border-brand-green shadow-[0_0_20px_rgba(186,253,154,0.1)]'
-                                            : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <span className={`font-bold text-sm md:text-base ${model.startsWith('gemini') ? 'text-brand-green' : 'text-zinc-300'}`}>{t?.google_gemini || 'Google Gemini'}</span>
-                                        {model.startsWith('gemini') && <CheckCircle2 size={18} className="text-brand-green" />}
-                                    </div>
-                                    <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">{t?.gemini_desc || 'Fast and efficient model for extraction and short rewrites.'}</p>
-                                </button>
-
-                                <button
-                                    onClick={() => setModel('gpt-4o')}
-                                    className={`p-5 rounded-2xl border transition-all text-left flex flex-col gap-2 ${model.startsWith('gpt')
-                                            ? 'bg-purple-500/10 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.1)]'
-                                            : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <span className={`font-bold text-sm md:text-base ${model.startsWith('gpt') ? 'text-purple-400' : 'text-zinc-300'}`}>{t?.openai_chatgpt || 'OpenAI ChatGPT'}</span>
-                                        {model.startsWith('gpt') && <CheckCircle2 size={18} className="text-purple-400" />}
-                                    </div>
-                                    <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">{t?.chatgpt_desc || 'Powerful general purpose model for complex logic and long content.'}</p>
-                                </button>
+                            <p className="text-[10px] md:text-xs text-zinc-600 font-medium">{t?.openai_chatgpt || 'OpenAI ChatGPT'} — {t?.chatgpt_desc || 'Reads full email threads, attached PDFs, and images natively to classify and extract mission data.'}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {AI_MODELS.map(m => (
+                                    <button
+                                        key={m.id}
+                                        onClick={() => setModel(m.id)}
+                                        className={`p-5 rounded-2xl border transition-all text-left flex flex-col gap-2 ${model === m.id
+                                                ? 'bg-brand-green/10 border-brand-green shadow-[0_0_20px_rgba(186,253,154,0.1)]'
+                                                : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
+                                            }`}
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <span className={`font-bold text-sm md:text-base ${model === m.id ? 'text-brand-green' : 'text-zinc-300'}`}>{m.label}</span>
+                                            {model === m.id && <CheckCircle2 size={18} className="text-brand-green shrink-0" />}
+                                        </div>
+                                        <p className="text-[10px] md:text-xs text-zinc-500 leading-relaxed font-medium">{m.desc}</p>
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
@@ -186,7 +183,7 @@ const AiSettingsPage: React.FC<AiSettingsPageProps> = ({ lang, t }) => {
                     <div>
                         <h3 className="text-xs md:text-sm font-bold text-white mb-1">{t?.about_ai_integration || 'About AI Integration'}</h3>
                         <p className="text-[10px] md:text-xs text-zinc-500 leading-tight md:leading-relaxed font-bold uppercase tracking-tight opacity-60">
-                            {t?.about_ai_desc || 'Vanakel Group uses AI to automatically classify incoming emails, improve technical reports, and generate building summaries. Gemini is recommended for its speed and native support for extraction features.'}
+                            {t?.about_ai_desc || 'Vanakel Group uses AI to automatically classify incoming emails, improve technical reports, and generate building summaries. GPT-5 Mini is recommended: it reads attached PDFs and images natively and keeps token usage — and cost — low.'}
                         </p>
                     </div>
                 </div>

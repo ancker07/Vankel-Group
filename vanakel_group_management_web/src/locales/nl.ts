@@ -569,8 +569,6 @@ export default {
     model_config: 'Modelconfiguratie',
     model_config_desc: 'Selecteer de gewenste AI-engine en geef inloggegevens op.',
     select_ai_model: 'Selecteer AI-model',
-    google_gemini: 'Google Gemini',
-    gemini_desc: 'Snel en efficiënt model voor extractie en korte herschrijvingen.',
     openai_chatgpt: 'OpenAI ChatGPT',
     chatgpt_desc: 'Krachtig model voor algemeen gebruik voor complexe logica en lange inhoud.',
     api_key: 'API-sleutel',
@@ -580,7 +578,7 @@ export default {
     loading_settings: 'Instellingen laden...',
     save_changes: 'Wijzigingen opslaan',
     about_ai_integration: 'Over AI-integratie',
-    about_ai_desc: 'Vanakel Group gebruikt AI om inkomende e-mails automatisch te classificeren, technische rapporten te verbeteren en samenvattingen van gebouwen te genereren. Gemini wordt aanbevolen vanwege zijn snelheid en native ondersteuning voor extractiefuncties.',
+    about_ai_desc: 'Vanakel Group gebruikt AI om inkomende e-mails automatisch te classificeren, technische rapporten te verbeteren en samenvattingen van gebouwen te genereren. GPT-5 Mini wordt aanbevolen: het leest bijgevoegde PDF\'s en afbeeldingen native en houdt het tokenverbruik — en de kosten — laag.',
     
     // Postvak IN & E-mails
     inbox_title: 'Postvak IN',
