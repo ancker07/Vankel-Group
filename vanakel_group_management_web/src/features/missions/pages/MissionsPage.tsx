@@ -221,7 +221,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                onApprove(m);
+                                                setSelectedMission(m);
                                             }}
                                             className="flex-1 py-2.5 px-4 bg-brand-green text-brand-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
                                         >
