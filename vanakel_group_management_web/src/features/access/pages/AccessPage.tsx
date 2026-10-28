@@ -56,6 +56,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
     const [roleForm, setRoleForm] = useState<Partial<RoleRow> | null>(null);
     const [userForm, setUserForm] = useState<Record<string, string> | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<RoleRow | null>(null);
+    const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserRow | null>(null);
     const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
     const [newPassword, setNewPassword] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -143,6 +144,18 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
             await dataService.updateUserRole(String(user.id), role);
             await load();
         } catch (e) {
+            setError(errorMessage(e));
+        }
+    };
+
+    const deleteUser = async (user: UserRow) => {
+        setError('');
+        try {
+            await dataService.deleteUser(String(user.id));
+            setConfirmDeleteUser(null);
+            await load();
+        } catch (e) {
+            setConfirmDeleteUser(null);
             setError(errorMessage(e));
         }
     };
@@ -250,6 +263,16 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                         >
                                             <RotateCcw size={16} />
                                             <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">{t.access_reset_password || 'Change password'}</span>
+                                        </button>
+                                    )}
+                                    {can('users.update') && (
+                                        <button
+                                            onClick={() => { setError(''); setConfirmDeleteUser(u); }}
+                                            className="p-2.5 rounded-xl text-zinc-400 hover:text-red-500 hover:bg-zinc-900 border border-zinc-800 shrink-0"
+                                            title={t.delete || 'Delete'}
+                                            aria-label={t.delete || 'Delete'}
+                                        >
+                                            <Trash2 size={16} />
                                         </button>
                                     )}
                                 </div>
@@ -431,6 +454,21 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         <div className="flex gap-3">
                             <button onClick={() => setResetPasswordUser(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
                             <button disabled={isSaving || newPassword.length < 8} onClick={resetPassword} className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50">{t.save || 'Save'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete user confirmation (in-app, no browser dialog) */}
+            {confirmDeleteUser && (
+                <div className="fixed inset-0 z-[170] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4">
+                        <h4 className="text-lg font-bold text-white">{t.access_delete_user || 'Delete this user?'}</h4>
+                        <p className="text-sm text-zinc-400">{confirmDeleteUser.name}</p>
+                        <p className="text-xs text-zinc-600">{t.access_delete_user_note || 'Their account is deactivated but their data stays visible in intervention history.'}</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setConfirmDeleteUser(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase">{t.btnCancel || 'Cancel'}</button>
+                            <button onClick={() => deleteUser(confirmDeleteUser)} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs uppercase">{t.delete || 'Delete'}</button>
                         </div>
                     </div>
                 </div>

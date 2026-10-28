@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../intervention/domain/intervention.dart';
-import '../../../report/presentation/widgets/intervention_details_sheet.dart';
 import '../../../../core/utils/translation_helper.dart';
 
 class BuildingDetailsSheet extends StatelessWidget {
@@ -188,12 +188,7 @@ class BuildingDetailsSheet extends StatelessWidget {
   Widget _buildHistoryItem(BuildContext context, Intervention item) {
     return InkWell(
       onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => InterventionDetailsSheet(intervention: item),
-        );
+        context.push('/admin/interventions/details/${item.id}');
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),

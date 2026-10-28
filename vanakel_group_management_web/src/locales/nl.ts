@@ -307,6 +307,8 @@ export default {
     access_create_role: "Rol aanmaken",
     access_edit_role: "Rol bewerken",
     access_delete_role: "Deze rol verwijderen?",
+    access_delete_user: "Deze gebruiker verwijderen?",
+    access_delete_user_note: "Het account wordt gedeactiveerd, maar de gegevens blijven zichtbaar in de interventiegeschiedenis.",
     access_role_label: "Weergegeven naam",
     access_role_key: "Code (letters, cijfers, _)",
     access_role_description: "Beschrijving",

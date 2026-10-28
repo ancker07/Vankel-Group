@@ -170,6 +170,28 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'message' => 'Password reset.']);
     }
 
+    /** Soft-delete a user (requires users.update). Their data stays intact in intervention history. */
+    public function deleteUser(Request $request, $id)
+    {
+        $actor = $request->user();
+        $user = User::findOrFail($id);
+
+        if ($user->id === $actor->id) {
+            return response()->json(['success' => false, 'message' => 'You cannot delete your own account.'], 422);
+        }
+        if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
+            return response()->json(['success' => false, 'message' => 'The super admin\'s account cannot be deleted.'], 403);
+        }
+        if (!$actor->canManageUser($user)) {
+            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['success' => true, 'message' => 'User deleted.']);
+    }
+
     public function getPendingUsers()
     {
         $users = User::where('status', 'PENDING')
@@ -218,12 +240,13 @@ class AuthController extends Controller
         
         $title = 'Account Approved!';
         $body = 'Welcome to Vanakel Group. Your account has been approved by the Administrator.';
+        $translated = (new \App\Services\AiService())->translateToFill($title, $body);
 
         if ($user->fcm_token) {
             $this->pushNotificationService->sendNotification(
                 $user->fcm_token,
-                $title,
-                $body
+                PushNotificationService::localize($translated['title'] ?? [], $user->locale, $title),
+                PushNotificationService::localize($translated['description'] ?? [], $user->locale, $body)
             );
         }
 
@@ -247,12 +270,13 @@ class AuthController extends Controller
 
         $title = 'Account Status Update';
         $body = 'Your account registration request has been rejected by the Administrator.';
+        $translated = (new \App\Services\AiService())->translateToFill($title, $body);
 
         if ($user->fcm_token) {
             $this->pushNotificationService->sendNotification(
                 $user->fcm_token,
-                $title,
-                $body
+                PushNotificationService::localize($translated['title'] ?? [], $user->locale, $title),
+                PushNotificationService::localize($translated['description'] ?? [], $user->locale, $body)
             );
         }
 
@@ -419,6 +443,27 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Password changed successfully.'
+        ]);
+    }
+
+    /** Save the language the user picked during onboarding, used for all future notifications. */
+    public function updateLocale(Request $request)
+    {
+        $request->validate([
+            'locale' => 'required|string|in:en,fr,nl',
+        ]);
+
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $user->update(['locale' => $request->locale]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Locale updated successfully.',
         ]);
     }
 

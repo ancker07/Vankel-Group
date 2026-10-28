@@ -79,7 +79,13 @@ class NotificationService
         foreach (User::withPermission('missions.view')->staff()->get() as $admin) {
             if ($admin->fcm_token) {
                 try {
-                    $this->sendNotification($admin->fcm_token, $title, $body, $data, $important);
+                    $this->sendNotification(
+                        $admin->fcm_token,
+                        self::localize($translated['title'] ?? [], $admin->locale, $title),
+                        self::localize($translated['description'] ?? [], $admin->locale, $body),
+                        $data,
+                        $important
+                    );
                 } catch (\Exception $e) {
                     Log::error('FCM: new mission push failed for user ' . $admin->id . ': ' . $e->getMessage());
                 }
@@ -99,6 +105,18 @@ class NotificationService
                 'data' => $data,
             ]);
         }
+    }
+
+    /**
+     * Pick the translated string for a user's saved locale, falling back to
+     * the original (untranslated) string when there is no translation or
+     * saved locale.
+     *
+     * @param array $translated ['en' => ..., 'fr' => ..., 'nl' => ...]
+     */
+    public static function localize(array $translated, ?string $locale, string $fallback): string
+    {
+        return $translated[$locale] ?? $fallback;
     }
 
     /**

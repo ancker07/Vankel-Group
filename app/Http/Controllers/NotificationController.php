@@ -100,22 +100,26 @@ class NotificationController extends Controller
         $translated = $aiService->translateToFill($title, $body);
 
         if ($request->target === 'all') {
-            $tokens = User::whereNotNull('fcm_token')
-                ->where('fcm_token', '!=', '')
-                ->pluck('fcm_token')
-                ->unique()
-                ->toArray();
+            $recipients = User::whereNotNull('fcm_token')->where('fcm_token', '!=', '')->get();
 
-            Log::info("FCM: Starting broadcast to " . count($tokens) . " tokens.");
-            Log::debug("FCM: Tokens list: " . json_encode($tokens));
-            if (empty($tokens)) {
+            Log::info("FCM: Starting broadcast to " . $recipients->count() . " users.");
+            if ($recipients->isEmpty()) {
                 return response()->json(['message' => 'No users with registered devices found.'], 404);
             }
 
-            $results = $this->notificationService->sendToMultiple($tokens, $title, $body, $data, $important);
+            $results = [];
+            foreach ($recipients as $recipient) {
+                $results[$recipient->fcm_token] = $this->notificationService->sendNotification(
+                    $recipient->fcm_token,
+                    \App\Services\NotificationService::localize($translated['title'] ?? [], $recipient->locale, $title),
+                    \App\Services\NotificationService::localize($translated['description'] ?? [], $recipient->locale, $body),
+                    $data,
+                    $important
+                );
+            }
 
             $successCount = count(array_filter($results));
-            $totalCount = count($tokens);
+            $totalCount = $recipients->count();
 
             NotificationLog::create([
                 'title' => $title,
@@ -154,18 +158,25 @@ class NotificationController extends Controller
             ]);
         } else {
             $user_ids = $request->user_ids;
-            $tokens = User::whereIn('id', $user_ids)
+            $recipients = User::whereIn('id', $user_ids)
                 ->whereNotNull('fcm_token')
                 ->where('fcm_token', '!=', '')
-                ->pluck('fcm_token')
-                ->unique()
-                ->toArray();
+                ->get();
 
-            if (empty($tokens)) {
+            if ($recipients->isEmpty()) {
                 return response()->json(['message' => 'Selected users have no registered devices.'], 404);
             }
 
-            $results = $this->notificationService->sendToMultiple($tokens, $title, $body, $data, $important);
+            $results = [];
+            foreach ($recipients as $recipient) {
+                $results[$recipient->fcm_token] = $this->notificationService->sendNotification(
+                    $recipient->fcm_token,
+                    \App\Services\NotificationService::localize($translated['title'] ?? [], $recipient->locale, $title),
+                    \App\Services\NotificationService::localize($translated['description'] ?? [], $recipient->locale, $body),
+                    $data,
+                    $important
+                );
+            }
             $successCount = count(array_filter($results));
 
             NotificationLog::create([
@@ -178,7 +189,7 @@ class NotificationController extends Controller
                 'body_fr' => $translated['description']['fr'] ?? null,
                 'body_nl' => $translated['description']['nl'] ?? null,
                 'target' => 'specific',
-                'total_recipients' => count($tokens),
+                'total_recipients' => $recipients->count(),
                 'success_count' => $successCount,
                 'data' => $data,
             ]);

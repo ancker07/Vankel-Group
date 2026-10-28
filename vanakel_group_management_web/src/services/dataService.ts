@@ -62,6 +62,10 @@ export const dataService = {
         const response = await apiClient.post(`/users/${id}/reset-password`, { password });
         return response.data;
     },
+    deleteUser: async (id: string) => {
+        const response = await apiClient.delete(`/users/${id}`);
+        return response.data;
+    },
     getTeam: async () => {
         const response = await apiClient.get('/team');
         return response.data;

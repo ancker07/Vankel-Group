@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/api/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/services/auth_token_service.dart';
@@ -33,6 +34,17 @@ class AuthRepositoryImpl implements AuthRepository {
           final fcmToken = await NotificationService().getToken();
           if (fcmToken != null) {
             await updateFcmToken(email, fcmToken);
+          }
+        } catch (e) {
+          // Non-blocking
+        }
+
+        // Sync the onboarding-selected language now that we're authenticated
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final languageCode = prefs.getString('selected_locale');
+          if (languageCode != null) {
+            await _dio.post(ApiConstants.updateLocale, data: {'locale': languageCode});
           }
         } catch (e) {
           // Non-blocking

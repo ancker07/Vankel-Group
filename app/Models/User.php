@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
@@ -12,7 +13,7 @@ use App\Support\PermissionCatalog;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected static function booted(): void
     {
@@ -50,6 +51,7 @@ class User extends Authenticatable
         'phone',
         'company_name',
         'status',
+        'locale',
         'bio',
         'image_url',
         'fcm_token',
@@ -81,6 +83,7 @@ class User extends Authenticatable
             'latitude' => 'float',
             'longitude' => 'float',
             'location_updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -178,6 +181,7 @@ class User extends Authenticatable
             'portal' => $this->portal(),
             'status' => $this->status,
             'company_name' => $this->company_name,
+            'locale' => $this->locale,
             'permissions' => $this->permissionKeys(),
         ];
     }

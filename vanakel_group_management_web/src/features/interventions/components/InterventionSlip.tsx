@@ -4,7 +4,7 @@ import {
   Intervention, Building, Professional, Syndic, Language, Role, InterventionStatus
 } from '@/types';
 import {
-  X, Mail, MessageCircle, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2, Briefcase
+  X, Mail, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2, Briefcase
 } from 'lucide-react';
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote, optimizeIntervention } from '@/services/aiService';
@@ -256,7 +256,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
     setDocuments(prev => [...prev, ...newFiles]);
   };
 
-  const executeSave = async (mode: 'NONE' | 'EMAIL' | 'WHATSAPP') => {
+  const executeSave = async (mode: 'NONE' | 'EMAIL') => {
     // Validation: If Delayed, Reason is required.
     if (status === 'DELAYED' && !delayReason) {
       alert(t.delayError);
@@ -317,7 +317,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
       // GENERATE AND APPEND PDF REPORT IF SENDING
       // IMPORTANT: PDF report does NOT include photos - photos remain as separate file uploads
-      if (mode === 'EMAIL' || mode === 'WHATSAPP') {
+      if (mode === 'EMAIL') {
         try {
           const response = await fetch(vankerLogo);
           const blobLogo = await response.blob();
@@ -368,8 +368,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
           setIsSendingEmail(false);
         }
       }
-
-      if (mode === 'WHATSAPP') handleSendWhatsApp(savedIntervention);
 
       // Close AFTER sending — so component is still mounted during send
       if (status === 'COMPLETED') onClose();
@@ -426,39 +424,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
       window.location.href = `mailto:${recipients.join(',')}?subject=${subject}&body=${body}`;
       alert(t.emailClientOpened);
     }, 500);
-  };
-
-  const handleSendWhatsApp = (updatedIntervention?: any) => {
-    const targetPhone = contactPhone || syndic?.phone;
-    if (!targetPhone) {
-      alert(t.sendWhatsappError || "No phone number available");
-      return;
-    }
-
-    const currentInt = updatedIntervention || intervention;
-    const reasonLabel = DELAY_REASONS.find(r => r.id === delayReason)?.[lang] || delayReason;
-
-    // Find the latest PDF report URL if it was uploaded
-    const reportDoc = currentInt.documents?.find((d: any) =>
-      (d.file_name || d.name)?.toLowerCase().includes('report') ||
-      (d.file_type || d.type) === 'application/pdf'
-    );
-    const reportUrl = reportDoc ? (reportDoc.file_path ? `${import.meta.env.VITE_API_URL}/storage/${reportDoc.file_path}` : reportDoc.url) : null;
-
-    const text = encodeURIComponent(
-      `*VANAKEL GROUP - ${t.ticketHeader.toUpperCase()}*\n\n` +
-      `*${t.email_template_title}:* ${getLocalizedField(currentInt, 'title')}\n` +
-      `*${t.building_header}:* ${building.address}\n` +
-      `*${t.status}:* ${status}\n\n` +
-      `*${t.description}:* ${getLocalizedField(currentInt, 'description')}\n` +
-      `*${t.adminNote}:* ${adminNote || 'N/A'}\n` +
-      (status === 'DELAYED' ? `\n*${t.status_delayed}:* ${reasonLabel}\n` : '') +
-      (status === 'DELAYED' && delayedDate ? `*${t.email_template_new_date}:* ${new Date(delayedDate).toLocaleDateString()}\n` : '') +
-      (reportUrl ? `\n*${t.download_pdf}:* ${reportUrl}\n` : '') +
-      `\n_Powered by Vanakel Group_`
-    );
-
-    window.open(`https://wa.me/${targetPhone.replace(/\s+/g, '')}?text=${text}`, '_blank');
   };
 
   return (
@@ -955,7 +920,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
         {intervention.documents && intervention.documents.length > 0 && (
           <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 md:p-8 mb-6">
             <h4 className="text-[10px] font-black text-brand-green uppercase tracking-widest mb-4">{t.attachDocuments}</h4>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 max-h-64 overflow-y-auto pr-1">
               {intervention.documents.map((doc: any, idx: number) => {
                 const isImg = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url);
                 return (
@@ -1327,9 +1292,6 @@ const InterventionSlip: React.FC<SlipProps> = ({
                         <button onClick={() => executeSave('EMAIL')} disabled={isSaving || isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                           {isSendingEmail ? <Loader2 className="animate-spin" size={16} /> : <Mail size={16} />}
                           {isSendingEmail ? t.sending || "Envoi..." : t.saveEmail}
-                        </button>
-                        <button onClick={() => executeSave('WHATSAPP')} disabled={isSaving || isSendingEmail} className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl font-bold text-xs uppercase text-zinc-300 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                          <MessageCircle size={16} /> {t.saveWhatsapp}
                         </button>
                       </div>
                     </div>

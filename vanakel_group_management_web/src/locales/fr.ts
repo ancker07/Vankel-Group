@@ -224,6 +224,8 @@ export default {
     access_create_role: "Créer un rôle",
     access_edit_role: "Modifier le rôle",
     access_delete_role: "Supprimer ce rôle ?",
+    access_delete_user: "Supprimer cet utilisateur ?",
+    access_delete_user_note: "Son compte est désactivé mais ses données restent visibles dans l'historique des interventions.",
     access_role_label: "Nom affiché",
     access_role_key: "Code (lettres, chiffres, _)",
     access_role_description: "Description",

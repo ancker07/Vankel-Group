@@ -15,6 +15,7 @@ class ApiConstants {
   static const String profileDetails = '/profile/details';
   static const String changePassword = '/change-password';
   static const String updateFcmToken = '/update-fcm-token';
+  static const String updateLocale = '/update-locale';
   static const String updateLocation = '/location';
 
   // User Endpoints

@@ -32,6 +32,7 @@ Route::middleware('permission')->group(function () {
     Route::post('/profile/details', [AuthController::class, 'getProfile']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/update-fcm-token', [AuthController::class, 'updateFcmToken']);
+    Route::post('/update-locale', [AuthController::class, 'updateLocale']);
     Route::get('/notifications', [NotificationController::class, 'getUserNotifications']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
@@ -101,6 +102,7 @@ Route::post('/users/{id}/approve', [AuthController::class, 'approveUser'])->midd
 Route::post('/users/{id}/reject', [AuthController::class, 'rejectUser'])->middleware('permission:users.update');
 Route::put('/users/{id}/role', [AuthController::class, 'updateUserRole'])->middleware('permission:users.update');
 Route::post('/users/{id}/reset-password', [AuthController::class, 'resetPassword'])->middleware('permission:users.update');
+Route::delete('/users/{id}', [AuthController::class, 'deleteUser'])->middleware('permission:users.update');
 
 // Roles & permissions (the role list is also needed by the "create user" form)
 Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:roles.manage,users.create,users.update');

@@ -216,6 +216,8 @@ export default {
     access_create_role: "Create role",
     access_edit_role: "Edit role",
     access_delete_role: "Delete this role?",
+    access_delete_user: "Delete this user?",
+    access_delete_user_note: "Their account is deactivated but their data stays visible in intervention history.",
     access_role_label: "Name shown",
     access_role_key: "Code (letters, digits, _)",
     access_role_description: "Description",

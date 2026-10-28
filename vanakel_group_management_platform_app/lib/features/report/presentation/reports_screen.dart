@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../intervention/domain/intervention.dart';
-import 'widgets/intervention_details_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../intervention/presentation/providers/intervention_provider.dart';
@@ -203,12 +203,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     return GestureDetector(
       onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => InterventionDetailsSheet(intervention: item),
-        );
+        context.push('/admin/interventions/details/${item.id}');
       },
       child: Container(
         width: 280,
@@ -348,12 +343,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     return InkWell(
       onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => InterventionDetailsSheet(intervention: item),
-        );
+        context.push('/admin/interventions/details/${item.id}');
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
