@@ -51,18 +51,21 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
 
                 {mission.documents && mission.documents.length > 0 && (
                     <div className="mb-6 text-left space-y-2">
-                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest flex items-center gap-1.5">
-                            <FileText size={12} /> {t.verify_docs || 'Review Documents'}
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                            <FileText size={14} className="text-zinc-600" /> {t.docs || 'Documents'}
                         </label>
-                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1">
                             {mission.documents.map((doc, idx) => (
                                 <button
                                     key={doc.id || idx}
                                     onClick={() => setViewerData({ docs: mission.documents, index: idx })}
-                                    className="w-full flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-xl hover:border-brand-green group transition-all"
+                                    className="flex items-center justify-between p-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl group transition-all"
                                 >
-                                    <span className="text-xs font-bold text-zinc-400 group-hover:text-white truncate max-w-[200px]">{doc.name}</span>
-                                    <span className="text-[10px] font-black text-brand-green uppercase tracking-tighter">{t.view || 'View'}</span>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <FileText size={16} className="text-zinc-500 group-hover:text-brand-green shrink-0" />
+                                        <span className="text-xs font-bold text-zinc-400 group-hover:text-white truncate">{doc.name}</span>
+                                    </div>
+                                    <span className="text-[9px] font-black text-zinc-600 uppercase group-hover:text-brand-green">{t.view || 'View'}</span>
                                 </button>
                             ))}
                         </div>
