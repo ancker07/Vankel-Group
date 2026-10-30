@@ -567,16 +567,23 @@ class InterventionController extends Controller
         $oldStatus = $intervention->status;
         $oldProId = $intervention->pro_id;
 
-        // Only admin/superadmin can change the intervention status
+        // Status can be changed by admins / super admins, and by the field worker the
+        // intervention is assigned to (checked above). Everyone else is refused.
+        $actor = $request->user();
+        $isFieldWorker = $this->isFieldWorker($actor);
         if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
-            $user = $request->user();
-            $isAdminOrSuperAdmin = $user && ($user->isSuperAdmin() || strtoupper((string) $user->role) === 'ADMIN');
-            if (!$isAdminOrSuperAdmin) {
+            $isAdminOrSuperAdmin = $actor && ($actor->isSuperAdmin() || strtoupper((string) $actor->role) === 'ADMIN');
+            if (!$isAdminOrSuperAdmin && !$isFieldWorker) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only administrators can update intervention status.',
+                    'message' => 'You are not allowed to update this intervention status.',
                 ], 403);
             }
+        }
+
+        // A field worker updates the job, not who it is assigned to / for / when
+        if ($isFieldWorker) {
+            unset($validated['pro_id'], $validated['syndic_id'], $validated['scheduled_date']);
         }
 
         // A completed mission is locked: only roles with interventions.reopen (admin) may change it
@@ -588,7 +595,7 @@ class InterventionController extends Controller
         }
 
         if (($validated['status'] ?? null) === 'COMPLETED' && $oldStatus !== 'COMPLETED'
-            && !$request->user()->hasPermission('interventions.reopen')) {
+            && !$isFieldWorker && !$request->user()->hasPermission('interventions.reopen')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only an admin can mark a mission as completed.',

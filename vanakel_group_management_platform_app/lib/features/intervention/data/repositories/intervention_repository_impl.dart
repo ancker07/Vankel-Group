@@ -27,7 +27,10 @@ class InterventionRepositoryImpl implements InterventionRepository {
   Future<Intervention> getInterventionById(String id) async {
     try {
       final response = await _dio.get('${ApiConstants.interventions}/$id');
-      return InterventionModel.fromJson(response.data).toEntity();
+      // The API wraps the updated record: { message, intervention: {...} }
+      final body = response.data;
+      final record = body is Map && body['intervention'] is Map ? body['intervention'] : body;
+      return InterventionModel.fromJson(Map<String, dynamic>.from(record as Map)).toEntity();
     } on DioException catch (e) {
       throw handleDioError(e);
     }

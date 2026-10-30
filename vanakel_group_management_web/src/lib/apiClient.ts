@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { loadingStore } from '@/lib/loadingStore';
 
 // The central configuration for our API
 // Local: http://localhost:8000
@@ -23,9 +24,22 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        loadingStore.start(config.method);
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Every request that started must end, whether it succeeded or failed
+apiClient.interceptors.response.use(
+    (response) => {
+        loadingStore.end(response.config?.method);
+        return response;
+    },
+    (error) => {
+        loadingStore.end(error?.config?.method);
         return Promise.reject(error);
     }
 );

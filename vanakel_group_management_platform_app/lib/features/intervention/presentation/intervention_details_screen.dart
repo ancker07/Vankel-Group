@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/enums/user_role_enum.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
 import 'providers/intervention_provider.dart';
@@ -309,7 +308,10 @@ class _InterventionDetailsScreenState
                       // Status control up top so admins / super admins can find it
                       editable(_buildStatusSection(intervention, l10n)),
                       const SizedBox(height: 24),
-                      editable(_buildContactSection(intervention, l10n)),
+                      if (_canManageAssignments)
+                        editable(_buildContactSection(intervention, l10n))
+                      else
+                        _buildTechnicianContactCard(l10n),
                       const SizedBox(height: 24),
                       _buildDescriptionSection(intervention, l10n),
                       const SizedBox(height: 24),
@@ -388,6 +390,86 @@ class _InterventionDetailsScreenState
           row(Icons.place_outlined, l10n.propertyAddress, location),
           row(Icons.business_outlined, l10n.syndicManager, i.syndicName ?? i.extractedSyndicName),
           row(Icons.engineering_outlined, l10n.assignedProfessional, i.professionalName),
+        ],
+      ),
+    );
+  }
+
+  /// Admins / super admins manage syndic, contact and assignment; technicians don't.
+  bool get _canManageAssignments {
+    final user = ref.read(authStateProvider).user;
+    return user != null && (user.isSuperAdmin || user.can('missions.approve') || user.can('team.view'));
+  }
+
+  Future<void> _launch(String scheme, String value) async {
+    final uri = Uri(scheme: scheme, path: value.trim());
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  /// Read-only on-site contact for technicians: who to ask for, and how to reach them.
+  Widget _buildTechnicianContactCard(AppLocalizations l10n) {
+    final name = _contactNameController.text.trim();
+    final phone = _contactPhoneController.text.trim();
+    final email = _contactEmailController.text.trim();
+
+    Widget line(IconData icon, String label, String value, {String? scheme, Color? color}) {
+      final has = value.isNotEmpty;
+      return InkWell(
+        onTap: has && scheme != null ? () => _launch(scheme, value) : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: has && scheme != null ? AppTheme.brandGreen : AppTheme.zinc500),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: const TextStyle(
+                            fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+                    const SizedBox(height: 2),
+                    Text(has ? value : '—',
+                        style: TextStyle(
+                            color: has ? (color ?? Colors.white) : AppTheme.zinc500,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              if (has && scheme != null)
+                Icon(scheme == 'tel' ? Icons.call : Icons.mail_outline, size: 18, color: AppTheme.brandGreen),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person_outline, size: 16, color: AppTheme.zinc500),
+              const SizedBox(width: 8),
+              Text(l10n.onSiteContact,
+                  style: const TextStyle(
+                      fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          line(Icons.badge_outlined, l10n.name, name),
+          line(Icons.phone_outlined, l10n.phoneTitle, phone, scheme: 'tel'),
+          if (email.isNotEmpty) line(Icons.alternate_email, 'EMAIL', email, scheme: 'mailto'),
         ],
       ),
     );
@@ -799,7 +881,7 @@ class _InterventionDetailsScreenState
   Widget _buildStatusSection(Intervention i, AppLocalizations l10n) {
     final user = ref.watch(authStateProvider).user;
     final canChangeStatus = user != null &&
-        (user.isSuperAdmin || user.role == UserRole.admin) &&
+        user.can('interventions.update') &&
         (i.status != InterventionStatus.completed || user.can('interventions.reopen'));
 
     return Column(
