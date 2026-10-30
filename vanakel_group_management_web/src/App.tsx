@@ -154,6 +154,7 @@ const App: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [toastMessages, setToastMessages] = useState<{ id: string, title: string, message: string }[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadErrors, setLoadErrors] = useState<string[]>([]);
   const [isIngesting, setIsIngesting] = useState(false);
   const lastErrorRef = useRef<{ hash: string, time: number } | null>(null);
 
@@ -177,16 +178,26 @@ const App: React.FC = () => {
     if (!silent) setIsRefreshing(true);
     try {
       // Only load what the role may see; one refused request must not blank the whole app
-      const load = <T,>(allowed: boolean, request: () => Promise<T>) =>
-        allowed ? request().catch(() => [] as unknown as T) : Promise.resolve([] as unknown as T);
+      // ...but do remember which ones failed so the user can see it (and retry)
+      const failed: string[] = [];
+      const load = <T,>(allowed: boolean, request: () => Promise<T>, label = 'data') =>
+        allowed
+          ? request().catch((err: any) => {
+              console.error(`Failed to load ${label}:`, err);
+              const status = err?.response?.status;
+              failed.push(status ? `${label} (${status})` : `${label} (no response)`);
+              return [] as unknown as T;
+            })
+          : Promise.resolve([] as unknown as T);
       const [apiBuildings, apiMissions, apiInterventions, apiSyndics, apiPendingUsers, apiMaintenancePlans] = await Promise.all([
-        load(can('buildings.view'), dataService.getBuildings),
-        load(can('missions.view'), dataService.getMissions),
-        load(can('interventions.view'), dataService.getInterventions),
-        load(can('buildings.view'), dataService.getSyndics),
-        load(can('users.view'), dataService.getPendingUsers),
-        load(can('maintenance.view'), dataService.getMaintenancePlans)
+        load(can('buildings.view'), dataService.getBuildings, 'buildings'),
+        load(can('missions.view'), dataService.getMissions, 'missions'),
+        load(can('interventions.view'), dataService.getInterventions, 'interventions'),
+        load(can('buildings.view'), dataService.getSyndics, 'syndics'),
+        load(can('users.view'), dataService.getPendingUsers, 'pending users'),
+        load(can('maintenance.view'), dataService.getMaintenancePlans, 'maintenance plans')
       ]);
+      setLoadErrors(failed);
 
       if (apiBuildings) {
         const mappedBuildings: Building[] = apiBuildings.map((b: any) => {
@@ -426,11 +437,13 @@ const App: React.FC = () => {
 
         } catch (err) {
           console.error("Failed to fetch superadmin specific data:", err);
+          setLoadErrors(prev => [...prev, `users/stats (${(err as any)?.response?.status ?? 'no response'})`]);
         }
       }
 
     } catch (error) {
       console.error("Failed to fetch dynamic data:", error);
+      setLoadErrors(prev => [...prev, 'dashboard data']);
     } finally {
       if (!silent) setIsRefreshing(false);
     }
@@ -1375,6 +1388,13 @@ const App: React.FC = () => {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes >
+      {loadErrors.length > 0 && role && (
+        <div role="alert" className="fixed top-3 left-1/2 -translate-x-1/2 z-[10001] max-w-[92vw] flex items-center gap-3 bg-red-950/95 border border-red-500/40 text-red-200 text-xs font-bold px-4 py-3 rounded-xl shadow-xl">
+          <span>Couldn't load: {loadErrors.join(', ')}.</span>
+          <button onClick={() => refreshGlobalData()} className="px-3 py-1 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-white">Retry</button>
+          <button onClick={() => setLoadErrors([])} aria-label="Dismiss" className="text-red-300 hover:text-white">✕</button>
+        </div>
+      )}
       <ToastContainer toasts={toastMessages} onRemove={(id) => setToastMessages(prev => prev.filter(t => t.id !== id))} />
     </>
   );
