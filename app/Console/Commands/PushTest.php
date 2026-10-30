@@ -23,9 +23,15 @@ class PushTest extends Command
         $this->line("User: {$user->email} (role {$user->role}, status {$user->status})");
         $this->line('Can view missions (gets new-mission pushes): ' . ($user->hasPermission('missions.view') ? 'yes' : 'NO'));
 
+        $sa = null;
         $keyFile = file_exists(base_path('public/vanakelgroup.json')) ? 'public/vanakelgroup.json'
             : (file_exists(base_path('public/vankelgroup.json')) ? 'public/vankelgroup.json' : null);
         $this->line('Firebase service-account file: ' . ($keyFile ?? 'MISSING'));
+
+        if ($keyFile) {
+            $sa = json_decode(file_get_contents(base_path($keyFile)), true);
+            $this->line('Key file project: ' . ($sa['project_id'] ?? '?') . ' (the app expects: vanakel-group-5cd15)');
+        }
 
         if (!$user->fcm_token) {
             $this->error('This user has NO fcm_token saved. The phone never registered (log in on the phone first, then re-run).');
@@ -41,7 +47,7 @@ class PushTest extends Command
             return self::SUCCESS;
         }
 
-        $this->error('FCM rejected the message. See the "FCM API Error" line in storage/logs/laravel.log.');
+        $this->error('FCM rejected the message: ' . ($push->lastError ?? 'unknown'));
         return self::FAILURE;
     }
 }

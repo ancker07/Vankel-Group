@@ -14,6 +14,9 @@ class NotificationService
     protected string $projectId;
     protected string $serviceAccountPath;
 
+    /** Why the last send failed (for diagnostics, e.g. php artisan push:test). */
+    public ?string $lastError = null;
+
     public function __construct()
     {
         $this->serviceAccountPath = file_exists(base_path('public/vanakelgroup.json'))
@@ -127,6 +130,7 @@ class NotificationService
     {
         $accessToken = $this->getAccessToken();
         if (!$accessToken) {
+            $this->lastError = 'Could not get a Google access token (service-account file missing, unreadable or invalid).';
             Log::error('FCM: Could not get access token. Make sure storage/app/firebase-auth.json exists and is valid.');
             return false;
         }
@@ -184,6 +188,7 @@ class NotificationService
             User::where('fcm_token', $target['token'])->update(['fcm_token' => null]);
         }
 
+        $this->lastError = 'HTTP ' . $response->status() . ' ' . $response->body();
         Log::error('FCM API Error (' . $response->status() . '): ' . $response->body());
         Log::debug('FCM Request Payload: ' . json_encode(['message' => $message]));
         return false;
