@@ -43,7 +43,7 @@ class MissionModel extends Mission {
       descriptionNl: json['description_nl'] as String?,
       address: json['building']?['address'] as String? ?? json['extracted_address'] as String? ?? 'No Address',
       syndicId: json['syndic_id']?.toString() ?? json['syndicId']?.toString(),
-      syndicName: json['syndic'] != null ? (json['syndic']['company_name'] ?? json['syndic']['companyName']) as String? : null,
+      syndicName: _firstNonEmpty(json['syndic'] as Map<String, dynamic>?, ['company_name', 'companyName', 'name', 'contact_person', 'email']),
       syndicEmail: json['syndic'] != null ? (json['syndic']['email']) as String? : null,
       syndicPhone: json['syndic'] != null ? (json['syndic']['phone']) as String? : null,
       extractedSyndicName: json['extracted_syndic_name'] as String? ?? json['extractedSyndicName'] as String?,
@@ -99,6 +99,16 @@ class MissionModel extends Mission {
           )
           .toList(),
     };
+  }
+
+  /// First non-blank string value among [keys] of [map] (null if none).
+  static String? _firstNonEmpty(Map<String, dynamic>? map, List<String> keys) {
+    if (map == null) return null;
+    for (final k in keys) {
+      final v = map[k];
+      if (v != null && v.toString().trim().isNotEmpty) return v.toString().trim();
+    }
+    return null;
   }
 
   static MissionStatus _parseStatus(String? status) {

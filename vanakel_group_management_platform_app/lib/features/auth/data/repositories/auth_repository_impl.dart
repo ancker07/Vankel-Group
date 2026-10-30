@@ -19,9 +19,23 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<User> login(String email, String password, String role) async {
     try {
+      // Send the device token with the login itself so the server registers
+      // this phone for push even if the follow-up sync below fails.
+      String? deviceToken;
+      try {
+        deviceToken = await NotificationService()
+            .getToken()
+            .timeout(const Duration(seconds: 5));
+      } catch (_) {}
+
       final response = await _dio.post(
         ApiConstants.login,
-        data: {'email': email, 'password': password, 'role': role},
+        data: {
+          'email': email,
+          'password': password,
+          'role': role,
+          if (deviceToken != null && deviceToken.isNotEmpty) 'fcm_token': deviceToken,
+        },
       );
 
       final token = response.data['token'];
@@ -29,14 +43,18 @@ class AuthRepositoryImpl implements AuthRepository {
         await _tokenService.saveToken(token);
         await _tokenService.saveEmail(email);
         
-        // Sync FCM token
-        try {
-          final fcmToken = await NotificationService().getToken();
-          if (fcmToken != null) {
-            await updateFcmToken(email, fcmToken);
+        // Sync FCM token (retry once; the token can be late right after install)
+        for (var attempt = 0; attempt < 2; attempt++) {
+          try {
+            final fcmToken = await NotificationService().getToken();
+            if (fcmToken != null && fcmToken.isNotEmpty) {
+              await updateFcmToken(email, fcmToken);
+              break;
+            }
+          } catch (e) {
+            if (kDebugMode) print('SYNC: FCM sync attempt ${attempt + 1} failed: $e');
           }
-        } catch (e) {
-          // Non-blocking
+          await Future.delayed(const Duration(seconds: 3));
         }
 
         // Sync the onboarding-selected language now that we're authenticated

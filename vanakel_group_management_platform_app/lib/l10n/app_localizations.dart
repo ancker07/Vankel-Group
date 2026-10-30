@@ -1653,6 +1653,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This mission is completed. Only an admin can change it.'**
   String get missionLocked;
+
+  /// No description provided for @assignedProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned professional'**
+  String get assignedProfessional;
 }
 
 class _AppLocalizationsDelegate

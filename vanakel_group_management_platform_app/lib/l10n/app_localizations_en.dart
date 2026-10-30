@@ -812,4 +812,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get missionLocked =>
       'This mission is completed. Only an admin can change it.';
+
+  @override
+  String get assignedProfessional => 'Assigned professional';
 }

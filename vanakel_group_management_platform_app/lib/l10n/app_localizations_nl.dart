@@ -813,4 +813,7 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get missionLocked =>
       'Deze missie is afgerond. Alleen een admin kan ze wijzigen.';
+
+  @override
+  String get assignedProfessional => 'Toegewezen professional';
 }

@@ -49,15 +49,12 @@ class InterventionModel extends Intervention {
 
     // Syndic info
     final syndic = json['syndic'] as Map<String, dynamic>?;
-    final syndicName = syndic != null
-        ? ((syndic['company_name'] ?? syndic['companyName']) as String?)
-        : null;
+    final syndicName = _firstNonEmpty(syndic, ['company_name', 'companyName', 'name', 'contact_person', 'email']);
 
     // Professional info
     final professional = json['professional'] as Map<String, dynamic>?;
-    final proName = professional != null
-        ? ((professional['company_name'] ?? professional['companyName']) as String?)
-        : null;
+    // Professionals are staff users: their person name comes first
+    final proName = _firstNonEmpty(professional, ['name', 'company_name', 'companyName', 'email']);
 
     return InterventionModel(
       id: json['id'].toString(),
@@ -118,6 +115,16 @@ class InterventionModel extends Intervention {
               .toList() ??
           [],
     );
+  }
+
+  /// First non-blank string value among [keys] of [map] (null if none).
+  static String? _firstNonEmpty(Map<String, dynamic>? map, List<String> keys) {
+    if (map == null) return null;
+    for (final k in keys) {
+      final v = map[k];
+      if (v != null && v.toString().trim().isNotEmpty) return v.toString().trim();
+    }
+    return null;
   }
 
   static InterventionStatus _parseStatus(String? status) {

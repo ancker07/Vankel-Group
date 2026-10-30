@@ -71,7 +71,8 @@ class AuthController extends Controller
         $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
-            'role' => ['required', 'string']
+            'role' => ['required', 'string'],
+            'fcm_token' => ['nullable', 'string'],
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -94,6 +95,15 @@ class AuthController extends Controller
                         'success' => false,
                         'message' => 'Your account has been deactivated.'
                     ], 403);
+                }
+
+                // Register this phone for push right at login so it can't be lost to a later failed call
+                if ($request->filled('fcm_token')) {
+                    User::where('fcm_token', $request->fcm_token)->where('id', '!=', $user->id)->update(['fcm_token' => null]);
+                    $user->update(['fcm_token' => $request->fcm_token]);
+                    Log::info("FCM: token registered at login for {$user->email}");
+                } else {
+                    Log::warning("FCM: login without a device token for {$user->email}");
                 }
 
                 return response()->json([

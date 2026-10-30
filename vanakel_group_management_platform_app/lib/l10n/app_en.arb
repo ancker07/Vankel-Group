@@ -270,5 +270,6 @@
   "stopDictation": "Stop",
   "listening": "Listening… speak now",
   "speechUnavailable": "Voice dictation is not available on this device.",
-  "missionLocked": "This mission is completed. Only an admin can change it."
+  "missionLocked": "This mission is completed. Only an admin can change it.",
+  "assignedProfessional": "Assigned professional"
 }

@@ -267,5 +267,6 @@
   "stopDictation": "Arrêter",
   "listening": "À l'écoute… parlez maintenant",
   "speechUnavailable": "La dictée vocale n'est pas disponible sur cet appareil.",
-  "missionLocked": "Cette mission est terminée. Seul un admin peut la modifier."
+  "missionLocked": "Cette mission est terminée. Seul un admin peut la modifier.",
+  "assignedProfessional": "Professionnel assigné"
 }

@@ -304,6 +304,11 @@ class _InterventionDetailsScreenState
                         ),
                         const SizedBox(height: 16),
                       ],
+                      _buildSummaryCard(intervention, l10n),
+                      const SizedBox(height: 24),
+                      // Status control up top so admins / super admins can find it
+                      editable(_buildStatusSection(intervention, l10n)),
+                      const SizedBox(height: 24),
                       editable(_buildContactSection(intervention, l10n)),
                       const SizedBox(height: 24),
                       _buildDescriptionSection(intervention, l10n),
@@ -314,8 +319,6 @@ class _InterventionDetailsScreenState
                         TeamMemberTracker(interventionId: widget.interventionId),
                         const SizedBox(height: 24),
                       ],
-                      editable(_buildStatusSection(intervention, l10n)),
-                      const SizedBox(height: 24),
                       editable(_buildFeedbackSection(intervention, l10n)),
                       const SizedBox(height: 24),
                       editable(_buildMediaAuditSection(intervention, l10n)),
@@ -334,6 +337,58 @@ class _InterventionDetailsScreenState
         error: (e, __) => Center(
           child: Text('Error: $e', style: const TextStyle(color: Colors.white)),
         ),
+      ),
+    );
+  }
+
+  /// Who / where at a glance: reference, address, syndic and the assigned professional.
+  Widget _buildSummaryCard(Intervention i, AppLocalizations l10n) {
+    Widget row(IconData icon, String label, String? value) {
+      if (value == null || value.trim().isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: AppTheme.zinc500),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label.toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+                  const SizedBox(height: 2),
+                  Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final location = [i.address, i.city].where((e) => e != null && e.trim().isNotEmpty).join(', ');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.zinc950,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.zinc800),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (i.interventionNumber != null && i.interventionNumber!.isNotEmpty)
+            Text('#${i.interventionNumber}',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)),
+          Text(i.title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+          row(Icons.place_outlined, l10n.propertyAddress, location),
+          row(Icons.business_outlined, l10n.syndicManager, i.syndicName ?? i.extractedSyndicName),
+          row(Icons.engineering_outlined, l10n.assignedProfessional, i.professionalName),
+        ],
       ),
     );
   }

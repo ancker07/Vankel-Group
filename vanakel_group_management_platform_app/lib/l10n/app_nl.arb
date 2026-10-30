@@ -267,5 +267,6 @@
   "stopDictation": "Stoppen",
   "listening": "Aan het luisteren… spreek nu",
   "speechUnavailable": "Spraakdictatie is niet beschikbaar op dit toestel.",
-  "missionLocked": "Deze missie is afgerond. Alleen een admin kan ze wijzigen."
+  "missionLocked": "Deze missie is afgerond. Alleen een admin kan ze wijzigen.",
+  "assignedProfessional": "Toegewezen professional"
 }

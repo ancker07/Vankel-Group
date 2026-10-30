@@ -203,24 +203,79 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         ),
       ),
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          final tab = visibleTabs[index];
-          navigationShell.goBranch(
-            tab.branchIndex,
-            initialLocation: tab.branchIndex == navigationShell.currentIndex,
-          );
-        },
-        backgroundColor: AppTheme.zinc950,
-        indicatorColor: AppTheme.brandGreen.withOpacity(0.2),
-        destinations: visibleTabs
-            .map((t) => NavigationDestination(
-                  icon: Icon(t.icon),
-                  selectedIcon: Icon(t.selectedIcon, color: AppTheme.brandGreen),
-                  label: t.label,
-                ))
-            .toList(),
+      bottomNavigationBar: Container(
+        color: AppTheme.zinc950,
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 64,
+            child: Row(
+              children: [
+                for (var i = 0; i < visibleTabs.length; i++)
+                  Expanded(
+                    child: _buildNavItem(
+                      visibleTabs[i],
+                      isSelected: i == selectedIndex,
+                      onTap: () {
+                        final tab = visibleTabs[i];
+                        navigationShell.goBranch(
+                          tab.branchIndex,
+                          initialLocation: tab.branchIndex == navigationShell.currentIndex,
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// One bottom-bar tab. The label is forced onto a single line and scaled
+  /// down to fit, so long translations (FR/NL) can never wrap or overlap.
+  Widget _buildNavItem(
+    _NavTab tab, {
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final color = isSelected ? AppTheme.brandGreen : AppTheme.zinc400;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.brandGreen.withOpacity(0.2) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(isSelected ? tab.selectedIcon : tab.icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 2),
+            SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  tab.label,
+                  maxLines: 1,
+                  softWrap: false,
+                  textScaler: TextScaler.noScaling,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: color,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
