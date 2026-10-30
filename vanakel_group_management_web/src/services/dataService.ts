@@ -162,7 +162,7 @@ export const dataService = {
         return response.data;
     },
     ingestEmail: async (id: number) => {
-        const response = await apiClient.post(`/emails/${id}/ingest`);
+        const response = await apiClient.post(`/emails/${id}/ingest`, null, { timeout: 180000 });
         return response.data;
     },
     ingestAllEmails: async () => {

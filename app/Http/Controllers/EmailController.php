@@ -28,8 +28,18 @@ class EmailController extends Controller
 
         // Group by thread_id, falling back to message_id for unique emails
         // Then take the latest message from each group and count total messages in group
+        // List view only needs a preview: skip body_html / extracted_data / references
+        // and cap body_text, otherwise every email's full body is shipped on each load.
         $query = Email::with('attachments')
-            ->select('emails.*', 'thread_counts.total_count as thread_count')
+            ->select(
+                'emails.id', 'emails.message_id', 'emails.thread_id', 'emails.in_reply_to',
+                'emails.from_address', 'emails.from_name', 'emails.to_address', 'emails.subject',
+                'emails.received_at', 'emails.is_read', 'emails.ingested_at',
+                'emails.ingestion_status', 'emails.ingestion_reason',
+                'emails.created_at', 'emails.updated_at',
+                DB::raw('SUBSTRING(emails.body_text, 1, 1500) as body_text'),
+                'thread_counts.total_count as thread_count'
+            )
             ->join(DB::raw('(SELECT MAX(id) as max_id, COUNT(*) as total_count FROM emails GROUP BY COALESCE(thread_id, message_id)) as thread_counts'), 'emails.id', '=', 'thread_counts.max_id')
             ->orderBy('received_at', 'desc');
 
@@ -154,8 +164,17 @@ class EmailController extends Controller
 
     public function ingest($id)
     {
+        // AI extraction can take a while; don't let PHP kill the request mid-way
+        @set_time_limit(300);
+
         $email = Email::with('attachments')->findOrFail($id);
-        $result = $this->ingestionService->ingest($email);
+
+        try {
+            $result = $this->ingestionService->ingest($email);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Email ingest #{$email->id} failed: " . $e->getMessage());
+            $result = ['success' => false, 'status' => 'ERROR', 'message' => $e->getMessage()];
+        }
 
         if (!$result['success']) {
             return response()->json($result, 500);
@@ -166,6 +185,8 @@ class EmailController extends Controller
 
     public function ingestAll()
     {
+        @set_time_limit(0);
+
         // Include both un-ingested AND deferred emails
         $emails = Email::where(function ($query) {
             $query->whereNull('ingested_at')
@@ -184,9 +205,16 @@ class EmailController extends Controller
                 continue;
             }
 
+            try {
+                $result = $this->ingestionService->ingest($email);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Email ingest #{$email->id} failed: " . $e->getMessage());
+                $result = ['success' => false, 'status' => 'ERROR', 'message' => $e->getMessage()];
+            }
+
             $results[] = [
                 'email_id' => $email->id,
-                'result' => $this->ingestionService->ingest($email)
+                'result' => $result
             ];
         }
 

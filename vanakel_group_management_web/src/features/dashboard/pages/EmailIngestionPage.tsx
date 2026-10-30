@@ -24,6 +24,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
     const [loading, setLoading] = useState(true);
     const [ingestingId, setIngestingId] = useState<number | null>(null);
     const [isBulkIngesting, setIsBulkIngesting] = useState(false);
+    const [ingestError, setIngestError] = useState<string | null>(null);
 
     const fetchEmails = async () => {
         try {
@@ -42,30 +43,51 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
         fetchEmails();
     }, []);
 
+    const getErrorMessage = (error: any): string =>
+        error?.response?.data?.message ||
+        (error?.code === 'ECONNABORTED' ? 'The request timed out. Please try again.' : error?.message) ||
+        'Ingestion failed.';
+
     const handleIngest = async (id: number) => {
         setIngestingId(id);
+        setIngestError(null);
         try {
             const result = await dataService.ingestEmail(id);
-            if (result.success) {
-                // Refresh list to update status
-                await fetchEmails();
+            if (result && result.success === false) {
+                setIngestError(result.message || 'Ingestion failed.');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Ingestion failed:", error);
+            setIngestError(getErrorMessage(error));
         } finally {
             setIngestingId(null);
+            // Always refresh: a failed ingestion is stored as ERROR on the email
+            await fetchEmails();
         }
     };
 
+    // Ingest one email per request so no single request runs long enough to time out
     const handleIngestAll = async () => {
         setIsBulkIngesting(true);
+        setIngestError(null);
+        const queue = emails.filter(e => !e.ingested_at || e.ingestion_status === 'PENDING' || e.ingestion_status === 'DEFERRED');
+        let failed = 0;
         try {
-            await dataService.ingestAllEmails();
-            await fetchEmails();
-        } catch (error) {
-            console.error("Bulk ingestion failed:", error);
+            for (const email of queue) {
+                setIngestingId(email.id);
+                try {
+                    const result = await dataService.ingestEmail(email.id);
+                    if (result && result.success === false) failed++;
+                } catch (error) {
+                    console.error(`Ingestion failed for email ${email.id}:`, error);
+                    failed++;
+                }
+            }
+            if (failed > 0) setIngestError(`${failed} email(s) failed to ingest.`);
         } finally {
+            setIngestingId(null);
             setIsBulkIngesting(false);
+            await fetchEmails();
         }
     };
 
@@ -80,7 +102,7 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
     const sortedEmails = [...emails].sort((a, b) => 
         new Date(b.received_at).getTime() - new Date(a.received_at).getTime()
     );
-    const pendingCount = emails.filter(e => !e.ingested_at || e.ingestion_status === 'PENDING').length;
+    const pendingCount = emails.filter(e => !e.ingested_at || e.ingestion_status === 'PENDING' || e.ingestion_status === 'DEFERRED').length;
 
     return (
         <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
@@ -107,6 +129,13 @@ const EmailIngestionPage: React.FC<EmailIngestionPageProps> = ({ lang, t }) => {
                     </button>
                 </div>
             </div>
+
+            {ingestError && (
+                <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-xl">
+                    <AlertCircle size={16} />
+                    {ingestError}
+                </div>
+            )}
 
             <div className="bg-zinc-900/30 rounded-2xl border border-zinc-800 overflow-hidden">
                 {/* Desktop View Table */}
