@@ -35,7 +35,7 @@ class AuthController extends Controller
 
         $request->validate([
             'firstName' => 'required|string|max:255',
-            'lastName' => [$isTechnician ? 'nullable' : 'required', 'string', 'max:255'],
+            'lastName' => 'nullable|string|max:255',
             // technicians sign in with a username (no real e-mail needed); everyone else uses an e-mail
             'email' => [$isTechnician ? 'nullable' : 'required', 'string', 'email', 'max:255', 'unique:users'],
             'username' => [$isTechnician ? 'required_without:email' : 'nullable', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z0-9._-]+$/'],

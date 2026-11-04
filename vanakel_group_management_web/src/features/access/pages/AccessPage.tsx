@@ -284,7 +284,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                 ['companyName', t.companyName || 'Company', 'text'],
                             ] as const).map(([key, label, type]) => (
                                 <div key={key} className="space-y-1.5">
-                                    <label className={labelClass}>{label}{isTechnician && (key === 'lastName' || key === 'companyName') ? ` (${t.access_optional || 'optional'})` : ''}</label>
+                                    <label className={labelClass}>{label}{(key === 'phone' || key === 'companyName' || key === 'lastName') ? ` (${t.access_optional || 'optional'})` : ''}</label>
                                     <div className="relative">
                                     <input
                                         type={key === 'password' && !showPassword ? 'password' : type === 'password' ? 'text' : type}
@@ -307,7 +307,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         <div className="flex gap-3">
                             <button onClick={() => setUserForm(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
                             <button
-                                disabled={isSaving || !userForm.firstName || (!isTechnician && !userForm.lastName) || (isTechnician ? userForm.username.trim().length < 3 : !userForm.email) || userForm.password.length < 8 || !userForm.role}
+                                disabled={isSaving || !userForm.firstName || (isTechnician ? userForm.username.trim().length < 3 : !userForm.email) || userForm.password.length < 8 || !userForm.role}
                                 onClick={saveUser}
                                 className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50"
                             >
