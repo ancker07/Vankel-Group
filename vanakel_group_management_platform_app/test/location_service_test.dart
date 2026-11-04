@@ -101,7 +101,7 @@ void main() {
 
   tearDown(() => service.stop());
 
-  Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 20));
+  Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 250));
 
   test('GPS switched off: reports it, opens the phone settings, restarts by itself when GPS comes back', () async {
     geo.servicesEnabled = false;

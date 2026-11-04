@@ -40,16 +40,41 @@ class DictationButton extends StatefulWidget {
 }
 
 class _DictationButtonState extends State<DictationButton> {
+  /// NOTE: SpeechToText() is ONE object shared by the whole app. It remembers the status / error
+  /// callbacks of whoever called initialize() first, so every use must register its own again
+  /// (see _attach); otherwise a second screen never hears "done" and the button stays stuck.
   final SpeechToText _speech = SpeechToText();
+
+  /// What the user sees: the button is red.
   bool _isListening = false;
 
-  /// Text that was in the field before this dictation started.
+  /// What the user asked for: keep listening until they press stop (Android ends each recognition
+  /// after a short pause; we start the next one so a longer note is not cut off).
+  bool _wantListening = false;
+  bool _restartPending = false;
+  bool _gotWordsThisRound = false;
+  int _silentRounds = 0;
+  String? _locale;
+
+  /// Text that was in the field before the current recognition round started.
   String _baseText = '';
+
+  /// Stop after this many rounds in a row without a single word (nobody is speaking).
+  static const _maxSilentRounds = 3;
 
   @override
   void dispose() {
+    _wantListening = false;
     _speech.cancel();
+    // do not leave callbacks pointing at a closed screen
+    _speech.statusListener = null;
+    _speech.errorListener = null;
     super.dispose();
+  }
+
+  void _attach() {
+    _speech.statusListener = _onStatus;
+    _speech.errorListener = _onError;
   }
 
   Future<String?> _pickLocale(String languageCode) async {
@@ -81,43 +106,79 @@ class _DictationButtonState extends State<DictationButton> {
   }
 
   void _onError(SpeechRecognitionError error) {
-    if (mounted) setState(() => _isListening = false);
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     switch (error.errorMsg) {
       case 'error_no_match':
       case 'error_speech_timeout':
-        break; // nothing was said: not a failure
+        // nothing (understandable) was said in this round: not a failure, the round just ended
+        _roundEnded();
+        return;
       case 'error_permission':
+        _giveUp();
         _say(l10n.speechPermission, settings: true);
-        break;
+        return;
       case 'error_network':
       case 'error_network_timeout':
       case 'error_server':
       case 'error_server_disconnected':
+        _giveUp();
         _say(l10n.speechNetwork);
-        break;
+        return;
       case 'error_language_not_supported':
       case 'error_language_unavailable':
+        _giveUp();
         _say(l10n.speechLanguage);
-        break;
+        return;
+      case 'error_busy':
+      case 'error_client':
+        // the recogniser was still closing the previous round: try again shortly
+        _roundEnded();
+        return;
       default:
+        _giveUp();
         _say(l10n.speechRetry);
     }
   }
 
   void _onStatus(String status) {
-    if ((status == 'done' || status == 'notListening') && mounted) {
-      setState(() => _isListening = false);
+    if (status == 'done' || status == 'notListening') _roundEnded();
+  }
+
+  /// Stops everything (error, or the user pressed stop).
+  void _giveUp() {
+    _wantListening = false;
+    _restartPending = false;
+    if (mounted) setState(() => _isListening = false);
+  }
+
+  /// One recognition round finished. If the user did not press stop, start the next round.
+  void _roundEnded() {
+    if (!mounted) return;
+    if (!_wantListening) {
+      if (_isListening) setState(() => _isListening = false);
+      return;
     }
+    if (_restartPending) return; // "notListening" and "done" both arrive
+    _restartPending = true;
+
+    _silentRounds = _gotWordsThisRound ? 0 : _silentRounds + 1;
+    if (_silentRounds >= _maxSilentRounds) {
+      _giveUp(); // nobody is talking: do not keep the microphone and the beeps going
+      return;
+    }
+    Future<void>.delayed(const Duration(milliseconds: 350), () async {
+      _restartPending = false;
+      if (mounted && _wantListening && !_speech.isListening) await _listenOnce();
+    });
   }
 
   Future<void> _toggle() async {
     final l10n = AppLocalizations.of(context)!;
 
-    if (_isListening) {
+    if (_wantListening) {
+      _giveUp();
       await _speech.stop();
-      if (mounted) setState(() => _isListening = false);
       return;
     }
 
@@ -127,6 +188,7 @@ class _DictationButtonState extends State<DictationButton> {
       // we do not declare the Bluetooth permissions, so do not ask for them (Android 12+)
       options: [SpeechToText.androidNoBluetooth],
     );
+    _attach(); // initialize() keeps the FIRST caller's callbacks: register ours every time
 
     if (!mounted) return;
     if (!available) {
@@ -141,10 +203,19 @@ class _DictationButtonState extends State<DictationButton> {
       return;
     }
 
-    final locale = await _pickLocale(Localizations.localeOf(context).languageCode);
+    _locale = await _pickLocale(Localizations.localeOf(context).languageCode);
     if (!mounted) return;
 
+    _wantListening = true;
+    _restartPending = false;
+    _silentRounds = 0;
+    await _listenOnce();
+  }
+
+  Future<void> _listenOnce() async {
+    final l10n = AppLocalizations.of(context)!;
     _baseText = widget.controller.text.trimRight();
+    _gotWordsThisRound = false;
     setState(() => _isListening = true);
 
     try {
@@ -153,19 +224,20 @@ class _DictationButtonState extends State<DictationButton> {
       await _speech.listen(
         onResult: (result) {
           final spoken = result.recognizedWords;
+          if (spoken.isNotEmpty) _gotWordsThisRound = true;
           widget.controller.text = _baseText.isEmpty ? spoken : '$_baseText $spoken';
           widget.controller.selection = TextSelection.collapsed(offset: widget.controller.text.length);
         },
         listenOptions: SpeechListenOptions(
           partialResults: true,
           listenMode: ListenMode.dictation,
-          localeId: locale,
+          localeId: _locale,
           pauseFor: const Duration(seconds: 5),
           listenFor: const Duration(minutes: 2),
         ),
       );
     } catch (_) {
-      if (mounted) setState(() => _isListening = false);
+      _giveUp();
       _say(l10n.speechRetry);
     }
   }
@@ -176,22 +248,26 @@ class _DictationButtonState extends State<DictationButton> {
     final color = _isListening ? Colors.redAccent : AppTheme.zinc500;
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _toggle,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        // big enough to hit with a thumb (the touch target is at least 40 dp high)
+        constraints: const BoxConstraints(minHeight: 40),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: _isListening ? Colors.red.withValues(alpha: 0.1) : AppTheme.zinc900,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: _isListening ? Colors.redAccent : AppTheme.zinc800),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_isListening ? Icons.mic : Icons.mic_none, size: 14, color: color),
-            const SizedBox(width: 4),
+            Icon(_isListening ? Icons.mic : Icons.mic_none, size: 20, color: color),
+            const SizedBox(width: 6),
             Text(
               _isListening ? l10n.stopDictation : l10n.dictate,
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: color),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: color),
             ),
           ],
         ),

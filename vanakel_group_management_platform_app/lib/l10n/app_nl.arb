@@ -187,7 +187,6 @@
   "chooseSaveMode": "KIES OPSLAGMODUS",
   "saveOnly": "ALLEEN OPSLAAN",
   "saveSendEmail": "OPSLAAN & E-MAIL VERZENDEN",
-  "saveSendWhatsapp": "OPSLAAN & WHATSAPP VERZENDEN",
   "registerInterventionTitle": "INTERVENTIE REGISTREREN",
   "missionDetails": "Missiedetails",
   "chooseADate": "Kies een datum...",
@@ -444,5 +443,8 @@
   "later": "Later",
   "notifBlocked": "Meldingen staan uit: je mist meldingen over missies en interventies.",
   "couldNotOpenMaps": "Er kon geen kaart-app worden geopend op deze telefoon.",
-  "couldNotOpenLink": "Deze link kon niet worden geopend."
+  "couldNotOpenLink": "Deze link kon niet worden geopend.",
+  "reportSentTo": "Verslag verzonden naar {count} ontvanger(s)",
+  "reportPartial": "Verslag verzonden naar {sent} ontvanger(s), maar {failed} konden niet worden bereikt",
+  "reportNotSent": "Het verslag kon niet worden verzonden. De wijzigingen zijn opgeslagen. Probeer opnieuw of verwittig het kantoor."
 }

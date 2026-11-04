@@ -1,3 +1,4 @@
+import '../../../shared/widgets/dictation_button.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/error/error_text.dart';
 import 'dart:io';
@@ -406,7 +407,13 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                     },
                   ),
 
-                  _buildLabel(l10n.description),
+                  Row(
+                    children: [
+                      Expanded(child: _buildLabel(l10n.description)),
+                      // speak the request instead of typing it
+                      DictationButton(controller: _descriptionController),
+                    ],
+                  ),
                   TextFormField(
                     controller: _descriptionController,
                     style: const TextStyle(color: Colors.white),

@@ -1,3 +1,4 @@
+import '../../domain/intervention_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/intervention.dart';
 import 'intervention_provider.dart';
@@ -18,11 +19,12 @@ class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
     }
   }
 
-  Future<void> registerIntervention(String id, dynamic data) async {
+  Future<RegisterResult> registerIntervention(String id, dynamic data) async {
     final repository = ref.read(interventionRepositoryProvider);
     try {
-      await repository.registerIntervention(id, data);
+      final result = await repository.registerIntervention(id, data);
       _refreshAfterUpdate(id);
+      return result;
     } catch (e) {
       rethrow;
     }

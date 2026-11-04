@@ -63,7 +63,7 @@ class InterventionRepositoryImpl implements InterventionRepository {
   }
 
   @override
-  Future<Intervention> registerIntervention(String id, dynamic data) async {
+  Future<RegisterResult> registerIntervention(String id, dynamic data) async {
     try {
       // If data is FormData, Laravel often requires a POST request with _method spoofing
       // for multipart updates to work correctly across all PHP versions.
@@ -84,7 +84,11 @@ class InterventionRepositoryImpl implements InterventionRepository {
           receiveTimeout: const Duration(minutes: 2),
         ),
       );
-      return InterventionModel.fromJson(response.data).toEntity();
+      final body = response.data;
+      final report = body is Map && body['report'] is Map
+          ? ReportOutcome.fromJson(Map<String, dynamic>.from(body['report'] as Map))
+          : null;
+      return RegisterResult(report: report);
     } on DioException catch (e) {
       throw handleDioError(e);
     }

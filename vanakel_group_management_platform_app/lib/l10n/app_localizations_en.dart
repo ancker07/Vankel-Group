@@ -586,9 +586,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveSendEmail => 'SAVE & SEND EMAIL';
 
   @override
-  String get saveSendWhatsapp => 'SAVE & SEND WHATSAPP';
-
-  @override
   String get registerInterventionTitle => 'REGISTER INTERVENTION';
 
   @override
@@ -1430,4 +1427,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotOpenLink => 'This link could not be opened.';
+
+  @override
+  String reportSentTo(int count) {
+    return 'Report sent to $count recipient(s)';
+  }
+
+  @override
+  String reportPartial(int sent, int failed) {
+    return 'Report sent to $sent recipient(s), but $failed could not be reached';
+  }
+
+  @override
+  String get reportNotSent =>
+      'The report could not be sent. The changes were saved. Please try again or tell the office.';
 }

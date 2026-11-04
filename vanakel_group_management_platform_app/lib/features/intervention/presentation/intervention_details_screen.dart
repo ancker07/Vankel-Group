@@ -1,8 +1,9 @@
+import '../../../core/services/pdf_service.dart';
+import '../../../shared/widgets/mission_map.dart';
 import '../../../core/utils/launcher.dart';
 import '../../../core/services/map_service.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
-import '../../../core/utils/translation_helper.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -255,21 +256,37 @@ class _InterventionDetailsScreenState
         );
       }
 
-      await ref
+      // "Save & send e-mail": the PDF report goes along (same as on the website)
+      if (mode == 'EMAIL') await _attachReportPdf(formData, id);
+
+      final result = await ref
           .read(interventionListProvider.notifier)
           .registerIntervention(id, formData);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        // Say what really happened: who got the report (the e-mail is sent by the server right after the save)
+        var message = l10n.interventionRegisteredSuccess;
+        var color = AppTheme.brandGreen;
+        if (mode == 'EMAIL') {
+          final report = result.report;
+          if (report == null || !report.delivered) {
+            message = l10n.reportNotSent;
+            color = Colors.red;
+          } else if (report.complete) {
+            message = l10n.reportSentTo(report.sent.length);
+          } else {
+            message = l10n.reportPartial(report.sent.length, report.failed.length);
+            color = AppTheme.brandOrange;
+          }
+        }
         setState(() {
           _isSaving = false;
           _selectedImages.clear();
           _selectedDocs.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.interventionRegisteredSuccess),
-            backgroundColor: AppTheme.brandGreen,
-          ),
+          SnackBar(content: Text(message), backgroundColor: color, duration: const Duration(seconds: 6)),
         );
         Navigator.pop(context);
       }
@@ -280,6 +297,31 @@ class _InterventionDetailsScreenState
           SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
         );
       }
+    }
+  }
+
+  /// Builds the PDF report (with what the user just typed) and adds it to the save, so the e-mail
+  /// carries it. A PDF problem must never block the save / the e-mail.
+  Future<void> _attachReportPdf(dio.FormData formData, String id) async {
+    try {
+      final current = ref.read(interventionDetailProvider(id)).value;
+      if (current == null) return;
+      final report = current.copyWith(
+        adminFeedback: _adminNoteController.text,
+        status: _localStatus ?? current.status,
+        delayReason: _localDelayReason ?? current.delayReason,
+        delayDetails: _localDelayDetails ?? current.delayDetails,
+      );
+      final bytes = await PdfService.buildInterventionReport(
+        intervention: report,
+        building: null,
+        professional: null,
+        syndic: null,
+        lang: Localizations.localeOf(context).languageCode,
+      );
+      formData.files.add(MapEntry('files[]', dio.MultipartFile.fromBytes(bytes, filename: PdfService.fileNameFor(id))));
+    } catch (e) {
+      debugPrint('Report PDF not attached: $e');
     }
   }
 
@@ -1040,27 +1082,25 @@ class _InterventionDetailsScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              Text(
-                l10n.technicalObservations,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.zinc500,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(width: 16),
-              DictationButton(controller: _adminNoteController),
-              const SizedBox(width: 8),
-              _buildSmallBtn(Icons.camera_alt_outlined, l10n.photos, _pickImage),
-              const SizedBox(width: 8),
-              _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, _pickDocuments),
-            ],
+        Text(
+          l10n.technicalObservations,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: AppTheme.zinc500,
+            letterSpacing: 1.2,
           ),
+        ),
+        const SizedBox(height: 10),
+        // all the note tools are visible at once (they used to hide in a sideways-scrolling row)
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            DictationButton(controller: _adminNoteController),
+            _buildSmallBtn(Icons.camera_alt_outlined, l10n.photos, _pickImage),
+            _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, _pickDocuments),
+          ],
         ),
         const SizedBox(height: 12),
         Container(
@@ -1119,20 +1159,23 @@ class _InterventionDetailsScreenState
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        constraints: const BoxConstraints(minHeight: 40),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: AppTheme.zinc900,
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppTheme.zinc800),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: AppTheme.zinc500),
-            const SizedBox(width: 4),
+            Icon(icon, size: 20, color: AppTheme.zinc500),
+            const SizedBox(width: 6),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 9,
+                fontSize: 12,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.zinc500,
               ),
@@ -1487,31 +1530,66 @@ class _InterventionDetailsScreenState
     );
   }
 
+  /// Where the work is: a map preview and a big GPS button (same card as on a mission).
   Widget _buildMapSection(Intervention i, AppLocalizations l10n) {
+    final hasAddress = i.address.trim().isNotEmpty && i.address.trim() != 'No Address';
+    final address = hasAddress ? [i.address, if ((i.city ?? '').trim().isNotEmpty) i.city!].join(', ') : '';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.locationAccess,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: AppTheme.brandGreen,
-                letterSpacing: 1.2,
-              ),
+        Text(
+          l10n.locationAccess,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: AppTheme.brandGreen,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.zinc950,
+              border: Border.all(color: AppTheme.zinc800),
+              borderRadius: BorderRadius.circular(16),
             ),
-            GestureDetector(
-              onTap: () => _openMap(i.address),
-              child: const Icon(
-                Icons.near_me_outlined,
-                size: 18,
-                color: AppTheme.brandGreen,
-              ),
+            child: Column(
+              children: [
+                if (hasAddress) MissionMap(address: address),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        TranslationHelper.address(context, i.address),
+                        style: const TextStyle(color: AppTheme.zinc300, fontSize: 14),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          // MapService shows a message when the phone has no maps app / no address
+                          onPressed: () => _openMap(address.isEmpty ? i.address : address),
+                          icon: const Icon(Icons.navigation),
+                          label: Text(l10n.openGps),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.brandGreen,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -1916,15 +1994,6 @@ class _InterventionDetailsScreenState
               onTap: () {
                 Navigator.pop(context);
                 _executeRegister(i.id, mode: 'EMAIL');
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildOptionBtn(
-              icon: Icons.chat_outlined,
-              label: l10n.saveSendWhatsapp,
-              onTap: () {
-                Navigator.pop(context);
-                _executeRegister(i.id, mode: 'WHATSAPP');
               },
             ),
             const SizedBox(height: 24),

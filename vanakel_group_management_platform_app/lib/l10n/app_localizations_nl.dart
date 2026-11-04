@@ -587,9 +587,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get saveSendEmail => 'OPSLAAN & E-MAIL VERZENDEN';
 
   @override
-  String get saveSendWhatsapp => 'OPSLAAN & WHATSAPP VERZENDEN';
-
-  @override
   String get registerInterventionTitle => 'INTERVENTIE REGISTREREN';
 
   @override
@@ -1434,4 +1431,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get couldNotOpenLink => 'Deze link kon niet worden geopend.';
+
+  @override
+  String reportSentTo(int count) {
+    return 'Verslag verzonden naar $count ontvanger(s)';
+  }
+
+  @override
+  String reportPartial(int sent, int failed) {
+    return 'Verslag verzonden naar $sent ontvanger(s), maar $failed konden niet worden bereikt';
+  }
+
+  @override
+  String get reportNotSent =>
+      'Het verslag kon niet worden verzonden. De wijzigingen zijn opgeslagen. Probeer opnieuw of verwittig het kantoor.';
 }

@@ -1228,12 +1228,6 @@ abstract class AppLocalizations {
   /// **'SAVE & SEND EMAIL'**
   String get saveSendEmail;
 
-  /// No description provided for @saveSendWhatsapp.
-  ///
-  /// In en, this message translates to:
-  /// **'SAVE & SEND WHATSAPP'**
-  String get saveSendWhatsapp;
-
   /// No description provided for @registerInterventionTitle.
   ///
   /// In en, this message translates to:
@@ -2775,6 +2769,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This link could not be opened.'**
   String get couldNotOpenLink;
+
+  /// No description provided for @reportSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent to {count} recipient(s)'**
+  String reportSentTo(int count);
+
+  /// No description provided for @reportPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Report sent to {sent} recipient(s), but {failed} could not be reached'**
+  String reportPartial(int sent, int failed);
+
+  /// No description provided for @reportNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'The report could not be sent. The changes were saved. Please try again or tell the office.'**
+  String get reportNotSent;
 }
 
 class _AppLocalizationsDelegate

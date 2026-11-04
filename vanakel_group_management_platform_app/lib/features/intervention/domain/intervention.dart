@@ -112,6 +112,7 @@ class Intervention {
     String? adminFeedback,
     String? urgency,
     String? sector,
+    String? delayReason,
     String? delayDetails,
     DateTime? delayedRescheduleDate,
     DateTime? completedAt,

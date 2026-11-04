@@ -187,7 +187,6 @@
   "chooseSaveMode": "CHOISIR LE MODE D'ENREGISTREMENT",
   "saveOnly": "ENREGISTRER UNIQUEMENT",
   "saveSendEmail": "ENREGISTRER & ENVOYER EMAIL",
-  "saveSendWhatsapp": "ENREGISTRER & ENVOYER WHATSAPP",
   "registerInterventionTitle": "ENREGISTRER L'INTERVENTION",
   "missionDetails": "Détails de la mission",
   "chooseADate": "Choisir une date...",
@@ -444,5 +443,8 @@
   "later": "Plus tard",
   "notifBlocked": "Les notifications sont désactivées : vous manquerez les alertes de missions et d'interventions.",
   "couldNotOpenMaps": "Aucune application de cartes n'a pu être ouverte sur ce téléphone.",
-  "couldNotOpenLink": "Ce lien n'a pas pu être ouvert."
+  "couldNotOpenLink": "Ce lien n'a pas pu être ouvert.",
+  "reportSentTo": "Rapport envoyé à {count} destinataire(s)",
+  "reportPartial": "Rapport envoyé à {sent} destinataire(s), mais {failed} n'ont pas pu être joints",
+  "reportNotSent": "Le rapport n'a pas pu être envoyé. Les modifications sont enregistrées. Réessayez ou prévenez le bureau."
 }

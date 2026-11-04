@@ -2,7 +2,6 @@ import '../../../core/services/map_service.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
-import '../../../core/utils/translation_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -610,14 +609,17 @@ class _InterventionCard extends StatelessWidget {
                     right: 12,
                     child: GestureDetector(
                       onTap: () => _openMap(context, intervention.address),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.zinc950.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.zinc800),
+                      child: Tooltip(
+                        message: l10n.openGps,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandGreen,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.navigation, size: 22, color: Colors.black),
                         ),
-                        child: const Icon(Icons.location_on, size: 16, color: AppTheme.brandGreen),
                       ),
                     ),
                   ),

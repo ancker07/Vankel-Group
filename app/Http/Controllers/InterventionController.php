@@ -659,9 +659,19 @@ class InterventionController extends Controller
             }
         }
 
+        // "Save & send e-mail": the report goes out right after the save (the phone only sends
+        // save_mode=EMAIL; the website calls send-report itself). A mail problem never undoes the save:
+        // the answer says who received the report and who did not.
+        $report = null;
+        if ($request->input('save_mode') === 'EMAIL') {
+            $report = app(\App\Services\InterventionReportService::class)
+                ->send($intervention->fresh()->load(['building.syndic', 'syndic', 'professional', 'documents']));
+        }
+
         return response()->json([
             'message' => __('Intervention updated successfully'),
-            'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic'])
+            'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic']),
+            'report' => $report,
         ]);
     }
 
@@ -680,60 +690,25 @@ class InterventionController extends Controller
         );
     }
 
-    public function sendReport($id)
+    public function sendReport($id, \App\Services\InterventionReportService $reports)
     {
         try {
             $intervention = Intervention::with(['building.syndic', 'syndic', 'professional', 'documents'])->findOrFail($id);
-            
-            $recipients = ['admin@vanakelgroup.com'];
-            
-            // 1. Add On-site contact email
-            if ($intervention->on_site_contact_email) {
-                $recipients[] = $intervention->on_site_contact_email;
-            }
-            
-            // 2. Add Requesting Syndic email (from the record explicitly linked to intervention)
-            if ($intervention->syndic && $intervention->syndic->email) {
-                $recipients[] = $intervention->syndic->email;
-            } 
-            
-            // 2b. ALSO check if syndic_id points to a User (as suggested by getProfile logic and user feedback)
-            if ($intervention->syndic_id) {
-                $userSyndic = User::find($intervention->syndic_id);
-                if ($userSyndic && $userSyndic->email) {
-                    $recipients[] = $userSyndic->email;
-                }
-            }
-            
-            // 3. Add Building Syndic email (fallback/extra if different)
-            if ($intervention->building->syndic && $intervention->building->syndic->email) {
-                $recipients[] = $intervention->building->syndic->email;
-            }
-            
-            // 4. Add Professional email
-            if ($intervention->professional && $intervention->professional->email) {
-                $recipients[] = $intervention->professional->email;
-            }
-            
-            // Filter unique emails, valid ones, and trim whitespace
-            $recipients = array_unique(array_filter(array_map('trim', $recipients)));
+            $result = $reports->send($intervention);
 
-            // One email per recipient, in THEIR selected language. Addresses without an account
-            // (e.g. an on-site contact) get the language of the requesting syndic, else French.
-            $locales = User::whereIn('email', $recipients)->pluck('locale', 'email')
-                ->mapWithKeys(fn ($locale, $email) => [strtolower($email) => $locale])->all();
-            $fallbackLocale = ($intervention->syndic_id ? User::find($intervention->syndic_id)?->locale : null) ?: 'fr';
-
-            foreach ($recipients as $recipient) {
-                $locale = $locales[strtolower($recipient)] ?? $fallbackLocale;
-                \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\InterventionReportMail($intervention, $locale));
+            if (empty($result['sent'])) {
+                return response()->json([
+                    'message' => __('Failed to send report'),
+                    'error' => $result['failed'][0]['error'] ?? __('Unknown error'),
+                    'failed' => $result['failed'],
+                ], 500);
             }
 
             return response()->json([
                 'message' => __('Report sent successfully'),
-                'recipients' => $recipients
+                'recipients' => $result['sent'],
+                'failed' => $result['failed'],
             ]);
-            
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Email sending failure: " . $e->getMessage());
             return response()->json([
@@ -743,5 +718,3 @@ class InterventionController extends Controller
         }
     }
 }
-
-

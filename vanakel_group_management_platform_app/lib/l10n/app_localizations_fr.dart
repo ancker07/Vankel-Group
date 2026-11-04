@@ -589,9 +589,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get saveSendEmail => 'ENREGISTRER & ENVOYER EMAIL';
 
   @override
-  String get saveSendWhatsapp => 'ENREGISTRER & ENVOYER WHATSAPP';
-
-  @override
   String get registerInterventionTitle => 'ENREGISTRER L\'INTERVENTION';
 
   @override
@@ -1438,4 +1435,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get couldNotOpenLink => 'Ce lien n\'a pas pu être ouvert.';
+
+  @override
+  String reportSentTo(int count) {
+    return 'Rapport envoyé à $count destinataire(s)';
+  }
+
+  @override
+  String reportPartial(int sent, int failed) {
+    return 'Rapport envoyé à $sent destinataire(s), mais $failed n\'ont pas pu être joints';
+  }
+
+  @override
+  String get reportNotSent =>
+      'Le rapport n\'a pas pu être envoyé. Les modifications sont enregistrées. Réessayez ou prévenez le bureau.';
 }

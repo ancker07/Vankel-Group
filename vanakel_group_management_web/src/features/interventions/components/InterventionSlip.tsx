@@ -333,6 +333,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
       // GENERATE AND APPEND PDF REPORT IF SENDING
       // IMPORTANT: PDF report does NOT include photos - photos remain as separate file uploads
       if (mode === 'EMAIL') {
+        // the server sends the report right after saving (one request, also for roles that may not
+        // call the send-report endpoint, like technicians)
+        formData.append('save_mode', 'EMAIL');
         try {
           const logoBase64 = await loadImageAsDataUrl(vankerLogo);
 
@@ -363,18 +366,17 @@ const InterventionSlip: React.FC<SlipProps> = ({
         await onUpdate(savedIntervention, true); // IMPORTANT: skipApi=true to avoid double save
       }
 
-      // Handle Email/WhatsApp BEFORE closing — so the component stays mounted
+      // Report e-mail: the server sent it with the save and tells us who received it
       if (mode === 'EMAIL') {
-        setIsSendingEmail(true);
-        try {
-          await dataService.sendInterventionReport(intervention.id);
-          alert(t.emailSent || "Report sent successfully!");
-        } catch (error: any) {
-          console.error("Failed to send email:", error);
-          const serverError = error.response?.data?.error || error.response?.data?.message;
-          alert(serverError ? `Email Error: ${serverError}` : (t.sendEmailError || "Failed to send email. Please check your SMTP settings."));
-        } finally {
-          setIsSendingEmail(false);
+        const report = result?.report;
+        if (report && report.sent?.length > 0) {
+          const missed = report.failed?.length || 0;
+          alert(missed > 0
+            ? `${t.emailSent || 'Report sent successfully!'} (${report.sent.length}) - ${missed} ✗`
+            : (t.emailSent || 'Report sent successfully!'));
+        } else {
+          const serverError = report?.failed?.[0]?.error;
+          alert(serverError ? `Email Error: ${serverError}` : (t.sendEmailError || 'Failed to send email. Please check your SMTP settings.'));
         }
       }
 

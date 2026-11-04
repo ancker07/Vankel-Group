@@ -190,7 +190,6 @@
   "chooseSaveMode": "CHOOSE SAVE MODE",
   "saveOnly": "SAVE ONLY",
   "saveSendEmail": "SAVE & SEND EMAIL",
-  "saveSendWhatsapp": "SAVE & SEND WHATSAPP",
   "registerInterventionTitle": "REGISTER INTERVENTION",
   "missionDetails": "Mission Details",
   "chooseADate": "Choose a date...",
@@ -600,5 +599,25 @@
   "later": "Later",
   "notifBlocked": "Notifications are off: you will miss mission and intervention alerts.",
   "couldNotOpenMaps": "No maps app could be opened on this phone.",
-  "couldNotOpenLink": "This link could not be opened."
+  "couldNotOpenLink": "This link could not be opened.",
+  "reportSentTo": "Report sent to {count} recipient(s)",
+  "@reportSentTo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportPartial": "Report sent to {sent} recipient(s), but {failed} could not be reached",
+  "@reportPartial": {
+    "placeholders": {
+      "sent": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "reportNotSent": "The report could not be sent. The changes were saved. Please try again or tell the office."
 }
