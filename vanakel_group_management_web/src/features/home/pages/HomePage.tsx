@@ -275,9 +275,6 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                                 <CheckItem text={t.syndic_check_4} />
                             </ul>
 
-                            <button onClick={() => onSelect('SYNDIC')} className="px-8 py-4 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center gap-2">
-                                {t.access_portal} <ArrowRight size={16} />
-                            </button>
                         </div>
 
                         <div className="relative">
