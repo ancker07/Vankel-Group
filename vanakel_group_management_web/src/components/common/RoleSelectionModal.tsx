@@ -14,16 +14,6 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ isOpen, onClose
 
     const roles = [
         {
-            id: 'SYNDIC' as Role,
-            label: 'Property Manager',
-            subLabel: 'For Syndics & Agencies',
-            icon: <Building2 size={24} />,
-            color: 'bg-blue-500',
-            textColor: 'text-blue-500',
-            borderColor: 'border-blue-500/20',
-            hoverBg: 'hover:bg-blue-500/10'
-        },
-        {
             id: 'ADMIN' as Role,
             label: 'Administrator',
             subLabel: 'Platform Management',
@@ -32,6 +22,16 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ isOpen, onClose
             textColor: 'text-brand-green',
             borderColor: 'border-brand-green/20',
             hoverBg: 'hover:bg-brand-green/10'
+        },
+        {
+            id: 'PROFESSIONAL' as Role,
+            label: 'Technician',
+            subLabel: 'Field Work & Interventions',
+            icon: <Hammer size={24} />,
+            color: 'bg-orange-500',
+            textColor: 'text-orange-400',
+            borderColor: 'border-orange-500/20',
+            hoverBg: 'hover:bg-orange-500/10'
         }
     ];
 

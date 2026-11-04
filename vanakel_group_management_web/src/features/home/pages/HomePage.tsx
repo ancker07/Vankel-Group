@@ -80,7 +80,6 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                         <div className="hidden md:flex items-center gap-8">
                             <a href="#features" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.features}</a>
                             <a href="#workflow" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.workflow}</a>
-                            <a href="#portals" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.portals}</a>
                             <a href="#contact" className="text-sm font-bold text-zinc-400 hover:text-white transition-colors">{t.contact_us}</a>
 
                             <div className="flex items-center gap-4 ml-4">
@@ -244,61 +243,6 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                             title={t.feature_analytics_title}
                             desc={t.feature_analytics_desc}
                         />
-                    </div>
-                </div>
-            </section>
-
-            {/* Syndic Portal */}
-            <section id="portals" className="py-24 bg-brand-black border-t border-zinc-900">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-6">
-                                <Briefcase size={12} /> Syndic Portal
-                            </div>
-                            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-6">{t.syndic_portal_title}</h2>
-                            <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
-                                {t.syndic_portal_desc}
-                            </p>
-
-                            <ul className="space-y-4 mb-10">
-                                <CheckItem text={t.syndic_check_1} />
-                                <CheckItem text={t.syndic_check_2} />
-                                <CheckItem text={t.syndic_check_3} />
-                                <CheckItem text={t.syndic_check_4} />
-                            </ul>
-
-                        </div>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-3xl blur-3xl -z-10"></div>
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-2xl">
-                                {/* Mock UI for Syndic Portal */}
-                                <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
-                                    <div>
-                                        <h4 className="font-bold text-white">Syndic Dashboard</h4>
-                                        <p className="text-xs text-zinc-500">Welcome, Immoweb Syndic</p>
-                                    </div>
-                                    <div className="w-8 h-8 rounded-full bg-zinc-800"></div>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
-                                        <div>
-                                            <p className="text-xs text-zinc-500 mb-1">Active Interventions</p>
-                                            <p className="text-2xl font-black text-white">12</p>
-                                        </div>
-                                        <div className="p-3 bg-blue-500/10 rounded-lg text-blue-500"><LayoutDashboard size={20} /></div>
-                                    </div>
-                                    <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
-                                        <div>
-                                            <p className="text-xs text-zinc-500 mb-1">Pending Requests</p>
-                                            <p className="text-2xl font-black text-white">5</p>
-                                        </div>
-                                        <div className="p-3 bg-orange-500/10 rounded-lg text-orange-500"><ClockIcon /></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>

@@ -582,5 +582,8 @@
   "statusApproved": "Approved",
   "statusDeactivated": "Deactivated",
   "roleSuperAdmin": "Super admin",
-  "pageNotFound": "Page not found"
+  "pageNotFound": "Page not found",
+  "technicianRoleSubtitle": "Field Work & Interventions",
+  "technicianAccess": "Technician Access",
+  "registerTechnicianDesc": "Register as a technician to carry out interventions in the field."
 }

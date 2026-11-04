@@ -1067,11 +1067,14 @@ const App: React.FC = () => {
 
 
         <Route path="/login/:roleLabel" element={
+          // the syndic portal is no longer offered: an old /login/syndic link goes back to the choice
+          location.pathname.includes('syndic') ? <Navigate to="/" replace /> :
           <LoginPage
-            role={location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN'}
+            role={location.pathname.includes('professional') ? 'PROFESSIONAL' : 'ADMIN'}
             lang={lang}
             onLogin={(name, resolvedEmail, token, user) => {
-              const r = location.pathname.includes('syndic') ? 'SYNDIC' : 'ADMIN';
+              // technicians and admins both use the staff portal; their menu comes from their permissions
+              const r = 'ADMIN';
               setRole(r);
               localStorage.setItem('vanakel_role', r);
               setUserName(name || 'Vanakel User');
@@ -1090,7 +1093,7 @@ const App: React.FC = () => {
               
               if (isUserApproved) {
                 setIsTourActive(true);
-                navigate(r === 'SYNDIC' ? '/syndic/dashboard' : '/admin/dashboard');
+                navigate('/admin/dashboard');
               } else {
                 navigate('/pending-approval');
               }

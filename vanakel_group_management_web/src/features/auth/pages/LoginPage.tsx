@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ShieldCheck, ArrowLeft, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, Building2, Briefcase, ChevronRight } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, Briefcase } from 'lucide-react';
 import { Language, Role } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
 import { authService } from '../services/authService';
@@ -15,8 +15,8 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, role }) => {
-    const isSyndic = role === 'SYNDIC';
-    const [email, setEmail] = useState(isSyndic ? '' : 'admin@vanakel.com');
+    const isTechnician = role === 'PROFESSIONAL';
+    const [email, setEmail] = useState(isTechnician ? '' : 'admin@vanakel.com');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -105,10 +105,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
                     <div className="space-y-10">
                         <div>
                             <h2 className="text-3xl font-black text-white tracking-tight uppercase mb-2 leading-none">
-                                {isSyndic ? (t.syndicPortal || 'Syndic Portal') : (t.superAdmin || 'Administrator')}
+                                {isTechnician ? 'Technician' : (t.superAdmin || 'Administrator')}
                             </h2>
                             <p className="text-zinc-500 text-sm font-medium">
-                                {isSyndic ? 'Access your syndic dashboard to manage buildings' : 'Enter your credentials to manage the platform'}
+                                {isTechnician ? 'Sign in to see and update your interventions' : 'Enter your credentials to manage the platform'}
                             </p>
                         </div>
 
@@ -185,16 +185,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
                                         </>
                                     )}
                                 </button>
-
-                                {isSyndic && onSignup && (
-                                    <button
-                                        type="button"
-                                        onClick={onSignup}
-                                        className="w-full bg-white/5 border border-white/10 text-white py-5 rounded-3xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all flex items-center justify-center gap-2 group"
-                                    >
-                                        Create New Account <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                                    </button>
-                                )}
                             </div>
                         </form>
 

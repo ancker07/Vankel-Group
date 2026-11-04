@@ -16,7 +16,7 @@ type SignupStep = 'DETAILS' | 'OTP' | 'SUCCESS';
 const SignupForm: React.FC<SignupFormProps> = ({ lang, onBack, onSubmit }) => {
     const t = TRANSLATIONS[lang];
     const location = useLocation();
-    const [role, setRole] = useState<Role>((location.state as any)?.role || 'SYNDIC');
+    const [role, setRole] = useState<Role>((location.state as any)?.role === 'PROFESSIONAL' ? 'PROFESSIONAL' : 'ADMIN');
     const [step, setStep] = useState<SignupStep>('DETAILS');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);

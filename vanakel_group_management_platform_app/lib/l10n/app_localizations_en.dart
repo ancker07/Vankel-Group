@@ -1369,4 +1369,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pageNotFound => 'Page not found';
+
+  @override
+  String get technicianRoleSubtitle => 'Field Work & Interventions';
+
+  @override
+  String get technicianAccess => 'Technician Access';
+
+  @override
+  String get registerTechnicianDesc =>
+      'Register as a technician to carry out interventions in the field.';
 }

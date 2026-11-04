@@ -1376,4 +1376,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pageNotFound => 'Page introuvable';
+
+  @override
+  String get technicianRoleSubtitle => 'Travail de terrain et interventions';
+
+  @override
+  String get technicianAccess => 'Accès technicien';
+
+  @override
+  String get registerTechnicianDesc =>
+      'Inscrivez-vous en tant que technicien pour réaliser des interventions sur le terrain.';
 }

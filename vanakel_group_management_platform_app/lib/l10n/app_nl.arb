@@ -426,5 +426,8 @@
   "statusApproved": "Goedgekeurd",
   "statusDeactivated": "Gedeactiveerd",
   "roleSuperAdmin": "Superbeheerder",
-  "pageNotFound": "Pagina niet gevonden"
+  "pageNotFound": "Pagina niet gevonden",
+  "technicianRoleSubtitle": "Veldwerk en interventies",
+  "technicianAccess": "Toegang technicus",
+  "registerTechnicianDesc": "Registreer als technicus om interventies in het veld uit te voeren."
 }

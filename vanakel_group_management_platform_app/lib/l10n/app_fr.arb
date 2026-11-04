@@ -426,5 +426,8 @@
   "statusApproved": "Approuvé",
   "statusDeactivated": "Désactivé",
   "roleSuperAdmin": "Super admin",
-  "pageNotFound": "Page introuvable"
+  "pageNotFound": "Page introuvable",
+  "technicianRoleSubtitle": "Travail de terrain et interventions",
+  "technicianAccess": "Accès technicien",
+  "registerTechnicianDesc": "Inscrivez-vous en tant que technicien pour réaliser des interventions sur le terrain."
 }

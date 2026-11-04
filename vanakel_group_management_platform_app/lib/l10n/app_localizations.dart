@@ -2667,6 +2667,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Page not found'**
   String get pageNotFound;
+
+  /// No description provided for @technicianRoleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Work & Interventions'**
+  String get technicianRoleSubtitle;
+
+  /// No description provided for @technicianAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Technician Access'**
+  String get technicianAccess;
+
+  /// No description provided for @registerTechnicianDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Register as a technician to carry out interventions in the field.'**
+  String get registerTechnicianDesc;
 }
 
 class _AppLocalizationsDelegate

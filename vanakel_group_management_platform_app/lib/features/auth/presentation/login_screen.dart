@@ -102,10 +102,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
 
                 _buildModernRoleCard(
-                  title: l10n.syndic,
-                  subtitle: l10n.syndicRoleSubtitle,
-                  icon: Icons.business_center_outlined,
-                  onTap: () => setState(() => _selectedRole = 'SYNDIC'),
+                  title: l10n.technician,
+                  subtitle: l10n.technicianRoleSubtitle,
+                  icon: Icons.engineering_outlined,
+                  onTap: () => setState(() => _selectedRole = 'PROFESSIONAL'),
                 ).animate(delay: 500.ms).fadeIn().slideY(begin: 0.2),
 
                 const SizedBox(height: 48),
@@ -124,7 +124,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Text(
                         _selectedRole == 'ADMIN'
                             ? l10n.adminPortal
-                            : l10n.syndicAccess,
+                            : l10n.technicianAccess,
                         style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

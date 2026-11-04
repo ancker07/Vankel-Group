@@ -28,7 +28,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedRole = widget.initialRole ?? 'SYNDIC';
+    // Only two kinds of account: admin and technician
+    _selectedRole = widget.initialRole == 'ADMIN' ? 'ADMIN' : 'PROFESSIONAL';
     _companyController.text = 'Vanakel Group';
   }
 
@@ -47,7 +48,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
-    final companyName = _companyController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,7 +73,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       'phone': phone,
       'password': password,
       'role': _selectedRole,
-      'companyName': _selectedRole == 'ADMIN' ? 'Vanakel Group' : companyName,
+      'companyName': 'Vanakel Group',
     };
 
     await ref.read(authStateProvider.notifier).signup(userData);
@@ -138,7 +138,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Text(
                 _selectedRole == 'ADMIN'
                     ? l10n.registerAdminDesc
-                    : l10n.registerSyndicDesc,
+                    : l10n.registerTechnicianDesc,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.zinc500),
@@ -158,9 +158,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   children: [
                     Expanded(
                       child: _buildRoleSelect(
-                        label: l10n.syndic,
-                        isSelected: _selectedRole == 'SYNDIC',
-                        onTap: () => setState(() => _selectedRole = 'SYNDIC'),
+                        label: l10n.technician,
+                        isSelected: _selectedRole == 'PROFESSIONAL',
+                        onTap: () => setState(() => _selectedRole = 'PROFESSIONAL'),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -183,14 +183,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   prefixIcon: const Icon(Icons.person_outline),
                 ),
               ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
-              const SizedBox(height: 16),
-              if (_selectedRole != 'ADMIN')
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: l10n.propertyAddress,
-                    prefixIcon: const Icon(Icons.location_on_outlined),
-                  ),
-                ).animate().fadeIn(delay: 520.ms).slideY(begin: 0.1),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,

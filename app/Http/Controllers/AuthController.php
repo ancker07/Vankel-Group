@@ -80,11 +80,13 @@ class AuthController extends Controller
         if ($user && Hash::check($request->password, $user->password)) {
             $requestedRole = strtoupper($request->role);
 
-            // The login screen picks a portal: SYNDIC = client app, ADMIN = staff app
-            // (any staff role, incl. custom ones), SUPERADMIN = super admin only.
+            // The login screens offer two choices: ADMIN = staff app (any staff role, incl. custom
+            // ones) and PROFESSIONAL = technician accounts only. SUPERADMIN = super admin only.
+            // (SYNDIC = client app is no longer offered, but is still understood by the server.)
             $roleMatch = match ($requestedRole) {
                 'SUPERADMIN' => $user->isSuperAdmin(),
                 'SYNDIC' => $user->isClient(),
+                'PROFESSIONAL' => $user->role === 'PROFESSIONAL',
                 default => !$user->isClient(),
             };
 

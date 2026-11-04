@@ -126,4 +126,19 @@ class AccessControlTest extends TestCase
         Sanctum::actingAs($this->makeUser('ADMIN'));
         $this->putJson("/api/interventions/{$intervention->id}", ['status' => 'COMPLETED'])->assertOk();
     }
+
+    public function test_login_offers_technician_and_admin_only_and_keeps_them_apart(): void
+    {
+        $tech = $this->makeUser('PROFESSIONAL', ['email' => 'tech@test.com']);
+        $admin = $this->makeUser('ADMIN', ['email' => 'admin@test.com']);
+
+        $login = fn (string $email, string $role) => $this->postJson('/api/login', ['email' => $email, 'password' => 'password123', 'role' => $role]);
+
+        // a technician logs in through the Technician choice (and still through Admin, like older app versions)
+        $login('tech@test.com', 'PROFESSIONAL')->assertOk()->assertJsonPath('user.role', 'PROFESSIONAL');
+        $login('tech@test.com', 'ADMIN')->assertOk();
+        // an admin cannot use the Technician choice
+        $login('admin@test.com', 'PROFESSIONAL')->assertStatus(401);
+        $login('admin@test.com', 'ADMIN')->assertOk();
+    }
 }

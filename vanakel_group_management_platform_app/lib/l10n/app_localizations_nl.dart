@@ -1372,4 +1372,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get pageNotFound => 'Pagina niet gevonden';
+
+  @override
+  String get technicianRoleSubtitle => 'Veldwerk en interventies';
+
+  @override
+  String get technicianAccess => 'Toegang technicus';
+
+  @override
+  String get registerTechnicianDesc =>
+      'Registreer als technicus om interventies in het veld uit te voeren.';
 }

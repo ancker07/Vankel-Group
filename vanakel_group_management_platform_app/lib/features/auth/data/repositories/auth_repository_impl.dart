@@ -298,6 +298,7 @@ class AuthRepositoryImpl implements AuthRepository {
       case 'SYNDIC':
         return UserRole.syndic;
       case 'TECHNICIAN':
+      case 'PROFESSIONAL':
         return UserRole.technician;
       default:
         return UserRole.technician;
