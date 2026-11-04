@@ -31,8 +31,8 @@ class Role extends Model
     /** Permission keys of this role (all of them for the super admin). */
     public function permissionKeys(): array
     {
-        if ($this->isSuperAdmin()) {
-            return PermissionCatalog::keys();
+        if (PermissionCatalog::isFixed($this->name)) {
+            return PermissionCatalog::permissionsFor($this->name); // defined in code, not in the database
         }
 
         return $this->permissions->pluck('key')->all();

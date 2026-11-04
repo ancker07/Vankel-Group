@@ -106,14 +106,9 @@ Route::put('/users/{id}/role', [AuthController::class, 'updateUserRole'])->middl
 Route::post('/users/{id}/reset-password', [AuthController::class, 'resetPassword'])->middleware('permission:users.update');
 Route::delete('/users/{id}', [AuthController::class, 'deleteUser'])->middleware('permission:users.update');
 
-// Roles & permissions (the role list is also needed by the "create user" form)
-Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:roles.manage,users.create,users.update');
-Route::middleware('permission:roles.manage')->group(function () {
-    Route::get('/permissions', [RoleController::class, 'permissions']);
-    Route::post('/roles', [RoleController::class, 'store']);
-    Route::put('/roles/{id}', [RoleController::class, 'update']);
-    Route::delete('/roles/{id}', [RoleController::class, 'destroy']);
-});
+// The three fixed roles and what each may do (read-only: there are no custom roles)
+Route::get('/roles', [RoleController::class, 'index'])->middleware('permission:users.view,users.create,users.update');
+Route::get('/permissions', [RoleController::class, 'permissions'])->middleware('permission:users.view');
 
 // System
 Route::get('/superadmin/stats', [AuthController::class, 'getSuperAdminStats'])->middleware('permission:stats.view');

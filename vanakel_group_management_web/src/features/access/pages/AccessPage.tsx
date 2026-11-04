@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { KeyRound, Users, Plus, Pencil, Trash2, X, ShieldCheck, Lock, Search, RotateCcw } from 'lucide-react';
+import { KeyRound, Users, Plus, Trash2, X, ShieldCheck, Lock, Search, RotateCcw } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { TRANSLATIONS } from '@/utils/constants';
 import { Language } from '@/types';
@@ -17,11 +17,6 @@ interface RoleRow {
     full: boolean;
     users_count: number;
     permissions: string[];
-}
-
-interface PermissionGroup {
-    group: string;
-    permissions: { key: string; label: string }[];
 }
 
 interface UserRow {
@@ -43,19 +38,15 @@ const errorMessage = (e: any) =>
 const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
     const t = TRANSLATIONS[lang];
     const can = usePermissions();
-    const canManageRoles = can('roles.manage');
 
-    const [tab, setTab] = useState<'users' | 'roles'>(can('users.view') ? 'users' : 'roles');
+    const [tab, setTab] = useState<'users' | 'roles'>('users');
     const [roles, setRoles] = useState<RoleRow[]>([]);
-    const [catalog, setCatalog] = useState<PermissionGroup[]>([]);
     const [users, setUsers] = useState<UserRow[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
 
-    const [roleForm, setRoleForm] = useState<Partial<RoleRow> | null>(null);
     const [userForm, setUserForm] = useState<Record<string, string> | null>(null);
-    const [confirmDelete, setConfirmDelete] = useState<RoleRow | null>(null);
     const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserRow | null>(null);
     const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
     const [newPassword, setNewPassword] = useState('');
@@ -65,13 +56,11 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
         setIsLoading(true);
         setError('');
         try {
-            const [r, c, u] = await Promise.all([
-                can('roles.manage', 'users.create', 'users.update') ? dataService.getRoles() : Promise.resolve([]),
-                canManageRoles ? dataService.getPermissionCatalog() : Promise.resolve([]),
-                can('users.view') ? dataService.getAllUsers() : Promise.resolve([]),
+            const [r, u] = await Promise.all([
+                dataService.getRoles(),
+                dataService.getAllUsers(),
             ]);
             setRoles(r);
-            setCatalog(c);
             setUsers(u);
         } catch (e) {
             setError(errorMessage(e));
@@ -88,40 +77,6 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
     const filteredUsers = useMemo(() => users.filter(u =>
         `${u.name} ${u.email} ${u.role_label || u.role}`.toLowerCase().includes(search.toLowerCase())
     ), [users, search]);
-
-    const saveRole = async () => {
-        if (!roleForm) return;
-        setIsSaving(true);
-        setError('');
-        try {
-            const payload = {
-                label: roleForm.label || '',
-                description: roleForm.description || '',
-                portal: roleForm.portal || 'admin',
-                permissions: roleForm.permissions || [],
-            };
-            if (roleForm.id) await dataService.updateRole(roleForm.id, payload);
-            else await dataService.createRole({ ...payload, name: roleForm.name || '' });
-            setRoleForm(null);
-            await load();
-        } catch (e) {
-            setError(errorMessage(e));
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const deleteRole = async (role: RoleRow) => {
-        setError('');
-        try {
-            await dataService.deleteRole(role.id);
-            setConfirmDelete(null);
-            await load();
-        } catch (e) {
-            setConfirmDelete(null);
-            setError(errorMessage(e));
-        }
-    };
 
     const saveUser = async () => {
         if (!userForm) return;
@@ -175,36 +130,22 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
         }
     };
 
-    const togglePermission = (key: string) => {
-        if (!roleForm) return;
-        const current = roleForm.permissions || [];
-        setRoleForm({ ...roleForm, permissions: current.includes(key) ? current.filter(k => k !== key) : [...current, key] });
-    };
-
-    const toggleGroup = (group: PermissionGroup) => {
-        if (!roleForm) return;
-        const keys = group.permissions.map(p => p.key);
-        const current = roleForm.permissions || [];
-        const allOn = keys.every(k => current.includes(k));
-        setRoleForm({ ...roleForm, permissions: allOn ? current.filter(k => !keys.includes(k)) : Array.from(new Set([...current, ...keys])) });
-    };
-
     return (
         <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto pb-12 px-4 md:px-0">
             <div>
                 <h2 className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">
                     <KeyRound className="text-brand-green" /> {t.access_title || 'Users & roles'}
                 </h2>
-                <p className="text-zinc-500 text-sm font-medium">{t.access_subtitle || 'Create users, create roles and choose what each role can do.'}</p>
+                <p className="text-zinc-500 text-sm font-medium">{t.access_subtitle || 'Create users and see what each of the three roles can do.'}</p>
             </div>
 
             <div className="flex gap-2 border-b border-zinc-800">
-                {can('users.view') && (
+                {(
                     <button onClick={() => setTab('users')} className={`px-4 py-3 text-xs font-black uppercase tracking-widest flex items-center gap-2 ${tab === 'users' ? 'text-brand-green border-b-2 border-brand-green' : 'text-zinc-500 hover:text-zinc-300'}`}>
                         <Users size={14} /> {t.access_users || 'Users'} ({users.length})
                     </button>
                 )}
-                {canManageRoles && (
+                {(
                     <button onClick={() => setTab('roles')} className={`px-4 py-3 text-xs font-black uppercase tracking-widest flex items-center gap-2 ${tab === 'roles' ? 'text-brand-green border-b-2 border-brand-green' : 'text-zinc-500 hover:text-zinc-300'}`}>
                         <ShieldCheck size={14} /> {t.access_roles || 'Roles'} ({roles.length})
                     </button>
@@ -286,14 +227,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => setRoleForm({ name: '', label: '', description: '', portal: 'admin', permissions: [] })}
-                            className="px-4 py-2.5 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2"
-                        >
-                            <Plus size={16} /> {t.access_create_role || 'Create role'}
-                        </button>
-                    </div>
+                    <p className="text-xs text-zinc-500">{t.access_fixed_roles_note || 'The three roles are fixed and cannot be changed.'}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {roles.map(r => (
                             <div key={r.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 space-y-3">
@@ -302,16 +236,8 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                         <h4 className="font-bold text-white text-lg flex items-center gap-2">
                                             {r.label} {r.is_system && <Lock size={12} className="text-zinc-600" />}
                                         </h4>
-                                        <p className="text-[10px] font-mono text-zinc-600">{r.name} · {r.portal === 'syndic' ? (t.access_portal_client || 'Client app') : (t.access_portal_staff || 'Staff app')}</p>
+                                        <p className="text-[10px] font-mono text-zinc-600">{r.name}</p>
                                     </div>
-                                    {!r.is_super_admin && (
-                                        <div className="flex gap-1 shrink-0">
-                                            <button onClick={() => setRoleForm(r)} className="p-2 rounded-lg text-zinc-400 hover:text-brand-green hover:bg-zinc-900" title={t.edit || 'Edit'}><Pencil size={16} /></button>
-                                            {!r.is_system && (
-                                                <button onClick={() => setConfirmDelete(r)} className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-zinc-900" title={t.delete || 'Delete'}><Trash2 size={16} /></button>
-                                            )}
-                                        </div>
-                                    )}
                                 </div>
                                 {r.description && <p className="text-sm text-zinc-400">{r.description}</p>}
                                 <div className="flex gap-4 text-xs text-zinc-500">
@@ -320,73 +246,6 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                 </div>
                             </div>
                         ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Role editor */}
-            {roleForm && (
-                <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="bg-zinc-950 border border-zinc-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 space-y-5">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-black text-white uppercase">{roleForm.id ? (t.access_edit_role || 'Edit role') : (t.access_create_role || 'Create role')}</h3>
-                            <button onClick={() => setRoleForm(null)} className="text-zinc-500 hover:text-white"><X size={20} /></button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>{t.access_role_label || 'Name shown'}</label>
-                                <input value={roleForm.label || ''} onChange={e => setRoleForm({ ...roleForm, label: e.target.value })} className={inputClass} placeholder="Dispatcher" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className={labelClass}>{t.access_role_key || 'Code (letters, digits, _)'}</label>
-                                <input
-                                    value={roleForm.name || ''}
-                                    disabled={!!roleForm.id}
-                                    onChange={e => setRoleForm({ ...roleForm, name: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_') })}
-                                    className={`${inputClass} disabled:opacity-50`}
-                                    placeholder="DISPATCHER"
-                                />
-                            </div>
-                            <div className="space-y-1.5 md:col-span-2">
-                                <label className={labelClass}>{t.access_role_description || 'Description'}</label>
-                                <input value={roleForm.description || ''} onChange={e => setRoleForm({ ...roleForm, description: e.target.value })} className={inputClass} />
-                            </div>
-                            <div className="space-y-1.5 md:col-span-2">
-                                <label className={labelClass}>{t.access_role_portal || 'App used by this role'}</label>
-                                <select value={roleForm.portal || 'admin'} onChange={e => setRoleForm({ ...roleForm, portal: e.target.value as 'admin' | 'syndic' })} className={inputClass}>
-                                    <option value="admin">{t.access_portal_staff || 'Staff app'} — {t.access_portal_staff_desc || 'sees all data allowed by its permissions'}</option>
-                                    <option value="syndic">{t.access_portal_client || 'Client app'} — {t.access_portal_client_desc || 'sees only its own missions and interventions'}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="space-y-4">
-                            <p className={labelClass}>{t.access_permissions || 'Permissions'}</p>
-                            {catalog.map(group => {
-                                const keys = group.permissions.map(p => p.key);
-                                const allOn = keys.every(k => roleForm.permissions?.includes(k));
-                                return (
-                                    <div key={group.group} className="border border-zinc-800 rounded-xl p-4 space-y-2">
-                                        <label className="flex items-center gap-2 font-bold text-white text-sm cursor-pointer">
-                                            <input type="checkbox" checked={allOn} onChange={() => toggleGroup(group)} className="accent-brand-green" />
-                                            {group.group}
-                                        </label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-6">
-                                            {group.permissions.map(p => (
-                                                <label key={p.key} className="flex items-start gap-2 text-sm text-zinc-300 cursor-pointer">
-                                                    <input type="checkbox" checked={!!roleForm.permissions?.includes(p.key)} onChange={() => togglePermission(p.key)} className="accent-brand-green mt-1" />
-                                                    <span>{p.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
-                        <div className="flex gap-3">
-                            <button onClick={() => setRoleForm(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
-                            <button disabled={isSaving || !roleForm.label || (!roleForm.id && !roleForm.name)} onClick={saveRole} className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50">{t.save || 'Save'}</button>
-                        </div>
                     </div>
                 </div>
             )}
@@ -474,19 +333,6 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                 </div>
             )}
 
-            {/* Delete confirmation (in-app, no browser dialog) */}
-            {confirmDelete && (
-                <div className="fixed inset-0 z-[170] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4">
-                        <h4 className="text-lg font-bold text-white">{t.access_delete_role || 'Delete this role?'}</h4>
-                        <p className="text-sm text-zinc-400">{confirmDelete.label}</p>
-                        <div className="flex gap-3">
-                            <button onClick={() => setConfirmDelete(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase">{t.btnCancel || 'Cancel'}</button>
-                            <button onClick={() => deleteRole(confirmDelete)} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs uppercase">{t.delete || 'Delete'}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

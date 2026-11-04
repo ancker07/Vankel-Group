@@ -14,6 +14,7 @@ class SyncPermissions extends Command
     public function handle(): int
     {
         PermissionCatalog::sync();
+        PermissionCatalog::syncRoles();
         $this->info(count(PermissionCatalog::keys()) . ' permissions synced.');
 
         return self::SUCCESS;

@@ -37,7 +37,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|string|exists:roles,name',
+            'role' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Support\PermissionCatalog::FIXED_ROLES)],
             'companyName' => 'nullable|string|max:255',
         ]);
 
@@ -46,7 +46,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$request->user()->canAssignRole($role)) {
-            return response()->json(['success' => false, 'message' => __('You cannot give this role: it has permissions you do not have.')], 403);
+            return response()->json(['success' => false, 'message' => __('Only a super admin can give this role.')], 403);
         }
 
         $user = User::create([
@@ -131,7 +131,7 @@ class AuthController extends Controller
     /** Change a user's role (requires users.update). */
     public function updateUserRole(Request $request, $id)
     {
-        $request->validate(['role' => 'required|string|exists:roles,name']);
+        $request->validate(['role' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Support\PermissionCatalog::FIXED_ROLES)]]);
 
         $actor = $request->user();
         $user = User::findOrFail($id);
@@ -150,7 +150,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$actor->canAssignRole($role)) {
-            return response()->json(['success' => false, 'message' => __('You cannot give this role: it has permissions you do not have.')], 403);
+            return response()->json(['success' => false, 'message' => __('Only a super admin can give this role.')], 403);
         }
 
         $user->update(['role' => $role->name]);

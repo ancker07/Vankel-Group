@@ -86,18 +86,6 @@ class ApiLanguageTest extends TestCase
             ->assertForbidden()->assertJsonPath('message', "Vous n'êtes pas autorisé à effectuer cette action.");
     }
 
-    public function test_messages_with_values_keep_their_values(): void
-    {
-        $this->login();
-        $role = \App\Models\Role::where('is_system', false)->first()
-            ?? \App\Models\Role::create(['name' => 'CUSTOM_X', 'label' => 'Custom', 'portal' => 'admin', 'is_system' => false]);
-        User::create(['name' => 'u', 'email' => 'u' . uniqid() . '@t.com', 'password' => 'password123', 'role' => $role->name, 'status' => 'APPROVED']);
-
-        $this->deleteJson("/api/roles/{$role->id}", [], ['Accept-Language' => 'fr'])
-            ->assertStatus(422)
-            ->assertJsonPath('message', 'Ce rôle est utilisé par 1 utilisateur(s). Déplacez-les d\'abord vers un autre rôle.');
-    }
-
     // ---------------------------------------------------------------- guards
 
     /** @return string[] every message key passed to __() in the application code */

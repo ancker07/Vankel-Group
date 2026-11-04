@@ -120,7 +120,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         {can('team.view') && (
                             <SidebarItem icon={<Users size={20} className="text-emerald-400" />} label={t.team_menu || 'Team'} active={activeTab === 'team'} onClick={() => handleTabClick('team')} />
                         )}
-                        {can('users.view', 'roles.manage') && (
+                        {can('users.view') && (
                             <SidebarItem icon={<KeyRound size={20} className="text-amber-400" />} label={t.access_title || 'Users & roles'} active={activeTab === 'access'} onClick={() => handleTabClick('access')} />
                         )}
                         {role === 'SUPERADMIN' && (

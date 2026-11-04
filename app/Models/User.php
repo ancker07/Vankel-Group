@@ -112,8 +112,8 @@ class User extends Authenticatable
 
     public function permissionKeys(): array
     {
-        if ($this->isSuperAdmin()) {
-            return PermissionCatalog::keys();
+        if (PermissionCatalog::isFixed($this->role)) {
+            return PermissionCatalog::permissionsFor($this->role);
         }
 
         return $this->roleModel?->permissionKeys() ?? [];
@@ -125,40 +125,30 @@ class User extends Authenticatable
     }
 
     /**
-     * Prevent privilege escalation: a user may only give a role (to someone,
-     * or by editing it) whose permissions they hold themselves.
+     * Who may give a role: a super admin gives any role; an admin (the system owner) only creates
+     * technicians. Admins and super admins are always created by a super admin.
      */
-    public function canGrant(array $permissionKeys): bool
-    {
-        return $this->isSuperAdmin() || empty(array_diff($permissionKeys, $this->permissionKeys()));
-    }
-
     public function canAssignRole(Role $role): bool
     {
-        // Only a super admin can make someone else a super admin
-        if ($role->isSuperAdmin()) {
-            return $this->isSuperAdmin();
-        }
-
-        return $this->canGrant($role->permissionKeys());
+        return $this->isSuperAdmin() || $role->name === 'PROFESSIONAL';
     }
 
     /**
-     * Prevent managing (role change, password reset, approve / reject) an
-     * account that currently has access the actor does not have.
+     * Who may manage (role change, password reset, approve / reject, delete) an account:
+     * a super admin manages everyone; an admin manages technicians only, never an admin or super admin.
      */
     public function canManageUser(User $target): bool
     {
-        return $this->isSuperAdmin() || $this->canGrant($target->roleModel?->permissionKeys() ?? []);
+        return $this->isSuperAdmin() || $target->role === 'PROFESSIONAL';
     }
 
     /** Users whose role grants a permission (super admins always included). */
     public function scopeWithPermission($query, string $key)
     {
-        $roles = Role::whereHas('permissions', fn ($q) => $q->where('key', $key))->pluck('name')
-            ->push(PermissionCatalog::SUPERADMIN);
+        $roles = collect(PermissionCatalog::FIXED_ROLES)
+            ->filter(fn (string $role) => in_array($key, PermissionCatalog::permissionsFor($role), true));
 
-        return $query->whereIn('role', $roles);
+        return $query->whereIn('role', $roles->push(PermissionCatalog::SUPERADMIN)->unique()->values());
     }
 
     /** Staff users (everyone who is not a client / syndic). */

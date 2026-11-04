@@ -28,14 +28,14 @@ class UsersScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final canCreate = canDo(ref, 'users.create');
     final canViewUsers = canDo(ref, 'users.view');
-    final canViewRoles = canDo(ref, 'roles.manage');
+    final canViewRoles = canViewUsers; // the three fixed roles are shown read-only
     final tabs = [
       if (canViewUsers) Tab(text: l10n.admUsers),
       if (canViewRoles) Tab(text: l10n.admRolesTitle),
     ];
 
     return PermissionGate(
-      anyOf: const ['users.view', 'roles.manage'],
+      anyOf: const ['users.view'],
       child: DefaultTabController(
         length: tabs.isEmpty ? 1 : tabs.length,
         child: Scaffold(

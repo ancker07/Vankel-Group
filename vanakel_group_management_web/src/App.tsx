@@ -1330,7 +1330,7 @@ const App: React.FC = () => {
                       <Route path="push-notifications" element={can('notifications.broadcast') ? <PushNotificationsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="contacts" element={can('contacts.view') ? <ContactsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="team" element={can('team.view') ? <TeamPage lang={lang} /> : <Navigate to="dashboard" replace />} />
-                      <Route path="access" element={can('users.view', 'roles.manage') ? <AccessPage lang={lang} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="access" element={can('users.view') ? <AccessPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                     </Routes>
                   </main>
                 </div>

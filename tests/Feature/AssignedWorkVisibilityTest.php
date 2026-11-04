@@ -51,35 +51,16 @@ class AssignedWorkVisibilityTest extends TestCase
         ], $attrs));
     }
 
-    public function test_professional_has_no_missions_by_default_and_only_his_own_when_an_admin_grants_the_permission(): void
+    public function test_professional_has_no_missions_section_at_all(): void
     {
         $professional = $this->makeUser('PROFESSIONAL');
-        $otherProfessional = $this->makeUser('PROFESSIONAL');
-
         $mine = $this->makeMission(['assigned_user_id' => $professional->id]);
-        $theirs = $this->makeMission(['assigned_user_id' => $otherProfessional->id]);
-        $unassigned = $this->makeMission();
 
         Sanctum::actingAs($professional);
 
-        // default: the Technician role has no missions section at all
+        // the Technician role is fixed and has no mission permission: not even his own missions
         $this->getJson('/api/missions')->assertForbidden();
         $this->getJson("/api/missions/{$mine->id}")->assertForbidden();
-
-        // an admin gives the role the permission: the technician then sees only the missions assigned to him
-        \App\Models\Role::where('name', 'PROFESSIONAL')->first()
-            ->permissions()->attach(\App\Models\Permission::where('key', 'missions.view')->pluck('id'));
-        Sanctum::actingAs($professional->fresh()); // every real request loads the user (and their permissions) again
-
-        $this->getJson('/api/missions')
-            ->assertOk()
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.id', $mine->id)
-            ->assertJsonPath('0.assigned_user.email', $professional->email);
-
-        $this->getJson("/api/missions/{$mine->id}")->assertOk();
-        $this->getJson("/api/missions/{$theirs->id}")->assertNotFound();
-        $this->getJson("/api/missions/{$unassigned->id}")->assertNotFound();
     }
 
     public function test_professional_only_gets_interventions_assigned_to_them(): void

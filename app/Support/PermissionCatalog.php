@@ -3,11 +3,18 @@
 namespace App\Support;
 
 use App\Models\Permission;
+use App\Models\Role;
+use App\Models\User;
 
 /**
- * Every permission the code checks. Roles are created freely in the UI,
- * but permissions are fixed here because each one is enforced in routes/code.
- * Run `php artisan permissions:sync` after adding a new one.
+ * Every permission the code checks, and the three fixed roles that hold them.
+ *
+ *   SUPERADMIN    platform operator: everything, and the only one who manages admins / super admins
+ *   ADMIN         the system owner: every permission, manages the technicians
+ *   PROFESSIONAL  the technician: works on the interventions assigned to them
+ *
+ * Roles cannot be created, edited or deleted: what each role may do is defined HERE (one place,
+ * in code), so it can never drift in the database. Run `php artisan permissions:sync` after a change.
  */
 class PermissionCatalog
 {
@@ -60,7 +67,6 @@ class PermissionCatalog
             'users.view' => 'View users',
             'users.create' => 'Create users',
             'users.update' => 'Approve / reject users, change their role and reset their password',
-            'roles.manage' => 'Manage roles and permissions',
         ],
         'System' => [
             'stats.view' => 'View system statistics',
@@ -70,18 +76,16 @@ class PermissionCatalog
         ],
     ];
 
-    /** Built-in roles: name => [label, portal, permissions] ('*' = all). */
+    /** The only roles that exist for staff. */
+    public const FIXED_ROLES = ['SUPERADMIN', 'ADMIN', 'PROFESSIONAL'];
+
+    /** Built-in roles: name => [label, portal, permissions] ('*' = all). SYNDIC is a legacy client role: kept for old accounts, never offered. */
     public const DEFAULT_ROLES = [
         'SUPERADMIN' => ['Super admin', 'admin', ['*']],
-        'ADMIN' => ['Admin', 'admin', [
-            'missions.view', 'missions.create', 'missions.update', 'missions.approve',
-            'interventions.view', 'interventions.create', 'interventions.update', 'interventions.send_report',
-            'interventions.reopen', 'maintenance.view', 'maintenance.manage', 'buildings.view', 'reports.view',
-            'emails.view', 'emails.manage', 'contacts.view', 'contacts.manage',
-            'team.view', 'location.share', 'users.view', 'users.update', 'ai.use',
-        ]],
-        // A technician works on interventions that are assigned to them. Missions (requests that
-        // are still to be approved / dispatched) are for admins, so there is no missions.view here.
+        // The owner of the system: full control (users, AI, broadcasts, statistics, every mission and intervention)
+        'ADMIN' => ['Admin', 'admin', ['*']],
+        // A technician works on interventions that are assigned to them. Missions (requests still to be
+        // approved / dispatched), users, e-mails and reports are for the admin.
         'PROFESSIONAL' => ['Technician', 'admin', [
             'interventions.view', 'interventions.update',
             'maintenance.view', 'buildings.view', 'location.share', 'ai.use',
@@ -91,6 +95,28 @@ class PermissionCatalog
             'interventions.view', 'maintenance.view', 'buildings.view',
         ]],
     ];
+
+    public const ROLE_DESCRIPTIONS = [
+        'SUPERADMIN' => 'Platform operator: full access, and the only one who can create or manage admins and super admins.',
+        'ADMIN' => 'System owner: full control of missions, interventions, team, e-mails, reports, settings and the technicians.',
+        'PROFESSIONAL' => 'Technician: works on the interventions assigned to them and sends them to the admin for review.',
+    ];
+
+    public static function isFixed(?string $role): bool
+    {
+        return in_array($role, self::FIXED_ROLES, true);
+    }
+
+    /** What a role may do. Fixed roles come from the code above; anything else (legacy) from the database. */
+    public static function permissionsFor(string $role): array
+    {
+        $keys = self::DEFAULT_ROLES[$role][2] ?? null;
+        if ($keys === null || !self::isFixed($role)) {
+            return [];
+        }
+
+        return $keys === ['*'] ? self::keys() : array_values(array_intersect($keys, self::keys()));
+    }
 
     public static function keys(): array
     {
@@ -106,5 +132,28 @@ class PermissionCatalog
             }
         }
         Permission::whereNotIn('key', self::keys())->delete();
+    }
+
+    /**
+     * Make the database match the three fixed roles (idempotent): labels, the permission list of each
+     * role, and no custom roles. Users of a removed custom role become technicians (least access).
+     */
+    public static function syncRoles(): void
+    {
+        foreach (self::FIXED_ROLES as $name) {
+            [$label, $portal] = self::DEFAULT_ROLES[$name];
+            $role = Role::updateOrCreate(
+                ['name' => $name],
+                ['label' => $label, 'description' => self::ROLE_DESCRIPTIONS[$name], 'portal' => $portal, 'is_system' => true]
+            );
+            $role->permissions()->sync(Permission::whereIn('key', self::permissionsFor($name))->pluck('id'));
+        }
+
+        // custom roles no longer exist (the legacy SYNDIC client role is kept for old accounts)
+        $custom = Role::whereNotIn('name', array_merge(self::FIXED_ROLES, ['SYNDIC']))->pluck('name');
+        if ($custom->isNotEmpty()) {
+            User::whereIn('role', $custom)->update(['role' => 'PROFESSIONAL']);
+            Role::whereIn('name', $custom)->delete();
+        }
     }
 }

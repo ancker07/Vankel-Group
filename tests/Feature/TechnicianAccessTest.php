@@ -96,30 +96,4 @@ class TechnicianAccessTest extends TestCase
         $this->assertContains('admin-token', $pushed);
         $this->assertNotContains('tech-token', $pushed);
     }
-
-    public function test_an_admin_can_still_give_missions_to_a_custom_role(): void
-    {
-        $role = Role::create(['name' => 'DISPATCH', 'label' => 'Dispatch', 'portal' => 'admin', 'is_system' => false]);
-        $role->permissions()->attach(\App\Models\Permission::where('key', 'missions.view')->pluck('id'));
-        $user = User::create(['name' => 'D', 'email' => 'd@test.com', 'password' => 'password123', 'role' => 'DISPATCH', 'status' => 'APPROVED']);
-        Sanctum::actingAs($user);
-
-        $this->getJson('/api/missions')->assertOk();
-    }
-
-    public function test_the_migration_removes_missions_from_an_existing_technician_role_and_keeps_custom_roles(): void
-    {
-        $missions = \App\Models\Permission::where('key', 'missions.view')->first();
-        $technician = Role::where('name', 'PROFESSIONAL')->first();
-        $technician->permissions()->attach($missions->id); // what an existing database looks like today
-
-        $custom = Role::create(['name' => 'DISPATCH', 'label' => 'Dispatch', 'portal' => 'admin', 'is_system' => false]);
-        $custom->permissions()->attach($missions->id);
-
-        (require database_path('migrations/2026_11_05_000000_remove_missions_from_technician_role.php'))->up();
-
-        $this->assertNotContains('missions.view', $technician->fresh()->permissionKeys());
-        $this->assertContains('missions.view', $custom->fresh()->permissionKeys());
-        $this->assertContains('interventions.view', $technician->fresh()->permissionKeys());
-    }
 }

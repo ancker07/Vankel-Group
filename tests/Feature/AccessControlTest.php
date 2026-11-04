@@ -41,11 +41,15 @@ class AccessControlTest extends TestCase
     {
         Sanctum::actingAs($this->makeUser('SUPERADMIN'));
 
-        foreach (['ADMIN', 'PROFESSIONAL', 'SYNDIC'] as $role) {
+        foreach (['ADMIN', 'PROFESSIONAL'] as $role) {
             $this->postJson('/api/users', $this->newUserPayload($role))
                 ->assertCreated()
                 ->assertJsonPath('user.role', $role);
         }
+
+        // there are only three roles: the old client role cannot be given any more
+        $this->postJson('/api/users', $this->newUserPayload('SYNDIC'))->assertStatus(422)->assertJsonValidationErrors('role');
+        $this->postJson('/api/users', $this->newUserPayload('DISPATCH'))->assertStatus(422)->assertJsonValidationErrors('role');
     }
 
     public function test_second_superadmin_can_be_created_by_a_superadmin(): void
@@ -70,12 +74,20 @@ class AccessControlTest extends TestCase
             ->assertJsonPath('message', 'There can only be one admin.');
     }
 
-    public function test_admin_and_technician_cannot_create_users(): void
+    public function test_the_admin_creates_technicians_but_never_admins_or_super_admins(): void
     {
-        foreach (['ADMIN', 'PROFESSIONAL'] as $role) {
-            Sanctum::actingAs($this->makeUser($role));
-            $this->postJson('/api/users', $this->newUserPayload('PROFESSIONAL'))->assertForbidden();
-        }
+        Sanctum::actingAs($this->makeUser('ADMIN'));
+
+        $this->postJson('/api/users', $this->newUserPayload('PROFESSIONAL'))->assertCreated()->assertJsonPath('user.role', 'PROFESSIONAL');
+        // only a super admin gives these roles
+        $this->postJson('/api/users', $this->newUserPayload('SUPERADMIN'))->assertForbidden()->assertJsonPath('message', 'Only a super admin can give this role.');
+        $this->postJson('/api/users', $this->newUserPayload('ADMIN'))->assertStatus(422); // and there is only one admin anyway
+    }
+
+    public function test_a_technician_cannot_create_users(): void
+    {
+        Sanctum::actingAs($this->makeUser('PROFESSIONAL'));
+        $this->postJson('/api/users', $this->newUserPayload('PROFESSIONAL'))->assertForbidden();
     }
 
     public function test_created_user_can_log_in_to_the_right_app(): void
@@ -98,18 +110,22 @@ class AccessControlTest extends TestCase
         $this->assertContains('users.create', $response->json('user.permissions'));
     }
 
-    public function test_admin_gets_operational_and_user_management_permissions_but_cannot_create_users_or_roles(): void
+    public function test_the_admin_is_the_owner_and_gets_every_permission_the_technician_a_fixed_few(): void
     {
         $this->makeUser('ADMIN', ['email' => 'admin@test.com']);
+        $this->makeUser('PROFESSIONAL', ['email' => 'tech@test.com']);
 
-        $response = $this->postJson('/api/login', ['email' => 'admin@test.com', 'password' => 'password123', 'role' => 'ADMIN'])
-            ->assertOk();
+        $admin = $this->postJson('/api/login', ['email' => 'admin@test.com', 'password' => 'password123', 'role' => 'ADMIN'])->assertOk()->json('user.permissions');
+        $this->assertEqualsCanonicalizing(\App\Support\PermissionCatalog::keys(), $admin, 'the admin holds every permission');
+        foreach (['users.create', 'users.update', 'missions.approve', 'settings.ai', 'notifications.broadcast', 'stats.view'] as $owner) {
+            $this->assertContains($owner, $admin);
+        }
 
-        $permissions = $response->json('user.permissions');
-        $this->assertContains('missions.approve', $permissions);
-        $this->assertContains('users.update', $permissions);
-        $this->assertNotContains('users.create', $permissions);
-        $this->assertNotContains('roles.manage', $permissions);
+        $tech = $this->postJson('/api/login', ['email' => 'tech@test.com', 'password' => 'password123', 'role' => 'PROFESSIONAL'])->assertOk()->json('user.permissions');
+        $this->assertEqualsCanonicalizing(
+            ['interventions.view', 'interventions.update', 'maintenance.view', 'buildings.view', 'location.share', 'ai.use'],
+            $tech
+        );
     }
 
     public function test_technician_cannot_complete_but_admin_can(): void

@@ -13,7 +13,7 @@ class User {
   final bool isApproved;
 
   /// SUPERADMIN is mapped to [UserRole.admin]; this keeps the distinction
-  /// (only the super admin can approve / reject missions).
+  /// (only a super admin can create admins; the admin owns everything else).
   final bool isSuperAdmin;
 
   /// Permission keys of the user's role (from the API). Use [can] to check.
