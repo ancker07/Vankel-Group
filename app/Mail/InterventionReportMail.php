@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Intervention;
+use App\Support\MessageText;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Attachment;
@@ -19,12 +20,16 @@ class InterventionReportMail extends Mailable
     public $building;
     public $syndic;
     public $professional;
+    public string $lang = 'fr';
+    public array $t = [];
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Intervention $intervention)
+    public function __construct(Intervention $intervention, string $locale = 'fr')
     {
+        $this->lang = MessageText::normalize($locale);
+        $this->t = MessageText::report($this->lang);
         $this->intervention = $intervention;
         $this->building = $intervention->building;
         $this->syndic = $this->building->syndic ?? null;
@@ -38,7 +43,10 @@ class InterventionReportMail extends Mailable
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: "Rapport d'intervention : " . $this->intervention->title . " - " . $this->building->address,
+            subject: strtr($this->t['subject'], [
+                '{title}' => MessageText::field($this->intervention, 'title', $this->lang),
+                '{address}' => $this->building->address,
+            ]),
         );
     }
 

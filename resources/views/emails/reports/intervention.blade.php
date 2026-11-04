@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ $lang }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport d'intervention - Vanakel Group</title>
+    <title>{{ $t['header'] }}</title>
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -110,44 +110,44 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Vanakel Group - Rapport d'intervention</h1>
+            <h1>{{ $t['header'] }}</h1>
         </div>
         
         <div class="content">
-            <h2 class="title">{{ $intervention->title }}</h2>
-            <p class="subtitle">Intervention effectuée le {{ \Carbon\Carbon::parse($intervention->completed_at ?? now())->format('d/m/Y') }}</p>
+            <h2 class="title">{{ \App\Support\MessageText::field($intervention, 'title', $lang) }}</h2>
+            <p class="subtitle">{{ strtr($t['done_on'], ['{date}' => \App\Support\MessageText::date($intervention->completed_at)]) }}</p>
             
             <div class="section">
-                <div class="section-title">Informations de l'immeuble</div>
+                <div class="section-title">{{ $t['building'] }}</div>
                 <div class="info-row">
-                    <div class="info-label">Adresse :</div>
+                    <div class="info-label">{{ $t['address'] }}</div>
                     <div class="info-value">{{ $building->address }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Ville :</div>
+                    <div class="info-label">{{ $t['city'] }}</div>
                     <div class="info-value">{{ $building->city }}</div>
                 </div>
                 @if($syndic)
                 <div class="info-row">
-                    <div class="info-label">Syndic :</div>
-                    <div class="info-value">{{ $syndic->companyName }}</div>
+                    <div class="info-label">{{ $t['syndic'] }}</div>
+                    <div class="info-value">{{ $syndic->company_name ?? $syndic->companyName ?? '' }}</div>
                 </div>
                 @endif
             </div>
 
             <div class="section">
-                <div class="section-title">Détails techniques</div>
+                <div class="section-title">{{ $t['technical'] }}</div>
                 <div class="info-row">
-                    <div class="info-label">Catégorie :</div>
+                    <div class="info-label">{{ $t['category'] }}</div>
                     <div class="info-value accent-green">{{ $intervention->category }}</div>
                 </div>
                 <div class="info-row">
-                    <div class="info-label">Status :</div>
+                    <div class="info-label">{{ $t['status'] }}</div>
                     <div class="info-value">
                         @if($intervention->status === 'COMPLETED')
-                            Terminé
+                            {{ $t['completed'] }}
                         @elseif($intervention->status === 'DELAYED')
-                            Retardé
+                            {{ $t['delayed'] }}
                         @else
                             {{ $intervention->status }}
                         @endif
@@ -155,25 +155,25 @@
                 </div>
                 @if($intervention->admin_feedback)
                 <div style="margin-top: 15px;">
-                    <div class="section-title">Note Admin</div>
+                    <div class="section-title">{{ $t['admin_note'] }}</div>
                     <div class="description-box">{{ $intervention->admin_feedback }}</div>
                 </div>
                 @endif
 
                 @if($intervention->status === 'DELAYED' && ($intervention->delay_reason || $intervention->delay_details))
                 <div style="margin-top: 15px; border-top: 1px solid #3f3f46; pt: 15px;">
-                    <div class="section-title" style="color: #f97316;">Détails du retard</div>
+                    <div class="section-title" style="color: #f97316;">{{ $t['delay_details'] }}</div>
                     <div class="info-row">
-                        <div class="info-label">Motif :</div>
-                        <div class="info-value">{{ $intervention->delay_reason }}</div>
+                        <div class="info-label">{{ $t['reason'] }}</div>
+                        <div class="info-value">{{ \App\Support\MessageText::word('delay_reason', $intervention->delay_reason, $lang) }}</div>
                     </div>
                     @if($intervention->delay_details)
                     <div class="description-box" style="border-color: #f97316; margin-top: 10px;">{{ $intervention->delay_details }}</div>
                     @endif
                     @if($intervention->delayed_reschedule_date)
                     <div class="info-row" style="margin-top: 10px;">
-                        <div class="info-label">Nouvelle date :</div>
-                        <div class="info-value">{{ \Carbon\Carbon::parse($intervention->delayed_reschedule_date)->format('d/m/Y') }}</div>
+                        <div class="info-label">{{ $t['new_date'] }}</div>
+                        <div class="info-value">{{ \App\Support\MessageText::date($intervention->delayed_reschedule_date) }}</div>
                     </div>
                     @endif
                 </div>
@@ -181,15 +181,15 @@
             </div>
 
             <div class="section">
-                <div class="section-title">Description d'origine</div>
-                <div class="description-box">{{ $intervention->description }}</div>
+                <div class="section-title">{{ $t['description'] }}</div>
+                <div class="description-box">{{ \App\Support\MessageText::field($intervention, 'description', $lang) }}</div>
             </div>
 
         </div>
 
         <div class="footer">
-            &copy; {{ date('Y') }} Vanakel Group. Tous droits réservés.<br>
-            Ceci est un rapport automatique généré par Vanakel Management.
+            &copy; {{ date('Y') }} Vanakel Group. {{ $t['rights'] }}<br>
+            {{ $t['automatic'] }}
         </div>
     </div>
 </body>

@@ -377,24 +377,13 @@ class InterventionController extends Controller
                     $syndic = User::where('id', $mission->syndic_id)->where('role', 'SYNDIC')->first();
                     
                     if ($syndic) {
-                        $title = "Mission Approved!";
-                        $body = "Your mission '{$mission->title}' has been approved.";
-
-                        $data = ['type' => 'intervention', 'intervention_id' => $intervention->id];
-
-                        if ($syndic->fcm_token) {
-                            try {
-                                $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body, $data);
-                            } catch (\Exception $e) {}
-                        }
-
-                        Notification::createWithTranslation([
-                            'user_id' => $syndic->id,
-                            'title' => $title,
-                            'body' => $body,
-                            'type' => 'intervention',
-                            'data' => $data
-                        ]);
+                        $this->pushNotificationService->notifyUser(
+                            $syndic,
+                            'mission_approved',
+                            fn (string $locale) => ['title' => \App\Support\MessageText::field($mission, 'title', $locale)],
+                            ['type' => 'intervention', 'intervention_id' => $intervention->id],
+                            'intervention'
+                        );
                     }
                 }
 
@@ -420,23 +409,13 @@ class InterventionController extends Controller
         if ($mission->syndic_id) {
             $syndic = User::where('id', $mission->syndic_id)->where('role', 'SYNDIC')->first();
             if ($syndic) {
-                $title = "Mission Rejected";
-                $body = "Your mission '{$mission->title}' was unfortunately rejected.";
-                $data = ['type' => 'mission', 'mission_id' => $mission->id];
-
-                if ($syndic->fcm_token) {
-                    try {
-                        $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body, $data);
-                    } catch (\Exception $e) {}
-                }
-
-                Notification::createWithTranslation([
-                    'user_id' => $syndic->id,
-                    'title' => $title,
-                    'body' => $body,
-                    'type' => 'mission',
-                    'data' => $data
-                ]);
+                $this->pushNotificationService->notifyUser(
+                    $syndic,
+                    'mission_rejected',
+                    fn (string $locale) => ['title' => \App\Support\MessageText::field($mission, 'title', $locale)],
+                    ['type' => 'mission', 'mission_id' => $mission->id],
+                    'mission'
+                );
             }
         }
 
@@ -631,23 +610,17 @@ class InterventionController extends Controller
              if ($intervention->syndic_id) {
                 $syndic = User::find($intervention->syndic_id);
                 if ($syndic) {
-                    $title = "Intervention Update";
-                    $body = "The status of '{$intervention->title}' has changed to {$updateData['status']}.";
-                    $data = ['type' => 'intervention', 'intervention_id' => $intervention->id];
-
-                    if ($syndic->fcm_token) {
-                        try {
-                            $this->pushNotificationService->sendNotification($syndic->fcm_token, $title, $body, $data);
-                        } catch (\Exception $e) {}
-                    }
-
-                    Notification::createWithTranslation([
-                        'user_id' => $syndic->id,
-                        'title' => $title,
-                        'body' => $body,
-                        'type' => 'intervention',
-                        'data' => $data
-                    ]);
+                    $newStatus = $updateData['status'];
+                    $this->pushNotificationService->notifyUser(
+                        $syndic,
+                        'intervention_update',
+                        fn (string $locale) => [
+                            'title' => \App\Support\MessageText::field($intervention, 'title', $locale),
+                            'status' => \App\Support\MessageText::word('status', $newStatus, $locale),
+                        ],
+                        ['type' => 'intervention', 'intervention_id' => $intervention->id],
+                        'intervention'
+                    );
                 }
             }
         }
@@ -698,22 +671,13 @@ class InterventionController extends Controller
             return;
         }
 
-        $title = "New Assignment";
-        $body = "You have been assigned to a new intervention: '{$intervention->title}'.";
-
-        if ($user->fcm_token) {
-            try {
-                $this->pushNotificationService->sendNotification($user->fcm_token, $title, $body, ['type' => 'intervention', 'intervention_id' => $intervention->id]);
-            } catch (\Exception $e) {}
-        }
-
-        Notification::createWithTranslation([
-            'user_id' => $user->id,
-            'title' => $title,
-            'body' => $body,
-            'type' => 'intervention',
-            'data' => ['intervention_id' => $intervention->id]
-        ]);
+        $this->pushNotificationService->notifyUser(
+            $user,
+            'new_assignment',
+            fn (string $locale) => ['title' => \App\Support\MessageText::field($intervention, 'title', $locale)],
+            ['type' => 'intervention', 'intervention_id' => $intervention->id],
+            'intervention'
+        );
     }
 
     public function sendReport($id)
@@ -754,7 +718,16 @@ class InterventionController extends Controller
             // Filter unique emails, valid ones, and trim whitespace
             $recipients = array_unique(array_filter(array_map('trim', $recipients)));
 
-            \Illuminate\Support\Facades\Mail::to($recipients)->send(new \App\Mail\InterventionReportMail($intervention));
+            // One email per recipient, in THEIR selected language. Addresses without an account
+            // (e.g. an on-site contact) get the language of the requesting syndic, else French.
+            $locales = User::whereIn('email', $recipients)->pluck('locale', 'email')
+                ->mapWithKeys(fn ($locale, $email) => [strtolower($email) => $locale])->all();
+            $fallbackLocale = ($intervention->syndic_id ? User::find($intervention->syndic_id)?->locale : null) ?: 'fr';
+
+            foreach ($recipients as $recipient) {
+                $locale = $locales[strtolower($recipient)] ?? $fallbackLocale;
+                \Illuminate\Support\Facades\Mail::to($recipient)->send(new \App\Mail\InterventionReportMail($intervention, $locale));
+            }
 
             return response()->json([
                 'message' => 'Report sent successfully',

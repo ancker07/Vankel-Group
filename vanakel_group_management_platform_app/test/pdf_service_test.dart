@@ -72,4 +72,19 @@ void main() {
     expect(PdfService.fileNameFor('../../x'), 'Intervention_Report__x.pdf');
     expect(PdfService.fileNameFor(''), 'Intervention_Report_report.pdf');
   });
+
+  test('title, description and delay reason follow the selected language', () {
+    expect(PdfService.pick('nl', en: 'Roof leak', fr: 'Fuite toiture', nl: 'Dakkanaal lek', fallback: 'orig'), 'Dakkanaal lek');
+    expect(PdfService.pick('fr', en: 'Roof leak', fr: 'Fuite toiture', nl: 'Dakkanaal lek', fallback: 'orig'), 'Fuite toiture');
+    expect(PdfService.pick('en', en: 'Roof leak', fr: 'Fuite toiture', nl: 'Dakkanaal lek', fallback: 'orig'), 'Roof leak');
+    // a missing / blank translation falls back to the original text
+    expect(PdfService.pick('nl', en: 'Roof leak', nl: '  ', fallback: 'Fuite d’origine'), 'Fuite d’origine');
+    expect(PdfService.pick('de', fallback: 'orig'), 'orig');
+
+    expect(PdfService.delayReasonLabel('no_access', 'fr'), 'Accès impossible');
+    expect(PdfService.delayReasonLabel('NO_ACCESS', 'nl'), 'Geen toegang');
+    expect(PdfService.delayReasonLabel('weather', 'en'), 'Bad weather');
+    expect(PdfService.delayReasonLabel('something custom', 'fr'), 'something custom');
+    expect(PdfService.delayReasonLabel(null, 'fr'), '');
+  });
 }

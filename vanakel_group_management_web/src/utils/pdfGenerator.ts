@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Intervention, Building, Professional, Syndic, Language } from '@/types';
-import { TRANSLATIONS } from '@/utils/constants';
+import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 
 // Extending jsPDF with autotable plugin
 declare module 'jspdf' {
@@ -33,6 +33,19 @@ export const pdfSafeText = (value: unknown): string => {
         .replace(/[​-‍﻿]/g, '')
         .replace(/\r\n?/g, '\n')
         .replace(/[^\n\t\x20-\x7E¡-ÿ]/gu, '?');
+};
+
+/** Title / description are stored in all three languages: use the report's language, else the original. */
+const localizedField = (item: any, field: 'title' | 'description', lang: Language): string => {
+    const translated = item?.[`${field}_${lang.toLowerCase()}`];
+    return typeof translated === 'string' && translated.trim() ? translated : item?.[field] ?? '';
+};
+
+/** "no_access" -> "Accès impossible" / "Geen toegang" / "No access" (unknown values are kept). */
+const delayReasonLabel = (reason: string | undefined, lang: Language): string => {
+    if (!reason) return '';
+    const found = DELAY_REASONS.find(r => r.id === String(reason).toLowerCase());
+    return found ? found[lang] : String(reason);
 };
 
 const formatDate = (value: string | undefined, lang: Language): string => {
@@ -170,10 +183,10 @@ export const generateInterventionPDF = async (
     sectionHeading(t.interventionTitle || 'Intervention Details', 45);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    writeParagraph(intervention.title);
+    writeParagraph(localizedField(intervention, 'title', lang));
     y += 3;
     doc.setFont('helvetica', 'normal');
-    writeParagraph(intervention.description);
+    writeParagraph(localizedField(intervention, 'description', lang));
     y += 8;
 
     // Technical / Admin notes
@@ -194,7 +207,7 @@ export const generateInterventionPDF = async (
     if (status === 'DELAYED' && (delayReason || delayDetails)) {
         subHeading(t.delayTitle || 'Reason for delay', [230, 100, 0]);
         doc.setFontSize(10);
-        if (delayReason) writeParagraph(`${t.delayReasonLabel || 'Reason'}: ${delayReason}`);
+        if (delayReason) writeParagraph(`${t.delayReasonLabel || 'Reason'}: ${delayReasonLabel(delayReason, lang)}`);
         if (delayDetails) writeParagraph(delayDetails);
         y += 6;
     }

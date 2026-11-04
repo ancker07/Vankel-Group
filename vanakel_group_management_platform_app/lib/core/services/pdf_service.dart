@@ -29,6 +29,30 @@ class PdfService {
         .trim();
   }
 
+  /// The text in the language of the report (the title / description are stored in all three
+  /// languages), else the original text.
+  static String pick(String lang, {String? en, String? fr, String? nl, required String fallback}) {
+    final value = {'en': en, 'fr': fr, 'nl': nl}[lang.toLowerCase()];
+    return clean((value == null || value.trim().isEmpty) ? fallback : value);
+  }
+
+  static const _delayReasons = {
+    'missing_part': {'en': 'Missing part', 'fr': 'Pièce manquante', 'nl': 'Ontbrekend onderdeel'},
+    'no_access': {'en': 'No access', 'fr': 'Accès impossible', 'nl': 'Geen toegang'},
+    'client_unavailable': {'en': 'Client unavailable', 'fr': 'Client indisponible', 'nl': 'Klant niet beschikbaar'},
+    'waiting_validation': {'en': 'Waiting validation', 'fr': 'En attente de validation', 'nl': 'Wacht op goedkeuring'},
+    'weather': {'en': 'Bad weather', 'fr': 'Mauvais temps', 'nl': 'Slecht weer'},
+    'subcontractor': {'en': 'Subcontractor unavailable', 'fr': 'Sous-traitant indisponible', 'nl': 'Onderaannemer niet beschikbaar'},
+    'other': {'en': 'Other', 'fr': 'Autre', 'nl': 'Andere'},
+  };
+
+  /// "no_access" -> "Accès impossible" / "Geen toegang" / "No access" (unknown values are kept).
+  static String delayReasonLabel(String? reason, String lang) {
+    final raw = clean(reason);
+    final row = _delayReasons[raw.toLowerCase()];
+    return row?[const {'fr': 'fr', 'nl': 'nl'}[lang.toLowerCase()] ?? 'en'] ?? raw;
+  }
+
   static String _field(dynamic map, List<String> keys) {
     if (map is! Map) return '';
     for (final k in keys) {
@@ -80,9 +104,16 @@ class PdfService {
         .where((e) => e.isNotEmpty)
         .join('  |  ');
     final isDelayed = intervention.status == InterventionStatus.delayed;
-    final delayReason = clean(intervention.delayReason);
+    final delayReason = delayReasonLabel(intervention.delayReason, lang);
     final delayDetails = clean(intervention.delayDetails);
     final adminNote = clean(intervention.adminFeedback);
+    final title = pick(lang,
+        en: intervention.titleEn, fr: intervention.titleFr, nl: intervention.titleNl, fallback: intervention.title);
+    final description = pick(lang,
+        en: intervention.descriptionEn,
+        fr: intervention.descriptionFr,
+        nl: intervention.descriptionNl,
+        fallback: intervention.description);
     final documents = intervention.documents.map((d) => clean(d.fileName)).where((e) => e.isNotEmpty).toList();
 
     pw.Widget party(String title, String name, Map? source) {
@@ -144,9 +175,9 @@ class PdfService {
           // 3. Intervention details
           _sectionHeader(labels['details']!),
           pw.SizedBox(height: 8),
-          pw.Text(clean(intervention.title), style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+          pw.Text(title, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
-          pw.Paragraph(text: clean(intervention.description), style: const pw.TextStyle(fontSize: 11, lineSpacing: 2)),
+          pw.Paragraph(text: description, style: const pw.TextStyle(fontSize: 11, lineSpacing: 2)),
           pw.SizedBox(height: 16),
 
           if (adminNote.isNotEmpty) ...[

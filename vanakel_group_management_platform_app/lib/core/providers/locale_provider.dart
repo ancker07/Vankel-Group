@@ -30,15 +30,29 @@ class LocaleNotifier extends Notifier<Locale> {
     await prefs.setString(_localeKey, locale.languageCode);
 
     // Persist to the backend so it can be used for all push/email notifications.
+    await _postToServer(locale.languageCode);
+  }
+
+  /// Sends the language the user chose on this phone to the server. Called after every
+  /// login / app start with a saved session, so notifications and e-mails keep following the
+  /// language even if the change was made offline. Does nothing if the user never chose one
+  /// (the default must not overwrite the language saved on the server).
+  Future<void> syncToServer() async {
+    final prefs = await SharedPreferences.getInstance();
+    final languageCode = prefs.getString(_localeKey);
+    if (languageCode == null || !['en', 'fr', 'nl'].contains(languageCode)) return;
+    await _postToServer(languageCode);
+  }
+
+  Future<void> _postToServer(String languageCode) async {
     try {
       await ref.read(dioProvider).post(
         ApiConstants.updateLocale,
-        data: {'locale': locale.languageCode},
+        data: {'locale': languageCode},
       );
     } catch (e) {
       // Not logged in yet (e.g. during onboarding), or offline: the device
-      // preference is still saved, and the backend value is synced again
-      // the next time setLocale runs after login.
+      // preference is still saved and syncToServer() runs again after login.
       if (kDebugMode) print('Locale sync skipped: $e');
     }
   }

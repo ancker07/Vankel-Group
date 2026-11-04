@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Mission;
 use App\Models\Notification;
 use App\Models\User;
+use App\Support\MessageText;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -68,46 +69,63 @@ class NotificationService
     /**
      * Push a "new mission" alert to every ADMIN / SUPERADMIN phone and store it in-app.
      * HIGH / URGENT missions are sent as important notifications.
+     * Each person gets it in the language they selected (no AI call: it cannot fail).
      */
     public function notifyNewMission(Mission $mission): void
     {
         $important = in_array(strtoupper((string) $mission->urgency), ['HIGH', 'URGENT'], true);
-        $title = ($important ? '🚨 Urgent mission: ' : 'New Mission: ') . $mission->title;
-        $body = "Urgency: {$mission->urgency}. " . ($mission->source_type === 'EMAIL' ? 'Received by email.' : 'Requested by a Syndic.');
         $data = ['type' => 'mission', 'mission_id' => $mission->id, 'important' => $important ? '1' : '0'];
-
-        $translated = (new AiService())->translateToFill($title, $body);
 
         // Every staff member whose role can see missions (admins, super admins, …)
         foreach (User::withPermission('missions.view')->staff()->get() as $admin) {
-            if ($admin->fcm_token) {
-                try {
-                    $this->sendNotification(
-                        $admin->fcm_token,
-                        self::localize($translated['title'] ?? [], $admin->locale, $title),
-                        self::localize($translated['description'] ?? [], $admin->locale, $body),
-                        $data,
-                        $important
-                    );
-                } catch (\Exception $e) {
-                    Log::error('FCM: new mission push failed for user ' . $admin->id . ': ' . $e->getMessage());
-                }
-            }
-
-            Notification::create([
-                'user_id' => $admin->id,
-                'title' => $title,
-                'title_en' => $translated['title']['en'] ?? null,
-                'title_fr' => $translated['title']['fr'] ?? null,
-                'title_nl' => $translated['title']['nl'] ?? null,
-                'body' => $body,
-                'body_en' => $translated['description']['en'] ?? null,
-                'body_fr' => $translated['description']['fr'] ?? null,
-                'body_nl' => $translated['description']['nl'] ?? null,
-                'type' => 'mission',
-                'data' => $data,
-            ]);
+            $this->notifyUser(
+                $admin,
+                $important ? 'urgent_mission' : 'new_mission',
+                fn (string $locale) => [
+                    'title' => MessageText::field($mission, 'title', $locale),
+                    'urgency' => MessageText::word('urgency', $mission->urgency, $locale),
+                    'source' => MessageText::word('source', $mission->source_type === 'EMAIL' ? 'EMAIL' : 'OTHER', $locale),
+                ],
+                $data,
+                'mission',
+                $important
+            );
         }
+    }
+
+    /**
+     * Send one fixed message to one user, in THEIR language: a push (if they have a device)
+     * and an in-app notification that carries all three languages.
+     *
+     * @param  array|callable  $params  placeholder values, or fn(string $locale): array
+     */
+    public function notifyUser(User $user, string $messageKey, array|callable $params, array $data, string $type, bool $important = false): void
+    {
+        $locale = MessageText::localeFor($user);
+        $mine = MessageText::make($messageKey, $locale, $params);
+
+        if ($user->fcm_token) {
+            try {
+                $this->sendNotification($user->fcm_token, $mine['title'], $mine['body'], $data, $important);
+            } catch (\Exception $e) {
+                Log::error("FCM: '{$messageKey}' push failed for user {$user->id}: " . $e->getMessage());
+            }
+        }
+
+        $all = MessageText::all($messageKey, $params);
+        Notification::create([
+            'user_id' => $user->id,
+            'title' => $mine['title'],
+            'title_en' => $all['en']['title'],
+            'title_fr' => $all['fr']['title'],
+            'title_nl' => $all['nl']['title'],
+            'body' => $mine['body'],
+            'body_en' => $all['en']['body'],
+            'body_fr' => $all['fr']['body'],
+            'body_nl' => $all['nl']['body'],
+            'type' => $type,
+            'data' => $data,
+        ]);
     }
 
     /**

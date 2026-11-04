@@ -39,6 +39,10 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     ref.listenManual<AuthState>(authStateProvider, (previous, next) {
+      // Just logged in / session restored: make sure the server knows the user's language
+      if (next.status == AuthStatus.authenticated && previous?.status != AuthStatus.authenticated) {
+        ref.read(localeProvider.notifier).syncToServer();
+      }
       if (_shouldTrack(next)) {
         _locationService.start();
       } else {

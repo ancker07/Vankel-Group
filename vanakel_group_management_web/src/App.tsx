@@ -88,7 +88,14 @@ const App: React.FC = () => {
     if (savedRole) return savedRole as Role;
     return null;
   });
-  const [lang, setLang] = useState<Language>('FR');
+  const [lang, setLangState] = useState<Language>('FR');
+  // Picking a language also tells the server (when logged in), so notifications and e-mails follow it
+  const setLang = (next: Language) => {
+    setLangState(next);
+    if (localStorage.getItem('vanakel_authToken')) {
+      dataService.updateLocale(next).catch(() => { /* offline / not allowed: the UI language still changes */ });
+    }
+  };
   const [userName, setUserName] = useState<string>(() => localStorage.getItem('vanakel_userName') || 'Vanakel User');
   const [isApproved, setIsApproved] = useState<boolean>(() => {
     const saved = localStorage.getItem('vanakel_isApproved');

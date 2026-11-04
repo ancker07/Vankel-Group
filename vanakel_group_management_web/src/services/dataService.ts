@@ -30,6 +30,11 @@ export const dataService = {
         const response = await apiClient.get('/me');
         return response.data;
     },
+    /** Tells the server the language the user picked, so notifications and e-mails follow it. */
+    updateLocale: async (locale: string) => {
+        const response = await apiClient.post('/update-locale', { locale: locale.toLowerCase() });
+        return response.data;
+    },
     getRoles: async () => {
         const response = await apiClient.get('/roles');
         return response.data;
