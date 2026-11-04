@@ -26,6 +26,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
     handleTabClick
 }) => {
     const can = usePermissions();
+    const isTechnician = role === 'PROFESSIONAL';
     return (
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
             {/* Navigation Items */}
@@ -79,7 +80,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         {can('emails.manage') && (
                             <SidebarItem icon={<Mail size={20} className={isIngesting ? "animate-pulse text-brand-green" : ""} />} label={t.ingestion_menu} active={activeTab === 'email_ingestion'} onClick={() => handleTabClick('email_ingestion')} />
                         )}
-                        {can('buildings.view') && (
+                        {!isTechnician && can('buildings.view') && (
                             <div id="nav-management">
                                 <SidebarItem icon={<Building2 size={20} className="text-cyan-400" />} label={t.management || 'Management'} active={activeTab === 'management'} onClick={() => handleTabClick('management')} />
                             </div>
@@ -94,10 +95,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                                 <SidebarItem icon={<ClipboardList size={20} className="text-orange-400" />} label={t.missions || 'Missions'} active={activeTab === 'missions'} onClick={() => handleTabClick('missions')} badge={stats.missions} />
                             </div>
                         )}
-                        {can('interventions.view') && (
+                        {!isTechnician && can('interventions.view') && (
                             <SidebarItem icon={<CheckCircle2 size={20} className="text-brand-green" />} label={t.end_of_mission || 'End of mission'} active={activeTab === 'completed'} onClick={() => handleTabClick('completed')} />
                         )}
-                        {can('maintenance.view') && (
+                        {!isTechnician && can('maintenance.view') && (
                             <SidebarItem icon={<RotateCcw size={20} className="text-orange-500" />} label={t.maintenance || 'Maintenance'} active={activeTab === 'entretien_list'} onClick={() => handleTabClick('entretien_list')} />
                         )}
                         {can('reports.view') && (

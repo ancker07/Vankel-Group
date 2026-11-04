@@ -22,6 +22,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
     const location = useLocation();
     // Each tab only exists for roles that have the matching permission (a technician has no Missions tab)
     const can = usePermissions();
+    const isTechnician = role === 'PROFESSIONAL';
 
     const getActiveTab = () => {
         const path = location.pathname;
@@ -90,7 +91,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
 
 
                     </button>
-                    {role !== 'SYNDIC' && can('buildings.view') && (
+                    {role !== 'SYNDIC' && !isTechnician && can('buildings.view') && (
                         <button
                             id="mobile-nav-management"
                             onClick={() => handleTabClick('management')}

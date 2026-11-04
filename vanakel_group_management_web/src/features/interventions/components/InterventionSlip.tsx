@@ -4,7 +4,7 @@ import {
   Intervention, Building, Professional, Syndic, Language, Role, InterventionStatus
 } from '@/types';
 import {
-  X, Mail, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2, Briefcase, Send
+  X, Mail, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Navigation, Eye, Loader2, Briefcase, Send
 } from 'lucide-react';
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote, optimizeIntervention } from '@/services/aiService';
@@ -516,12 +516,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${building.address}, ${building.city}`)}`, '_blank');
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${building.address}, ${building.city}`)}&travelmode=driving`, '_blank');
                     }}
-                    className="p-1.5 bg-zinc-950/80 rounded-lg text-zinc-400 hover:text-brand-green transition-colors border border-zinc-800 shrink-0 backdrop-blur-sm shadow-lg hover:border-brand-green/50"
-                    title={t.viewOnMaps}
+                    className="px-3 py-2 bg-brand-green text-brand-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-brand-green-light transition-colors border border-brand-green shrink-0 flex items-center gap-1.5 shadow-lg"
+                    title={t.directions || 'Open GPS'}
                   >
-                    <MapPin size={16} />
+                    <Navigation size={14} /> {t.directions || 'Open GPS'}
                   </button>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">

@@ -96,16 +96,8 @@ const generateResponse = async (prompt: string, options: {
 
 export const improveNote = async (text: string): Promise<string> => {
     try {
-        const systemPrompt = `You are a careful grammar and clarity assistant.
-        Rewrite the following text ONLY to improve clarity and correct grammar/spelling.
-        STRICT RULES:
-        1. Correct grammar, spelling, and minor sentence structure.
-        2. Keep the EXACT same technical meaning and terminology.
-        3. AUTO-DETECT the language and rewrite in that SAME language. No translation.
-        4. DO NOT add new information or decorative/marketing language.
-        5. Keep the rewrite minimal, subtle, and conservative.`;
-
-        return await generateResponse(`Original text: "${text}"`, { systemPrompt });
+        const result = await dataService.improveAiText(text);
+        return result.improved_text?.trim() || text;
     } catch (error) {
         console.error("AI Improvement failed:", error);
         return text;
@@ -114,20 +106,12 @@ export const improveNote = async (text: string): Promise<string> => {
 
 export const optimizeIntervention = async (title: string, description: string): Promise<{ title: string, description: string }> => {
     try {
-        const systemPrompt = `You are a careful grammar and clarity assistant for building management technical notes.
-        Rewrite the provided intervention title and description ONLY to improve clarity and correct grammar/spelling.
-        STRICT RULES:
-        1. Correct grammar, spelling, and minor sentence structure.
-        2. Keep the EXACT same technical meaning and terminology.
-        3. AUTO-DETECT the language and rewrite in that SAME language. No translation.
-        4. Output the result ONLY as a JSON object with keys "title" and "description".`;
+        const [improvedTitle, improvedDescription] = await Promise.all([
+            title ? improveNote(title) : Promise.resolve(title),
+            description ? improveNote(description) : Promise.resolve(description),
+        ]);
 
-        const result = await generateResponse(`Original Title: "${title}"\nOriginal Description: "${description}"`, {
-            systemPrompt,
-            jsonMode: true,
-        });
-
-        return JSON.parse(result || '{}');
+        return { title: improvedTitle, description: improvedDescription };
     } catch (error) {
         console.error("AI Optimization failed:", error);
         throw error;

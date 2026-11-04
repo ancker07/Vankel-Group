@@ -106,6 +106,7 @@ const App: React.FC = () => {
   });
   const [fullUserData, setFullUserData] = useState<any>(null);
   const can = usePermissions();
+  const isTechnician = role === 'PROFESSIONAL';
 
   // Refresh the user's role permissions from the API (they can change at any time)
   useEffect(() => {
@@ -115,6 +116,10 @@ const App: React.FC = () => {
         if (!res?.user) return;
         const changed = JSON.stringify(res.user.permissions) !== localStorage.getItem('vanakel_permissions');
         setAuthUser(res.user);
+        if (res.user.role === 'PROFESSIONAL' && role !== 'PROFESSIONAL') {
+          setRole('PROFESSIONAL');
+          localStorage.setItem('vanakel_role', 'PROFESSIONAL');
+        }
         // Permissions were missing or changed: reload the data they control
         if (changed) refreshGlobalData(true);
       })
@@ -205,7 +210,7 @@ const App: React.FC = () => {
         load(can('interventions.view'), dataService.getInterventions, 'interventions'),
         load(can('buildings.view'), dataService.getSyndics, 'syndics'),
         load(can('users.view'), dataService.getPendingUsers, 'pending users'),
-        load(can('maintenance.view'), dataService.getMaintenancePlans, 'maintenance plans')
+        load(!isTechnician && can('maintenance.view'), dataService.getMaintenancePlans, 'maintenance plans')
       ]);
       setLoadErrors(failed);
 
@@ -1077,8 +1082,8 @@ const App: React.FC = () => {
             role={location.pathname.includes('professional') ? 'PROFESSIONAL' : 'ADMIN'}
             lang={lang}
             onLogin={(name, resolvedEmail, token, user) => {
-              // technicians and admins both use the staff portal; their menu comes from their permissions
-              const r = 'ADMIN';
+              // Technicians use the staff portal too, but retain their role for role-specific UI.
+              const r: Role = user?.role === 'PROFESSIONAL' ? 'PROFESSIONAL' : 'ADMIN';
               setRole(r);
               localStorage.setItem('vanakel_role', r);
               setUserName(name || 'Vanakel User');
@@ -1263,6 +1268,8 @@ const App: React.FC = () => {
                       <Route path="management" element={
                         role === 'SYNDIC' ? (
                           <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} />
+                        ) : isTechnician ? (
+                          <Navigate to="dashboard" replace />
                         ) : (
                           <GestionPage buildings={buildings} interventions={allInterventions} missions={missions} syndics={syndics} professionals={professionals} lang={lang} />
                         )
@@ -1298,7 +1305,7 @@ const App: React.FC = () => {
                       } />
 
                       <Route path="completed" element={
-                        can('interventions.view') ? (
+                        !isTechnician && can('interventions.view') ? (
                           <CompletedMissionsPage interventions={allInterventions} buildings={buildings} professionals={professionals} onSelect={setSelectedInterventionId} lang={lang} />
                         ) : <Navigate to="dashboard" replace />
                       } />
@@ -1323,7 +1330,7 @@ const App: React.FC = () => {
                       } />
                       <Route path="profile" element={<ProfilePage userName={userName} role={role || 'SYNDIC'} t={t} onLogout={handleLogout} onUpdateProfile={handleProfileUpdate} userData={fullUserData} />} />
 
-                      <Route path="entretien_list" element={role !== 'SYNDIC' && can('maintenance.view') ? <MaintenancePage lang={lang} maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="entretien_list" element={role !== 'SYNDIC' && !isTechnician && can('maintenance.view') ? <MaintenancePage lang={lang} maintenancePlans={maintenancePlans} buildings={buildings} syndics={syndics} onCreateClick={(bid) => { setPreSelectedBuildingForMaintenance(bid); setShowCreateMaintenanceModal(true); }} onEditClick={setEditMaintenancePlan} onDeleteClick={setDeletePlanId} t={t} /> : <Navigate to="dashboard" replace />} />
 
                       <Route path="settings" element={<div className="flex flex-col items-center justify-center h-full text-zinc-600">Settings Module under construction</div>} />
                       <Route path="ai-settings" element={can('settings.ai') ? <AiSettingsPage lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />

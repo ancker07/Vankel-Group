@@ -149,6 +149,10 @@ export const dataService = {
         const response = await apiClient.post('/settings/ai', settings);
         return response.data;
     },
+    improveAiText: async (text: string): Promise<{ improved_text?: string }> => {
+        const response = await apiClient.post('/ai/improve', { text });
+        return response.data;
+    },
 
     syncEmails: async () => {
         const response = await apiClient.post('/emails/sync');
@@ -215,4 +219,3 @@ export const dataService = {
         return response.data;
     }
 };
-

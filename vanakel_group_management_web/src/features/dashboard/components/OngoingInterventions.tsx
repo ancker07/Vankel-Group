@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, MapPin, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar } from 'lucide-react';
+import { Clock, MapPin, Navigation, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar } from 'lucide-react';
 import { Intervention, Building, Syndic, Language, Document, User as UserType } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -218,16 +218,18 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${b?.address}, ${b?.city}`)}`, '_blank');
-                                        }}
-                                        className="absolute bottom-4 right-4 p-2 bg-zinc-950/80 border border-zinc-800 rounded-lg text-zinc-400 hover:text-brand-green hover:border-brand-green/50 transition-all z-20 shadow-lg backdrop-blur-md"
-                                        title={t.viewOnMaps}
-                                    >
-                                        <MapPin size={14} />
-                                    </button>
+                                    {b?.address && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${b.address}, ${b.city}`)}&travelmode=driving`, '_blank');
+                                            }}
+                                            className="absolute bottom-4 right-4 px-3 py-2 bg-brand-green text-brand-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-brand-green-light transition-all z-20 shadow-lg flex items-center gap-1.5"
+                                            title={t.directions || 'Open GPS'}
+                                        >
+                                            <Navigation size={14} /> {t.directions || 'Open GPS'}
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="p-5 flex-1 flex flex-col relative z-10 bg-zinc-950">
