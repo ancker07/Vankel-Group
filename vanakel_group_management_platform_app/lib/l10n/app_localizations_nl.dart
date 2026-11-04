@@ -1445,4 +1445,27 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get reportNotSent =>
       'Het verslag kon niet worden verzonden. De wijzigingen zijn opgeslagen. Probeer opnieuw of verwittig het kantoor.';
+
+  @override
+  String get sendToAdmin => 'Naar beheerder sturen';
+
+  @override
+  String get sentToAdminSuccess => 'Naar de beheerder gestuurd ter controle';
+
+  @override
+  String get awaitingAdminReview =>
+      'Naar de beheerder gestuurd, wacht op controle';
+
+  @override
+  String submittedByOn(String name, String date) {
+    return 'Verzonden door $name op $date';
+  }
+
+  @override
+  String get submitNeedsStatus =>
+      'Kies Voltooid of Vertraagd voordat u naar de beheerder verzendt';
+
+  @override
+  String get submitNeedsDelayReason =>
+      'Selecteer de reden van de vertraging voordat u naar de beheerder verzendt';
 }

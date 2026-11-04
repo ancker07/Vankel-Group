@@ -2787,6 +2787,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The report could not be sent. The changes were saved. Please try again or tell the office.'**
   String get reportNotSent;
+
+  /// No description provided for @sendToAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to Admin'**
+  String get sendToAdmin;
+
+  /// No description provided for @sentToAdminSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to the admin for review'**
+  String get sentToAdminSuccess;
+
+  /// No description provided for @awaitingAdminReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to the admin, waiting for review'**
+  String get awaitingAdminReview;
+
+  /// No description provided for @submittedByOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent by {name} on {date}'**
+  String submittedByOn(String name, String date);
+
+  /// No description provided for @submitNeedsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Completed or Delayed before sending to the admin'**
+  String get submitNeedsStatus;
+
+  /// No description provided for @submitNeedsDelayReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the reason for the delay before sending to the admin'**
+  String get submitNeedsDelayReason;
 }
 
 class _AppLocalizationsDelegate

@@ -446,5 +446,11 @@
   "couldNotOpenLink": "Ce lien n'a pas pu être ouvert.",
   "reportSentTo": "Rapport envoyé à {count} destinataire(s)",
   "reportPartial": "Rapport envoyé à {sent} destinataire(s), mais {failed} n'ont pas pu être joints",
-  "reportNotSent": "Le rapport n'a pas pu être envoyé. Les modifications sont enregistrées. Réessayez ou prévenez le bureau."
+  "reportNotSent": "Le rapport n'a pas pu être envoyé. Les modifications sont enregistrées. Réessayez ou prévenez le bureau.",
+  "sendToAdmin": "Envoyer à l'admin",
+  "sentToAdminSuccess": "Envoyé à l'admin pour validation",
+  "awaitingAdminReview": "Envoyé à l'admin, en attente de validation",
+  "submittedByOn": "Envoyé par {name} le {date}",
+  "submitNeedsStatus": "Choisissez Terminé ou Retardé avant d'envoyer à l'admin",
+  "submitNeedsDelayReason": "Sélectionnez le motif du retard avant d'envoyer à l'admin"
 }

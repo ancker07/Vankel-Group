@@ -45,6 +45,10 @@ class Intervention {
   final String? delayDetails;
   final DateTime? delayedRescheduleDate;
   final DateTime? completedAt;
+
+  /// Set when a technician sent the work to the admin for review (cleared when an admin saves it).
+  final DateTime? submittedAt;
+  final String? submittedByName;
   final String? interventionNumber;
   final bool isMaintenance;
   final List<Document> documents;
@@ -83,6 +87,8 @@ class Intervention {
     this.delayDetails,
     this.delayedRescheduleDate,
     this.completedAt,
+    this.submittedAt,
+    this.submittedByName,
     this.documents = const [],
   });
 
@@ -116,6 +122,8 @@ class Intervention {
     String? delayDetails,
     DateTime? delayedRescheduleDate,
     DateTime? completedAt,
+    DateTime? submittedAt,
+    String? submittedByName,
     String? interventionNumber,
     bool? isMaintenance,
     List<Document>? documents,
@@ -154,6 +162,8 @@ class Intervention {
       delayDetails: delayDetails ?? this.delayDetails,
       delayedRescheduleDate: delayedRescheduleDate ?? this.delayedRescheduleDate,
       completedAt: completedAt ?? this.completedAt,
+      submittedAt: submittedAt ?? this.submittedAt,
+      submittedByName: submittedByName ?? this.submittedByName,
       documents: documents ?? this.documents,
     );
   }

@@ -37,6 +37,11 @@ class MessageText
             'fr' => ['Nouvelle affectation', 'Une nouvelle intervention vous a été attribuée : « {title} ».'],
             'nl' => ['Nieuwe toewijzing', "U bent toegewezen aan een nieuwe interventie: '{title}'."],
         ],
+        'intervention_submitted' => [
+            'en' => ['Intervention sent for review', "{technician} sent '{title}' to the admin ({status})."],
+            'fr' => ["Intervention envoyée pour validation", "{technician} a envoyé « {title} » à l'admin ({status})."],
+            'nl' => ['Interventie ter controle verzonden', "{technician} heeft '{title}' naar de beheerder gestuurd ({status})."],
+        ],
         'new_mission' => [
             'en' => ['New Mission: {title}', 'Urgency: {urgency}. {source}'],
             'fr' => ['Nouvelle mission : {title}', 'Urgence : {urgency}. {source}'],

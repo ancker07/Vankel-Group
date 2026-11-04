@@ -1449,4 +1449,27 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get reportNotSent =>
       'Le rapport n\'a pas pu être envoyé. Les modifications sont enregistrées. Réessayez ou prévenez le bureau.';
+
+  @override
+  String get sendToAdmin => 'Envoyer à l\'admin';
+
+  @override
+  String get sentToAdminSuccess => 'Envoyé à l\'admin pour validation';
+
+  @override
+  String get awaitingAdminReview =>
+      'Envoyé à l\'admin, en attente de validation';
+
+  @override
+  String submittedByOn(String name, String date) {
+    return 'Envoyé par $name le $date';
+  }
+
+  @override
+  String get submitNeedsStatus =>
+      'Choisissez Terminé ou Retardé avant d\'envoyer à l\'admin';
+
+  @override
+  String get submitNeedsDelayReason =>
+      'Sélectionnez le motif du retard avant d\'envoyer à l\'admin';
 }

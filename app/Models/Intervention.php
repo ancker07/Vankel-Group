@@ -11,6 +11,14 @@ class Intervention extends Model
     
     protected $appends = ['extractedSyndicName'];
 
+    protected $casts = ['submitted_at' => 'datetime'];
+
+    /** The technician who sent this work to the admin for review. */
+    public function submitter()
+    {
+        return $this->belongsTo(User::class, 'submitted_by');
+    }
+
     public function building()
     {
         return $this->belongsTo(Building::class);

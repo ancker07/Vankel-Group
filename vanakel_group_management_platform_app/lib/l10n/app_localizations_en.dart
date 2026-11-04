@@ -1441,4 +1441,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reportNotSent =>
       'The report could not be sent. The changes were saved. Please try again or tell the office.';
+
+  @override
+  String get sendToAdmin => 'Send to Admin';
+
+  @override
+  String get sentToAdminSuccess => 'Sent to the admin for review';
+
+  @override
+  String get awaitingAdminReview => 'Sent to the admin, waiting for review';
+
+  @override
+  String submittedByOn(String name, String date) {
+    return 'Sent by $name on $date';
+  }
+
+  @override
+  String get submitNeedsStatus =>
+      'Choose Completed or Delayed before sending to the admin';
+
+  @override
+  String get submitNeedsDelayReason =>
+      'Select the reason for the delay before sending to the admin';
 }

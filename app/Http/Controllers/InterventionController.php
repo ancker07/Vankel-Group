@@ -248,7 +248,7 @@ class InterventionController extends Controller
     {
         $user = auth('sanctum')->user();
         
-        $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
+        $query = Intervention::with(['documents', 'building', 'professional', 'syndic', 'submitter:id,name']);
 
         if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
@@ -265,7 +265,7 @@ class InterventionController extends Controller
     public function getInterventionById($id)
     {
         $user = auth('sanctum')->user();
-        $query = Intervention::with(['documents', 'building', 'professional', 'syndic']);
+        $query = Intervention::with(['documents', 'building', 'professional', 'syndic', 'submitter:id,name']);
 
         if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
@@ -547,6 +547,19 @@ class InterventionController extends Controller
         $oldStatus = $intervention->status;
         $oldProId = $intervention->pro_id;
 
+        // "Send to Admin": the technician hands the work over for review. Only Completed or Delayed
+        // can be sent, and a delay needs its reason. (Checked first: nothing is changed if it fails.)
+        $submitting = $request->input('save_mode') === 'SUBMIT';
+        if ($submitting) {
+            $target = strtoupper((string) ($validated['status'] ?? $oldStatus));
+            if (!in_array($target, ['COMPLETED', 'DELAYED'], true)) {
+                return response()->json(['success' => false, 'message' => __('Choose Completed or Delayed before sending to the admin.')], 422);
+            }
+            if ($target === 'DELAYED' && trim((string) ($validated['delay_reason'] ?? $intervention->delay_reason)) === '') {
+                return response()->json(['success' => false, 'message' => __('Select the reason for the delay before sending to the admin.')], 422);
+            }
+        }
+
         // Status can be changed by admins / super admins, and by the field worker the
         // intervention is assigned to (checked above). Everyone else is refused.
         $actor = $request->user();
@@ -659,6 +672,15 @@ class InterventionController extends Controller
             }
         }
 
+        // Review: the technician's submission waits for the admin; an admin saving it counts as the review
+        if ($submitting) {
+            $intervention->update(['submitted_at' => now(), 'submitted_by' => $actor?->id]);
+            $this->notifyReviewers($intervention->fresh(), $actor);
+        } elseif ($intervention->submitted_at && $actor?->hasPermission('interventions.reopen')
+            && ($request->has('save_mode') || array_key_exists('status', $validated))) {
+            $intervention->update(['submitted_at' => null, 'submitted_by' => null]);
+        }
+
         // "Save & send e-mail": the report goes out right after the save (the phone only sends
         // save_mode=EMAIL; the website calls send-report itself). A mail problem never undoes the save:
         // the answer says who received the report and who did not.
@@ -670,9 +692,32 @@ class InterventionController extends Controller
 
         return response()->json([
             'message' => __('Intervention updated successfully'),
-            'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic']),
+            'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic', 'submitter:id,name']),
             'report' => $report,
+            'submitted' => $submitting,
         ]);
+    }
+
+    /** Tells the admins (everyone who may reopen / review interventions) that a technician sent work for review. */
+    protected function notifyReviewers(Intervention $intervention, ?User $technician): void
+    {
+        foreach (User::withPermission('interventions.reopen')->staff()->get() as $reviewer) {
+            if ($technician && $reviewer->id === $technician->id) {
+                continue;
+            }
+            $this->pushNotificationService->notifyUser(
+                $reviewer,
+                'intervention_submitted',
+                fn (string $locale) => [
+                    'technician' => $technician?->name ?? '',
+                    'title' => \App\Support\MessageText::field($intervention, 'title', $locale),
+                    'status' => \App\Support\MessageText::word('status', $intervention->status, $locale),
+                ],
+                ['type' => 'intervention', 'intervention_id' => $intervention->id, 'important' => '1'],
+                'intervention',
+                true
+            );
+        }
     }
 
     protected function notifyAssignedUser(?User $user, Intervention $intervention): void

@@ -122,6 +122,9 @@ export interface Intervention {
   signature?: string;
   completedAt?: string;
   adminFeedback?: string;
+  // Set while a technician's work waits for an admin's review (cleared when an admin saves it)
+  submittedAt?: string;
+  submittedByName?: string;
 
   // Delay Management (New)
   delayedRescheduleDate?: string; // Optional rescheduling

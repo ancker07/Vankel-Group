@@ -34,6 +34,8 @@ class InterventionModel extends Intervention {
     super.delayDetails,
     super.delayedRescheduleDate,
     super.completedAt,
+    super.submittedAt,
+    super.submittedByName,
     super.interventionNumber,
     super.isMaintenance = false,
     super.documents = const [],
@@ -94,6 +96,8 @@ class InterventionModel extends Intervention {
       delayedRescheduleDate: json['delayed_reschedule_date'] != null
           ? DateTime.tryParse(json['delayed_reschedule_date'] as String)
           : null,
+      submittedAt: json['submitted_at'] != null ? DateTime.tryParse(json['submitted_at'].toString())?.toLocal() : null,
+      submittedByName: (json['submitter'] is Map) ? (json['submitter']['name'] as String?) : null,
       completedAt: json['completed_at'] != null
           ? DateTime.tryParse(json['completed_at'] as String)
           : null,

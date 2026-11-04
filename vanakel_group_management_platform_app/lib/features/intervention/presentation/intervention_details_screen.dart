@@ -199,6 +199,22 @@ class _InterventionDetailsScreenState
     }
   }
 
+  /// "Send to Admin": the technician picked Completed or Delayed (a delay needs its reason) and hands
+  /// the work over for review. The server checks the same rules; this just answers without a round trip.
+  void _submitToAdmin(Intervention i, AppLocalizations l10n) {
+    final messenger = ScaffoldMessenger.of(context);
+    void refuse(String message) =>
+        messenger.showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+
+    final status = _localStatus ?? i.status;
+    if (status == InterventionStatus.pending) return refuse(l10n.submitNeedsStatus);
+    final reason = _localDelayReason ?? i.delayReason;
+    if (status == InterventionStatus.delayed && (reason == null || reason.trim().isEmpty)) {
+      return refuse(l10n.submitNeedsDelayReason);
+    }
+    _executeRegister(i.id, mode: 'SUBMIT');
+  }
+
   Future<void> _executeRegister(String id, {String mode = 'NONE'}) async {
     setState(() => _isSaving = true);
     try {
@@ -268,7 +284,9 @@ class _InterventionDetailsScreenState
         // Say what really happened: who got the report (the e-mail is sent by the server right after the save)
         var message = l10n.interventionRegisteredSuccess;
         var color = AppTheme.brandGreen;
-        if (mode == 'EMAIL') {
+        if (mode == 'SUBMIT') {
+          message = l10n.sentToAdminSuccess;
+        } else if (mode == 'EMAIL') {
           final report = result.report;
           if (report == null || !report.delivered) {
             message = l10n.reportNotSent;
@@ -439,6 +457,10 @@ class _InterventionDetailsScreenState
                         ),
                         const SizedBox(height: 16),
                       ],
+                      if (intervention.submittedAt != null) ...[
+                        _buildReviewBanner(intervention, l10n),
+                        const SizedBox(height: 16),
+                      ],
                       _buildSummaryCard(intervention, l10n),
                       const SizedBox(height: 24),
                       // Status control up top so admins / super admins can find it
@@ -480,6 +502,35 @@ class _InterventionDetailsScreenState
   }
 
   /// Who / where at a glance: reference, address, syndic and the assigned professional.
+  /// Shown to everyone while the work waits for an admin's review.
+  Widget _buildReviewBanner(Intervention i, AppLocalizations l10n) {
+    final who = i.submittedByName;
+    final when = AppFormat.dateTime(context, i.submittedAt!);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.brandOrange.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.brandOrange.withValues(alpha: 0.5)),
+      ),
+      child: Row(children: [
+        const Icon(Icons.hourglass_top_outlined, color: AppTheme.brandOrange, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(l10n.awaitingAdminReview, style: const TextStyle(fontWeight: FontWeight.w800)),
+            if (who != null && who.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(l10n.submittedByOn(who, when), style: const TextStyle(fontSize: 12, color: AppTheme.zinc400)),
+              ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
   Widget _buildSummaryCard(Intervention i, AppLocalizations l10n) {
     Widget row(IconData icon, String label, String? value) {
       if (value == null || value.trim().isEmpty) return const SizedBox.shrink();
@@ -1478,6 +1529,11 @@ class _InterventionDetailsScreenState
   }
 
   Widget _buildFooter(Intervention i, AppLocalizations l10n) {
+    // A user who cannot review work (a technician) hands it to the admin; admins keep "Register".
+    final user = ref.watch(authStateProvider).user;
+    final sendsToAdmin = user != null && !user.can('interventions.reopen');
+    final lockedForTechnician = sendsToAdmin && i.status == InterventionStatus.completed;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1490,9 +1546,9 @@ class _InterventionDetailsScreenState
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: (_isSaving || _isImproving)
+            onPressed: (_isSaving || _isImproving || lockedForTechnician)
                 ? null
-                : () => _showRegisterOptionsModal(context, i, l10n),
+                : () => sendsToAdmin ? _submitToAdmin(i, l10n) : _showRegisterOptionsModal(context, i, l10n),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandGreen,
               foregroundColor: Colors.black,
@@ -1513,10 +1569,10 @@ class _InterventionDetailsScreenState
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.description_outlined, size: 18),
+                      Icon(sendsToAdmin ? Icons.send_outlined : Icons.description_outlined, size: 18),
                       const SizedBox(width: 10),
                       Text(
-                        l10n.registerInterventionTitle,
+                        sendsToAdmin ? l10n.sendToAdmin : l10n.registerInterventionTitle,
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,

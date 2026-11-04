@@ -4,7 +4,7 @@ import {
   Intervention, Building, Professional, Syndic, Language, Role, InterventionStatus
 } from '@/types';
 import {
-  X, Mail, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2, Briefcase
+  X, Mail, Sparkles, Upload, FileText, Camera, CheckCircle2, ChevronLeft, Save, Edit2, RotateCcw, Calendar, Clock, Smartphone, AtSign, User, AlertCircle, MapPin, Eye, Loader2, Briefcase, Send
 } from 'lucide-react';
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote, optimizeIntervention } from '@/services/aiService';
@@ -167,6 +167,8 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
+  // A user who cannot review work (a technician) hands it to the admin; admins keep "Register"
+  const sendsToAdmin = !can('interventions.reopen');
   const [viewerData, setViewerData] = useState<{ docs: any[], index: number } | null>(null);
 
   const [showEditConfirm, setShowEditConfirm] = useState(false);
@@ -271,7 +273,20 @@ const InterventionSlip: React.FC<SlipProps> = ({
     setDocuments(prev => [...prev, ...newFiles]);
   };
 
-  const executeSave = async (mode: 'NONE' | 'EMAIL') => {
+  /** "Send to Admin": needs Completed or Delayed (a delay needs its reason). The server checks the same rules. */
+  const handleSendToAdmin = () => {
+    if (status !== 'COMPLETED' && status !== 'DELAYED') {
+      alert(t.submit_needs_status || 'Choose Completed or Delayed before sending to the admin');
+      return;
+    }
+    if (status === 'DELAYED' && !delayReason) {
+      alert(t.delayError);
+      return;
+    }
+    executeSave('SUBMIT');
+  };
+
+  const executeSave = async (mode: 'NONE' | 'EMAIL' | 'SUBMIT') => {
     // Validation: If Delayed, Reason is required.
     if (status === 'DELAYED' && !delayReason) {
       alert(t.delayError);
@@ -301,6 +316,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
       // Mapping for Laravel Backend (snake_case)
       formData.append('status', status);
+      if (mode === 'SUBMIT') formData.append('save_mode', 'SUBMIT');
       formData.append('admin_feedback', adminNote);
       formData.append('on_site_contact_name', contactName);
       formData.append('on_site_contact_phone', contactPhone);
@@ -366,6 +382,10 @@ const InterventionSlip: React.FC<SlipProps> = ({
         await onUpdate(savedIntervention, true); // IMPORTANT: skipApi=true to avoid double save
       }
 
+      if (mode === 'SUBMIT') {
+        alert(t.sent_to_admin_success || 'Sent to the admin for review');
+      }
+
       // Report e-mail: the server sent it with the save and tells us who received it
       if (mode === 'EMAIL') {
         const report = result?.report;
@@ -387,8 +407,11 @@ const InterventionSlip: React.FC<SlipProps> = ({
       }
 
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Save failed:", err);
+      // the server answers in the user's language (e.g. "Choose Completed or Delayed ...")
+      const serverMessage = err?.response?.data?.message;
+      if (serverMessage) alert(serverMessage);
     } finally {
       setIsSaving(false);
       setShowSavePrompt(false);
@@ -1279,13 +1302,28 @@ const InterventionSlip: React.FC<SlipProps> = ({
             {/* Save Actions */}
             {!isSyndic && (
               <div className="space-y-3 pt-6 border-t border-zinc-800" id="slip-save">
+                {intervention.submittedAt && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl border border-orange-500/40 bg-orange-500/10">
+                    <Clock size={18} className="text-orange-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-bold text-white">{t.awaiting_admin_review || 'Sent to the admin, waiting for review'}</p>
+                      {intervention.submittedByName && (
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          {(t.submitted_by_on || 'Sent by {name} on {date}')
+                            .replace('{name}', intervention.submittedByName)
+                            .replace('{date}', new Date(intervention.submittedAt).toLocaleString())}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
                 <button
-                  onClick={() => setShowSavePrompt(true)}
+                  onClick={() => (sendsToAdmin ? handleSendToAdmin() : setShowSavePrompt(true))}
                   disabled={!isEditable || isSaving}
                   className="w-full py-4 bg-brand-green text-brand-black rounded-xl font-black text-sm uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-xl shadow-brand-green/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 min-h-[56px]"
                 >
-                  {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  {isSaving ? t.saving || "Enregistrement..." : t.saveRegister}
+                  {isSaving ? <Loader2 size={16} className="animate-spin" /> : (sendsToAdmin ? <Send size={16} /> : <Save size={16} />)}
+                  {isSaving ? t.saving || "Enregistrement..." : (sendsToAdmin ? (t.send_to_admin || 'Send to Admin') : t.saveRegister)}
                 </button>
 
                 {showSavePrompt && (

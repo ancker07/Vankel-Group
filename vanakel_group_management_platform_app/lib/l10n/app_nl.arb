@@ -446,5 +446,11 @@
   "couldNotOpenLink": "Deze link kon niet worden geopend.",
   "reportSentTo": "Verslag verzonden naar {count} ontvanger(s)",
   "reportPartial": "Verslag verzonden naar {sent} ontvanger(s), maar {failed} konden niet worden bereikt",
-  "reportNotSent": "Het verslag kon niet worden verzonden. De wijzigingen zijn opgeslagen. Probeer opnieuw of verwittig het kantoor."
+  "reportNotSent": "Het verslag kon niet worden verzonden. De wijzigingen zijn opgeslagen. Probeer opnieuw of verwittig het kantoor.",
+  "sendToAdmin": "Naar beheerder sturen",
+  "sentToAdminSuccess": "Naar de beheerder gestuurd ter controle",
+  "awaitingAdminReview": "Naar de beheerder gestuurd, wacht op controle",
+  "submittedByOn": "Verzonden door {name} op {date}",
+  "submitNeedsStatus": "Kies Voltooid of Vertraagd voordat u naar de beheerder verzendt",
+  "submitNeedsDelayReason": "Selecteer de reden van de vertraging voordat u naar de beheerder verzendt"
 }
