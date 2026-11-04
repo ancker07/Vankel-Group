@@ -111,9 +111,6 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                                 ) : (
 
                                     <>
-                                        <button onClick={() => setRoleSelectionMode('LOGIN')} className="text-sm font-bold text-white hover:text-brand-green transition-colors">
-                                            {t.get_started || 'Get Started'}
-                                        </button>
                                         <button onClick={() => setRoleSelectionMode('LOGIN')} className="bg-white text-black px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all">
                                             {t.login || 'Login'}
                                         </button>
@@ -157,7 +154,6 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                                 </button>
                             ) : (
                                 <>
-                                    <button onClick={() => setRoleSelectionMode('LOGIN')} className="w-full text-left text-sm font-bold text-white hover:text-brand-green">{t.get_started || 'Get Started'}</button>
                                     <button onClick={() => setRoleSelectionMode('LOGIN')} className="w-full bg-white text-black px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-center">{t.login || 'Login'}</button>
                                 </>
                             )}
