@@ -190,14 +190,7 @@ const HomePage: React.FC<HomePageProps> = ({ onSelect, lang, setLang, onSignup, 
                             >
                                 {t.goToDashboard || 'Go to Dashboard'} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </button>
-                        ) : (
-                            <button
-                                onClick={() => setRoleSelectionMode('LOGIN')}
-                                className="group relative px-8 py-4 bg-brand-green text-brand-black rounded-full font-black text-sm uppercase tracking-widest hover:bg-brand-green-light transition-all shadow-[0_0_40px_-10px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_-15px_rgba(34,197,94,0.5)] flex items-center gap-2"
-                            >
-                                {t.get_started} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        )}
+                        ) : null}
 
                         <button
                             onClick={() => {
