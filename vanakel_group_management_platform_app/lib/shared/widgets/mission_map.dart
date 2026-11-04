@@ -1,22 +1,26 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import '../../core/api/api_constants.dart';
+import '../../core/api/dio_client.dart';
 import '../../core/services/map_service.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Small OpenStreetMap preview of an address with a pin.
 /// Tapping it opens GPS navigation to the address.
-class MissionMap extends StatefulWidget {
+class MissionMap extends ConsumerStatefulWidget {
   final String address;
   final double height;
 
   const MissionMap({super.key, required this.address, this.height = 160});
 
   @override
-  State<MissionMap> createState() => _MissionMapState();
+  ConsumerState<MissionMap> createState() => _MissionMapState();
 }
 
-class _MissionMapState extends State<MissionMap> {
+class _MissionMapState extends ConsumerState<MissionMap> {
   late Future<LatLng?> _geocode;
 
   @override
@@ -33,10 +37,34 @@ class _MissionMapState extends State<MissionMap> {
     }
   }
 
-  Future<LatLng?> _lookup(String address) {
-    return MapService.geocode(
-      address,
-    ).timeout(const Duration(seconds: 12), onTimeout: () => null);
+  Future<LatLng?> _lookup(String address) async {
+    final localPoint = await MapService.geocode(address);
+    if (localPoint != null) return localPoint;
+
+    try {
+      final response = await ref
+          .read(dioProvider)
+          .post(
+            ApiConstants.locationPreview,
+            data: {'address': address},
+            options: Options(
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 40),
+            ),
+          );
+      final data = Map<String, dynamic>.from(response.data as Map);
+      final latitude = data['latitude'];
+      final longitude = data['longitude'];
+
+      if (data['available'] != true || latitude is! num || longitude is! num) {
+        return null;
+      }
+
+      return LatLng(latitude.toDouble(), longitude.toDouble());
+    } catch (error) {
+      debugPrint('Server location fallbacks failed for "$address": $error');
+      return null;
+    }
   }
 
   @override

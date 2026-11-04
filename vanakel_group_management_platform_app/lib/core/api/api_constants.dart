@@ -2,7 +2,10 @@ class ApiConstants {
   // Use 10.0.2.2 for Android Emulator to access localhost
   // Use your local IP (e.g., 192.168.1.x) for physical devices
   // Override for tests: flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
-  static const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://api.vanakelgroup.com/api');
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://api.vanakelgroup.com/api',
+  );
   static String get host => baseUrl.replaceFirst(RegExp(r'/api/?$'), '');
   static const int connectTimeout = 30000;
   static const int receiveTimeout = 30000;
@@ -38,9 +41,10 @@ class ApiConstants {
   static const String missionUpdate = '/missions/{id}';
   static const String approveMission = '/missions/{id}/approve';
   static const String rejectMission = '/missions/{id}/reject';
-  
+
   // AI Endpoints
   static const String improveNote = '/ai/improve';
+  static const String locationPreview = '/locations/preview';
 
   static String getStorageUrl(String? path) {
     if (path == null || path.isEmpty) return '';

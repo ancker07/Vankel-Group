@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
@@ -18,62 +20,90 @@ class MapService {
     ),
   );
 
-  /// Convert an address to coordinates using OpenStreetMap Nominatim (free, no key).
-  /// Results are cached for the app session.
   static Future<LatLng?> geocode(String address) {
     final query = _geocodeQuery(address);
     if (query.isEmpty) return Future.value(null);
     if (_geocodeCache.containsKey(query))
       return Future.value(_geocodeCache[query]);
-    return _pending[query] ??= _enqueue(query);
+    return _pending[query] ??= _lookup(
+      query,
+    ).whenComplete(() => _pending.remove(query));
   }
 
   static final Map<String, Future<LatLng?>> _pending = {};
   static Future<void> _queue = Future.value();
 
-  /// Nominatim allows ~1 request per second, so lookups run one after another.
   static Future<LatLng?> _enqueue(String address) {
-    final result = _queue.then((_) => _lookup(address));
+    final result = _queue.then((_) => _lookupNominatim(address));
     _queue = result.then(
       (_) => Future.delayed(const Duration(milliseconds: 1100)),
     );
-    return result.whenComplete(() => _pending.remove(address));
+    return result;
   }
 
   static Future<LatLng?> _lookup(String address) async {
     if (_geocodeCache.containsKey(address)) return _geocodeCache[address];
 
-    try {
-      final nativeResult = await _nativeLookup(address);
-      if (nativeResult != null) {
-        _geocodeCache[address] = nativeResult;
-        return nativeResult;
-      }
+    final point = await _firstAvailable([
+      _nativeLookup(address),
+      _enqueue(address),
+    ]);
+    _geocodeCache[address] = point;
+    return point;
+  }
 
+  static Future<LatLng?> _lookupNominatim(String address) async {
+    try {
       final response = await _nominatim.get(
         '/search',
-        queryParameters: {'q': address, 'format': 'json', 'limit': 1},
+        queryParameters: {
+          'q': address,
+          'format': 'jsonv2',
+          'limit': 1,
+          'countrycodes': 'be',
+        },
       );
       final results = response.data as List;
-      final point = results.isEmpty
+      return results.isEmpty
           ? null
           : LatLng(
               double.parse(results[0]['lat']),
               double.parse(results[0]['lon']),
             );
-      _geocodeCache[address] = point;
-      return point;
     } catch (e) {
-      debugPrint('Geocoding failed for "$address": $e');
+      debugPrint('Nominatim geocoding failed for "$address": $e');
       return null;
     }
   }
 
+  static Future<LatLng?> _firstAvailable(List<Future<LatLng?>> lookups) {
+    final result = Completer<LatLng?>();
+    var remaining = lookups.length;
+
+    for (final lookup in lookups) {
+      lookup
+          .then((point) {
+            if (point != null && !result.isCompleted) {
+              result.complete(point);
+              return;
+            }
+            remaining--;
+            if (remaining == 0 && !result.isCompleted) result.complete(null);
+          })
+          .catchError((_) {
+            remaining--;
+            if (remaining == 0 && !result.isCompleted) result.complete(null);
+          });
+    }
+
+    return result.future;
+  }
+
   static Future<LatLng?> _nativeLookup(String address) async {
     try {
-      final results = await geocoding.locationFromAddress(address).timeout(
-        const Duration(seconds: 8),
-      );
+      final results = await geocoding
+          .locationFromAddress(address)
+          .timeout(const Duration(seconds: 8));
       if (results.isEmpty) return null;
       return LatLng(results.first.latitude, results.first.longitude);
     } catch (e) {

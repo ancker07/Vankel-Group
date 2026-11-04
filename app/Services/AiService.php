@@ -37,7 +37,7 @@ class AiService
      * Calls OpenAI's Responses API, which natively accepts text, images, and PDFs
      * in one multimodal request (chat completions does not support PDF input).
      */
-    protected function callOpenAi(string $content, array $attachments, string $model, string $apiKey, ?string $systemPrompt = null)
+    protected function callOpenAi(string $content, array $attachments, string $model, string $apiKey, ?string $systemPrompt = null, ?array $schema = null)
     {
         $userContent = [
             ['type' => 'input_text', 'text' => $content],
@@ -70,7 +70,12 @@ class AiService
                     'content' => $userContent,
                 ],
             ],
-            'text' => ['format' => ['type' => 'json_object']],
+            'text' => ['format' => $schema ? [
+                'type' => 'json_schema',
+                'name' => 'coordinates',
+                'schema' => $schema,
+                'strict' => true,
+            ] : ['type' => 'json_object']],
         ];
 
         // Reasoning-capable models: keep effort low for extraction/translation tasks.
@@ -115,6 +120,49 @@ class AiService
         }
 
         return $data;
+    }
+
+    public function resolveCoordinates(string $address): ?array
+    {
+        $schema = [
+            'type' => 'object',
+            'properties' => [
+                'latitude' => ['type' => ['number', 'null']],
+                'longitude' => ['type' => ['number', 'null']],
+            ],
+            'required' => ['latitude', 'longitude'],
+            'additionalProperties' => false,
+        ];
+
+        $systemPrompt = 'You resolve Belgian street addresses to map coordinates. Return JSON matching the schema. Only return coordinates when the address uniquely identifies a real location. Never invent, estimate, or use the centre of a city. Return null for both values when uncertain.';
+
+        try {
+            $result = $this->callOpenAi(
+                "Address to resolve:\n{$address}",
+                [],
+                $this->resolveModel(),
+                $this->resolveApiKey(),
+                $systemPrompt,
+                $schema,
+            );
+        } catch (\Throwable $exception) {
+            Log::warning('AI coordinate fallback failed.', ['message' => $exception->getMessage()]);
+            return null;
+        }
+
+        $latitude = $result['latitude'] ?? null;
+        $longitude = $result['longitude'] ?? null;
+
+        if (!is_numeric($latitude) || !is_numeric($longitude)) {
+            return null;
+        }
+
+        $latitude = (float) $latitude;
+        $longitude = (float) $longitude;
+
+        return $latitude >= -90 && $latitude <= 90 && $longitude >= -180 && $longitude <= 180
+            ? ['latitude' => $latitude, 'longitude' => $longitude]
+            : null;
     }
 
     /**

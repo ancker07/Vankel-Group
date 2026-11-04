@@ -11,6 +11,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\LocationPreviewController;
 
 // ---------------------------------------------------------------------
 // Access control: every route needs a login (Sanctum token) and, where
@@ -90,6 +91,7 @@ Route::delete('/contacts/{id}', [ContactController::class, 'destroy'])->middlewa
 Route::get('/settings/ai', [SettingController::class, 'getAiSettings'])->middleware('permission:settings.ai');
 Route::post('/settings/ai', [SettingController::class, 'updateAiSettings'])->middleware('permission:settings.ai');
 Route::post('/ai/improve', [SettingController::class, 'improveNote'])->middleware('permission:ai.use');
+Route::post('/locations/preview', [LocationPreviewController::class, 'resolve'])->middleware('permission:interventions.view');
 
 // Team & location
 Route::get('/team', [TeamController::class, 'index'])->middleware('permission:team.view');
