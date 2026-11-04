@@ -819,4 +819,295 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get assignedProfessional => 'Professionnel assigné';
+
+  @override
+  String get admInbox => 'Boîte de réception';
+
+  @override
+  String get admContacts => 'Demandes de contact';
+
+  @override
+  String get admTeam => 'Équipe';
+
+  @override
+  String get admUsers => 'Utilisateurs et rôles';
+
+  @override
+  String get admPush => 'Notifications push';
+
+  @override
+  String get admAiSettings => 'Paramètres IA';
+
+  @override
+  String get admSystem => 'Aperçu du système';
+
+  @override
+  String get admNothingHere => 'Rien pour le moment';
+
+  @override
+  String get admSearchEmails => 'Rechercher des e-mails…';
+
+  @override
+  String get admSync => 'Synchroniser et traiter';
+
+  @override
+  String get admSyncDone => 'Synchronisation terminée';
+
+  @override
+  String get admIngest => 'Traiter l\'e-mail';
+
+  @override
+  String get admIngestAll => 'Tout traiter';
+
+  @override
+  String admIngestResult(String status) {
+    return 'Résultat : $status';
+  }
+
+  @override
+  String get admDeleteEmail => 'Supprimer l\'e-mail';
+
+  @override
+  String get admDeleteConfirm => 'Cette action est irréversible. Supprimer ?';
+
+  @override
+  String get admDelete => 'Supprimer';
+
+  @override
+  String get admReply => 'Répondre';
+
+  @override
+  String get admReplyFrom => 'Envoyer depuis';
+
+  @override
+  String get admSend => 'Envoyer';
+
+  @override
+  String get admSent => 'Envoyé';
+
+  @override
+  String get admMessage => 'Message';
+
+  @override
+  String admThreadMessages(int count) {
+    return '$count messages';
+  }
+
+  @override
+  String get admAttachments => 'Pièces jointes';
+
+  @override
+  String get admIngestionStatus => 'Traitement';
+
+  @override
+  String get admNotIngested => 'Non traité';
+
+  @override
+  String get admUnknownSender => 'Expéditeur inconnu';
+
+  @override
+  String get admNoSubject => '(sans objet)';
+
+  @override
+  String get admCall => 'Appeler';
+
+  @override
+  String admLastSeen(String time) {
+    return 'Vu $time';
+  }
+
+  @override
+  String get admNoLocation => 'Aucune position';
+
+  @override
+  String get admOpenMap => 'Ouvrir dans Plans';
+
+  @override
+  String get admCreateUser => 'Créer un utilisateur';
+
+  @override
+  String get admFirstName => 'Prénom';
+
+  @override
+  String get admLastName => 'Nom';
+
+  @override
+  String get admRole => 'Rôle';
+
+  @override
+  String get admChangeRole => 'Changer le rôle';
+
+  @override
+  String get admResetPassword => 'Réinitialiser le mot de passe';
+
+  @override
+  String get admNewPasswordHint => 'Nouveau mot de passe (min. 8 caractères)';
+
+  @override
+  String get admPasswordTooShort => 'Au moins 8 caractères';
+
+  @override
+  String get admDeleteUser => 'Supprimer l\'utilisateur';
+
+  @override
+  String admDeleteUserConfirm(String name) {
+    return 'Supprimer $name ? Cette action est irréversible.';
+  }
+
+  @override
+  String get admUserApproved => 'Utilisateur approuvé';
+
+  @override
+  String get admUserRejected => 'Utilisateur rejeté';
+
+  @override
+  String get admUserCreated => 'Utilisateur créé';
+
+  @override
+  String get admUserDeleted => 'Utilisateur supprimé';
+
+  @override
+  String get admRoleUpdated => 'Rôle mis à jour';
+
+  @override
+  String get admPasswordReset => 'Mot de passe réinitialisé';
+
+  @override
+  String get admSave => 'Enregistrer';
+
+  @override
+  String get admPendingUsers => 'En attente d\'approbation';
+
+  @override
+  String get admRolesTitle => 'Rôles';
+
+  @override
+  String admRoleUsersCount(int count) {
+    return '$count utilisateurs';
+  }
+
+  @override
+  String get admRoleFull => 'Complet';
+
+  @override
+  String admPermissionsCount(int count) {
+    return '$count permissions';
+  }
+
+  @override
+  String get admBroadcastTitle => 'Titre';
+
+  @override
+  String get admBroadcastBody => 'Message';
+
+  @override
+  String get admTargetAll => 'Tous les utilisateurs';
+
+  @override
+  String get admTargetSpecific => 'Utilisateurs sélectionnés';
+
+  @override
+  String get admImportant => 'Important (son d\'alerte)';
+
+  @override
+  String get admSendNotification => 'Envoyer la notification';
+
+  @override
+  String get admNotificationSent => 'Notification envoyée';
+
+  @override
+  String get admHistory => 'Historique';
+
+  @override
+  String get admSelectUsers => 'Choisir les utilisateurs';
+
+  @override
+  String admSelectedCount(int count) {
+    return '$count sélectionné(s)';
+  }
+
+  @override
+  String admRecipients(int ok, int total) {
+    return '$ok/$total livrées';
+  }
+
+  @override
+  String get admAiModel => 'Modèle IA';
+
+  @override
+  String get admAiApiKey => 'Clé API';
+
+  @override
+  String get admSaved => 'Enregistré';
+
+  @override
+  String get admRequired => 'Obligatoire';
+
+  @override
+  String get admStatAdmins => 'Admins';
+
+  @override
+  String get admStatSyndics => 'Syndics';
+
+  @override
+  String get admStatProfessionals => 'Techniciens';
+
+  @override
+  String get admStatPending => 'Inscriptions en attente';
+
+  @override
+  String get admStatEmails => 'E-mails';
+
+  @override
+  String get admStatBuildings => 'Bâtiments';
+
+  @override
+  String get admStatInterventions => 'Interventions';
+
+  @override
+  String get admDuplicateTitle => 'Doublon possible';
+
+  @override
+  String admDuplicateBody(String id, String score) {
+    return 'Cette demande ressemble à la mission n°$id ($score % de similarité).';
+  }
+
+  @override
+  String get admNotDuplicate => 'Pas un doublon';
+
+  @override
+  String get admMergeDuplicate => 'Fusionner';
+
+  @override
+  String get admMergeConfirm =>
+      'Fusionner dans la plus ancienne mission ? L\'autre mission est supprimée ; ses documents et son historique sont conservés.';
+
+  @override
+  String get admDuplicateDismissed => 'Marqué comme non doublon';
+
+  @override
+  String get admMerged => 'Missions fusionnées';
+
+  @override
+  String get admFollowUps => 'Suivis';
+
+  @override
+  String admFollowUpVia(String reason) {
+    return 'Rattaché par $reason';
+  }
+
+  @override
+  String get admReasonReference => 'référence';
+
+  @override
+  String get admReasonThread => 'conversation';
+
+  @override
+  String get admReasonBuildingTitle => 'bâtiment + titre';
+
+  @override
+  String get admReasonMerge => 'fusion';
+
+  @override
+  String get admForbidden => 'Vous n\'avez pas accès à cette section';
 }

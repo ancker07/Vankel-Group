@@ -1,3 +1,4 @@
+import 'widgets/mission_duplicate_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -57,6 +58,7 @@ class MissionDetailsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              MissionDuplicateBanner(mission: mission),
               _buildStatusSection(context, ref, mission),
               const SizedBox(height: 24),
               _buildInfoCard(context, mission),
@@ -80,6 +82,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 _buildDocumentsSection(mission, context),
               ],
+              MissionFollowUpsSection(mission: mission),
               const SizedBox(height: 32),
               // Action Buttons: need the missions.approve permission
               if ((authState.user?.can('missions.approve') ?? false) &&

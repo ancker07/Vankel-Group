@@ -1659,6 +1659,546 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Assigned professional'**
   String get assignedProfessional;
+
+  /// No description provided for @admInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get admInbox;
+
+  /// No description provided for @admContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact requests'**
+  String get admContacts;
+
+  /// No description provided for @admTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Team'**
+  String get admTeam;
+
+  /// No description provided for @admUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Users & roles'**
+  String get admUsers;
+
+  /// No description provided for @admPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications'**
+  String get admPush;
+
+  /// No description provided for @admAiSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'AI settings'**
+  String get admAiSettings;
+
+  /// No description provided for @admSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System overview'**
+  String get admSystem;
+
+  /// No description provided for @admNothingHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get admNothingHere;
+
+  /// No description provided for @admSearchEmails.
+  ///
+  /// In en, this message translates to:
+  /// **'Search emails…'**
+  String get admSearchEmails;
+
+  /// No description provided for @admSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync & process'**
+  String get admSync;
+
+  /// No description provided for @admSyncDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization completed'**
+  String get admSyncDone;
+
+  /// No description provided for @admIngest.
+  ///
+  /// In en, this message translates to:
+  /// **'Process email'**
+  String get admIngest;
+
+  /// No description provided for @admIngestAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Process all'**
+  String get admIngestAll;
+
+  /// No description provided for @admIngestResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result: {status}'**
+  String admIngestResult(String status);
+
+  /// No description provided for @admDeleteEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete email'**
+  String get admDeleteEmail;
+
+  /// No description provided for @admDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone. Delete?'**
+  String get admDeleteConfirm;
+
+  /// No description provided for @admDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get admDelete;
+
+  /// No description provided for @admReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get admReply;
+
+  /// No description provided for @admReplyFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Send from'**
+  String get admReplyFrom;
+
+  /// No description provided for @admSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get admSend;
+
+  /// No description provided for @admSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get admSent;
+
+  /// No description provided for @admMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get admMessage;
+
+  /// No description provided for @admThreadMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} messages'**
+  String admThreadMessages(int count);
+
+  /// No description provided for @admAttachments.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get admAttachments;
+
+  /// No description provided for @admIngestionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get admIngestionStatus;
+
+  /// No description provided for @admNotIngested.
+  ///
+  /// In en, this message translates to:
+  /// **'Not processed'**
+  String get admNotIngested;
+
+  /// No description provided for @admUnknownSender.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown sender'**
+  String get admUnknownSender;
+
+  /// No description provided for @admNoSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'(no subject)'**
+  String get admNoSubject;
+
+  /// No description provided for @admCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get admCall;
+
+  /// No description provided for @admLastSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Last seen {time}'**
+  String admLastSeen(String time);
+
+  /// No description provided for @admNoLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'No location yet'**
+  String get admNoLocation;
+
+  /// No description provided for @admOpenMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in maps'**
+  String get admOpenMap;
+
+  /// No description provided for @admCreateUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Create user'**
+  String get admCreateUser;
+
+  /// No description provided for @admFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get admFirstName;
+
+  /// No description provided for @admLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get admLastName;
+
+  /// No description provided for @admRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get admRole;
+
+  /// No description provided for @admChangeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role'**
+  String get admChangeRole;
+
+  /// No description provided for @admResetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get admResetPassword;
+
+  /// No description provided for @admNewPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New password (min. 8 characters)'**
+  String get admNewPasswordHint;
+
+  /// No description provided for @admPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get admPasswordTooShort;
+
+  /// No description provided for @admDeleteUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete user'**
+  String get admDeleteUser;
+
+  /// No description provided for @admDeleteUserConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}? This cannot be undone.'**
+  String admDeleteUserConfirm(String name);
+
+  /// No description provided for @admUserApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'User approved'**
+  String get admUserApproved;
+
+  /// No description provided for @admUserRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'User rejected'**
+  String get admUserRejected;
+
+  /// No description provided for @admUserCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'User created'**
+  String get admUserCreated;
+
+  /// No description provided for @admUserDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'User deleted'**
+  String get admUserDeleted;
+
+  /// No description provided for @admRoleUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Role updated'**
+  String get admRoleUpdated;
+
+  /// No description provided for @admPasswordReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset'**
+  String get admPasswordReset;
+
+  /// No description provided for @admSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get admSave;
+
+  /// No description provided for @admPendingUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending approval'**
+  String get admPendingUsers;
+
+  /// No description provided for @admRolesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Roles'**
+  String get admRolesTitle;
+
+  /// No description provided for @admRoleUsersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} users'**
+  String admRoleUsersCount(int count);
+
+  /// No description provided for @admRoleFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get admRoleFull;
+
+  /// No description provided for @admPermissionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} permissions'**
+  String admPermissionsCount(int count);
+
+  /// No description provided for @admBroadcastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get admBroadcastTitle;
+
+  /// No description provided for @admBroadcastBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get admBroadcastBody;
+
+  /// No description provided for @admTargetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All users'**
+  String get admTargetAll;
+
+  /// No description provided for @admTargetSpecific.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected users'**
+  String get admTargetSpecific;
+
+  /// No description provided for @admImportant.
+  ///
+  /// In en, this message translates to:
+  /// **'Important (alert sound)'**
+  String get admImportant;
+
+  /// No description provided for @admSendNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Send notification'**
+  String get admSendNotification;
+
+  /// No description provided for @admNotificationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification sent'**
+  String get admNotificationSent;
+
+  /// No description provided for @admHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get admHistory;
+
+  /// No description provided for @admSelectUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Select users'**
+  String get admSelectUsers;
+
+  /// No description provided for @admSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String admSelectedCount(int count);
+
+  /// No description provided for @admRecipients.
+  ///
+  /// In en, this message translates to:
+  /// **'{ok}/{total} delivered'**
+  String admRecipients(int ok, int total);
+
+  /// No description provided for @admAiModel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI model'**
+  String get admAiModel;
+
+  /// No description provided for @admAiApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get admAiApiKey;
+
+  /// No description provided for @admSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get admSaved;
+
+  /// No description provided for @admRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get admRequired;
+
+  /// No description provided for @admStatAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Admins'**
+  String get admStatAdmins;
+
+  /// No description provided for @admStatSyndics.
+  ///
+  /// In en, this message translates to:
+  /// **'Syndics'**
+  String get admStatSyndics;
+
+  /// No description provided for @admStatProfessionals.
+  ///
+  /// In en, this message translates to:
+  /// **'Technicians'**
+  String get admStatProfessionals;
+
+  /// No description provided for @admStatPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending registrations'**
+  String get admStatPending;
+
+  /// No description provided for @admStatEmails.
+  ///
+  /// In en, this message translates to:
+  /// **'Emails'**
+  String get admStatEmails;
+
+  /// No description provided for @admStatBuildings.
+  ///
+  /// In en, this message translates to:
+  /// **'Buildings'**
+  String get admStatBuildings;
+
+  /// No description provided for @admStatInterventions.
+  ///
+  /// In en, this message translates to:
+  /// **'Interventions'**
+  String get admStatInterventions;
+
+  /// No description provided for @admDuplicateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible duplicate'**
+  String get admDuplicateTitle;
+
+  /// No description provided for @admDuplicateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This request looks like mission #{id} ({score}% similar).'**
+  String admDuplicateBody(String id, String score);
+
+  /// No description provided for @admNotDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a duplicate'**
+  String get admNotDuplicate;
+
+  /// No description provided for @admMergeDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get admMergeDuplicate;
+
+  /// No description provided for @admMergeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge into the oldest mission? The other mission is removed; its documents and history are kept.'**
+  String get admMergeConfirm;
+
+  /// No description provided for @admDuplicateDismissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as not a duplicate'**
+  String get admDuplicateDismissed;
+
+  /// No description provided for @admMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Missions merged'**
+  String get admMerged;
+
+  /// No description provided for @admFollowUps.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-ups'**
+  String get admFollowUps;
+
+  /// No description provided for @admFollowUpVia.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached by {reason}'**
+  String admFollowUpVia(String reason);
+
+  /// No description provided for @admReasonReference.
+  ///
+  /// In en, this message translates to:
+  /// **'reference'**
+  String get admReasonReference;
+
+  /// No description provided for @admReasonThread.
+  ///
+  /// In en, this message translates to:
+  /// **'conversation'**
+  String get admReasonThread;
+
+  /// No description provided for @admReasonBuildingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'building + title'**
+  String get admReasonBuildingTitle;
+
+  /// No description provided for @admReasonMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'merge'**
+  String get admReasonMerge;
+
+  /// No description provided for @admForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have access to this section'**
+  String get admForbidden;
 }
 
 class _AppLocalizationsDelegate

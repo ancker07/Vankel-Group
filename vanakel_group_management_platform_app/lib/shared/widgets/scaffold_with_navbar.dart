@@ -172,6 +172,8 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 },
                 isSelected: location == '/admin/dashboard/maintenance',
               ),
+            // Admin tools: same areas as the website, shown by permission
+            ..._adminTools(context, l10n, location, can),
             // End of mission: completed missions, for everyone
             Builder(builder: (context) {
               final path = authState.user?.role == UserRole.syndic
@@ -231,6 +233,39 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Drawer entries for the admin areas the website has. Each one needs the
+  /// same permission as on the website; the server enforces it as well.
+  List<Widget> _adminTools(
+    BuildContext context,
+    AppLocalizations l10n,
+    String location,
+    bool Function(String) can,
+  ) {
+    final items = <({String path, IconData icon, String label, bool visible})>[
+      (path: '/admin/dashboard/emails', icon: Icons.mail_outline, label: l10n.admInbox, visible: can('emails.view')),
+      (path: '/admin/dashboard/contacts', icon: Icons.chat_bubble_outline, label: l10n.admContacts, visible: can('contacts.view')),
+      (path: '/admin/dashboard/team', icon: Icons.groups_outlined, label: l10n.admTeam, visible: can('team.view')),
+      (path: '/admin/dashboard/users', icon: Icons.key_outlined, label: l10n.admUsers, visible: can('users.view') || can('roles.manage')),
+      (path: '/admin/dashboard/push', icon: Icons.campaign_outlined, label: l10n.admPush, visible: can('notifications.broadcast')),
+      (path: '/admin/dashboard/ai-settings', icon: Icons.auto_awesome_outlined, label: l10n.admAiSettings, visible: can('settings.ai')),
+      (path: '/admin/dashboard/system', icon: Icons.insights_outlined, label: l10n.admSystem, visible: can('stats.view')),
+    ];
+    return [
+      for (final i in items)
+        if (i.visible)
+          _buildDrawerItem(
+            context,
+            icon: i.icon,
+            label: i.label,
+            onTap: () {
+              Navigator.pop(context);
+              context.push(i.path);
+            },
+            isSelected: location.startsWith(i.path),
+          ),
+    ];
   }
 
   /// One bottom-bar tab. The label is forced onto a single line and scaled

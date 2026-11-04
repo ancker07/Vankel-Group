@@ -24,6 +24,13 @@ import '../../features/management/presentation/management_screen.dart';
 import '../../features/report/presentation/reports_screen.dart';
 import '../../features/mission/domain/mission.dart';
 import '../../features/maintenance/presentation/maintenance_plans_screen.dart';
+import '../../features/admin/presentation/emails_screen.dart';
+import '../../features/admin/presentation/contacts_screen.dart';
+import '../../features/admin/presentation/team_screen.dart';
+import '../../features/admin/presentation/users_screen.dart';
+import '../../features/admin/presentation/push_notifications_screen.dart';
+import '../../features/admin/presentation/ai_settings_screen.dart';
+import '../../features/admin/presentation/system_stats_screen.dart';
 import '../../shared/layout/admin_layout.dart';
 import '../../shared/layout/syndic_layout.dart';
 
@@ -176,6 +183,23 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'completed',
                     builder: (context, state) => const CompletedMissionsScreen(isAdmin: true),
                   ),
+                  GoRoute(
+                    path: 'emails',
+                    builder: (context, state) => const EmailsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: ':id',
+                        builder: (context, state) =>
+                            EmailDetailScreen(emailId: int.parse(state.pathParameters['id']!)),
+                      ),
+                    ],
+                  ),
+                  GoRoute(path: 'contacts', builder: (context, state) => const ContactsScreen()),
+                  GoRoute(path: 'team', builder: (context, state) => const TeamScreen()),
+                  GoRoute(path: 'users', builder: (context, state) => const UsersScreen()),
+                  GoRoute(path: 'push', builder: (context, state) => const PushNotificationsScreen()),
+                  GoRoute(path: 'ai-settings', builder: (context, state) => const AiSettingsScreen()),
+                  GoRoute(path: 'system', builder: (context, state) => const SystemStatsScreen()),
                 ],
               ),
             ],

@@ -28,6 +28,9 @@ class MissionModel extends Mission {
     super.onSiteContactEmail,
     super.isAiDetected = false,
     super.documents = const [],
+    super.possibleDuplicateOfId,
+    super.duplicateScore,
+    super.followUps = const [],
   });
 
   factory MissionModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +62,17 @@ class MissionModel extends Mission {
       onSiteContactEmail: json['on_site_contact_email'] as String? ?? json['onSiteContactEmail'] as String?,
       isAiDetected:
           json['is_ai_detected'] == 1 || json['is_ai_detected'] == true,
+      possibleDuplicateOfId: json['possible_duplicate_of_id']?.toString(),
+      duplicateScore: (json['duplicate_score'] as num?)?.toInt(),
+      followUps: (json['updates'] as List<dynamic>? ?? [])
+          .map((u) => MissionFollowUp(
+                id: u['id'].toString(),
+                subject: u['subject'] as String?,
+                summary: u['summary'] as String?,
+                reason: u['match_reason'] as String?,
+                createdAt: u['created_at'] != null ? DateTime.tryParse(u['created_at'] as String)?.toLocal() : null,
+              ))
+          .toList(),
       documents:
           (json['documents'] as List<dynamic>?)
               ?.map(
@@ -168,6 +182,9 @@ class MissionModel extends Mission {
       onSiteContactEmail: onSiteContactEmail,
       isAiDetected: isAiDetected,
       documents: documents,
+      possibleDuplicateOfId: possibleDuplicateOfId,
+      duplicateScore: duplicateScore,
+      followUps: followUps,
     );
   }
 }

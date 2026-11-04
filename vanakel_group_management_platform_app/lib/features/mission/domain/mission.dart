@@ -4,6 +4,18 @@ enum MissionStatus { pending, approved, rejected, completed, needsReview }
 
 enum MissionUrgency { low, normal, urgent }
 
+/// A follow-up email (reply, reminder, forward...) attached to a mission
+/// instead of being created as a duplicate mission.
+class MissionFollowUp {
+  final String id;
+  final String? subject;
+  final String? summary;
+  final String? reason; // reference | thread | building_title | merge
+  final DateTime? createdAt;
+
+  const MissionFollowUp({required this.id, this.subject, this.summary, this.reason, this.createdAt});
+}
+
 class Mission {
   final String id;
   final String title;
@@ -31,6 +43,11 @@ class Mission {
   final String? onSiteContactEmail;
   final List<Document> documents;
 
+  /// Set when the mission looks like a duplicate of another one (admin review).
+  final String? possibleDuplicateOfId;
+  final int? duplicateScore;
+  final List<MissionFollowUp> followUps;
+
   const Mission({
     required this.id,
     required this.title,
@@ -57,6 +74,9 @@ class Mission {
     this.onSiteContactEmail,
     this.isAiDetected = false,
     this.documents = const [],
+    this.possibleDuplicateOfId,
+    this.duplicateScore,
+    this.followUps = const [],
   });
 
   Mission copyWith({
@@ -85,6 +105,9 @@ class Mission {
     String? onSiteContactPhone,
     String? onSiteContactEmail,
     List<Document>? documents,
+    String? possibleDuplicateOfId,
+    int? duplicateScore,
+    List<MissionFollowUp>? followUps,
   }) {
     return Mission(
       id: id ?? this.id,
@@ -112,6 +135,9 @@ class Mission {
       onSiteContactPhone: onSiteContactPhone ?? this.onSiteContactPhone,
       onSiteContactEmail: onSiteContactEmail ?? this.onSiteContactEmail,
       documents: documents ?? this.documents,
+      possibleDuplicateOfId: possibleDuplicateOfId ?? this.possibleDuplicateOfId,
+      duplicateScore: duplicateScore ?? this.duplicateScore,
+      followUps: followUps ?? this.followUps,
     );
   }
 }

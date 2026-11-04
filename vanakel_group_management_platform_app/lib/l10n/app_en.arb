@@ -82,7 +82,7 @@
   "notifications": "Notifications",
   "management": "Management",
   "reports": "Reports",
-  "maintenance": "Maintenance",
+  "maintenance": "MAINTENANCE",
   "search": "Search",
   "latestSlips": "Latest Slips",
   "fullHistory": "Full History",
@@ -138,8 +138,8 @@
   "reviewDocuments": "REVIEW DOCUMENTS",
   "interventionDateOptional": "INTERVENTION DATE (OPTIONAL)",
   "selectDatePlaceholder": "Select date...",
-  "approve": "Approve",
-  "reject": "Reject",
+  "approve": "APPROVE",
+  "reject": "REJECT",
   "urgent": "URGENT",
   "normal": "NORMAL",
   "low": "LOW",
@@ -154,7 +154,6 @@
   "other": "OTHER",
   "loading": "LOADING...",
   "error": "ERROR",
-  "maintenance": "MAINTENANCE",
   "onSiteContact": "ON-SITE CONTACT",
   "name": "NAME",
   "phoneTitle": "GSM / TEL",
@@ -194,16 +193,7 @@
   "saveSendWhatsapp": "SAVE & SEND WHATSAPP",
   "registerInterventionTitle": "REGISTER INTERVENTION",
   "missionDetails": "Mission Details",
-  "approveMission": "Approve Mission",
-  "rejectMission": "Reject Mission",
-  "missionApprovedSuccess": "Mission approved successfully",
-  "missionRejected": "Mission rejected",
-  "approveMissionConfirm": "Are you sure you want to approve this mission and turn it into an intervention?",
-  "rejectMissionConfirm": "Are you sure you want to reject this mission?",
-  "interventionDateOptional": "INTERVENTION DATE (OPTIONAL)",
   "chooseADate": "Choose a date...",
-  "approve": "APPROVE",
-  "reject": "REJECT",
   "missionHeader": "MISSION",
   "attachments": "Attachments",
   "couldNotOpen": "Could not open {fileName}",
@@ -271,5 +261,171 @@
   "listening": "Listening… speak now",
   "speechUnavailable": "Voice dictation is not available on this device.",
   "missionLocked": "This mission is completed. Only an admin can change it.",
-  "assignedProfessional": "Assigned professional"
+  "assignedProfessional": "Assigned professional",
+  "admInbox": "Inbox",
+  "admContacts": "Contact requests",
+  "admTeam": "Team",
+  "admUsers": "Users & roles",
+  "admPush": "Push notifications",
+  "admAiSettings": "AI settings",
+  "admSystem": "System overview",
+  "admNothingHere": "Nothing here yet",
+  "admSearchEmails": "Search emails…",
+  "admSync": "Sync & process",
+  "admSyncDone": "Synchronization completed",
+  "admIngest": "Process email",
+  "admIngestAll": "Process all",
+  "admIngestResult": "Result: {status}",
+  "@admIngestResult": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "admDeleteEmail": "Delete email",
+  "admDeleteConfirm": "This cannot be undone. Delete?",
+  "admDelete": "Delete",
+  "admReply": "Reply",
+  "admReplyFrom": "Send from",
+  "admSend": "Send",
+  "admSent": "Sent",
+  "admMessage": "Message",
+  "admThreadMessages": "{count} messages",
+  "@admThreadMessages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "admAttachments": "Attachments",
+  "admIngestionStatus": "Processing",
+  "admNotIngested": "Not processed",
+  "admUnknownSender": "Unknown sender",
+  "admNoSubject": "(no subject)",
+  "admCall": "Call",
+  "admLastSeen": "Last seen {time}",
+  "@admLastSeen": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "admNoLocation": "No location yet",
+  "admOpenMap": "Open in maps",
+  "admCreateUser": "Create user",
+  "admFirstName": "First name",
+  "admLastName": "Last name",
+  "admRole": "Role",
+  "admChangeRole": "Change role",
+  "admResetPassword": "Reset password",
+  "admNewPasswordHint": "New password (min. 8 characters)",
+  "admPasswordTooShort": "At least 8 characters",
+  "admDeleteUser": "Delete user",
+  "admDeleteUserConfirm": "Delete {name}? This cannot be undone.",
+  "@admDeleteUserConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "admUserApproved": "User approved",
+  "admUserRejected": "User rejected",
+  "admUserCreated": "User created",
+  "admUserDeleted": "User deleted",
+  "admRoleUpdated": "Role updated",
+  "admPasswordReset": "Password reset",
+  "admSave": "Save",
+  "admPendingUsers": "Pending approval",
+  "admRolesTitle": "Roles",
+  "admRoleUsersCount": "{count} users",
+  "@admRoleUsersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "admRoleFull": "Full",
+  "admPermissionsCount": "{count} permissions",
+  "@admPermissionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "admBroadcastTitle": "Title",
+  "admBroadcastBody": "Message",
+  "admTargetAll": "All users",
+  "admTargetSpecific": "Selected users",
+  "admImportant": "Important (alert sound)",
+  "admSendNotification": "Send notification",
+  "admNotificationSent": "Notification sent",
+  "admHistory": "History",
+  "admSelectUsers": "Select users",
+  "admSelectedCount": "{count} selected",
+  "@admSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "admRecipients": "{ok}/{total} delivered",
+  "@admRecipients": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "admAiModel": "AI model",
+  "admAiApiKey": "API key",
+  "admSaved": "Saved",
+  "admRequired": "Required",
+  "admStatAdmins": "Admins",
+  "admStatSyndics": "Syndics",
+  "admStatProfessionals": "Technicians",
+  "admStatPending": "Pending registrations",
+  "admStatEmails": "Emails",
+  "admStatBuildings": "Buildings",
+  "admStatInterventions": "Interventions",
+  "admDuplicateTitle": "Possible duplicate",
+  "admDuplicateBody": "This request looks like mission #{id} ({score}% similar).",
+  "@admDuplicateBody": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "admNotDuplicate": "Not a duplicate",
+  "admMergeDuplicate": "Merge",
+  "admMergeConfirm": "Merge into the oldest mission? The other mission is removed; its documents and history are kept.",
+  "admDuplicateDismissed": "Marked as not a duplicate",
+  "admMerged": "Missions merged",
+  "admFollowUps": "Follow-ups",
+  "admFollowUpVia": "Attached by {reason}",
+  "@admFollowUpVia": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "admReasonReference": "reference",
+  "admReasonThread": "conversation",
+  "admReasonBuildingTitle": "building + title",
+  "admReasonMerge": "merge",
+  "admForbidden": "You don't have access to this section"
 }

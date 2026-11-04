@@ -815,4 +815,295 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assignedProfessional => 'Assigned professional';
+
+  @override
+  String get admInbox => 'Inbox';
+
+  @override
+  String get admContacts => 'Contact requests';
+
+  @override
+  String get admTeam => 'Team';
+
+  @override
+  String get admUsers => 'Users & roles';
+
+  @override
+  String get admPush => 'Push notifications';
+
+  @override
+  String get admAiSettings => 'AI settings';
+
+  @override
+  String get admSystem => 'System overview';
+
+  @override
+  String get admNothingHere => 'Nothing here yet';
+
+  @override
+  String get admSearchEmails => 'Search emails…';
+
+  @override
+  String get admSync => 'Sync & process';
+
+  @override
+  String get admSyncDone => 'Synchronization completed';
+
+  @override
+  String get admIngest => 'Process email';
+
+  @override
+  String get admIngestAll => 'Process all';
+
+  @override
+  String admIngestResult(String status) {
+    return 'Result: $status';
+  }
+
+  @override
+  String get admDeleteEmail => 'Delete email';
+
+  @override
+  String get admDeleteConfirm => 'This cannot be undone. Delete?';
+
+  @override
+  String get admDelete => 'Delete';
+
+  @override
+  String get admReply => 'Reply';
+
+  @override
+  String get admReplyFrom => 'Send from';
+
+  @override
+  String get admSend => 'Send';
+
+  @override
+  String get admSent => 'Sent';
+
+  @override
+  String get admMessage => 'Message';
+
+  @override
+  String admThreadMessages(int count) {
+    return '$count messages';
+  }
+
+  @override
+  String get admAttachments => 'Attachments';
+
+  @override
+  String get admIngestionStatus => 'Processing';
+
+  @override
+  String get admNotIngested => 'Not processed';
+
+  @override
+  String get admUnknownSender => 'Unknown sender';
+
+  @override
+  String get admNoSubject => '(no subject)';
+
+  @override
+  String get admCall => 'Call';
+
+  @override
+  String admLastSeen(String time) {
+    return 'Last seen $time';
+  }
+
+  @override
+  String get admNoLocation => 'No location yet';
+
+  @override
+  String get admOpenMap => 'Open in maps';
+
+  @override
+  String get admCreateUser => 'Create user';
+
+  @override
+  String get admFirstName => 'First name';
+
+  @override
+  String get admLastName => 'Last name';
+
+  @override
+  String get admRole => 'Role';
+
+  @override
+  String get admChangeRole => 'Change role';
+
+  @override
+  String get admResetPassword => 'Reset password';
+
+  @override
+  String get admNewPasswordHint => 'New password (min. 8 characters)';
+
+  @override
+  String get admPasswordTooShort => 'At least 8 characters';
+
+  @override
+  String get admDeleteUser => 'Delete user';
+
+  @override
+  String admDeleteUserConfirm(String name) {
+    return 'Delete $name? This cannot be undone.';
+  }
+
+  @override
+  String get admUserApproved => 'User approved';
+
+  @override
+  String get admUserRejected => 'User rejected';
+
+  @override
+  String get admUserCreated => 'User created';
+
+  @override
+  String get admUserDeleted => 'User deleted';
+
+  @override
+  String get admRoleUpdated => 'Role updated';
+
+  @override
+  String get admPasswordReset => 'Password reset';
+
+  @override
+  String get admSave => 'Save';
+
+  @override
+  String get admPendingUsers => 'Pending approval';
+
+  @override
+  String get admRolesTitle => 'Roles';
+
+  @override
+  String admRoleUsersCount(int count) {
+    return '$count users';
+  }
+
+  @override
+  String get admRoleFull => 'Full';
+
+  @override
+  String admPermissionsCount(int count) {
+    return '$count permissions';
+  }
+
+  @override
+  String get admBroadcastTitle => 'Title';
+
+  @override
+  String get admBroadcastBody => 'Message';
+
+  @override
+  String get admTargetAll => 'All users';
+
+  @override
+  String get admTargetSpecific => 'Selected users';
+
+  @override
+  String get admImportant => 'Important (alert sound)';
+
+  @override
+  String get admSendNotification => 'Send notification';
+
+  @override
+  String get admNotificationSent => 'Notification sent';
+
+  @override
+  String get admHistory => 'History';
+
+  @override
+  String get admSelectUsers => 'Select users';
+
+  @override
+  String admSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String admRecipients(int ok, int total) {
+    return '$ok/$total delivered';
+  }
+
+  @override
+  String get admAiModel => 'AI model';
+
+  @override
+  String get admAiApiKey => 'API key';
+
+  @override
+  String get admSaved => 'Saved';
+
+  @override
+  String get admRequired => 'Required';
+
+  @override
+  String get admStatAdmins => 'Admins';
+
+  @override
+  String get admStatSyndics => 'Syndics';
+
+  @override
+  String get admStatProfessionals => 'Technicians';
+
+  @override
+  String get admStatPending => 'Pending registrations';
+
+  @override
+  String get admStatEmails => 'Emails';
+
+  @override
+  String get admStatBuildings => 'Buildings';
+
+  @override
+  String get admStatInterventions => 'Interventions';
+
+  @override
+  String get admDuplicateTitle => 'Possible duplicate';
+
+  @override
+  String admDuplicateBody(String id, String score) {
+    return 'This request looks like mission #$id ($score% similar).';
+  }
+
+  @override
+  String get admNotDuplicate => 'Not a duplicate';
+
+  @override
+  String get admMergeDuplicate => 'Merge';
+
+  @override
+  String get admMergeConfirm =>
+      'Merge into the oldest mission? The other mission is removed; its documents and history are kept.';
+
+  @override
+  String get admDuplicateDismissed => 'Marked as not a duplicate';
+
+  @override
+  String get admMerged => 'Missions merged';
+
+  @override
+  String get admFollowUps => 'Follow-ups';
+
+  @override
+  String admFollowUpVia(String reason) {
+    return 'Attached by $reason';
+  }
+
+  @override
+  String get admReasonReference => 'reference';
+
+  @override
+  String get admReasonThread => 'conversation';
+
+  @override
+  String get admReasonBuildingTitle => 'building + title';
+
+  @override
+  String get admReasonMerge => 'merge';
+
+  @override
+  String get admForbidden => 'You don\'t have access to this section';
 }

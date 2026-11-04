@@ -816,4 +816,296 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get assignedProfessional => 'Toegewezen professional';
+
+  @override
+  String get admInbox => 'Postvak IN';
+
+  @override
+  String get admContacts => 'Contactaanvragen';
+
+  @override
+  String get admTeam => 'Team';
+
+  @override
+  String get admUsers => 'Gebruikers en rollen';
+
+  @override
+  String get admPush => 'Pushmeldingen';
+
+  @override
+  String get admAiSettings => 'AI-instellingen';
+
+  @override
+  String get admSystem => 'Systeemoverzicht';
+
+  @override
+  String get admNothingHere => 'Nog niets hier';
+
+  @override
+  String get admSearchEmails => 'E-mails zoeken…';
+
+  @override
+  String get admSync => 'Synchroniseren en verwerken';
+
+  @override
+  String get admSyncDone => 'Synchronisatie voltooid';
+
+  @override
+  String get admIngest => 'E-mail verwerken';
+
+  @override
+  String get admIngestAll => 'Alles verwerken';
+
+  @override
+  String admIngestResult(String status) {
+    return 'Resultaat: $status';
+  }
+
+  @override
+  String get admDeleteEmail => 'E-mail verwijderen';
+
+  @override
+  String get admDeleteConfirm =>
+      'Dit kan niet ongedaan worden gemaakt. Verwijderen?';
+
+  @override
+  String get admDelete => 'Verwijderen';
+
+  @override
+  String get admReply => 'Beantwoorden';
+
+  @override
+  String get admReplyFrom => 'Verzenden vanaf';
+
+  @override
+  String get admSend => 'Verzenden';
+
+  @override
+  String get admSent => 'Verzonden';
+
+  @override
+  String get admMessage => 'Bericht';
+
+  @override
+  String admThreadMessages(int count) {
+    return '$count berichten';
+  }
+
+  @override
+  String get admAttachments => 'Bijlagen';
+
+  @override
+  String get admIngestionStatus => 'Verwerking';
+
+  @override
+  String get admNotIngested => 'Niet verwerkt';
+
+  @override
+  String get admUnknownSender => 'Onbekende afzender';
+
+  @override
+  String get admNoSubject => '(geen onderwerp)';
+
+  @override
+  String get admCall => 'Bellen';
+
+  @override
+  String admLastSeen(String time) {
+    return 'Laatst gezien $time';
+  }
+
+  @override
+  String get admNoLocation => 'Nog geen locatie';
+
+  @override
+  String get admOpenMap => 'Openen in kaarten';
+
+  @override
+  String get admCreateUser => 'Gebruiker aanmaken';
+
+  @override
+  String get admFirstName => 'Voornaam';
+
+  @override
+  String get admLastName => 'Achternaam';
+
+  @override
+  String get admRole => 'Rol';
+
+  @override
+  String get admChangeRole => 'Rol wijzigen';
+
+  @override
+  String get admResetPassword => 'Wachtwoord resetten';
+
+  @override
+  String get admNewPasswordHint => 'Nieuw wachtwoord (min. 8 tekens)';
+
+  @override
+  String get admPasswordTooShort => 'Minstens 8 tekens';
+
+  @override
+  String get admDeleteUser => 'Gebruiker verwijderen';
+
+  @override
+  String admDeleteUserConfirm(String name) {
+    return '$name verwijderen? Dit kan niet ongedaan worden gemaakt.';
+  }
+
+  @override
+  String get admUserApproved => 'Gebruiker goedgekeurd';
+
+  @override
+  String get admUserRejected => 'Gebruiker afgewezen';
+
+  @override
+  String get admUserCreated => 'Gebruiker aangemaakt';
+
+  @override
+  String get admUserDeleted => 'Gebruiker verwijderd';
+
+  @override
+  String get admRoleUpdated => 'Rol bijgewerkt';
+
+  @override
+  String get admPasswordReset => 'Wachtwoord gereset';
+
+  @override
+  String get admSave => 'Opslaan';
+
+  @override
+  String get admPendingUsers => 'Wacht op goedkeuring';
+
+  @override
+  String get admRolesTitle => 'Rollen';
+
+  @override
+  String admRoleUsersCount(int count) {
+    return '$count gebruikers';
+  }
+
+  @override
+  String get admRoleFull => 'Vol';
+
+  @override
+  String admPermissionsCount(int count) {
+    return '$count rechten';
+  }
+
+  @override
+  String get admBroadcastTitle => 'Titel';
+
+  @override
+  String get admBroadcastBody => 'Bericht';
+
+  @override
+  String get admTargetAll => 'Alle gebruikers';
+
+  @override
+  String get admTargetSpecific => 'Geselecteerde gebruikers';
+
+  @override
+  String get admImportant => 'Belangrijk (alarmgeluid)';
+
+  @override
+  String get admSendNotification => 'Melding verzenden';
+
+  @override
+  String get admNotificationSent => 'Melding verzonden';
+
+  @override
+  String get admHistory => 'Geschiedenis';
+
+  @override
+  String get admSelectUsers => 'Kies gebruikers';
+
+  @override
+  String admSelectedCount(int count) {
+    return '$count geselecteerd';
+  }
+
+  @override
+  String admRecipients(int ok, int total) {
+    return '$ok/$total afgeleverd';
+  }
+
+  @override
+  String get admAiModel => 'AI-model';
+
+  @override
+  String get admAiApiKey => 'API-sleutel';
+
+  @override
+  String get admSaved => 'Opgeslagen';
+
+  @override
+  String get admRequired => 'Verplicht';
+
+  @override
+  String get admStatAdmins => 'Beheerders';
+
+  @override
+  String get admStatSyndics => 'Syndici';
+
+  @override
+  String get admStatProfessionals => 'Technici';
+
+  @override
+  String get admStatPending => 'Wachtende registraties';
+
+  @override
+  String get admStatEmails => 'E-mails';
+
+  @override
+  String get admStatBuildings => 'Gebouwen';
+
+  @override
+  String get admStatInterventions => 'Interventies';
+
+  @override
+  String get admDuplicateTitle => 'Mogelijk duplicaat';
+
+  @override
+  String admDuplicateBody(String id, String score) {
+    return 'Dit verzoek lijkt op missie nr. $id ($score% gelijkenis).';
+  }
+
+  @override
+  String get admNotDuplicate => 'Geen duplicaat';
+
+  @override
+  String get admMergeDuplicate => 'Samenvoegen';
+
+  @override
+  String get admMergeConfirm =>
+      'Samenvoegen in de oudste missie? De andere missie wordt verwijderd; documenten en geschiedenis blijven behouden.';
+
+  @override
+  String get admDuplicateDismissed => 'Gemarkeerd als geen duplicaat';
+
+  @override
+  String get admMerged => 'Missies samengevoegd';
+
+  @override
+  String get admFollowUps => 'Opvolgingen';
+
+  @override
+  String admFollowUpVia(String reason) {
+    return 'Gekoppeld via $reason';
+  }
+
+  @override
+  String get admReasonReference => 'referentie';
+
+  @override
+  String get admReasonThread => 'gesprek';
+
+  @override
+  String get admReasonBuildingTitle => 'gebouw + titel';
+
+  @override
+  String get admReasonMerge => 'samenvoeging';
+
+  @override
+  String get admForbidden => 'Je hebt geen toegang tot dit onderdeel';
 }
