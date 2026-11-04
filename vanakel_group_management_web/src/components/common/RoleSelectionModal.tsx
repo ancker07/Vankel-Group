@@ -84,15 +84,6 @@ const RoleSelectionModal: React.FC<RoleSelectionModalProps> = ({ isOpen, onClose
                             </div>
                         </button>
                     ))}
-
-                    {mode === 'LOGIN' && (
-                        <button
-                            onClick={() => onSelect('SUPERADMIN' as Role)}
-                            className="w-full mt-4 py-2 text-xs font-bold text-zinc-600 hover:text-zinc-400 uppercase tracking-widest transition-colors"
-                        >
-                            Super Admin Access
-                        </button>
-                    )}
                 </div>
             </div>
         </div>
