@@ -1,3 +1,4 @@
+import '../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/locale_provider.dart';
@@ -77,9 +78,9 @@ class LanguageSelector extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'SELECT LANGUAGE',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.selectLanguage.toUpperCase(),
+                style: const TextStyle(
                   color: AppTheme.zinc500,
                   fontSize: 12,
                   fontWeight: FontWeight.w900,

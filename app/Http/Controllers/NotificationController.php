@@ -52,7 +52,7 @@ class NotificationController extends Controller
             || ($notification->user_id === null && $notification->role === null);
 
         if (!$ownsIt) {
-            return response()->json(['message' => 'Not found.'], 404);
+            return response()->json(['message' => __('Not found.')], 404);
         }
 
         $notification->update(['is_read' => true]);
@@ -104,7 +104,7 @@ class NotificationController extends Controller
 
             Log::info("FCM: Starting broadcast to " . $recipients->count() . " users.");
             if ($recipients->isEmpty()) {
-                return response()->json(['message' => 'No users with registered devices found.'], 404);
+                return response()->json(['message' => __('No users with registered devices found.')], 404);
             }
 
             $results = [];
@@ -153,7 +153,7 @@ class NotificationController extends Controller
             ]);
 
             return response()->json([
-                'message' => "Broadcast sent successfully to $successCount out of $totalCount devices.",
+                'message' => __('Broadcast sent successfully to :success out of :total devices.', ['success' => $successCount, 'total' => $totalCount]),
                 'results' => $results
             ]);
         } else {
@@ -164,7 +164,7 @@ class NotificationController extends Controller
                 ->get();
 
             if ($recipients->isEmpty()) {
-                return response()->json(['message' => 'Selected users have no registered devices.'], 404);
+                return response()->json(['message' => __('Selected users have no registered devices.')], 404);
             }
 
             $results = [];
@@ -212,7 +212,7 @@ class NotificationController extends Controller
             }
             
             return response()->json([
-                'message' => 'Notifications sent successfully.',
+                'message' => __('Notifications sent successfully.'),
                 'results' => $results
             ]);
         }
@@ -245,7 +245,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => $result,
-            'message' => $result ? 'Test notification sent successfully' : 'Failed to send test notification'
+            'message' => $result ? __('Test notification sent successfully') : __('Failed to send test notification')
         ]);
     }
 

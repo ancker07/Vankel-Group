@@ -51,7 +51,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.fillAllFields)),
       );
       return;
     }
@@ -137,8 +137,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 8),
               Text(
                 _selectedRole == 'ADMIN'
-                    ? 'Register to become a Vanakel Group Member.'
-                    : 'Register as a syndic to oversee properties and report issues.',
+                    ? l10n.registerAdminDesc
+                    : l10n.registerSyndicDesc,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.zinc500),
@@ -146,9 +146,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 32),
 
               if (widget.initialRole == null) ...[
-                const Text(
-                  'Select Role',
-                  style: TextStyle(
+                Text(
+                  l10n.selectRole,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
@@ -252,13 +252,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Already have an account? ',
-                    style: TextStyle(color: AppTheme.zinc500),
+                  Text(
+                    '${l10n.alreadyHaveAccount} ',
+                    style: const TextStyle(color: AppTheme.zinc500),
                   ),
                   TextButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Log In'),
+                    child: Text(l10n.login),
                   ),
                 ],
               ).animate().fadeIn(delay: 800.ms),

@@ -1,3 +1,4 @@
+import '../../../../core/error/exceptions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/mission.dart';
 import '../providers/mission_provider.dart';
@@ -14,6 +15,6 @@ final missionDetailProvider = FutureProvider.family<Mission, String>((
   try {
     return missions.firstWhere((mission) => mission.id == missionId);
   } catch (e) {
-    throw Exception('Mission with ID $missionId not found');
+    throw NotFoundException('Mission $missionId not found');
   }
 });

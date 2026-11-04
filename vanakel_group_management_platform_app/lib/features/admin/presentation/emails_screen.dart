@@ -1,3 +1,4 @@
+import '../../../core/utils/app_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -166,7 +167,7 @@ class _EmailTile extends StatelessWidget {
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 4, children: [
           StatusChip(
-            label: (email.ingestionStatus ?? l10n.admNotIngested).toUpperCase(),
+            label: (email.ingestionStatus == null ? l10n.admNotIngested : l10n.ingestionStatusLabel(email.ingestionStatus)).toUpperCase(),
             color: _ingestionColor(email.ingestionStatus),
           ),
           if (email.threadCount > 1)
@@ -259,7 +260,7 @@ class EmailDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Wrap(spacing: 8, children: [
                   StatusChip(
-                    label: (email.ingestionStatus ?? l10n.admNotIngested).toUpperCase(),
+                    label: (email.ingestionStatus == null ? l10n.admNotIngested : l10n.ingestionStatusLabel(email.ingestionStatus)).toUpperCase(),
                     color: _ingestionColor(email.ingestionStatus),
                   ),
                 ]),

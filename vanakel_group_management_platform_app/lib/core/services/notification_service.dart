@@ -24,12 +24,26 @@ class NotificationService {
   /// the app. Receives the notification's `data` payload for deep-linking.
   Function(Map<String, dynamic>)? onNotificationTap;
 
-  static const AndroidNotificationChannel channel = AndroidNotificationChannel(
+  /// The Android channel name / description are shown in the phone's system settings,
+  /// so they follow the app language ([applyLanguage]); English is only the first-start default.
+  static AndroidNotificationChannel channel = const AndroidNotificationChannel(
     'high_importance_channel',
-    'High Importance Notifications',
-    description: 'This channel is used for important notifications.',
+    'Important notifications',
+    description: 'Used for important notifications.',
     importance: Importance.max,
   );
+
+  /// Re-creates the channel with texts in the selected language (Android lets an app rename it).
+  Future<void> applyLanguage({required String name, required String description}) async {
+    channel = AndroidNotificationChannel(channel.id, name, description: description, importance: Importance.max);
+    try {
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+    } catch (e) {
+      if (kDebugMode) print('Notification channel language update failed: $e');
+    }
+  }
 
   Future<void> initialize() async {
     // Request permissions

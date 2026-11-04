@@ -84,7 +84,7 @@ class RoleController extends Controller
         $role = Role::findOrFail($id);
 
         if ($role->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'The super admin role always has every permission.'], 422);
+            return response()->json(['success' => false, 'message' => __('The super admin role always has every permission.')], 422);
         }
 
         $validated = $request->validate([
@@ -97,7 +97,7 @@ class RoleController extends Controller
 
         $actor = $request->user();
         if ($actor->role === $role->name && !$actor->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'You cannot edit your own role.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot edit your own role.')], 403);
         }
         // The actor must hold every permission the role has now and will have after the change
         $keys = $validated['permissions'] ?? $role->permissionKeys();
@@ -118,10 +118,10 @@ class RoleController extends Controller
         $role = Role::withCount('users')->findOrFail($id);
 
         if ($role->is_system) {
-            return response()->json(['success' => false, 'message' => 'Built-in roles cannot be deleted.'], 422);
+            return response()->json(['success' => false, 'message' => __('Built-in roles cannot be deleted.')], 422);
         }
         if ($role->users_count > 0) {
-            return response()->json(['success' => false, 'message' => "This role is used by {$role->users_count} user(s). Move them to another role first."], 422);
+            return response()->json(['success' => false, 'message' => __('This role is used by :count user(s). Move them to another role first.', ['count' => $role->users_count])], 422);
         }
         if (!$request->user()->canGrant($role->permissionKeys())) {
             return $this->escalationError();
@@ -136,7 +136,7 @@ class RoleController extends Controller
     {
         return response()->json([
             'success' => false,
-            'message' => 'You can only grant permissions you have yourself.',
+            'message' => __('You can only grant permissions you have yourself.'),
         ], 403);
     }
 }

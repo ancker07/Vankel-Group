@@ -1,4 +1,6 @@
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,16 +10,27 @@ import '../api/dio_client.dart';
 class LocaleNotifier extends Notifier<Locale> {
   static const String _localeKey = 'selected_locale';
 
+  static const supported = ['en', 'fr', 'nl'];
+
+  /// The phone's own language if the app has it, else English. Used until the user picks one.
+  static Locale deviceLocale() {
+    final code = ui.PlatformDispatcher.instance.locale.languageCode;
+    return Locale(supported.contains(code) ? code : 'en');
+  }
+
   @override
   Locale build() {
     _loadLocale();
-    return const Locale('en');
+    final initial = deviceLocale();
+    Intl.defaultLocale = initial.languageCode;
+    return initial;
   }
 
   Future<void> _loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
     final languageCode = prefs.getString(_localeKey);
-    if (languageCode != null) {
+    if (languageCode != null && supported.contains(languageCode)) {
+      Intl.defaultLocale = languageCode; // every DateFormat / NumberFormat without a locale
       state = Locale(languageCode);
     }
   }
@@ -26,6 +39,7 @@ class LocaleNotifier extends Notifier<Locale> {
     if (!['en', 'fr', 'nl'].contains(locale.languageCode)) return;
 
     state = locale;
+    Intl.defaultLocale = locale.languageCode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, locale.languageCode);
 

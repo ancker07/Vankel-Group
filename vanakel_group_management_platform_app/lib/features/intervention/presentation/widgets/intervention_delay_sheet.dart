@@ -1,6 +1,6 @@
+import '../../../../core/utils/app_format.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
-import 'package:intl/intl.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class InterventionDelaySheet extends StatefulWidget {
@@ -244,7 +244,7 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
                   const SizedBox(width: 12),
                   Text(
                     _selectedDate != null
-                        ? DateFormat('EEEE, MMM d, y').format(_selectedDate!)
+                        ? AppFormat.dateLong(context, _selectedDate!)
                         : l10n.selectNewDate,
                     style: TextStyle(
                       color: _selectedDate != null

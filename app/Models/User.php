@@ -29,6 +29,7 @@ class User extends Authenticatable
     public static function roleLimitReached(?string $role, $exceptUserId = null): ?string
     {
         [$max, $message] = PermissionCatalog::ROLE_LIMITS[$role] ?? [null, null];
+        $message = $message === null ? null : __($message);
         if (!$max) {
             return null;
         }

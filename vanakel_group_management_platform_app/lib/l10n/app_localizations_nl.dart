@@ -1143,4 +1143,233 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get openSettings => 'Instellingen';
+
+  @override
+  String get fillAllFields => 'Vul alle velden in';
+
+  @override
+  String errorWithMessage(String message) {
+    return 'Fout: $message';
+  }
+
+  @override
+  String aiErrorWithMessage(String message) {
+    return 'AI-fout: $message';
+  }
+
+  @override
+  String get errNoInternet => 'Geen internetverbinding';
+
+  @override
+  String get errTimeout => 'De verbinding is verlopen. Probeer het opnieuw.';
+
+  @override
+  String get errServer => 'Serverfout. Probeer het later opnieuw.';
+
+  @override
+  String get errNotFound => 'Niet gevonden';
+
+  @override
+  String get errUnauthorized => 'Je sessie is verlopen. Log opnieuw in.';
+
+  @override
+  String get errValidation => 'Sommige gegevens zijn ongeldig.';
+
+  @override
+  String get errUnknown => 'Er is iets misgegaan.';
+
+  @override
+  String get registerAdminDesc =>
+      'Registreer om lid te worden van Vanakel Group.';
+
+  @override
+  String get registerSyndicDesc =>
+      'Registreer als syndicus om gebouwen te beheren en problemen te melden.';
+
+  @override
+  String get splashTagline => 'Eenvoudig en efficiënt beheren';
+
+  @override
+  String get needHelpContact => 'HULP NODIG? CONTACT@VANKEL.BE';
+
+  @override
+  String get userFallbackName => 'Gebruiker';
+
+  @override
+  String get noAddress => 'Geen adres';
+
+  @override
+  String get noTitle => 'Geen titel';
+
+  @override
+  String get missionNotFound => 'Missie niet gevonden';
+
+  @override
+  String get noRecentActivity => 'Geen recente activiteit';
+
+  @override
+  String get noPropertiesFound => 'Geen gebouwen gevonden';
+
+  @override
+  String get tryAdjustingFilters => 'Pas je zoekopdracht of filters aan';
+
+  @override
+  String get syndicContact => 'CONTACT SYNDICUS';
+
+  @override
+  String get noSyndicLinked => 'Geen syndicus gekoppeld';
+
+  @override
+  String get interventionHistory => 'INTERVENTIEGESCHIEDENIS';
+
+  @override
+  String get missionUpdatedSuccess => 'Missie succesvol bijgewerkt';
+
+  @override
+  String get requestSentSuccess => 'Aanvraag succesvol verzonden';
+
+  @override
+  String get submitRequest => 'Aanvraag versturen';
+
+  @override
+  String nextOccurrence(String date) {
+    return 'Volgende: $date';
+  }
+
+  @override
+  String get routineMaintenancePlan => 'Regelmatig onderhoudsplan.';
+
+  @override
+  String get deletePlanTitle => 'Plan verwijderen?';
+
+  @override
+  String get cannotBeUndone => 'Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get deleteAction => 'Verwijderen';
+
+  @override
+  String get noMaintenancePlans => 'Geen onderhoudsplannen';
+
+  @override
+  String get createFirstPlan =>
+      'Maak je eerste plan om te beginnen met opvolgen';
+
+  @override
+  String get selectBuildingError => 'Selecteer een gebouw';
+
+  @override
+  String get newMaintenancePlan => 'Nieuw onderhoudsplan';
+
+  @override
+  String get editMaintenancePlan => 'Onderhoudsplan bewerken';
+
+  @override
+  String get errorLoadingBuildings => 'Fout bij het laden van gebouwen';
+
+  @override
+  String get descriptionLabel => 'Beschrijving';
+
+  @override
+  String get createPlan => 'Plan aanmaken';
+
+  @override
+  String get daily => 'Dagelijks';
+
+  @override
+  String get weekly => 'Wekelijks';
+
+  @override
+  String get markAllAsRead => 'Alles als gelezen markeren';
+
+  @override
+  String get noNotificationsYet => 'Nog geen meldingen';
+
+  @override
+  String get timeNow => 'nu';
+
+  @override
+  String agoSeconds(int count) {
+    return '$count s geleden';
+  }
+
+  @override
+  String agoMinutes(int count) {
+    return '$count min geleden';
+  }
+
+  @override
+  String agoHours(int count) {
+    return '$count u geleden';
+  }
+
+  @override
+  String agoDays(int count) {
+    return '$count d geleden';
+  }
+
+  @override
+  String get teamMember => 'TEAMLID';
+
+  @override
+  String assignedByName(String name) {
+    return 'Toegewezen door $name';
+  }
+
+  @override
+  String locationUpdatedAgo(String when) {
+    return 'Locatie bijgewerkt $when';
+  }
+
+  @override
+  String get noLocationSharedYet => 'Nog geen locatie gedeeld';
+
+  @override
+  String get openInGoogleMaps => 'OPENEN IN GOOGLE MAPS';
+
+  @override
+  String get notificationChannelName => 'Belangrijke meldingen';
+
+  @override
+  String get notificationChannelDescription =>
+      'Wordt gebruikt voor belangrijke meldingen.';
+
+  @override
+  String get locationSharingActive => 'Locatie delen met je team is actief';
+
+  @override
+  String get editAction => 'Bewerken';
+
+  @override
+  String get titleLabel => 'Titel';
+
+  @override
+  String get statusProcessed => 'Verwerkt';
+
+  @override
+  String get statusIgnored => 'Genegeerd';
+
+  @override
+  String get statusSkipped => 'Overgeslagen';
+
+  @override
+  String get statusDeferred => 'Wacht op context';
+
+  @override
+  String get statusError => 'Fout';
+
+  @override
+  String get statusPending => 'In afwachting';
+
+  @override
+  String get statusApproved => 'Goedgekeurd';
+
+  @override
+  String get statusDeactivated => 'Gedeactiveerd';
+
+  @override
+  String get roleSuperAdmin => 'Superbeheerder';
+
+  @override
+  String get pageNotFound => 'Pagina niet gevonden';
 }

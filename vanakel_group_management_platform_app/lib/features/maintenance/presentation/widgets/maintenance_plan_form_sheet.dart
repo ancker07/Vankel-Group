@@ -1,3 +1,7 @@
+import '../../../../core/error/error_text.dart';
+import '../../../../core/utils/app_labels.dart';
+import '../../../../core/utils/app_format.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/maintenance_plan.dart';
@@ -43,7 +47,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
     if (!_formKey.currentState!.validate()) return;
     if (_selectedBuildingId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a building')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectBuildingError)),
       );
       return;
     }
@@ -82,7 +86,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(errorWithMessage(context, e))),
         );
       }
     } finally {
@@ -92,6 +96,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final buildingsAsync = ref.watch(buildingListProvider);
 
     return Container(
@@ -124,7 +129,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
                 ),
               ),
               Text(
-                widget.plan == null ? 'NEW MAINTENANCE PLAN' : 'EDIT MAINTENANCE PLAN',
+                (widget.plan == null ? l10n.newMaintenancePlan : l10n.editMaintenancePlan).toUpperCase(),
                 style: const TextStyle(
                   color: Color(0xFFF97316),
                   fontSize: 12,
@@ -141,25 +146,25 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
                   isExpanded: true,
                   dropdownColor: const Color(0xFF18181B),
                   style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration('Select Building'),
+                  decoration: _inputDecoration(l10n.selectBuilding),
                   items: buildings.map<DropdownMenuItem<String>>((b) {
                     return DropdownMenuItem<String>(
                       value: b['id'].toString(),
-                      child: Text(b['address'] ?? 'No Address'),
+                      child: Text(b['address'] ?? l10n.noAddress),
                     );
                   }).toList(),
                   onChanged: (val) => setState(() => _selectedBuildingId = val),
                 ),
                 loading: () => const LinearProgressIndicator(),
-                error: (_, __) => const Text('Error loading buildings', style: TextStyle(color: Colors.red)),
+                error: (_, __) => Text(l10n.errorLoadingBuildings, style: const TextStyle(color: Colors.red)),
               ),
               const SizedBox(height: 16),
 
               TextFormField(
                 controller: _titleController,
                 style: const TextStyle(color: Colors.white),
-                decoration: _inputDecoration('Title'),
-                validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                decoration: _inputDecoration(l10n.titleLabel),
+                validator: (val) => val == null || val.isEmpty ? l10n.admRequired : null,
               ),
               const SizedBox(height: 16),
 
@@ -167,7 +172,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
                 controller: _descriptionController,
                 maxLines: 3,
                 style: const TextStyle(color: Colors.white),
-                decoration: _inputDecoration('Description'),
+                decoration: _inputDecoration(l10n.descriptionLabel),
               ),
               const SizedBox(height: 16),
 
@@ -176,13 +181,10 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
                 isExpanded: true,
                 dropdownColor: const Color(0xFF18181B),
                 style: const TextStyle(color: Colors.white),
-                decoration: _inputDecoration('Frequency'),
-                items: const [
-                  DropdownMenuItem(value: 'DAILY', child: Text('DAILY')),
-                  DropdownMenuItem(value: 'WEEKLY', child: Text('WEEKLY')),
-                  DropdownMenuItem(value: 'MONTHLY', child: Text('MONTHLY')),
-                  DropdownMenuItem(value: 'QUARTERLY', child: Text('QUARTERLY')),
-                  DropdownMenuItem(value: 'YEARLY', child: Text('YEARLY')),
+                decoration: _inputDecoration(l10n.frequency.substring(0, 1) + l10n.frequency.substring(1).toLowerCase()),
+                items: [
+                  for (final f in const ['DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])
+                    DropdownMenuItem(value: f, child: Text(l10n.frequencyLabel(f))),
                 ],
                 onChanged: (val) => setState(() => _frequency = val!),
               ),
@@ -226,9 +228,9 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('START DATE', style: TextStyle(color: Colors.white30, fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text(l10n.startDate, style: const TextStyle(color: Colors.white30, fontSize: 10, fontWeight: FontWeight.bold)),
                           Text(
-                            "${_startDate.day}/${_startDate.month}/${_startDate.year}",
+                            AppFormat.date(context, _startDate),
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                           ),
                         ],
@@ -251,7 +253,7 @@ class _MaintenancePlanFormSheetState extends ConsumerState<MaintenancePlanFormSh
                   ),
                   child: _isSaving 
                     ? const CircularProgressIndicator(color: Colors.black)
-                    : Text(widget.plan == null ? 'CREATE PLAN' : 'SAVE CHANGES', 
+                    : Text((widget.plan == null ? l10n.createPlan : l10n.saveChanges).toUpperCase(), 
                         style: const TextStyle(fontWeight: FontWeight.w900)),
                 ),
               ),

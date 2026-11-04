@@ -1,3 +1,5 @@
+import '../../../core/utils/app_labels.dart';
+import '../../../core/error/error_text.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -230,6 +232,8 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
+      // read before the screen closes: the success message is shown after context.pop()
+      final l10n = AppLocalizations.of(context)!;
       setState(() => _isLoading = true);
       try {
         final authState = ref.read(authStateProvider);
@@ -246,7 +250,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           'status': widget.mission?.status.name.toUpperCase() ?? 'PENDING',
           'category': _sector,
           'sector': _sector,
-          'onSiteContactName': _contactNameController.text.isNotEmpty ? _contactNameController.text : (user?.name ?? 'Unknown'),
+          'onSiteContactName': _contactNameController.text.isNotEmpty ? _contactNameController.text : (user?.name ?? l10n.userFallbackName),
           'onSiteContactPhone': _contactPhoneController.text.isNotEmpty ? _contactPhoneController.text : (user?.phone ?? '+123456789'),
           'onSiteContactEmail': _contactEmailController.text.isNotEmpty ? _contactEmailController.text : (user?.email ?? ''),
           'type': 'mission',
@@ -301,14 +305,14 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
         if (mounted) {
           context.pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(widget.mission != null ? 'Mission updated successfully' : 'Request sent successfully')),
+            SnackBar(content: Text(widget.mission != null ? l10n.missionUpdatedSuccess : l10n.requestSentSuccess)),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text(errorWithMessage(context, e))));
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -415,65 +419,14 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
 
                   _buildLabel(l10n.sector),
                   DropdownButtonFormField<String>(
-                    value: [
-                      'GENERAL',
-                      'ELECTRICITY',
-                      'TILING',
-                      'SANITARY',
-                      'HEATING',
-                      'PLUMBING',
-                      'PAINTING',
-                      'WOODWORK',
-                      'OTHER',
-                      'ÉLECTRICITÉ',
-                      'CARRELAGE',
-                      'SANITAIRE',
-                      'CHAUFFAGE',
-                      'PLOMBERIE',
-                      'PEINTURE',
-                      'MENUISERIE',
-                      'GÉNÉRAL',
-                      'AUTRE',
-                    ].contains(_sector.toUpperCase()) ? _sector.toUpperCase() : 'GENERAL',
+                    value: canonicalSector(_sector),
                     dropdownColor: AppTheme.zinc900,
                     style: const TextStyle(color: Colors.white),
                     decoration: _buildInputDecoration(l10n.selectSector),
                     items: [
-                      'GENERAL',
-                      'ELECTRICITY',
-                      'TILING',
-                      'SANITARY',
-                      'HEATING',
-                      'PLUMBING',
-                      'PAINTING',
-                      'WOODWORK',
-                      'OTHER',
-                      'ÉLECTRICITÉ',
-                      'CARRELAGE',
-                      'SANITAIRE',
-                      'CHAUFFAGE',
-                      'PLOMBERIE',
-                      'PEINTURE',
-                      'MENUISERIE',
-                      'GÉNÉRAL',
-                      'AUTRE',
-                    ].map((sector) {
-                      String label = sector;
-                      if (sector == 'GENERAL') label = l10n.general;
-                      if (sector == 'ELECTRICITY' || sector == 'ÉLECTRICITÉ') label = l10n.electricity;
-                      if (sector == 'TILING' || sector == 'CARRELAGE') label = l10n.tiling;
-                      if (sector == 'SANITARY' || sector == 'SANITAIRE') label = l10n.sanitary;
-                      if (sector == 'HEATING' || sector == 'CHAUFFAGE') label = l10n.heating;
-                      if (sector == 'PLUMBING' || sector == 'PLOMBERIE') label = l10n.plumbing;
-                      if (sector == 'PAINTING' || sector == 'PEINTURE') label = l10n.painting;
-                      if (sector == 'WOODWORK' || sector == 'MENUISERIE') label = l10n.woodwork;
-                      if (sector == 'OTHER' || sector == 'AUTRE') label = l10n.other;
-                      
-                      return DropdownMenuItem<String>(
-                        value: sector,
-                        child: Text(label),
-                      );
-                    }).toList(),
+                      for (final id in sectorIds)
+                        DropdownMenuItem<String>(value: id, child: Text(l10n.sectorLabel(id))),
+                    ],
                     onChanged: (value) {
                       if (value != null) setState(() => _sector = value);
                     },
@@ -705,8 +658,8 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                       )
                     : Text(
                         widget.mission != null
-                            ? 'Update Request'
-                            : 'Submit Request',
+                            ? l10n.updateRequest
+                            : l10n.submitRequest,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

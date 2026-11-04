@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
+        // every API answer (validation errors, messages) in the user's selected language
+        $middleware->api(append: [\App\Http\Middleware\SetLocale::class]);
         $middleware->alias([
             'permission' => \App\Http\Middleware\EnsurePermission::class,
         ]);

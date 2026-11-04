@@ -46,7 +46,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$request->user()->canAssignRole($role)) {
-            return response()->json(['success' => false, 'message' => 'You cannot give this role: it has permissions you do not have.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot give this role: it has permissions you do not have.')], 403);
         }
 
         $user = User::create([
@@ -61,7 +61,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'User account created successfully.',
+            'message' => __('User account created successfully.'),
             'user' => $user
         ], 201);
     }
@@ -93,7 +93,7 @@ class AuthController extends Controller
                 if ($user->role !== 'SUPERADMIN' && $user->status === 'DEACTIVATED') {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Your account has been deactivated.'
+                        'message' => __('Your account has been deactivated.')
                     ], 403);
                 }
 
@@ -116,7 +116,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'Invalid credentials or role mismatch'
+            'message' => __('Invalid credentials or role mismatch')
         ], 401);
     }
 
@@ -136,26 +136,26 @@ class AuthController extends Controller
         $role = Role::where('name', $request->role)->firstOrFail();
 
         if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'The super admin\'s role cannot be changed.'], 403);
+            return response()->json(['success' => false, 'message' => __('The super admin\'s role cannot be changed.')], 403);
         }
         if ($user->id === $actor->id) {
-            return response()->json(['success' => false, 'message' => 'You cannot change your own role.'], 422);
+            return response()->json(['success' => false, 'message' => __('You cannot change your own role.')], 422);
         }
         if (!$actor->canManageUser($user)) {
-            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot manage a user with more access than you.')], 403);
         }
         if ($message = User::roleLimitReached($role->name, $user->id)) {
             return response()->json(['success' => false, 'message' => $message], 422);
         }
         if (!$actor->canAssignRole($role)) {
-            return response()->json(['success' => false, 'message' => 'You cannot give this role: it has permissions you do not have.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot give this role: it has permissions you do not have.')], 403);
         }
 
         $user->update(['role' => $role->name]);
         // Sign the user out everywhere so the new access applies immediately
         $user->tokens()->delete();
 
-        return response()->json(['success' => true, 'message' => 'Role updated.', 'user' => $user]);
+        return response()->json(['success' => true, 'message' => __('Role updated.'), 'user' => $user]);
     }
 
     /** Admin sets a new password for a user (requires users.update). Self-service reset is disabled. */
@@ -167,17 +167,17 @@ class AuthController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'The super admin\'s password can only be reset by a super admin.'], 403);
+            return response()->json(['success' => false, 'message' => __('The super admin\'s password can only be reset by a super admin.')], 403);
         }
         if (!$actor->canManageUser($user)) {
-            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot manage a user with more access than you.')], 403);
         }
 
         $user->update(['password' => Hash::make($request->password)]);
         // Sign the user out everywhere so the old password stops working immediately
         $user->tokens()->delete();
 
-        return response()->json(['success' => true, 'message' => 'Password reset.']);
+        return response()->json(['success' => true, 'message' => __('Password reset.')]);
     }
 
     /** Soft-delete a user (requires users.update). Their data stays intact in intervention history. */
@@ -187,19 +187,19 @@ class AuthController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->id === $actor->id) {
-            return response()->json(['success' => false, 'message' => 'You cannot delete your own account.'], 422);
+            return response()->json(['success' => false, 'message' => __('You cannot delete your own account.')], 422);
         }
         if ($user->isSuperAdmin() && !$actor->isSuperAdmin()) {
-            return response()->json(['success' => false, 'message' => 'The super admin\'s account cannot be deleted.'], 403);
+            return response()->json(['success' => false, 'message' => __('The super admin\'s account cannot be deleted.')], 403);
         }
         if (!$actor->canManageUser($user)) {
-            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot manage a user with more access than you.')], 403);
         }
 
         $user->tokens()->delete();
         $user->delete();
 
-        return response()->json(['success' => true, 'message' => 'User deleted.']);
+        return response()->json(['success' => true, 'message' => __('User deleted.')]);
     }
 
     public function getPendingUsers()
@@ -244,7 +244,7 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
         if (!$request->user()->canManageUser($user)) {
-            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot manage a user with more access than you.')], 403);
         }
         $user->update(['status' => 'APPROVED']);
         
@@ -267,14 +267,14 @@ class AuthController extends Controller
             'type' => 'account',
         ]);
         
-        return response()->json(['success' => true, 'message' => 'User approved', 'user' => $user]);
+        return response()->json(['success' => true, 'message' => __('User approved'), 'user' => $user]);
     }
 
     public function rejectUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
         if (!$request->user()->canManageUser($user)) {
-            return response()->json(['success' => false, 'message' => 'You cannot manage a user with more access than you.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot manage a user with more access than you.')], 403);
         }
         $user->update(['status' => 'REJECTED']);
 
@@ -297,14 +297,14 @@ class AuthController extends Controller
             'type' => 'account',
         ]);
 
-        return response()->json(['success' => true, 'message' => 'User rejected', 'user' => $user]);
+        return response()->json(['success' => true, 'message' => __('User rejected'), 'user' => $user]);
     }
 
     public function storeAdmin(Request $request)
     {
         $adminRole = Role::where('name', 'ADMIN')->first();
         if ($adminRole && !$request->user()->canAssignRole($adminRole)) {
-            return response()->json(['success' => false, 'message' => 'You cannot create admin accounts.'], 403);
+            return response()->json(['success' => false, 'message' => __('You cannot create admin accounts.')], 403);
         }
         if ($message = User::roleLimitReached('ADMIN')) {
             return response()->json(['success' => false, 'message' => $message], 422);
@@ -328,7 +328,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Admin account created successfully.',
+            'message' => __('Admin account created successfully.'),
             'user' => $user
         ]);
     }
@@ -350,7 +350,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'User not found'
+            'message' => __('User not found')
         ], 404);
     }
 
@@ -367,7 +367,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            return response()->json(['success' => false, 'message' => __('User not found')], 404);
         }
 
         if ($request->has('name')) $user->name = $request->name;
@@ -382,7 +382,7 @@ class AuthController extends Controller
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Profile image upload failed for user {$user->id}: " . $e->getMessage());
 
-                return response()->json(['success' => false, 'message' => 'The profile picture could not be saved. Please try again.'], 500);
+                return response()->json(['success' => false, 'message' => __('The profile picture could not be saved. Please try again.')], 500);
             }
             // do not keep orphaned pictures
             if ($previous && $previous !== $user->image_url && str_starts_with($previous, 'profiles/')) {
@@ -394,7 +394,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Profile updated successfully',
+            'message' => __('Profile updated successfully'),
             'user' => $user
         ]);
     }
@@ -409,7 +409,7 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => __('User not found')
             ], 404);
         }
 
@@ -450,7 +450,7 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'The current password provided is incorrect.'
+                'message' => __('The current password provided is incorrect.')
             ], 422);
         }
 
@@ -460,7 +460,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Password changed successfully.'
+            'message' => __('Password changed successfully.')
         ]);
     }
 
@@ -474,14 +474,14 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            return response()->json(['success' => false, 'message' => __('User not found')], 404);
         }
 
         $user->update(['locale' => $request->locale]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Locale updated successfully.',
+            'message' => __('Locale updated successfully.'),
         ]);
     }
 
@@ -498,7 +498,7 @@ class AuthController extends Controller
             Log::warning("FCM: Attempted token update for non-existent user: {$user?->email}");
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => __('User not found')
             ], 404);
         }
 
@@ -514,7 +514,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'FCM token updated successfully.'
+            'message' => __('FCM token updated successfully.')
         ]);
     }
 }

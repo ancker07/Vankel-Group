@@ -28,7 +28,7 @@ class MaintenancePlanModel extends MaintenancePlan {
     return MaintenancePlanModel(
       id: json['id'].toString(),
       buildingId: json['building_id']?.toString() ?? '',
-      title: json['title'] as String? ?? 'No Title',
+      title: json['title'] as String? ?? '',
       titleEn: json['title_en'] as String?,
       titleFr: json['title_fr'] as String?,
       titleNl: json['title_nl'] as String?,

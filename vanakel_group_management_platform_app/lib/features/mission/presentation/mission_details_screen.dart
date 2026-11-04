@@ -1,8 +1,9 @@
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_format.dart';
 import '../../../core/utils/file_opener.dart';
 import 'widgets/mission_duplicate_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -62,7 +63,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               _buildStatusSection(context, ref, mission),
               const SizedBox(height: 24),
               _buildInfoCard(context, mission),
-              if (mission.address.isNotEmpty && mission.address != 'No Address') ...[
+              if (mission.address.trim().isNotEmpty) ...[
                 const SizedBox(height: 16),
                 _buildMapCard(context, mission),
               ],
@@ -128,7 +129,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error: ${error.toString()}'),
+              Text(errorWithMessage(context, error)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () =>
@@ -212,7 +213,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                 ),
                 Text(
                   AppLocalizations.of(context)!.createdOn(
-                    DateFormat('MMM d, y - HH:mm').format(mission.createdAt),
+                    AppFormat.dateTime(context, mission.createdAt),
                   ),
                   style: const TextStyle(fontSize: 14, color: AppTheme.zinc500),
                 ),
@@ -302,7 +303,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  mission.address,
+                  TranslationHelper.address(context, mission.address),
                   style: const TextStyle(fontSize: 16, color: AppTheme.zinc300),
                 ),
               ),
@@ -531,7 +532,7 @@ class MissionDetailsScreen extends ConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+            SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
           );
         }
       }
@@ -561,7 +562,7 @@ class MissionDetailsScreen extends ConsumerWidget {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+            SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
           );
         }
       }
@@ -700,7 +701,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                           const SizedBox(width: 12),
                           Text(
                             selectedDate != null
-                                ? DateFormat('dd/MM/yyyy').format(selectedDate!)
+                                ? AppFormat.date(context, selectedDate!)
                                 : l10n.chooseADate,
                             style: TextStyle(
                               color: selectedDate != null ? Colors.white : AppTheme.zinc500,
@@ -756,7 +757,7 @@ class MissionDetailsScreen extends ConsumerWidget {
 
   Widget _buildSyndicContactCard(BuildContext context, Mission mission) {
     final l10n = AppLocalizations.of(context)!;
-    final name = mission.syndicName ?? mission.extractedSyndicName ?? 'Unknown';
+    final name = mission.syndicName ?? mission.extractedSyndicName ?? l10n.noSyndic;
     final email = mission.syndicEmail;
     final phone = mission.syndicPhone;
 

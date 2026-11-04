@@ -1,3 +1,4 @@
+import '../../../core/utils/app_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
@@ -97,7 +98,7 @@ class _UsersList extends ConsumerWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
                   Expanded(child: Text(u.name, style: const TextStyle(fontWeight: FontWeight.w800))),
-                  StatusChip(label: u.status, color: _statusColor(u.status)),
+                  StatusChip(label: l10n.accountStatusLabel(u.status).toUpperCase(), color: _statusColor(u.status)),
                   if (canUpdate && !u.isPending)
                     PopupMenuButton<String>(
                       onSelected: (v) async {
@@ -135,7 +136,7 @@ class _UsersList extends ConsumerWidget {
                 Text(u.email, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
                 if (u.phone != null) Text(u.phone!, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
                 const SizedBox(height: 6),
-                Text('${l10n.admRole}: ${u.roleLabel}', style: const TextStyle(fontSize: 12)),
+                Text('${l10n.admRole}: ${l10n.roleLabelFor(u.role, u.roleLabel)}', style: const TextStyle(fontSize: 12)),
                 if (u.isPending && canUpdate) ...[
                   const SizedBox(height: 10),
                   Row(children: [
@@ -199,7 +200,7 @@ class _RolesList extends ConsumerWidget {
                   return AdminCard(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        Expanded(child: Text(r.label, style: const TextStyle(fontWeight: FontWeight.w800))),
+                        Expanded(child: Text(l10n.roleLabelFor(r.name, r.label), style: const TextStyle(fontWeight: FontWeight.w800))),
                         if (r.full) StatusChip(label: l10n.admRoleFull.toUpperCase(), color: AppTheme.brandOrange),
                       ]),
                       if (r.description != null)
@@ -235,7 +236,7 @@ class _RolePickerSheet extends ConsumerWidget {
           ),
           for (final r in list)
             ListTile(
-              title: Text(r.label),
+              title: Text(l10n.roleLabelFor(r.name, r.label)),
               subtitle: r.full && r.name != user.role ? Text(l10n.admRoleFull) : null,
               trailing: r.name == user.role ? const Icon(Icons.check, color: AppTheme.brandGreen) : null,
               enabled: r.assignable && !(r.full && r.name != user.role),
@@ -415,7 +416,7 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
                     DropdownMenuItem(
                       value: r.name,
                       enabled: r.assignable && !r.full,
-                      child: Text(r.full ? '${r.label} (${l10n.admRoleFull})' : r.label),
+                      child: Text(r.full ? '${l10n.roleLabelFor(r.name, r.label)} (${l10n.admRoleFull})' : l10n.roleLabelFor(r.name, r.label)),
                     ),
                 ],
                 onChanged: (v) => setState(() => _role = v),

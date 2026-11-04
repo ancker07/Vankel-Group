@@ -1146,4 +1146,234 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get openSettings => 'Réglages';
+
+  @override
+  String get fillAllFields => 'Veuillez remplir tous les champs';
+
+  @override
+  String errorWithMessage(String message) {
+    return 'Erreur : $message';
+  }
+
+  @override
+  String aiErrorWithMessage(String message) {
+    return 'Erreur IA : $message';
+  }
+
+  @override
+  String get errNoInternet => 'Pas de connexion internet';
+
+  @override
+  String get errTimeout => 'La connexion a expiré. Réessayez.';
+
+  @override
+  String get errServer => 'Erreur du serveur. Réessayez plus tard.';
+
+  @override
+  String get errNotFound => 'Introuvable';
+
+  @override
+  String get errUnauthorized => 'Votre session a expiré. Reconnectez-vous.';
+
+  @override
+  String get errValidation => 'Certaines informations ne sont pas valides.';
+
+  @override
+  String get errUnknown => 'Une erreur s\'est produite.';
+
+  @override
+  String get registerAdminDesc =>
+      'Inscrivez-vous pour devenir membre de Vanakel Group.';
+
+  @override
+  String get registerSyndicDesc =>
+      'Inscrivez-vous en tant que syndic pour suivre vos immeubles et signaler des problèmes.';
+
+  @override
+  String get splashTagline => 'Gérez efficacement, en toute simplicité';
+
+  @override
+  String get needHelpContact => 'BESOIN D\'AIDE ? CONTACT@VANKEL.BE';
+
+  @override
+  String get userFallbackName => 'Utilisateur';
+
+  @override
+  String get noAddress => 'Aucune adresse';
+
+  @override
+  String get noTitle => 'Sans titre';
+
+  @override
+  String get missionNotFound => 'Mission introuvable';
+
+  @override
+  String get noRecentActivity => 'Aucune activité récente';
+
+  @override
+  String get noPropertiesFound => 'Aucun immeuble trouvé';
+
+  @override
+  String get tryAdjustingFilters => 'Modifiez votre recherche ou vos filtres';
+
+  @override
+  String get syndicContact => 'CONTACT DU SYNDIC';
+
+  @override
+  String get noSyndicLinked => 'Aucun syndic lié';
+
+  @override
+  String get interventionHistory => 'HISTORIQUE DES INTERVENTIONS';
+
+  @override
+  String get missionUpdatedSuccess => 'Mission mise à jour avec succès';
+
+  @override
+  String get requestSentSuccess => 'Demande envoyée avec succès';
+
+  @override
+  String get submitRequest => 'Envoyer la demande';
+
+  @override
+  String nextOccurrence(String date) {
+    return 'Prochaine : $date';
+  }
+
+  @override
+  String get routineMaintenancePlan => 'Plan d\'entretien régulier.';
+
+  @override
+  String get deletePlanTitle => 'Supprimer le plan ?';
+
+  @override
+  String get cannotBeUndone => 'Cette action est irréversible.';
+
+  @override
+  String get deleteAction => 'Supprimer';
+
+  @override
+  String get noMaintenancePlans => 'Aucun plan d\'entretien';
+
+  @override
+  String get createFirstPlan =>
+      'Créez votre premier plan pour commencer le suivi';
+
+  @override
+  String get selectBuildingError => 'Veuillez sélectionner un immeuble';
+
+  @override
+  String get newMaintenancePlan => 'Nouveau plan d\'entretien';
+
+  @override
+  String get editMaintenancePlan => 'Modifier le plan d\'entretien';
+
+  @override
+  String get errorLoadingBuildings => 'Erreur de chargement des immeubles';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get createPlan => 'Créer le plan';
+
+  @override
+  String get daily => 'Quotidien';
+
+  @override
+  String get weekly => 'Hebdomadaire';
+
+  @override
+  String get markAllAsRead => 'Tout marquer comme lu';
+
+  @override
+  String get noNotificationsYet => 'Aucune notification pour le moment';
+
+  @override
+  String get timeNow => 'à l\'instant';
+
+  @override
+  String agoSeconds(int count) {
+    return 'il y a $count s';
+  }
+
+  @override
+  String agoMinutes(int count) {
+    return 'il y a $count min';
+  }
+
+  @override
+  String agoHours(int count) {
+    return 'il y a $count h';
+  }
+
+  @override
+  String agoDays(int count) {
+    return 'il y a $count j';
+  }
+
+  @override
+  String get teamMember => 'MEMBRE DE L\'ÉQUIPE';
+
+  @override
+  String assignedByName(String name) {
+    return 'Assigné par $name';
+  }
+
+  @override
+  String locationUpdatedAgo(String when) {
+    return 'Position mise à jour $when';
+  }
+
+  @override
+  String get noLocationSharedYet => 'Aucune position partagée';
+
+  @override
+  String get openInGoogleMaps => 'OUVRIR DANS GOOGLE MAPS';
+
+  @override
+  String get notificationChannelName => 'Notifications importantes';
+
+  @override
+  String get notificationChannelDescription =>
+      'Utilisé pour les notifications importantes.';
+
+  @override
+  String get locationSharingActive =>
+      'Le partage de position avec votre équipe est actif';
+
+  @override
+  String get editAction => 'Modifier';
+
+  @override
+  String get titleLabel => 'Titre';
+
+  @override
+  String get statusProcessed => 'Traité';
+
+  @override
+  String get statusIgnored => 'Ignoré';
+
+  @override
+  String get statusSkipped => 'Ignoré (doublon)';
+
+  @override
+  String get statusDeferred => 'En attente de contexte';
+
+  @override
+  String get statusError => 'Erreur';
+
+  @override
+  String get statusPending => 'En attente';
+
+  @override
+  String get statusApproved => 'Approuvé';
+
+  @override
+  String get statusDeactivated => 'Désactivé';
+
+  @override
+  String get roleSuperAdmin => 'Super admin';
+
+  @override
+  String get pageNotFound => 'Page introuvable';
 }

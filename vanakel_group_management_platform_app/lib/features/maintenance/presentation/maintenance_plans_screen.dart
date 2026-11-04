@@ -1,3 +1,6 @@
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_labels.dart';
+import '../../../core/utils/app_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../intervention/presentation/providers/intervention_provider.dart';
@@ -32,7 +35,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
           data: (buildings) => syndicsAsync.when(
             data: (syndics) {
               if (plans.isEmpty) {
-                return _buildEmptyState();
+                return _buildEmptyState(context);
               }
 
               return ListView.builder(
@@ -54,13 +57,13 @@ class MaintenancePlansScreen extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFF97316))),
-            error: (err, stack) => Center(child: Text('Error syndics: $err')),
+            error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
           ),
           loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFF97316))),
-          error: (err, stack) => Center(child: Text('Error buildings: $err')),
+          error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
         ),
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFF97316))),
-        error: (err, stack) => Center(child: Text('Error plans: $err')),
+        error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF18181B),
@@ -82,6 +85,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
   }
 
   Widget _buildMaintenanceCard(MaintenancePlan plan, dynamic building, dynamic syndic, BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -111,12 +115,12 @@ class MaintenancePlansScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    plan.frequency.toUpperCase(),
+                    l10n.frequencyLabel(plan.frequency).toUpperCase(),
                     style: const TextStyle(color: Color(0xFFF97316), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                   ),
                 ),
                 Text(
-                  "Next: ${_formatDate(plan.startDate)}",
+                  l10n.nextOccurrence(AppFormat.date(context, plan.startDate)),
                   style: const TextStyle(color: Colors.white30, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -139,7 +143,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
                 enValue: plan.descriptionEn,
                 frValue: plan.descriptionFr,
                 nlValue: plan.descriptionNl,
-                fallback: plan.description.isEmpty ? 'Routine maintenance plan.' : plan.description,
+                fallback: plan.description.isEmpty ? l10n.routineMaintenancePlan : plan.description,
               ),
               style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
             ),
@@ -152,7 +156,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    building?['address'] ?? 'No Address',
+                    building?['address'] ?? l10n.noAddress,
                     style: const TextStyle(color: Colors.white30, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -167,7 +171,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    syndic?['company_name'] ?? 'No Syndic',
+                    syndic?['company_name'] ?? l10n.noSyndic,
                     style: const TextStyle(color: Colors.white30, fontSize: 12),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -181,7 +185,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
                 Expanded(
                   child: _buildActionBtn(
                     icon: Icons.edit_outlined,
-                    label: "Edit",
+                    label: l10n.editAction,
                     onTap: () {
                       showModalBottomSheet(
                         context: context,
@@ -196,20 +200,20 @@ class MaintenancePlansScreen extends ConsumerWidget {
                 Expanded(
                   child: _buildActionBtn(
                     icon: Icons.delete_outline,
-                    label: "Delete",
+                    label: l10n.deleteAction,
                     color: Colors.redAccent,
                     onTap: () async {
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
                           backgroundColor: const Color(0xFF09090B),
-                          title: const Text('Delete Plan?', style: TextStyle(color: Colors.white)),
-                          content: const Text('This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+                          title: Text(l10n.deletePlanTitle, style: const TextStyle(color: Colors.white)),
+                          content: Text(l10n.cannotBeUndone, style: const TextStyle(color: Colors.white70)),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel.toUpperCase())),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: const Text('DELETE', style: TextStyle(color: Colors.redAccent)),
+                              child: Text(l10n.deleteAction.toUpperCase(), style: const TextStyle(color: Colors.redAccent)),
                             ),
                           ],
                         ),
@@ -221,7 +225,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
+                              SnackBar(content: Text(errorWithMessage(context, e))),
                             );
                           }
                         }
@@ -268,28 +272,25 @@ class MaintenancePlansScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.restore, size: 64, color: Colors.white10),
           const SizedBox(height: 16),
-          const Text(
-            'No maintenance plans',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            l10n.noMaintenancePlans,
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Create your first plan to start tracking',
-            style: TextStyle(color: Colors.white30, fontSize: 14),
+          Text(
+            l10n.createFirstPlan,
+            style: const TextStyle(color: Colors.white30, fontSize: 14),
           ),
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
   }
 }

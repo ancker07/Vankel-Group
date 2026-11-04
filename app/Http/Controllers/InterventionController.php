@@ -59,7 +59,7 @@ class InterventionController extends Controller
         $type = $user->isClient() ? 'mission' : $request->input('type', 'intervention');
         $required = $type === 'mission' ? 'missions.create' : 'interventions.create';
         if (!$user->hasPermission($required)) {
-            return response()->json(['success' => false, 'message' => 'You are not allowed to perform this action.'], 403);
+            return response()->json(['success' => false, 'message' => __('You are not allowed to perform this action.')], 403);
         }
 
         $translations = $this->aiService->translateToFill($validated['title'], $validated['description']);
@@ -142,7 +142,7 @@ class InterventionController extends Controller
         }
 
         return response()->json([
-            'message' => 'Request created successfully',
+            'message' => __('Request created successfully'),
             'data' => $entity->load('documents'),
             'type' => $type
         ], 201);
@@ -324,7 +324,7 @@ class InterventionController extends Controller
                 // 2. Validate we have a building now
                 if (!$buildingId) {
                     return response()->json([
-                        'message' => 'This mission is missing an address. Please assign a building to it before approving.'
+                        'message' => __('This mission is missing an address. Please assign a building to it before approving.')
                     ], 422);
                 }
 
@@ -388,14 +388,14 @@ class InterventionController extends Controller
                 }
 
                 return response()->json([
-                    'message' => 'Mission approved successfully',
+                    'message' => __('Mission approved successfully'),
                     'mission' => $mission,
                     'intervention' => $intervention->load('documents')
                 ]);
             });
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to approve mission: ' . $e->getMessage()
+                'message' => __('Failed to approve mission: :error', ['error' => $e->getMessage()])
             ], 500);
         }
     }
@@ -420,7 +420,7 @@ class InterventionController extends Controller
         }
 
         return response()->json([
-            'message' => 'Mission rejected successfully',
+            'message' => __('Mission rejected successfully'),
             'mission' => $mission
         ]);
     }
@@ -511,7 +511,7 @@ class InterventionController extends Controller
         }
 
         return response()->json([
-            'message' => 'Mission updated successfully',
+            'message' => __('Mission updated successfully'),
             'mission' => $mission->fresh()->load(['documents', 'building', 'syndic'])
         ]);
     }
@@ -524,7 +524,7 @@ class InterventionController extends Controller
         if ($this->isFieldWorker($request->user()) && !$this->interventionBelongsTo($intervention, $request->user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'This intervention is not assigned to you.',
+                'message' => __('This intervention is not assigned to you.'),
             ], 403);
         }
         
@@ -556,7 +556,7 @@ class InterventionController extends Controller
             if (!$isAdminOrSuperAdmin && !$isFieldWorker) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'You are not allowed to update this intervention status.',
+                    'message' => __('You are not allowed to update this intervention status.'),
                 ], 403);
             }
         }
@@ -570,7 +570,7 @@ class InterventionController extends Controller
         if ($oldStatus === 'COMPLETED' && !$request->user()->hasPermission('interventions.reopen')) {
             return response()->json([
                 'success' => false,
-                'message' => 'This mission is completed. Only an admin can change it.',
+                'message' => __('This mission is completed. Only an admin can change it.'),
             ], 403);
         }
 
@@ -578,7 +578,7 @@ class InterventionController extends Controller
             && !$isFieldWorker && !$request->user()->hasPermission('interventions.reopen')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only an admin can mark a mission as completed.',
+                'message' => __('Only an admin can mark a mission as completed.'),
             ], 403);
         }
 
@@ -660,7 +660,7 @@ class InterventionController extends Controller
         }
 
         return response()->json([
-            'message' => 'Intervention updated successfully',
+            'message' => __('Intervention updated successfully'),
             'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic'])
         ]);
     }
@@ -730,14 +730,14 @@ class InterventionController extends Controller
             }
 
             return response()->json([
-                'message' => 'Report sent successfully',
+                'message' => __('Report sent successfully'),
                 'recipients' => $recipients
             ]);
             
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Email sending failure: " . $e->getMessage());
             return response()->json([
-                'message' => 'Failed to send report',
+                'message' => __('Failed to send report'),
                 'error' => $e->getMessage()
             ], 500);
         }

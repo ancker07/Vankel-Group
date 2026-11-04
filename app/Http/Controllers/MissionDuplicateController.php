@@ -27,7 +27,7 @@ class MissionDuplicateController extends Controller
         $mission = Mission::findOrFail($id);
         $target = $mission->possible_duplicate_of_id ? Mission::find($mission->possible_duplicate_of_id) : null;
         if (!$target) {
-            return response()->json(['message' => 'This mission is not flagged as a duplicate of an existing mission.'], 422);
+            return response()->json(['message' => __('This mission is not flagged as a duplicate of an existing mission.')], 422);
         }
 
         // the oldest mission is the one that survives

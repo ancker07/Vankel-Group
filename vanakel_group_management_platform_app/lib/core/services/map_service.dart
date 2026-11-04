@@ -78,7 +78,7 @@ class MapService {
     int width = 600,
     int height = 300,
   }) {
-    if (address == 'No Address' || address.isEmpty) {
+    if (address == 'No Address' || address.trim().isEmpty) {
       // Generic OSM overview of Brussels (sensible default for Belgian app)
       return 'https://staticmap.openstreetmap.de/staticmap.php?center=50.85,4.35&zoom=12&size=${width}x$height';
     }

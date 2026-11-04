@@ -1,3 +1,5 @@
+import '../../core/utils/app_format.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -62,14 +64,6 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
     return (lat == null || lng == null) ? null : LatLng(lat, lng);
   }
 
-  String _timeAgo(DateTime time) {
-    final d = DateTime.now().difference(time);
-    if (d.inSeconds < 60) return '${d.inSeconds.clamp(0, 59)}s ago';
-    if (d.inMinutes < 60) return '${d.inMinutes} min ago';
-    if (d.inHours < 24) return '${d.inHours} h ago';
-    return '${time.day}/${time.month}/${time.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final member = _data?['member'];
@@ -80,6 +74,7 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
     final updatedAt = DateTime.tryParse('${member['location_updated_at']}')?.toLocal();
     final fresh = updatedAt != null && DateTime.now().difference(updatedAt).inMinutes < 5;
     final point = _point(member);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -92,11 +87,11 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [
-            Icon(Icons.person_pin_circle_outlined, color: AppTheme.brandGreen, size: 18),
-            SizedBox(width: 8),
-            Text('TEAM MEMBER',
-                style: TextStyle(color: AppTheme.zinc400, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+          Row(children: [
+            const Icon(Icons.person_pin_circle_outlined, color: AppTheme.brandGreen, size: 18),
+            const SizedBox(width: 8),
+            Text(l10n.teamMember,
+                style: const TextStyle(color: AppTheme.zinc400, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
           ]),
           const SizedBox(height: 12),
           Text('${member['name'] ?? '-'}',
@@ -112,8 +107,8 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
           if (assignedBy is Map) ...[
             const SizedBox(height: 10),
             Text(
-              'Assigned by ${assignedBy['name']}'
-              '${assignedAt != null ? ' · ${assignedAt.day}/${assignedAt.month}/${assignedAt.year} ${assignedAt.hour.toString().padLeft(2, '0')}:${assignedAt.minute.toString().padLeft(2, '0')}' : ''}',
+              l10n.assignedByName('${assignedBy['name']}') +
+                  (assignedAt != null ? ' · ${AppFormat.dateTime(context, assignedAt)}' : ''),
               style: const TextStyle(color: AppTheme.zinc400, fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ],
@@ -129,7 +124,9 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
             ),
             const SizedBox(width: 6),
             Text(
-              updatedAt != null ? 'Location updated ${_timeAgo(updatedAt)}' : 'No location shared yet',
+              updatedAt != null
+                  ? l10n.locationUpdatedAgo(AppFormat.timeAgo(context, updatedAt))
+                  : l10n.noLocationSharedYet,
               style: const TextStyle(color: AppTheme.zinc400, fontSize: 12),
             ),
           ]),
@@ -170,8 +167,8 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
               child: OutlinedButton.icon(
                 onPressed: () => _openInMaps(point),
                 icon: const Icon(Icons.map_outlined, size: 16, color: AppTheme.brandGreen),
-                label: const Text('OPEN IN GOOGLE MAPS',
-                    style: TextStyle(color: AppTheme.brandGreen, fontWeight: FontWeight.w900, fontSize: 12)),
+                label: Text(l10n.openInGoogleMaps,
+                    style: const TextStyle(color: AppTheme.brandGreen, fontWeight: FontWeight.w900, fontSize: 12)),
                 style: OutlinedButton.styleFrom(side: const BorderSide(color: AppTheme.brandGreen)),
               ),
             ),

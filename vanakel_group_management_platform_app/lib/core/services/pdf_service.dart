@@ -339,23 +339,14 @@ class PdfService {
     }
   }
 
+  /// Same words as the app screens (a pending intervention is "In progress" everywhere).
   static String _translateStatus(InterventionStatus status, String lang) {
-    final name = status.name.toLowerCase();
-    switch (lang.toLowerCase()) {
-      case 'fr':
-        if (name == 'completed') return 'TERMINÉ';
-        if (name == 'delayed') return 'RETARDÉ';
-        if (name == 'in_progress') return 'EN COURS';
-        if (name == 'pending') return 'EN ATTENTE';
-        return status.name.toUpperCase();
-      case 'nl':
-        if (name == 'completed') return 'VOLTOOID';
-        if (name == 'delayed') return 'VERTRAAGD';
-        if (name == 'in_progress') return 'IN UITVOERING';
-        if (name == 'pending') return 'IN AFWACHTING';
-        return status.name.toUpperCase();
-      default:
-        return status.name.toUpperCase();
-    }
+    const words = {
+      InterventionStatus.pending: {'en': 'IN PROGRESS', 'fr': 'EN COURS', 'nl': 'IN UITVOERING'},
+      InterventionStatus.delayed: {'en': 'DELAYED', 'fr': 'RETARDÉ', 'nl': 'VERTRAAGD'},
+      InterventionStatus.completed: {'en': 'COMPLETED', 'fr': 'TERMINÉ', 'nl': 'VOLTOOID'},
+    };
+    final code = const {'fr': 'fr', 'nl': 'nl'}[lang.toLowerCase()] ?? 'en';
+    return words[status]![code]!;
   }
 }

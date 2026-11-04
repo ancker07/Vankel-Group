@@ -17,15 +17,15 @@ class EnsurePermission
         $user = auth('sanctum')->user();
 
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+            return response()->json(['success' => false, 'message' => __('Unauthenticated.')], 401);
         }
 
         if (!$user->isSuperAdmin() && $user->status === 'DEACTIVATED') {
-            return response()->json(['success' => false, 'message' => 'Your account has been deactivated.'], 403);
+            return response()->json(['success' => false, 'message' => __('Your account has been deactivated.')], 403);
         }
 
         if (!empty($permissions) && !$user->hasPermission(...$permissions)) {
-            return response()->json(['success' => false, 'message' => 'You are not allowed to perform this action.'], 403);
+            return response()->json(['success' => false, 'message' => __('You are not allowed to perform this action.')], 403);
         }
 
         $request->setUserResolver(fn () => $user);

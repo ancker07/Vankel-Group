@@ -177,9 +177,9 @@ class _WaitingApprovalScreenState extends ConsumerState<WaitingApprovalScreen> {
                   // Bottom Info & Logout
                   Column(
                     children: [
-                      const Text(
-                        'NEED HELP? CONTACT@VANKEL.BE',
-                        style: TextStyle(
+                      Text(
+                        l10n.needHelpContact,
+                        style: const TextStyle(
                           color: AppTheme.zinc800,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,

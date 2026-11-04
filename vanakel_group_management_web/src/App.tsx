@@ -44,7 +44,7 @@ import ToastContainer from '@/components/common/ToastContainer';
 import OnboardingTour from '@/features/dashboard/components/OnboardingTour';
 import { dataService } from '@/services/dataService';
 import { authService } from '@/features/auth/services/authService';
-import { STORAGE_BASE_URL } from '@/lib/apiClient';
+import { STORAGE_BASE_URL, setApiLanguage } from '@/lib/apiClient';
 
 import {
   mockSyndics,
@@ -89,9 +89,12 @@ const App: React.FC = () => {
     return null;
   });
   const [lang, setLangState] = useState<Language>('FR');
+  useEffect(() => { setApiLanguage(lang); }, []); // the first request already carries the page language
+
   // Picking a language also tells the server (when logged in), so notifications and e-mails follow it
   const setLang = (next: Language) => {
     setLangState(next);
+    setApiLanguage(next);
     if (localStorage.getItem('vanakel_authToken')) {
       dataService.updateLocale(next).catch(() => { /* offline / not allowed: the UI language still changes */ });
     }

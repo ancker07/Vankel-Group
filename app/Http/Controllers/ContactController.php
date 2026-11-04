@@ -81,7 +81,7 @@ class ContactController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Your message has been sent successfully.',
+                    'message' => __('Your message has been sent successfully.'),
                     'contact' => $contact->load('mission')
                 ]);
             });
@@ -89,7 +89,7 @@ class ContactController extends Controller
             Log::error("Contact Form error: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while processing your message.',
+                'message' => __('An error occurred while processing your message.'),
                 'error' => $e->getMessage()
             ], 500);
         }

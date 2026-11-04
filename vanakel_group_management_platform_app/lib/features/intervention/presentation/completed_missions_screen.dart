@@ -1,7 +1,7 @@
+import '../../../core/utils/app_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/translation_helper.dart';
 import '../../../l10n/app_localizations.dart';
@@ -63,7 +63,7 @@ class _CompletedTile extends StatelessWidget {
       nlValue: intervention.titleNl,
       fallback: intervention.title,
     );
-    final date = DateFormat('dd/MM/yyyy').format(intervention.completedAt ?? intervention.scheduledDate);
+    final date = AppFormat.date(context, intervention.completedAt ?? intervention.scheduledDate);
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
@@ -86,7 +86,7 @@ class _CompletedTile extends StatelessWidget {
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(intervention.address, maxLines: 1, overflow: TextOverflow.ellipsis,
+                  Text(TranslationHelper.address(context, intervention.address), maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
                   const SizedBox(height: 2),
                   Text(

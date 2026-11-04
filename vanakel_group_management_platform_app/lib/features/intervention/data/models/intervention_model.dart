@@ -44,7 +44,7 @@ class InterventionModel extends Intervention {
     final building = json['building'] as Map<String, dynamic>?;
     final buildingAddress = building?['address'] as String? ??
         json['address'] as String? ??
-        'No Address';
+        '';
     final buildingCity = building?['city'] as String? ?? json['city'] as String?;
 
     // Syndic info
@@ -58,7 +58,7 @@ class InterventionModel extends Intervention {
 
     return InterventionModel(
       id: json['id'].toString(),
-      title: json['title'] as String? ?? 'No Title',
+      title: json['title'] as String? ?? '',
       titleEn: json['title_en'] as String?,
       titleFr: json['title_fr'] as String?,
       titleNl: json['title_nl'] as String?,

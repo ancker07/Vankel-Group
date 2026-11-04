@@ -1,7 +1,9 @@
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_format.dart';
+import '../../../core/utils/translation_helper.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:image_picker/image_picker.dart';
@@ -274,7 +276,7 @@ class _InterventionDetailsScreenState
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
         );
       }
     }
@@ -428,7 +430,7 @@ class _InterventionDetailsScreenState
           child: CircularProgressIndicator(color: AppTheme.brandGreen),
         ),
         error: (e, __) => Center(
-          child: Text('Error: $e', style: const TextStyle(color: Colors.white)),
+          child: Text(errorWithMessage(context, e), style: const TextStyle(color: Colors.white)),
         ),
       ),
     );
@@ -462,7 +464,7 @@ class _InterventionDetailsScreenState
       );
     }
 
-    final location = [i.address, i.city].where((e) => e != null && e.trim().isNotEmpty).join(', ');
+    final location = [TranslationHelper.address(context, i.address), i.city].where((e) => e != null && e.trim().isNotEmpty).join(', ');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1166,7 +1168,7 @@ class _InterventionDetailsScreenState
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('AI Error: $e'),
+                      content: Text(AppLocalizations.of(context)!.aiErrorWithMessage(errorText(context, e))),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -1416,7 +1418,7 @@ class _InterventionDetailsScreenState
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    DateFormat('M/d/yyyy, h:mm:ss a').format(DateTime.now()),
+                    AppFormat.dateTime(context, DateTime.now()),
                     style: const TextStyle(
                       fontSize: 10,
                       color: AppTheme.zinc500,
@@ -1651,9 +1653,7 @@ class _InterventionDetailsScreenState
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          DateFormat(
-                                            'MMM d, yyyy',
-                                          ).format(startDate),
+                                          AppFormat.dateMedium(context, startDate),
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 13,
@@ -1822,7 +1822,7 @@ class _InterventionDetailsScreenState
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Error: $e'),
+                                    content: Text(errorWithMessage(context, e)),
                                     backgroundColor: Colors.red,
                                   ),
                                 );

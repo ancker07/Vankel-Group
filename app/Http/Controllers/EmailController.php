@@ -137,11 +137,11 @@ class EmailController extends Controller
             // 3. Delete the email record from DB
             $email->delete();
 
-            return response()->json(['message' => 'Email deleted successfully from local system and server.']);
+            return response()->json(['message' => __('Email deleted successfully from local system and server.')]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to delete email: ' . $e->getMessage()
+                'error' => __('Failed to delete email: :error', ['error' => $e->getMessage()])
             ], 500);
         }
     }
@@ -153,11 +153,11 @@ class EmailController extends Controller
             $this->ingestAll(); // Automatically ingest after fetching
             
             return response()->json([
-                'message' => 'Email synchronization and ingestion completed.',
+                'message' => __('Email synchronization and ingestion completed.'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to sync emails: ' . $e->getMessage()
+                'error' => __('Failed to sync emails: :error', ['error' => $e->getMessage()])
             ], 500);
         }
     }
@@ -200,7 +200,7 @@ class EmailController extends Controller
             if ($email->ingested_at && $email->ingestion_status !== 'DEFERRED') {
                 $results[] = [
                     'email_id' => $email->id,
-                    'result' => ['success' => true, 'status' => 'SKIPPED', 'message' => 'Already ingested by thread processing']
+                    'result' => ['success' => true, 'status' => 'SKIPPED', 'message' => __('Already ingested by thread processing')]
                 ];
                 continue;
             }
@@ -219,7 +219,7 @@ class EmailController extends Controller
         }
 
         return response()->json([
-            'message' => 'Bulk ingestion processed.',
+            'message' => __('Bulk ingestion processed.'),
             'results' => $results
         ]);
     }
@@ -303,12 +303,12 @@ class EmailController extends Controller
             }
 
             return response()->json([
-                'message' => 'Reply sent successfully from ' . $fromAddress
+                'message' => __('Reply sent successfully from :address', ['address' => $fromAddress])
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to send reply: ' . $e->getMessage()
+                'error' => __('Failed to send reply: :error', ['error' => $e->getMessage()])
             ], 500);
         }
     }

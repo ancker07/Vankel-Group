@@ -2253,6 +2253,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get openSettings;
+
+  /// No description provided for @fillAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in all fields'**
+  String get fillAllFields;
+
+  /// No description provided for @errorWithMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {message}'**
+  String errorWithMessage(String message);
+
+  /// No description provided for @aiErrorWithMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'AI error: {message}'**
+  String aiErrorWithMessage(String message);
+
+  /// No description provided for @errNoInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection'**
+  String get errNoInternet;
+
+  /// No description provided for @errTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection timed out. Please try again.'**
+  String get errTimeout;
+
+  /// No description provided for @errServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later.'**
+  String get errServer;
+
+  /// No description provided for @errNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found'**
+  String get errNotFound;
+
+  /// No description provided for @errUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please log in again.'**
+  String get errUnauthorized;
+
+  /// No description provided for @errValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Some information is not valid.'**
+  String get errValidation;
+
+  /// No description provided for @errUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong.'**
+  String get errUnknown;
+
+  /// No description provided for @registerAdminDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Register to become a Vanakel Group member.'**
+  String get registerAdminDesc;
+
+  /// No description provided for @registerSyndicDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Register as a syndic to oversee properties and report issues.'**
+  String get registerSyndicDesc;
+
+  /// No description provided for @splashTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Effectively Manage with Ease'**
+  String get splashTagline;
+
+  /// No description provided for @needHelpContact.
+  ///
+  /// In en, this message translates to:
+  /// **'NEED HELP? CONTACT@VANKEL.BE'**
+  String get needHelpContact;
+
+  /// No description provided for @userFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get userFallbackName;
+
+  /// No description provided for @noAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'No address'**
+  String get noAddress;
+
+  /// No description provided for @noTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No title'**
+  String get noTitle;
+
+  /// No description provided for @missionNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission not found'**
+  String get missionNotFound;
+
+  /// No description provided for @noRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent activity'**
+  String get noRecentActivity;
+
+  /// No description provided for @noPropertiesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No properties found'**
+  String get noPropertiesFound;
+
+  /// No description provided for @tryAdjustingFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your search or filters'**
+  String get tryAdjustingFilters;
+
+  /// No description provided for @syndicContact.
+  ///
+  /// In en, this message translates to:
+  /// **'SYNDIC CONTACT'**
+  String get syndicContact;
+
+  /// No description provided for @noSyndicLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No syndic linked'**
+  String get noSyndicLinked;
+
+  /// No description provided for @interventionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'INTERVENTION HISTORY'**
+  String get interventionHistory;
+
+  /// No description provided for @missionUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission updated successfully'**
+  String get missionUpdatedSuccess;
+
+  /// No description provided for @requestSentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent successfully'**
+  String get requestSentSuccess;
+
+  /// No description provided for @submitRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Request'**
+  String get submitRequest;
+
+  /// No description provided for @nextOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {date}'**
+  String nextOccurrence(String date);
+
+  /// No description provided for @routineMaintenancePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine maintenance plan.'**
+  String get routineMaintenancePlan;
+
+  /// No description provided for @deletePlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan?'**
+  String get deletePlanTitle;
+
+  /// No description provided for @cannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get cannotBeUndone;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteAction;
+
+  /// No description provided for @noMaintenancePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'No maintenance plans'**
+  String get noMaintenancePlans;
+
+  /// No description provided for @createFirstPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first plan to start tracking'**
+  String get createFirstPlan;
+
+  /// No description provided for @selectBuildingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a building'**
+  String get selectBuildingError;
+
+  /// No description provided for @newMaintenancePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'New maintenance plan'**
+  String get newMaintenancePlan;
+
+  /// No description provided for @editMaintenancePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit maintenance plan'**
+  String get editMaintenancePlan;
+
+  /// No description provided for @errorLoadingBuildings.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading buildings'**
+  String get errorLoadingBuildings;
+
+  /// No description provided for @descriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get descriptionLabel;
+
+  /// No description provided for @createPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create plan'**
+  String get createPlan;
+
+  /// No description provided for @daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get daily;
+
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
+  /// No description provided for @markAllAsRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get markAllAsRead;
+
+  /// No description provided for @noNotificationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get noNotificationsYet;
+
+  /// No description provided for @timeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get timeNow;
+
+  /// No description provided for @agoSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}s ago'**
+  String agoSeconds(int count);
+
+  /// No description provided for @agoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min ago'**
+  String agoMinutes(int count);
+
+  /// No description provided for @agoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} h ago'**
+  String agoHours(int count);
+
+  /// No description provided for @agoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String agoDays(int count);
+
+  /// No description provided for @teamMember.
+  ///
+  /// In en, this message translates to:
+  /// **'TEAM MEMBER'**
+  String get teamMember;
+
+  /// No description provided for @assignedByName.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned by {name}'**
+  String assignedByName(String name);
+
+  /// No description provided for @locationUpdatedAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Location updated {when}'**
+  String locationUpdatedAgo(String when);
+
+  /// No description provided for @noLocationSharedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No location shared yet'**
+  String get noLocationSharedYet;
+
+  /// No description provided for @openInGoogleMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'OPEN IN GOOGLE MAPS'**
+  String get openInGoogleMaps;
+
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Important notifications'**
+  String get notificationChannelName;
+
+  /// No description provided for @notificationChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for important notifications.'**
+  String get notificationChannelDescription;
+
+  /// No description provided for @locationSharingActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Location sharing with your team is active'**
+  String get locationSharingActive;
+
+  /// No description provided for @editAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editAction;
+
+  /// No description provided for @titleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get titleLabel;
+
+  /// No description provided for @statusProcessed.
+  ///
+  /// In en, this message translates to:
+  /// **'Processed'**
+  String get statusProcessed;
+
+  /// No description provided for @statusIgnored.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignored'**
+  String get statusIgnored;
+
+  /// No description provided for @statusSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get statusSkipped;
+
+  /// No description provided for @statusDeferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for context'**
+  String get statusDeferred;
+
+  /// No description provided for @statusError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get statusError;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get statusApproved;
+
+  /// No description provided for @statusDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivated'**
+  String get statusDeactivated;
+
+  /// No description provided for @roleSuperAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Super admin'**
+  String get roleSuperAdmin;
+
+  /// No description provided for @pageNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not found'**
+  String get pageNotFound;
 }
 
 class _AppLocalizationsDelegate

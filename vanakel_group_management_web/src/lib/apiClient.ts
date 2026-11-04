@@ -17,6 +17,11 @@ export const apiClient = axios.create({
 });
 
 
+/** The server answers (validation errors, messages) in the language the page is showing. */
+export const setApiLanguage = (lang: string) => {
+    apiClient.defaults.headers.common['Accept-Language'] = lang.toLowerCase();
+};
+
 // Attach auth token if available
 apiClient.interceptors.request.use(
     (config) => {

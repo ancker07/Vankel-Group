@@ -1,0 +1,6 @@
+"NSCameraUsageDescription" = "Vanakel Group gebruikt de camera zodat je foto's kunt toevoegen aan missies en interventies.";
+"NSPhotoLibraryUsageDescription" = "Vanakel Group laat je foto's uit je fotobibliotheek kiezen om aan missies toe te voegen en als profielfoto.";
+"NSMicrophoneUsageDescription" = "Vanakel Group gebruikt de microfoon zodat je missienotities kunt dicteren.";
+"NSSpeechRecognitionUsageDescription" = "Vanakel Group zet je stem om in tekst voor missienotities.";
+"NSLocationWhenInUseUsageDescription" = "Vanakel Group gebruikt je locatie zodat je team kan zien waar je bent en om je naar missies te begeleiden.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Vanakel Group deelt je locatie met je team terwijl je werkt, ook wanneer de app op de achtergrond draait.";

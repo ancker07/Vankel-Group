@@ -1140,4 +1140,233 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openSettings => 'Settings';
+
+  @override
+  String get fillAllFields => 'Please fill in all fields';
+
+  @override
+  String errorWithMessage(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String aiErrorWithMessage(String message) {
+    return 'AI error: $message';
+  }
+
+  @override
+  String get errNoInternet => 'No internet connection';
+
+  @override
+  String get errTimeout => 'The connection timed out. Please try again.';
+
+  @override
+  String get errServer => 'Server error. Please try again later.';
+
+  @override
+  String get errNotFound => 'Not found';
+
+  @override
+  String get errUnauthorized =>
+      'Your session has expired. Please log in again.';
+
+  @override
+  String get errValidation => 'Some information is not valid.';
+
+  @override
+  String get errUnknown => 'Something went wrong.';
+
+  @override
+  String get registerAdminDesc => 'Register to become a Vanakel Group member.';
+
+  @override
+  String get registerSyndicDesc =>
+      'Register as a syndic to oversee properties and report issues.';
+
+  @override
+  String get splashTagline => 'Effectively Manage with Ease';
+
+  @override
+  String get needHelpContact => 'NEED HELP? CONTACT@VANKEL.BE';
+
+  @override
+  String get userFallbackName => 'User';
+
+  @override
+  String get noAddress => 'No address';
+
+  @override
+  String get noTitle => 'No title';
+
+  @override
+  String get missionNotFound => 'Mission not found';
+
+  @override
+  String get noRecentActivity => 'No recent activity';
+
+  @override
+  String get noPropertiesFound => 'No properties found';
+
+  @override
+  String get tryAdjustingFilters => 'Try adjusting your search or filters';
+
+  @override
+  String get syndicContact => 'SYNDIC CONTACT';
+
+  @override
+  String get noSyndicLinked => 'No syndic linked';
+
+  @override
+  String get interventionHistory => 'INTERVENTION HISTORY';
+
+  @override
+  String get missionUpdatedSuccess => 'Mission updated successfully';
+
+  @override
+  String get requestSentSuccess => 'Request sent successfully';
+
+  @override
+  String get submitRequest => 'Submit Request';
+
+  @override
+  String nextOccurrence(String date) {
+    return 'Next: $date';
+  }
+
+  @override
+  String get routineMaintenancePlan => 'Routine maintenance plan.';
+
+  @override
+  String get deletePlanTitle => 'Delete plan?';
+
+  @override
+  String get cannotBeUndone => 'This action cannot be undone.';
+
+  @override
+  String get deleteAction => 'Delete';
+
+  @override
+  String get noMaintenancePlans => 'No maintenance plans';
+
+  @override
+  String get createFirstPlan => 'Create your first plan to start tracking';
+
+  @override
+  String get selectBuildingError => 'Please select a building';
+
+  @override
+  String get newMaintenancePlan => 'New maintenance plan';
+
+  @override
+  String get editMaintenancePlan => 'Edit maintenance plan';
+
+  @override
+  String get errorLoadingBuildings => 'Error loading buildings';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get createPlan => 'Create plan';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get markAllAsRead => 'Mark all as read';
+
+  @override
+  String get noNotificationsYet => 'No notifications yet';
+
+  @override
+  String get timeNow => 'now';
+
+  @override
+  String agoSeconds(int count) {
+    return '${count}s ago';
+  }
+
+  @override
+  String agoMinutes(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String agoHours(int count) {
+    return '$count h ago';
+  }
+
+  @override
+  String agoDays(int count) {
+    return '$count d ago';
+  }
+
+  @override
+  String get teamMember => 'TEAM MEMBER';
+
+  @override
+  String assignedByName(String name) {
+    return 'Assigned by $name';
+  }
+
+  @override
+  String locationUpdatedAgo(String when) {
+    return 'Location updated $when';
+  }
+
+  @override
+  String get noLocationSharedYet => 'No location shared yet';
+
+  @override
+  String get openInGoogleMaps => 'OPEN IN GOOGLE MAPS';
+
+  @override
+  String get notificationChannelName => 'Important notifications';
+
+  @override
+  String get notificationChannelDescription =>
+      'Used for important notifications.';
+
+  @override
+  String get locationSharingActive =>
+      'Location sharing with your team is active';
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get titleLabel => 'Title';
+
+  @override
+  String get statusProcessed => 'Processed';
+
+  @override
+  String get statusIgnored => 'Ignored';
+
+  @override
+  String get statusSkipped => 'Skipped';
+
+  @override
+  String get statusDeferred => 'Waiting for context';
+
+  @override
+  String get statusError => 'Error';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusApproved => 'Approved';
+
+  @override
+  String get statusDeactivated => 'Deactivated';
+
+  @override
+  String get roleSuperAdmin => 'Super admin';
+
+  @override
+  String get pageNotFound => 'Page not found';
 }

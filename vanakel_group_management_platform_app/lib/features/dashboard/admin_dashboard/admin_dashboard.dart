@@ -1,3 +1,4 @@
+import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,10 +21,10 @@ class AdminDashboard extends ConsumerWidget {
 
     return missionsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
       data: (missions) => interventionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
         data: (interventions) {
           // Calculate stats
           final pendingMissions = missions
@@ -54,7 +55,7 @@ class AdminDashboard extends ConsumerWidget {
                   nlValue: m.titleNl,
                   fallback: m.title,
                 ),
-                subtitle: m.address,
+                subtitle: TranslationHelper.address(context, m.address),
                 date: m.createdAt,
                 iconColor: AppTheme.brandOrange,
                 icon: Icons.assignment_outlined,
@@ -71,7 +72,7 @@ class AdminDashboard extends ConsumerWidget {
                   nlValue: i.titleNl,
                   fallback: i.title,
                 ),
-                subtitle: i.address,
+                subtitle: TranslationHelper.address(context, i.address),
                 date: i.scheduledDate,
                 iconColor: AppTheme.brandGreen,
                 icon: Icons.engineering_outlined,
@@ -143,12 +144,12 @@ class AdminDashboard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   if (recentActivity.isEmpty)
-                    const Center(
+                    Center(
                       child: Padding(
-                        padding: EdgeInsets.all(32.0),
+                        padding: const EdgeInsets.all(32.0),
                         child: Text(
-                          'No recent activity',
-                          style: TextStyle(color: AppTheme.zinc500),
+                          l10n.noRecentActivity,
+                          style: const TextStyle(color: AppTheme.zinc500),
                         ),
                       ),
                     )

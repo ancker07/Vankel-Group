@@ -1,3 +1,6 @@
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_labels.dart';
+import '../../../core/utils/app_format.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -172,7 +175,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
-        error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.white))),
+        error: (err, stack) => Center(child: Text(errorWithMessage(context, err), style: const TextStyle(color: Colors.white))),
       ),
     );
   }
@@ -294,7 +297,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              item.address,
+                              TranslationHelper.address(context, item.address),
                               style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 12,
@@ -318,7 +321,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             ),
                           ),
                           Text(
-                            _formatDate(item.scheduledDate),
+                            AppFormat.date(context, item.scheduledDate),
                             style: const TextStyle(
                               color: Colors.white24,
                               fontSize: 10,
@@ -400,7 +403,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                item.address,
+                                TranslationHelper.address(context, item.address),
                                 style: const TextStyle(
                                   color: Colors.white30,
                                   fontSize: 11,
@@ -423,7 +426,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${_formatDate(item.scheduledDate)}  •  ID: ${item.id.toUpperCase()}",
+                    "${AppFormat.date(context, item.scheduledDate)}  •  ID: ${item.id.toUpperCase()}",
                     style: const TextStyle(
                       color: Colors.white24,
                       fontSize: 9,
@@ -512,13 +515,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Text(
-        status.name.toUpperCase(),
+        AppLocalizations.of(context)!.interventionStatusLabel(status).toUpperCase(),
         style: TextStyle(color: color, fontSize: small ? 8 : 9, fontWeight: FontWeight.w900, letterSpacing: 0.5),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
   }
 }

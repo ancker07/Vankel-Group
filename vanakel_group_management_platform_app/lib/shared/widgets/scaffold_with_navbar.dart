@@ -112,7 +112,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           children: [
             UserAccountsDrawerHeader(
               accountName: Text(
-                authState.user?.name ?? 'Admin User',
+                authState.user?.name ?? l10n.userFallbackName,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,

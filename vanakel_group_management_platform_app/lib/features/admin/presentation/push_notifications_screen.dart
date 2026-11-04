@@ -1,3 +1,4 @@
+import '../../../core/utils/app_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
@@ -155,7 +156,7 @@ class _UserPicker extends ConsumerWidget {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(u.name),
-              subtitle: Text(u.roleLabel, style: const TextStyle(fontSize: 11)),
+              subtitle: Text(l10n.roleLabelFor(u.role, u.roleLabel), style: const TextStyle(fontSize: 11)),
               value: selected.contains(u.id),
               onChanged: (v) {
                 v == true ? selected.add(u.id) : selected.remove(u.id);

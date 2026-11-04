@@ -450,5 +450,137 @@
   "speechNetwork": "Voice recognition needs an internet connection.",
   "speechLanguage": "This language is not available for voice on your phone. Install it in your phone's speech settings.",
   "speechRetry": "Voice recognition stopped. Please try again.",
-  "openSettings": "Settings"
+  "openSettings": "Settings",
+  "fillAllFields": "Please fill in all fields",
+  "errorWithMessage": "Error: {message}",
+  "@errorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "aiErrorWithMessage": "AI error: {message}",
+  "@aiErrorWithMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "errNoInternet": "No internet connection",
+  "errTimeout": "The connection timed out. Please try again.",
+  "errServer": "Server error. Please try again later.",
+  "errNotFound": "Not found",
+  "errUnauthorized": "Your session has expired. Please log in again.",
+  "errValidation": "Some information is not valid.",
+  "errUnknown": "Something went wrong.",
+  "registerAdminDesc": "Register to become a Vanakel Group member.",
+  "registerSyndicDesc": "Register as a syndic to oversee properties and report issues.",
+  "splashTagline": "Effectively Manage with Ease",
+  "needHelpContact": "NEED HELP? CONTACT@VANKEL.BE",
+  "userFallbackName": "User",
+  "noAddress": "No address",
+  "noTitle": "No title",
+  "missionNotFound": "Mission not found",
+  "noRecentActivity": "No recent activity",
+  "noPropertiesFound": "No properties found",
+  "tryAdjustingFilters": "Try adjusting your search or filters",
+  "syndicContact": "SYNDIC CONTACT",
+  "noSyndicLinked": "No syndic linked",
+  "interventionHistory": "INTERVENTION HISTORY",
+  "missionUpdatedSuccess": "Mission updated successfully",
+  "requestSentSuccess": "Request sent successfully",
+  "submitRequest": "Submit Request",
+  "nextOccurrence": "Next: {date}",
+  "@nextOccurrence": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "routineMaintenancePlan": "Routine maintenance plan.",
+  "deletePlanTitle": "Delete plan?",
+  "cannotBeUndone": "This action cannot be undone.",
+  "deleteAction": "Delete",
+  "noMaintenancePlans": "No maintenance plans",
+  "createFirstPlan": "Create your first plan to start tracking",
+  "selectBuildingError": "Please select a building",
+  "newMaintenancePlan": "New maintenance plan",
+  "editMaintenancePlan": "Edit maintenance plan",
+  "errorLoadingBuildings": "Error loading buildings",
+  "descriptionLabel": "Description",
+  "createPlan": "Create plan",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "markAllAsRead": "Mark all as read",
+  "noNotificationsYet": "No notifications yet",
+  "timeNow": "now",
+  "agoSeconds": "{count}s ago",
+  "@agoSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoMinutes": "{count} min ago",
+  "@agoMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoHours": "{count} h ago",
+  "@agoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "agoDays": "{count} d ago",
+  "@agoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "teamMember": "TEAM MEMBER",
+  "assignedByName": "Assigned by {name}",
+  "@assignedByName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "locationUpdatedAgo": "Location updated {when}",
+  "@locationUpdatedAgo": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noLocationSharedYet": "No location shared yet",
+  "openInGoogleMaps": "OPEN IN GOOGLE MAPS",
+  "notificationChannelName": "Important notifications",
+  "notificationChannelDescription": "Used for important notifications.",
+  "locationSharingActive": "Location sharing with your team is active",
+  "editAction": "Edit",
+  "titleLabel": "Title",
+  "statusProcessed": "Processed",
+  "statusIgnored": "Ignored",
+  "statusSkipped": "Skipped",
+  "statusDeferred": "Waiting for context",
+  "statusError": "Error",
+  "statusPending": "Pending",
+  "statusApproved": "Approved",
+  "statusDeactivated": "Deactivated",
+  "roleSuperAdmin": "Super admin",
+  "pageNotFound": "Page not found"
 }

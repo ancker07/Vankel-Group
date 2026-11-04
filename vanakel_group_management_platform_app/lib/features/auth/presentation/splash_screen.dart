@@ -1,3 +1,4 @@
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,7 +52,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ).animate().fadeIn(duration: 800.ms).scale(duration: 800.ms),
             const SizedBox(height: 24),
             Text(
-                  'Effectively Manage with Ease',
+                  AppLocalizations.of(context)!.splashTagline,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyLarge?.copyWith(color: Colors.grey[400]),

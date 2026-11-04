@@ -36,7 +36,7 @@ class MissionModel extends Mission {
   factory MissionModel.fromJson(Map<String, dynamic> json) {
     return MissionModel(
       id: json['id'].toString(),
-      title: json['title'] as String? ?? 'No Title',
+      title: json['title'] as String? ?? '',
       titleEn: json['title_en'] as String?,
       titleFr: json['title_fr'] as String?,
       titleNl: json['title_nl'] as String?,
@@ -44,7 +44,7 @@ class MissionModel extends Mission {
       descriptionEn: json['description_en'] as String?,
       descriptionFr: json['description_fr'] as String?,
       descriptionNl: json['description_nl'] as String?,
-      address: json['building']?['address'] as String? ?? json['extracted_address'] as String? ?? 'No Address',
+      address: json['building']?['address'] as String? ?? json['extracted_address'] as String? ?? '',
       syndicId: json['syndic_id']?.toString() ?? json['syndicId']?.toString(),
       syndicName: _firstNonEmpty(json['syndic'] as Map<String, dynamic>?, ['company_name', 'companyName', 'name', 'contact_person', 'email']),
       syndicEmail: json['syndic'] != null ? (json['syndic']['email']) as String? : null,

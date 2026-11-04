@@ -29,7 +29,7 @@ class EmailIngestionService
         if ($email->ingested_at) {
             return [
                 'success' => true,
-                'message' => 'Email already ingested.',
+                'message' => __('Email already ingested.'),
                 'status' => 'SKIPPED'
             ];
         }
@@ -71,12 +71,12 @@ class EmailIngestionService
                     $email->update([
                         'ingested_at' => now(),
                         'ingestion_status' => 'SKIPPED',
-                        'ingestion_reason' => "Thread already processed via email #{$alreadyProcessed->id}"
+                        'ingestion_reason' => __('Thread already processed via email #:id', ['id' => $alreadyProcessed->id])
                     ]);
                     return [
                         'success' => true,
                         'status' => 'SKIPPED',
-                        'message' => "Thread already processed via email #{$alreadyProcessed->id}"
+                        'message' => __('Thread already processed via email #:id', ['id' => $alreadyProcessed->id])
                     ];
                 }
             }

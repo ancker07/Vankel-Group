@@ -1,9 +1,12 @@
+import '../../../core/utils/app_labels.dart';
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_format.dart';
+import '../../../core/utils/translation_helper.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/translation_helper.dart';
@@ -30,57 +33,6 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  String _getStatusLabel(InterventionStatus status, AppLocalizations l10n) {
-    switch (status) {
-      case InterventionStatus.pending:
-        return l10n.inProgress;
-      case InterventionStatus.delayed:
-        return l10n.delayed;
-      case InterventionStatus.completed:
-        return l10n.completed;
-    }
-  }
-
-  String _getUrgencyLabel(String urgency, AppLocalizations l10n) {
-    switch (urgency.toUpperCase()) {
-      case 'LOW':
-        return l10n.low;
-      case 'MEDIUM':
-        return l10n.medium;
-      case 'HIGH':
-        return l10n.high;
-      case 'CRITICAL':
-        return l10n.critical;
-      default:
-        return urgency;
-    }
-  }
-
-  String _getSectorLabel(String sector, AppLocalizations l10n) {
-    switch (sector.toUpperCase()) {
-      case 'ELECTRICITE':
-        return l10n.electricity;
-      case 'CARRELAGE':
-        return l10n.tiling;
-      case 'SANITAIRE':
-        return l10n.sanitary;
-      case 'CHAUFFAGE':
-        return l10n.heating;
-      case 'PLOMBERIE':
-        return l10n.plumbing;
-      case 'PEINTURE':
-        return l10n.painting;
-      case 'MENUISERIE':
-        return l10n.woodwork;
-      case 'GENERAL':
-        return l10n.general;
-      case 'AUTRE':
-        return l10n.other;
-      default:
-        return sector;
-    }
   }
 
   @override
@@ -186,21 +138,21 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           _FilterChip(
-            label: filter.status != null ? _getStatusLabel(filter.status!, l10n) : l10n.status,
+            label: filter.status != null ? l10n.interventionStatusLabel(filter.status!) : l10n.status,
             isActive: filter.status != null,
             onTap: () => _showStatusPicker(context, filter, l10n),
             onClear: filter.status != null ? () => ref.read(interventionFilterProvider.notifier).updateStatus(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: filter.sectorId != null ? _getSectorLabel(filter.sectorId!, l10n) : l10n.sector,
+            label: filter.sectorId != null ? l10n.sectorLabel(filter.sectorId!) : l10n.sector,
             isActive: filter.sectorId != null,
             onTap: () => _showSectorPicker(context, filter, l10n),
             onClear: filter.sectorId != null ? () => ref.read(interventionFilterProvider.notifier).updateSector(null) : null,
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: filter.urgency != null ? _getUrgencyLabel(filter.urgency!, l10n) : l10n.urgency,
+            label: filter.urgency != null ? l10n.urgencyLabel(filter.urgency!) : l10n.urgency,
             isActive: filter.urgency != null,
             onTap: () => _showUrgencyPicker(context, filter, l10n),
             onClear: filter.urgency != null ? () => ref.read(interventionFilterProvider.notifier).updateUrgency(null) : null,
@@ -216,7 +168,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: filter.scheduledDate != null ? DateFormat('MMM d, y').format(filter.scheduledDate!) : l10n.date,
+            label: filter.scheduledDate != null ? AppFormat.dateMedium(context, filter.scheduledDate!) : l10n.date,
             isActive: filter.scheduledDate != null,
             onTap: () => _showDatePicker(context, filter),
             onClear: filter.scheduledDate != null ? () => ref.read(interventionFilterProvider.notifier).updateDate(null) : null,
@@ -382,9 +334,9 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
                   final o = options[idx];
                   String displayLabel = o;
                   if (title == l10n.selectUrgency) {
-                    displayLabel = _getUrgencyLabel(o, l10n);
+                    displayLabel = l10n.urgencyLabel(o);
                   } else if (title == l10n.selectSector) {
-                    displayLabel = _getSectorLabel(o, l10n);
+                    displayLabel = l10n.sectorLabel(o);
                   }
                   
                   return ListTile(
@@ -430,7 +382,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
         children: [
           Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
           const SizedBox(height: 16),
-          Text('Error: ${error.toString()}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+          Text(errorWithMessage(context, error), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => ref.invalidate(interventionListProvider),
@@ -504,8 +456,8 @@ class _InterventionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final statusColor = _getStatusColor(intervention.status);
-    final statusLabel = _getStatusLabel(intervention.status, l10n);
-    final dateStr = DateFormat('M/d/yyyy').format(intervention.scheduledDate);
+    final statusLabel = l10n.interventionStatusLabel(intervention.status);
+    final dateStr = AppFormat.date(context, intervention.scheduledDate);
 
     return Container(
       decoration: BoxDecoration(
@@ -608,7 +560,7 @@ class _InterventionCard extends StatelessWidget {
                             ),
                             if (intervention.urgency != null) ...[
                               const SizedBox(height: 6),
-                              _buildBadge(_getUrgencyLabel(intervention.urgency!, l10n), _getUrgencyColor(intervention.urgency)),
+                              _buildBadge(l10n.urgencyLabel(intervention.urgency!), _getUrgencyColor(intervention.urgency)),
                             ],
                           ],
                         ),
@@ -642,7 +594,7 @@ class _InterventionCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                "${intervention.address}, ${intervention.city ?? ''}",
+                                "${TranslationHelper.address(context, intervention.address)}, ${intervention.city ?? ''}",
                                 style: TextStyle(fontSize: 11, color: AppTheme.zinc300, fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -753,32 +705,6 @@ class _InterventionCard extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05);
-  }
-
-  String _getStatusLabel(InterventionStatus status, AppLocalizations l10n) {
-    switch (status) {
-      case InterventionStatus.pending:
-        return l10n.inProgress;
-      case InterventionStatus.delayed:
-        return l10n.delayed;
-      case InterventionStatus.completed:
-        return l10n.completed;
-    }
-  }
-
-  String _getUrgencyLabel(String urgency, AppLocalizations l10n) {
-    switch (urgency.toUpperCase()) {
-      case 'LOW':
-        return l10n.low;
-      case 'MEDIUM':
-        return l10n.medium;
-      case 'HIGH':
-        return l10n.high;
-      case 'CRITICAL':
-        return l10n.critical;
-      default:
-        return urgency;
-    }
   }
 
   Future<void> _openMap(String address) async {

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/locale_provider.dart';
 import '../services/auth_token_service.dart';
 
 class AuthInterceptor extends Interceptor {
@@ -13,6 +14,8 @@ class AuthInterceptor extends Interceptor {
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
+    // The server answers (validation errors, messages, e-mails) in the language chosen in the app
+    options.headers['Accept-Language'] = _ref.read(localeProvider).languageCode;
     super.onRequest(options, handler);
   }
 

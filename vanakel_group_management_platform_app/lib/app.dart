@@ -38,6 +38,15 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Texts the OS shows (not Flutter widgets) must follow the language too
+    ref.listenManual<Locale>(localeProvider, (previous, next) async {
+      final l10n = lookupAppLocalizations(next);
+      await NotificationService().applyLanguage(
+        name: l10n.notificationChannelName,
+        description: l10n.notificationChannelDescription,
+      );
+      await _locationService.setNotificationText(l10n.locationSharingActive);
+    }, fireImmediately: true);
     ref.listenManual<AuthState>(authStateProvider, (previous, next) {
       // Just logged in / session restored: make sure the server knows the user's language
       if (next.status == AuthStatus.authenticated && previous?.status != AuthStatus.authenticated) {
@@ -80,7 +89,7 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
     final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
-      title: 'Vanakel Group',
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       routerConfig: router,

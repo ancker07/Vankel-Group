@@ -1,3 +1,6 @@
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_format.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +9,6 @@ import '../../../core/utils/notification_navigator.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 import 'providers/notification_provider.dart';
 import '../domain/entities/notification_item.dart';
-import 'package:intl/intl.dart';
 import '../../../core/utils/translation_helper.dart';
 
 class NotificationsScreen extends ConsumerWidget {
@@ -15,17 +17,18 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notificationsAsync = ref.watch(notificationProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppTheme.brandBlack,
       appBar: AppBar(
-        title: const Text('NOTIFICATIONS'),
+        title: Text(l10n.notifications.toUpperCase()),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all, color: AppTheme.brandGreen),
             onPressed: () => ref.read(notificationProvider.notifier).markAllAsRead(),
-            tooltip: 'Mark all as read',
+            tooltip: l10n.markAllAsRead,
           ),
         ],
       ),
@@ -37,11 +40,11 @@ class NotificationsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, color: Colors.red, size: 48),
               const SizedBox(height: 16),
-              Text('Error: $err', style: const TextStyle(color: Colors.white)),
+              Text(errorWithMessage(context, err), style: const TextStyle(color: Colors.white)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(notificationProvider.notifier).fetchNotifications(),
-                child: const Text('Retry'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -57,9 +60,9 @@ class NotificationsScreen extends ConsumerWidget {
                       color: AppTheme.zinc800,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'No notifications yet',
-                      style: TextStyle(color: AppTheme.zinc500),
+                    Text(
+                      l10n.noNotificationsYet,
+                      style: const TextStyle(color: AppTheme.zinc500),
                     ),
                   ],
                 ),
@@ -147,7 +150,7 @@ class _NotificationTile extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        _formatDate(item.createdAt),
+                        AppFormat.timeAgo(context, item.createdAt),
                         style: const TextStyle(
                           color: AppTheme.zinc500,
                           fontSize: 10,
@@ -207,17 +210,5 @@ class _NotificationTile extends ConsumerWidget {
       default:
         return AppTheme.zinc500;
     }
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 1) return 'now';
-    if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
-    if (difference.inHours < 24) return '${difference.inHours}h ago';
-    if (difference.inDays < 7) return '${difference.inDays}d ago';
-    
-    return DateFormat('dd/MM').format(date);
   }
 }

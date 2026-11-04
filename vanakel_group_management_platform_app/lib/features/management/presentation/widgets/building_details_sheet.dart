@@ -1,3 +1,6 @@
+import '../../../../core/utils/app_labels.dart';
+import '../../../../core/utils/app_format.dart';
+import '../../../../l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../intervention/domain/intervention.dart';
@@ -17,6 +20,7 @@ class BuildingDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DraggableScrollableSheet(
       initialChildSize: 0.9,
       minChildSize: 0.5,
@@ -79,7 +83,7 @@ class BuildingDetailsSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            building['address'] ?? 'No Address',
+                            building['address'] ?? l10n.noAddress,
                             style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(height: 8),
@@ -114,9 +118,9 @@ class BuildingDetailsSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "SYNDIC CONTACT",
-                          style: TextStyle(color: Color(0xFF22C55E), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
+                        Text(
+                          l10n.syndicContact,
+                          style: const TextStyle(color: Color(0xFF22C55E), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -131,7 +135,7 @@ class BuildingDetailsSheet extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    syndic?['company_name'] ?? 'No Syndic Linked',
+                                    syndic?['company_name'] ?? l10n.noSyndicLinked,
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                   ),
                                   Text(
@@ -150,16 +154,16 @@ class BuildingDetailsSheet extends StatelessWidget {
               ),
 
               // History Title
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(24, 32, 24, 16),
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
                   child: Row(
                     children: [
-                      Icon(Icons.history, color: Colors.white, size: 20),
-                      SizedBox(width: 10),
+                      const Icon(Icons.history, color: Colors.white, size: 20),
+                      const SizedBox(width: 10),
                       Text(
-                        "INTERVENTION HISTORY",
-                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                        l10n.interventionHistory,
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                       ),
                     ],
                   ),
@@ -200,7 +204,7 @@ class BuildingDetailsSheet extends StatelessWidget {
         ),
         child: Row(
           children: [
-             _buildStatusBadge(item.status),
+             _buildStatusBadge(context, item.status),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -220,7 +224,7 @@ class BuildingDetailsSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "${item.scheduledDate.day}/${item.scheduledDate.month}/${item.scheduledDate.year}",
+                    AppFormat.date(context, item.scheduledDate),
                     style: const TextStyle(color: Colors.white30, fontSize: 11),
                   ),
                 ],
@@ -233,7 +237,7 @@ class BuildingDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(InterventionStatus status) {
+  Widget _buildStatusBadge(BuildContext context, InterventionStatus status) {
     final isDelayed = status.name.toLowerCase() == 'delayed';
     final color = isDelayed ? Colors.orange : const Color(0xFF22C55E);
     
@@ -245,7 +249,7 @@ class BuildingDetailsSheet extends StatelessWidget {
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Text(
-        status.name.toUpperCase(),
+        AppLocalizations.of(context)!.interventionStatusLabel(status).toUpperCase(),
         style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5),
       ),
     );

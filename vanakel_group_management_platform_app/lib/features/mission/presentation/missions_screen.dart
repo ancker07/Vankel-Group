@@ -1,3 +1,6 @@
+import '../../../core/utils/app_labels.dart';
+import '../../../core/error/error_text.dart';
+import '../../../core/utils/app_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -106,7 +109,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 children: [
                    Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
                   const SizedBox(height: 16),
-                  Text('Error: ${error.toString()}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+                  Text(errorWithMessage(context, error), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => ref.invalidate(missionListProvider),
@@ -197,7 +200,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 ),
                 const SizedBox(width: 8),
                 _FilterChip(
-                  label: filter.sector ?? l10n.sector,
+                  label: filter.sector != null ? l10n.sectorLabel(filter.sector) : l10n.sector,
                   icon: Icons.category_outlined,
                   isSelected: filter.sector != null,
                   onSelected: () => _showSectorPicker(missions, filter, l10n),
@@ -205,7 +208,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 const SizedBox(width: 8),
                 _FilterChip(
                   label: filter.buildingId != null 
-                    ? (missions.firstWhere((m) => m.buildingId == filter.buildingId, orElse: () => missions.first).address)
+                    ? TranslationHelper.address(context, missions.firstWhere((m) => m.buildingId == filter.buildingId, orElse: () => missions.first).address)
                     : l10n.building,
                   icon: Icons.business_outlined,
                   isSelected: filter.buildingId != null,
@@ -214,7 +217,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                 const SizedBox(width: 8),
                 _FilterChip(
                   label: filter.date != null 
-                    ? "${filter.date!.day}/${filter.date!.month}/${filter.date!.year}"
+                    ? AppFormat.date(context, filter.date!)
                     : l10n.date,
                   icon: Icons.calendar_today_outlined,
                   isSelected: filter.date != null,
@@ -404,7 +407,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                       )
                     else
                       ...sectors.map((s) => ListTile(
-                        title: Text(s, style: const TextStyle(color: Colors.white)),
+                        title: Text(l10n.sectorLabel(s), style: const TextStyle(color: Colors.white)),
                         onTap: () {
                           ref.read(missionFilterProvider.notifier).updateSector(s);
                           Navigator.pop(context);
@@ -468,7 +471,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                         final id = buildingIds[index];
                         final address = missions.firstWhere((m) => m.buildingId == id).address;
                         return ListTile(
-                          title: Text(address, style: const TextStyle(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          title: Text(TranslationHelper.address(context, address), style: const TextStyle(color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                           onTap: () {
                             ref.read(missionFilterProvider.notifier).updateBuilding(id);
                             Navigator.pop(context);
@@ -732,7 +735,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            widget.mission.address,
+                            TranslationHelper.address(context, widget.mission.address),
                             style: TextStyle(
                               fontSize: 13,
                               color: AppTheme.zinc500,
@@ -843,7 +846,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                                   const Icon(Icons.calendar_today_outlined, size: 12, color: AppTheme.zinc500),
                                   const SizedBox(width: 6),
                                   Text(
-                                    _formatDate(widget.mission.createdAt),
+                                    AppFormat.date(context, widget.mission.createdAt),
                                     style: const TextStyle(
                                       fontSize: 11,
                                       color: AppTheme.zinc500,
@@ -969,7 +972,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+            SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
           );
         }
       }
@@ -997,7 +1000,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+            SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
           );
         }
       }
@@ -1167,7 +1170,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                             const SizedBox(width: 12),
                             Text(
                               selectedDate != null
-                                  ? "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}"
+                                  ? AppFormat.date(context, selectedDate!)
                                   : l10n.selectDatePlaceholder,
                               style: TextStyle(
                                 color: selectedDate != null ? Colors.white : AppTheme.zinc500,
@@ -1272,7 +1275,4 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
 }

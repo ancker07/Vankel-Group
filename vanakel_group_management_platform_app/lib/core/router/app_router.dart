@@ -1,3 +1,4 @@
+import '../../l10n/app_localizations.dart';
 import '../../features/intervention/presentation/completed_missions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -47,6 +48,10 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshListenable,
+    errorBuilder: (context, state) => Scaffold(
+      appBar: AppBar(),
+      body: Center(child: Text(AppLocalizations.of(context)!.pageNotFound)),
+    ),
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
       

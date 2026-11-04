@@ -1,3 +1,4 @@
+import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../intervention/domain/intervention.dart';
@@ -127,10 +128,10 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
                                 dropdownColor: const Color(0xFF18181B),
                                 icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white30),
                                 items: [
-                                  const DropdownMenuItem(value: 'ALL', child: Text('All Syndics', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
+                                  DropdownMenuItem(value: 'ALL', child: Text(l10n.allSyndics, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
                                   ...syndics.map((s) => DropdownMenuItem(
                                         value: s['id'].toString(),
-                                        child: Text(s['company_name'] ?? 'Unknown', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                                        child: Text(s['company_name'] ?? l10n.noSyndic, style: const TextStyle(color: Colors.white, fontSize: 13)),
                                       )),
                                 ],
                                 onChanged: (val) => setState(() => _selectedSyndicId = val!),
@@ -144,7 +145,7 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
                     // Grid/List of Buildings
                     Expanded(
                       child: filteredBuildings.isEmpty
-                          ? _buildEmptyState()
+                          ? _buildEmptyState(context)
                           : ListView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                               itemCount: filteredBuildings.length,
@@ -163,21 +164,22 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
-              error: (err, stack) => Center(child: Text('Error syndics: $err')),
+              error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
             ),
             loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
-            error: (err, stack) => Center(child: Text('Error buildings: $err')),
+            error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
           ),
           loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
-          error: (err, stack) => Center(child: Text('Error missions: $err')),
+          error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
         ),
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
-        error: (err, stack) => Center(child: Text('Error interventions: $err')),
+        error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
       ),
     );
   }
 
   Widget _buildPropertyCard(dynamic building, dynamic syndic, int count, List<Intervention> bInterventions) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -211,7 +213,7 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        building['address'] ?? 'No Address',
+                        building['address'] ?? l10n.noAddress,
                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -242,7 +244,7 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
                     const Icon(Icons.business, size: 14, color: Colors.white24),
                     const SizedBox(width: 6),
                     Text(
-                      syndic?['company_name'] ?? 'No Syndic',
+                      syndic?['company_name'] ?? l10n.noSyndic,
                       style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -255,21 +257,22 @@ class _ManagementScreenState extends ConsumerState<ManagementScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.business_center, size: 64, color: Colors.white.withOpacity(0.05)),
           const SizedBox(height: 16),
-          const Text(
-            'No properties found',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            l10n.noPropertiesFound,
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Try adjusting your search or filters',
-            style: TextStyle(color: Colors.white30, fontSize: 14),
+          Text(
+            l10n.tryAdjustingFilters,
+            style: const TextStyle(color: Colors.white30, fontSize: 14),
           ),
         ],
       ),

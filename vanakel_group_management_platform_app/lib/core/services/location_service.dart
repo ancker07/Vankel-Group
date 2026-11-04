@@ -20,6 +20,19 @@ class LocationService {
 
   LocationService(this._dio);
 
+  /// Text of the Android "sharing your location" notification (follows the app language).
+  String notificationText = 'Location sharing with your team is active';
+
+  /// Applies a new notification text; restarts the tracking so Android shows it right away.
+  Future<void> setNotificationText(String text) async {
+    if (text == notificationText) return;
+    notificationText = text;
+    if (isRunning) {
+      stop();
+      await start();
+    }
+  }
+
   bool get isRunning => _subscription != null;
 
   Future<void> start() async {
@@ -50,9 +63,9 @@ class LocationService {
         accuracy: LocationAccuracy.high,
         distanceFilter: distanceFilterMeters,
         intervalDuration: minUploadInterval,
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
+        foregroundNotificationConfig: ForegroundNotificationConfig(
           notificationTitle: 'Vanakel Group',
-          notificationText: 'Location sharing with your team is active',
+          notificationText: notificationText,
           enableWakeLock: false,
         ),
       );

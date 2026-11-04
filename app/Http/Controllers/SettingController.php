@@ -29,7 +29,7 @@ class SettingController extends Controller
         $apiKey = Setting::where('key', 'ai_api_key')->first()?->value ?: env('OPENAI_API_KEY');
 
         if (!$apiKey) {
-            return response()->json(['error' => 'AI API Key not configured.'], 400);
+            return response()->json(['error' => __('AI API Key not configured.')], 400);
         }
 
         $systemPrompt = "You are a careful grammar and clarity assistant.
@@ -51,14 +51,14 @@ class SettingController extends Controller
             ]);
 
             if ($response->failed()) {
-                return response()->json(['error' => 'AI improvement failed: ' . ($response->json('error.message') ?? 'Unknown error')], 500);
+                return response()->json(['error' => __('AI improvement failed: :error', ['error' => $response->json('error.message') ?? __('Unknown error')])], 500);
             }
 
             $result = $response->json('choices.0.message.content') ?? $text;
 
             return response()->json(['improved_text' => trim($result)]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'AI improvement failed: ' . $e->getMessage()], 500);
+            return response()->json(['error' => __('AI improvement failed: :error', ['error' => $e->getMessage()])], 500);
         }
     }
 
@@ -72,6 +72,6 @@ class SettingController extends Controller
         Setting::updateOrCreate(['key' => 'ai_model'], ['value' => $request->model]);
         Setting::updateOrCreate(['key' => 'ai_api_key'], ['value' => $request->apiKey]);
 
-        return response()->json(['message' => 'AI settings updated successfully.']);
+        return response()->json(['message' => __('AI settings updated successfully.')]);
     }
 }

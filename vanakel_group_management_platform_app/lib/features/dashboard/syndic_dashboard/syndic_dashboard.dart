@@ -1,3 +1,4 @@
+import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +19,7 @@ class SyndicDashboard extends ConsumerWidget {
 
     return interventionsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
       data: (interventions) => RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(missionListProvider);
@@ -95,12 +96,12 @@ class SyndicDashboard extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               if (interventions.isEmpty)
-                const Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.all(32.0),
                     child: Text(
-                      'No interventions found',
-                      style: TextStyle(color: AppTheme.zinc500),
+                      l10n.noInterventionsFound,
+                      style: const TextStyle(color: AppTheme.zinc500),
                     ),
                   ),
                 )
@@ -161,7 +162,7 @@ class SyndicDashboard extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    item.address,
+                                    TranslationHelper.address(context, item.address),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppTheme.zinc500,
