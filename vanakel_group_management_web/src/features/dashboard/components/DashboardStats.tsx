@@ -2,6 +2,7 @@
 import React from 'react';
 import { Clock, CheckCircle2, AlertCircle, Calendar, PauseCircle } from 'lucide-react';
 import { Language } from '@/types';
+import { usePermissions } from '@/lib/permissions';
 
 interface StatsProps {
   stats: {
@@ -15,16 +16,18 @@ interface StatsProps {
 }
 
 const DashboardStats: React.FC<StatsProps> = ({ stats, t, onCardClick }) => {
+  // A role without the missions permission (a technician) has no missions tile
+  const showMissions = usePermissions()('missions.view');
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-      <StatCard
+    <div className={`grid grid-cols-2 ${showMissions ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3 md:gap-4`}>
+      {showMissions && <StatCard
         label={t.kpi_missions}
         value={stats.missions}
         icon={<Calendar size={18} className="text-blue-400 md:size-[20px]" />}
         color="border-blue-500/20"
         liveText={t.live}
         onClick={() => onCardClick('MISSIONS')}
-      />
+      />}
       <StatCard
         label={t.kpi_ongoing}
         value={stats.ongoing}

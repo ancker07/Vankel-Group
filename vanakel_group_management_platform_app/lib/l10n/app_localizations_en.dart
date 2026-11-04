@@ -1379,4 +1379,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get registerTechnicianDesc =>
       'Register as a technician to carry out interventions in the field.';
+
+  @override
+  String get locBannerServicesOff =>
+      'Location is switched off on this phone. Turn it on so your team can see where you are.';
+
+  @override
+  String get locBannerDenied =>
+      'Allow location access so your team can see where you are while you work.';
+
+  @override
+  String get locBannerBlocked =>
+      'Location access is blocked. Allow it in the app settings.';
+
+  @override
+  String get locActionTurnOn => 'Turn on';
+
+  @override
+  String get locActionAllow => 'Allow';
+
+  @override
+  String get locRationaleTitle => 'Share your location?';
+
+  @override
+  String get locRationaleBody =>
+      'Vanakel Group shares your position with your team while you are working, also when the app is in the background. A notification is shown while it is active. You can turn it off at any time in the phone settings.';
+
+  @override
+  String get locRationaleContinue => 'Continue';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get batteryTitle => 'Keep sharing in the background';
+
+  @override
+  String get batteryBody =>
+      'Some phones stop apps to save battery. Allow Vanakel Group to run without battery restrictions so live tracking is not interrupted.';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get notifBlocked =>
+      'Notifications are off: you will miss mission and intervention alerts.';
+
+  @override
+  String get couldNotOpenMaps => 'No maps app could be opened on this phone.';
+
+  @override
+  String get couldNotOpenLink => 'This link could not be opened.';
 }

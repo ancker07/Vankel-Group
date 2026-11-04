@@ -1,3 +1,4 @@
+import '../../../auth/presentation/providers/auth_state_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/mission.dart';
 import 'mission_provider.dart';
@@ -6,6 +7,10 @@ import '../../../intervention/presentation/providers/intervention_list_provider.
 class MissionListNotifier extends AsyncNotifier<List<Mission>> {
   @override
   Future<List<Mission>> build() async {
+    // A role without the mission permission (e.g. a technician) has no missions at all: do not
+    // ask the server (it would answer 403 and every screen reading this list would show an error).
+    final user = ref.watch(authStateProvider).user;
+    if (user != null && !user.can('missions.view')) return const [];
     return ref.watch(missionRepositoryProvider).getMissions();
   }
 

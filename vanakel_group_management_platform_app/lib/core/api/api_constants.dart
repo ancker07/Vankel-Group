@@ -1,7 +1,9 @@
 class ApiConstants {
   // Use 10.0.2.2 for Android Emulator to access localhost
   // Use your local IP (e.g., 192.168.1.x) for physical devices
-  static const String baseUrl = 'https://api.vanakelgroup.com/api';
+  // Override for tests: flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
+  static const String baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://api.vanakelgroup.com/api');
+  static String get host => baseUrl.replaceFirst(RegExp(r'/api/?$'), '');
   static const int connectTimeout = 30000;
   static const int receiveTimeout = 30000;
 
@@ -48,10 +50,10 @@ class ApiConstants {
         final relativePath = path
             .replaceFirst(RegExp(r'http://localhost(:\d+)?/storage/'), '')
             .replaceFirst(RegExp(r'http://localhost(:\d+)?/'), '');
-        return 'https://api.vanakelgroup.com/storage/$relativePath';
+        return '$host/storage/$relativePath';
       }
       return path;
     }
-    return 'https://api.vanakelgroup.com/storage/$path';
+    return '$host/storage/$path';
   }
 }

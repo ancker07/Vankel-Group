@@ -1,10 +1,10 @@
+import '../../../core/utils/launcher.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
 import '../../../core/utils/file_opener.dart';
 import 'widgets/mission_duplicate_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/enums/user_role_enum.dart';
@@ -334,7 +334,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => MapService.openDirections(mission.address),
+                  onPressed: () => MapService.openDirections(context, mission.address),
                   icon: const Icon(Icons.navigation),
                   label: Text(l10n.openGps),
                   style: ElevatedButton.styleFrom(
@@ -821,9 +821,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             GestureDetector(
               onTap: () async {
                 final uri = Uri(scheme: 'mailto', path: email);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+                openLink(context, uri);
               },
               child: Row(
                 children: [
@@ -849,9 +847,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             GestureDetector(
               onTap: () async {
                 final uri = Uri(scheme: 'tel', path: phone);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+                openLink(context, uri);
               },
               child: Row(
                 children: [
@@ -942,9 +938,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             GestureDetector(
               onTap: () async {
                 final uri = Uri(scheme: 'mailto', path: email);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+                openLink(context, uri);
               },
               child: Row(
                 children: [
@@ -970,9 +964,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             GestureDetector(
               onTap: () async {
                 final uri = Uri(scheme: 'tel', path: phone);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                }
+                openLink(context, uri);
               },
               child: Row(
                 children: [

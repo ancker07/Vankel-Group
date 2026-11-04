@@ -1,12 +1,36 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- Live location is shared by a foreground service of type "location" that is started while the
+         app is on screen. That keeps working in the background (screen off, other app in front) with the
+         normal "while in use" permission on Android 10 - 16, so ACCESS_BACKGROUND_LOCATION ("Allow all
+         the time") is deliberately NOT requested: it would only add a trip to the phone's Settings. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <!-- keeps the CPU awake long enough to upload a position while the screen is off -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- lets the user exempt the app from battery optimisation so tracking is not stopped -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- The PDF viewer plugin (open_filex) adds storage / media permissions to every app. This app never
+         needs them: reports are saved in its own cache folder, pictures and documents come from the
+         system pickers. Removing them keeps the permission list (and the phone's "App info") honest. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+    <!-- no CAMERA permission on purpose: photos are taken through the camera app (no permission needed) -->
+
+    <!-- The app also works on phones / tablets without these (the features just are not offered) -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <application
         android:label="Vanakel Group"

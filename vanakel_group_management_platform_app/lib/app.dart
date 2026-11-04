@@ -7,7 +7,6 @@ import 'core/router/app_router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/location_service.dart';
-import 'core/api/dio_client.dart';
 import 'core/utils/notification_navigator.dart';
 import 'features/auth/presentation/providers/auth_state_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
@@ -20,7 +19,8 @@ class VanakelApp extends ConsumerStatefulWidget {
 }
 
 class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObserver {
-  late final LocationService _locationService = LocationService(ref.read(dioProvider));
+  /// One shared instance: the shell banner shows its state and lets the user fix problems.
+  LocationService get _locationService => ref.read(locationServiceProvider);
 
   /// Only users whose role has the location.share permission share their location.
   bool _shouldTrack(AuthState auth) =>
@@ -28,7 +28,9 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Tracking keeps running in the background; restart it if the OS stopped it
+    // Back on screen (also when returning from the phone's Settings after the user fixed GPS or
+    // the permission): check again and (re)start sharing. Never started from the background:
+    // Android 12+ forbids starting a foreground service there.
     if (state == AppLifecycleState.resumed && _shouldTrack(ref.read(authStateProvider))) {
       _locationService.start();
     }
@@ -77,7 +79,6 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _locationService.stop();
     NotificationService().onNotificationUpdate = null;
     NotificationService().onNotificationTap = null;
     super.dispose();

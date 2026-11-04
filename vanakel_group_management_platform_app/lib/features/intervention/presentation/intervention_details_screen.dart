@@ -1,10 +1,11 @@
+import '../../../core/utils/launcher.dart';
+import '../../../core/services/map_service.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
 import '../../../core/utils/translation_helper.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -496,7 +497,7 @@ class _InterventionDetailsScreenState
 
   Future<void> _launch(String scheme, String value) async {
     final uri = Uri(scheme: scheme, path: value.trim());
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
+    await openLink(context, uri);
   }
 
   /// Read-only on-site contact for technicians: who to ask for, and how to reach them.
@@ -2012,28 +2013,8 @@ class _InterventionDetailsScreenState
     );
   }
 
-  Future<void> _openMap(String address) async {
-    final encodedAddress = Uri.encodeComponent(address);
-    final googleMapsUrl =
-        "https://www.google.com/maps/search/?api=1&query=$encodedAddress";
-    final appleMapsUrl = "https://maps.apple.com/?q=$encodedAddress";
-
-    if (Platform.isAndroid) {
-      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-        await launchUrl(
-          Uri.parse(googleMapsUrl),
-          mode: LaunchMode.externalApplication,
-        );
-      }
-    } else {
-      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
-        await launchUrl(
-          Uri.parse(appleMapsUrl),
-          mode: LaunchMode.externalApplication,
-        );
-      }
-    }
-  }
+  /// Navigation to the address (see MapService.openDirections: several fallbacks + a visible message).
+  Future<void> _openMap(String address) => MapService.openDirections(context, address);
 }
 
 class _StatusBtn extends StatelessWidget {

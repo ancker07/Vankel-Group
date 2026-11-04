@@ -1,13 +1,12 @@
+import '../../../core/services/map_service.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
 import '../../../core/utils/translation_helper.dart';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/translation_helper.dart';
 import '../domain/intervention_filter.dart';
@@ -610,7 +609,7 @@ class _InterventionCard extends StatelessWidget {
                     bottom: 12,
                     right: 12,
                     child: GestureDetector(
-                      onTap: () => _openMap(intervention.address),
+                      onTap: () => _openMap(context, intervention.address),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -707,21 +706,8 @@ class _InterventionCard extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05);
   }
 
-  Future<void> _openMap(String address) async {
-    final encodedAddress = Uri.encodeComponent(address);
-    final googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=$encodedAddress";
-    final appleMapsUrl = "https://maps.apple.com/?q=$encodedAddress";
-
-    if (Platform.isAndroid) {
-      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-        await launchUrl(Uri.parse(googleMapsUrl), mode: LaunchMode.externalApplication);
-      }
-    } else {
-      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
-        await launchUrl(Uri.parse(appleMapsUrl), mode: LaunchMode.externalApplication);
-      }
-    }
-  }
+  /// Navigation to the address (see MapService.openDirections: several fallbacks + a visible message).
+  Future<void> _openMap(BuildContext context, String address) => MapService.openDirections(context, address);
 
   Widget _buildBadge(String label, Color color) {
     return Container(

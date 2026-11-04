@@ -51,7 +51,7 @@ class AssignedWorkVisibilityTest extends TestCase
         ], $attrs));
     }
 
-    public function test_professional_only_gets_missions_assigned_to_them(): void
+    public function test_professional_has_no_missions_by_default_and_only_his_own_when_an_admin_grants_the_permission(): void
     {
         $professional = $this->makeUser('PROFESSIONAL');
         $otherProfessional = $this->makeUser('PROFESSIONAL');
@@ -61,6 +61,15 @@ class AssignedWorkVisibilityTest extends TestCase
         $unassigned = $this->makeMission();
 
         Sanctum::actingAs($professional);
+
+        // default: the Technician role has no missions section at all
+        $this->getJson('/api/missions')->assertForbidden();
+        $this->getJson("/api/missions/{$mine->id}")->assertForbidden();
+
+        // an admin gives the role the permission: the technician then sees only the missions assigned to him
+        \App\Models\Role::where('name', 'PROFESSIONAL')->first()
+            ->permissions()->attach(\App\Models\Permission::where('key', 'missions.view')->pluck('id'));
+        Sanctum::actingAs($professional->fresh()); // every real request loads the user (and their permissions) again
 
         $this->getJson('/api/missions')
             ->assertOk()

@@ -1382,4 +1382,56 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get registerTechnicianDesc =>
       'Registreer als technicus om interventies in het veld uit te voeren.';
+
+  @override
+  String get locBannerServicesOff =>
+      'Locatie staat uit op deze telefoon. Zet ze aan zodat je team kan zien waar je bent.';
+
+  @override
+  String get locBannerDenied =>
+      'Sta locatietoegang toe zodat je team kan zien waar je bent terwijl je werkt.';
+
+  @override
+  String get locBannerBlocked =>
+      'Locatietoegang is geblokkeerd. Sta die toe in de app-instellingen.';
+
+  @override
+  String get locActionTurnOn => 'Aanzetten';
+
+  @override
+  String get locActionAllow => 'Toestaan';
+
+  @override
+  String get locRationaleTitle => 'Je locatie delen?';
+
+  @override
+  String get locRationaleBody =>
+      'Vanakel Group deelt je positie met je team terwijl je werkt, ook als de app op de achtergrond draait. Zolang het actief is, zie je een melding. Je kunt dit altijd uitzetten in de instellingen van de telefoon.';
+
+  @override
+  String get locRationaleContinue => 'Doorgaan';
+
+  @override
+  String get notNow => 'Niet nu';
+
+  @override
+  String get batteryTitle => 'Blijf delen op de achtergrond';
+
+  @override
+  String get batteryBody =>
+      'Sommige telefoons stoppen apps om batterij te sparen. Sta Vanakel Group toe zonder batterijbeperking te draaien zodat live volgen niet wordt onderbroken.';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get notifBlocked =>
+      'Meldingen staan uit: je mist meldingen over missies en interventies.';
+
+  @override
+  String get couldNotOpenMaps =>
+      'Er kon geen kaart-app worden geopend op deze telefoon.';
+
+  @override
+  String get couldNotOpenLink => 'Deze link kon niet worden geopend.';
 }

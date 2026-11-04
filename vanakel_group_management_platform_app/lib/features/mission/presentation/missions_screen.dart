@@ -930,7 +930,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
   }
 
   // GPS navigation from the user's position to the mission
-  Future<void> _openMap(String address) => MapService.openDirections(address);
+  Future<void> _openMap(String address) => MapService.openDirections(context, address);
 
   Widget _buildActionButton(BuildContext context, WidgetRef ref, IconData icon, Color color, VoidCallback onPressed) {
     return InkWell(

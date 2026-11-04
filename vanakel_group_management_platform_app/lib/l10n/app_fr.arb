@@ -429,5 +429,20 @@
   "pageNotFound": "Page introuvable",
   "technicianRoleSubtitle": "Travail de terrain et interventions",
   "technicianAccess": "Accès technicien",
-  "registerTechnicianDesc": "Inscrivez-vous en tant que technicien pour réaliser des interventions sur le terrain."
+  "registerTechnicianDesc": "Inscrivez-vous en tant que technicien pour réaliser des interventions sur le terrain.",
+  "locBannerServicesOff": "La localisation est désactivée sur ce téléphone. Activez-la pour que votre équipe sache où vous êtes.",
+  "locBannerDenied": "Autorisez l'accès à la position pour que votre équipe sache où vous êtes pendant votre travail.",
+  "locBannerBlocked": "L'accès à la position est bloqué. Autorisez-le dans les réglages de l'application.",
+  "locActionTurnOn": "Activer",
+  "locActionAllow": "Autoriser",
+  "locRationaleTitle": "Partager votre position ?",
+  "locRationaleBody": "Vanakel Group partage votre position avec votre équipe pendant que vous travaillez, y compris lorsque l'application est en arrière-plan. Une notification s'affiche tant que c'est actif. Vous pouvez le désactiver à tout moment dans les réglages du téléphone.",
+  "locRationaleContinue": "Continuer",
+  "notNow": "Pas maintenant",
+  "batteryTitle": "Continuer le partage en arrière-plan",
+  "batteryBody": "Certains téléphones arrêtent les applications pour économiser la batterie. Autorisez Vanakel Group à fonctionner sans restriction de batterie pour que le suivi en direct ne soit pas interrompu.",
+  "later": "Plus tard",
+  "notifBlocked": "Les notifications sont désactivées : vous manquerez les alertes de missions et d'interventions.",
+  "couldNotOpenMaps": "Aucune application de cartes n'a pu être ouverte sur ce téléphone.",
+  "couldNotOpenLink": "Ce lien n'a pas pu être ouvert."
 }

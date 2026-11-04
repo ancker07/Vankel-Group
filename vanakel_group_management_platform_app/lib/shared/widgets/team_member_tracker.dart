@@ -1,3 +1,4 @@
+import '../../core/utils/launcher.dart';
 import '../../core/utils/app_format.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/api/dio_client.dart';
 import '../../core/services/map_service.dart';
 import '../../core/theme/app_theme.dart';
@@ -98,7 +98,7 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
               style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
           if (member['phone'] != null && '${member['phone']}'.isNotEmpty)
             GestureDetector(
-              onTap: () => launchUrl(Uri.parse('tel:${member['phone']}')),
+              onTap: () => openLink(context, Uri(scheme: 'tel', path: '${member['phone']}')),
               child: Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text('${member['phone']}', style: const TextStyle(color: AppTheme.zinc400, fontSize: 13)),
@@ -141,7 +141,7 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
                   options: MapOptions(
                     initialCenter: point,
                     initialZoom: 15,
-                    onTap: (_, __) => _openInMaps(point),
+                    onTap: (_, __) => MapService.openPoint(context, point.latitude, point.longitude),
                   ),
                   children: [
                     TileLayer(
@@ -165,7 +165,7 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _openInMaps(point),
+                onPressed: () => MapService.openPoint(context, point.latitude, point.longitude),
                 icon: const Icon(Icons.map_outlined, size: 16, color: AppTheme.brandGreen),
                 label: Text(l10n.openInGoogleMaps,
                     style: const TextStyle(color: AppTheme.brandGreen, fontWeight: FontWeight.w900, fontSize: 12)),
@@ -175,13 +175,6 @@ class _TeamMemberTrackerState extends ConsumerState<TeamMemberTracker> {
           ],
         ],
       ),
-    );
-  }
-
-  void _openInMaps(LatLng p) {
-    launchUrl(
-      Uri.parse('https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}'),
-      mode: LaunchMode.externalApplication,
     );
   }
 }

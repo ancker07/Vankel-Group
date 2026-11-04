@@ -1300,6 +1300,7 @@ const App: React.FC = () => {
                       } />
 
                       <Route path="missions" element={
+                        !can('missions.view') ? <Navigate to="dashboard" replace /> :
                         <MissionsPage
                           missions={missions}
                           buildings={buildings}

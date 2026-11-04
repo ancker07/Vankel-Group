@@ -1386,4 +1386,56 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get registerTechnicianDesc =>
       'Inscrivez-vous en tant que technicien pour réaliser des interventions sur le terrain.';
+
+  @override
+  String get locBannerServicesOff =>
+      'La localisation est désactivée sur ce téléphone. Activez-la pour que votre équipe sache où vous êtes.';
+
+  @override
+  String get locBannerDenied =>
+      'Autorisez l\'accès à la position pour que votre équipe sache où vous êtes pendant votre travail.';
+
+  @override
+  String get locBannerBlocked =>
+      'L\'accès à la position est bloqué. Autorisez-le dans les réglages de l\'application.';
+
+  @override
+  String get locActionTurnOn => 'Activer';
+
+  @override
+  String get locActionAllow => 'Autoriser';
+
+  @override
+  String get locRationaleTitle => 'Partager votre position ?';
+
+  @override
+  String get locRationaleBody =>
+      'Vanakel Group partage votre position avec votre équipe pendant que vous travaillez, y compris lorsque l\'application est en arrière-plan. Une notification s\'affiche tant que c\'est actif. Vous pouvez le désactiver à tout moment dans les réglages du téléphone.';
+
+  @override
+  String get locRationaleContinue => 'Continuer';
+
+  @override
+  String get notNow => 'Pas maintenant';
+
+  @override
+  String get batteryTitle => 'Continuer le partage en arrière-plan';
+
+  @override
+  String get batteryBody =>
+      'Certains téléphones arrêtent les applications pour économiser la batterie. Autorisez Vanakel Group à fonctionner sans restriction de batterie pour que le suivi en direct ne soit pas interrompu.';
+
+  @override
+  String get later => 'Plus tard';
+
+  @override
+  String get notifBlocked =>
+      'Les notifications sont désactivées : vous manquerez les alertes de missions et d\'interventions.';
+
+  @override
+  String get couldNotOpenMaps =>
+      'Aucune application de cartes n\'a pu être ouverte sur ce téléphone.';
+
+  @override
+  String get couldNotOpenLink => 'Ce lien n\'a pas pu être ouvert.';
 }

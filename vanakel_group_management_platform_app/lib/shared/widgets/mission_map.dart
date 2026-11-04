@@ -32,7 +32,7 @@ class MissionMap extends StatelessWidget {
               initialCenter: point,
               initialZoom: 15,
               interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
-              onTap: (_, __) => MapService.openDirections(address),
+              onTap: (_, __) => MapService.openDirections(context, address),
             ),
             children: [
               TileLayer(

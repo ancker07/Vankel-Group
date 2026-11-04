@@ -585,5 +585,20 @@
   "pageNotFound": "Page not found",
   "technicianRoleSubtitle": "Field Work & Interventions",
   "technicianAccess": "Technician Access",
-  "registerTechnicianDesc": "Register as a technician to carry out interventions in the field."
+  "registerTechnicianDesc": "Register as a technician to carry out interventions in the field.",
+  "locBannerServicesOff": "Location is switched off on this phone. Turn it on so your team can see where you are.",
+  "locBannerDenied": "Allow location access so your team can see where you are while you work.",
+  "locBannerBlocked": "Location access is blocked. Allow it in the app settings.",
+  "locActionTurnOn": "Turn on",
+  "locActionAllow": "Allow",
+  "locRationaleTitle": "Share your location?",
+  "locRationaleBody": "Vanakel Group shares your position with your team while you are working, also when the app is in the background. A notification is shown while it is active. You can turn it off at any time in the phone settings.",
+  "locRationaleContinue": "Continue",
+  "notNow": "Not now",
+  "batteryTitle": "Keep sharing in the background",
+  "batteryBody": "Some phones stop apps to save battery. Allow Vanakel Group to run without battery restrictions so live tracking is not interrupted.",
+  "later": "Later",
+  "notifBlocked": "Notifications are off: you will miss mission and intervention alerts.",
+  "couldNotOpenMaps": "No maps app could be opened on this phone.",
+  "couldNotOpenLink": "This link could not be opened."
 }

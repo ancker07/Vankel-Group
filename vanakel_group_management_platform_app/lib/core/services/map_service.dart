@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
+import '../utils/launcher.dart';
 
 class MapService {
   static const String userAgent = 'com.vanakelgroup.app';
@@ -52,23 +54,45 @@ class MapService {
     }
   }
 
-  /// Open turn-by-turn navigation from the user's current position to [address]
-  /// (Google Maps; Apple Maps as fallback).
-  static Future<void> openDirections(String address) async {
-    final encodedAddress = Uri.encodeComponent(address);
-    final googleMapsUrl = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1&destination=$encodedAddress&travelmode=driving');
-    final appleMapsUrl = Uri.parse('https://maps.apple.com/?daddr=$encodedAddress&dirflg=d');
-
-    try {
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-      } else if (await canLaunchUrl(appleMapsUrl)) {
-        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      debugPrint('Error opening directions: $e');
+  /// Opens navigation to [address] in whatever maps app the phone has, trying in order:
+  /// Google Maps turn-by-turn, the Google Maps link (app or browser), then any app that handles
+  /// a generic geo: link. Tells the user when none of them could be opened (it used to do nothing).
+  static Future<bool> openDirections(BuildContext context, String address) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final query = address.trim();
+    if (query.isEmpty || query == 'No Address') {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.noAddress), backgroundColor: Colors.red));
+      return false;
     }
+
+    final encoded = Uri.encodeComponent(query);
+    final attempts = <Uri>[
+      Uri.parse('google.navigation:q=$encoded&mode=d'),
+      Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving'),
+      Uri.parse('geo:0,0?q=$encoded'),
+    ];
+    for (final uri in attempts) {
+      if (await launchExternal(uri)) return true;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(l10n.couldNotOpenMaps), backgroundColor: Colors.red));
+    return false;
+  }
+
+  /// Opens a position (latitude / longitude) in a maps app, with the same fallbacks and the same
+  /// visible message as [openDirections].
+  static Future<bool> openPoint(BuildContext context, double latitude, double longitude) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = AppLocalizations.of(context)!.couldNotOpenMaps;
+    final attempts = <Uri>[
+      Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude'),
+      Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude'),
+    ];
+    for (final uri in attempts) {
+      if (await launchExternal(uri)) return true;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+    return false;
   }
 
   /// Generate a static map image URL for a given address using

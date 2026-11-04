@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Building2, Clock, ClipboardList, FileText, ShieldCheck, Mail, Settings, User } from 'lucide-react';
 
 import { Role } from '@/types';
+import { usePermissions } from '@/lib/permissions';
 
 interface BottomNavProps {
     role: Role | null;
@@ -19,6 +20,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
 
     const navigate = useNavigate();
     const location = useLocation();
+    // Each tab only exists for roles that have the matching permission (a technician has no Missions tab)
+    const can = usePermissions();
 
     const getActiveTab = () => {
         const path = location.pathname;
@@ -87,7 +90,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
 
 
                     </button>
-                    {role !== 'SYNDIC' && (
+                    {role !== 'SYNDIC' && can('buildings.view') && (
                         <button
                             id="mobile-nav-management"
                             onClick={() => handleTabClick('management')}
@@ -98,6 +101,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
 
                         </button>
                     )}
+                    {can('interventions.view') && (
                     <button
                         id="mobile-nav-ongoing"
                         onClick={() => handleTabClick('ongoing')}
@@ -114,6 +118,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                         <span className="text-[10px] font-bold whitespace-nowrap">{role === 'SYNDIC' ? (t.ongoing_short || 'Suivi') : 'Interv.'}</span>
 
                     </button>
+                    )}
+                    {can('missions.view') && (
                     <button
                         id="mobile-nav-missions"
                         onClick={() => handleTabClick('missions')}
@@ -130,7 +136,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
                         <span className="text-[10px] font-bold whitespace-nowrap">{t.missions_short || 'Missions'}</span>
 
                     </button>
-                    {role !== 'SYNDIC' ? (
+                    )}
+                    {role !== 'SYNDIC' ? (can('reports.view') &&
                         <button
                             id="mobile-nav-reports"
                             onClick={() => handleTabClick('reports')}

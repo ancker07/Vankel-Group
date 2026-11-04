@@ -80,8 +80,10 @@ class PermissionCatalog
             'emails.view', 'emails.manage', 'contacts.view', 'contacts.manage',
             'team.view', 'location.share', 'users.view', 'users.update', 'ai.use',
         ]],
+        // A technician works on interventions that are assigned to them. Missions (requests that
+        // are still to be approved / dispatched) are for admins, so there is no missions.view here.
         'PROFESSIONAL' => ['Technician', 'admin', [
-            'missions.view', 'interventions.view', 'interventions.update',
+            'interventions.view', 'interventions.update',
             'maintenance.view', 'buildings.view', 'location.share', 'ai.use',
         ]],
         'SYNDIC' => ['Syndic', 'syndic', [

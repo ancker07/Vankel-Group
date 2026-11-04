@@ -2685,6 +2685,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Register as a technician to carry out interventions in the field.'**
   String get registerTechnicianDesc;
+
+  /// No description provided for @locBannerServicesOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is switched off on this phone. Turn it on so your team can see where you are.'**
+  String get locBannerServicesOff;
+
+  /// No description provided for @locBannerDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location access so your team can see where you are while you work.'**
+  String get locBannerDenied;
+
+  /// No description provided for @locBannerBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is blocked. Allow it in the app settings.'**
+  String get locBannerBlocked;
+
+  /// No description provided for @locActionTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get locActionTurnOn;
+
+  /// No description provided for @locActionAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get locActionAllow;
+
+  /// No description provided for @locRationaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your location?'**
+  String get locRationaleTitle;
+
+  /// No description provided for @locRationaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Vanakel Group shares your position with your team while you are working, also when the app is in the background. A notification is shown while it is active. You can turn it off at any time in the phone settings.'**
+  String get locRationaleBody;
+
+  /// No description provided for @locRationaleContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get locRationaleContinue;
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
+
+  /// No description provided for @batteryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep sharing in the background'**
+  String get batteryTitle;
+
+  /// No description provided for @batteryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some phones stop apps to save battery. Allow Vanakel Group to run without battery restrictions so live tracking is not interrupted.'**
+  String get batteryBody;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @notifBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off: you will miss mission and intervention alerts.'**
+  String get notifBlocked;
+
+  /// No description provided for @couldNotOpenMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'No maps app could be opened on this phone.'**
+  String get couldNotOpenMaps;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'This link could not be opened.'**
+  String get couldNotOpenLink;
 }
 
 class _AppLocalizationsDelegate

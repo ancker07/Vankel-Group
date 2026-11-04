@@ -1,3 +1,4 @@
+import 'device_status_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -204,7 +205,10 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           ],
         ),
       ),
-      body: navigationShell,
+      body: Column(children: [
+        const DeviceStatusBanner(),
+        Expanded(child: navigationShell),
+      ]),
       bottomNavigationBar: Container(
         color: AppTheme.zinc950,
         child: SafeArea(

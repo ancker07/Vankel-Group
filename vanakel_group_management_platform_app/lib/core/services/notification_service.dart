@@ -47,15 +47,13 @@ class NotificationService {
 
   Future<void> initialize() async {
     // Request permissions
-    NotificationSettings settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-
-    if (kDebugMode) {
-      print('User granted permission: ${settings.authorizationStatus}');
+    // Android: the notification permission (13+) is asked after login by DeviceStatusBanner, in a
+    // sensible order and with a "blocked" banner if refused. Other platforms ask here.
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      final settings = await _fcm.requestPermission(alert: true, badge: true, sound: true, provisional: false);
+      if (kDebugMode) {
+        print('User granted permission: ${settings.authorizationStatus}');
+      }
     }
 
     // Create the channel

@@ -1,3 +1,4 @@
+import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,7 @@ class AdminDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final canSeeMissions = ref.watch(authStateProvider).user?.can('missions.view') ?? false;
     final missionsAsync = ref.watch(missionListProvider);
     final interventionsAsync = ref.watch(interventionListProvider);
 
@@ -107,13 +109,14 @@ class AdminDashboard extends ConsumerWidget {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.5,
                     children: [
-                      _buildStatCard(
-                        context,
-                        title: l10n.newMissions,
-                        value: pendingMissions.toString(),
-                        icon: Icons.assignment_outlined,
-                        color: AppTheme.brandGreen,
-                      ),
+                      if (canSeeMissions)
+                        _buildStatCard(
+                          context,
+                          title: l10n.newMissions,
+                          value: pendingMissions.toString(),
+                          icon: Icons.assignment_outlined,
+                          color: AppTheme.brandGreen,
+                        ),
                       _buildStatCard(
                         context,
                         title: l10n.inProgress,

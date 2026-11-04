@@ -429,5 +429,20 @@
   "pageNotFound": "Pagina niet gevonden",
   "technicianRoleSubtitle": "Veldwerk en interventies",
   "technicianAccess": "Toegang technicus",
-  "registerTechnicianDesc": "Registreer als technicus om interventies in het veld uit te voeren."
+  "registerTechnicianDesc": "Registreer als technicus om interventies in het veld uit te voeren.",
+  "locBannerServicesOff": "Locatie staat uit op deze telefoon. Zet ze aan zodat je team kan zien waar je bent.",
+  "locBannerDenied": "Sta locatietoegang toe zodat je team kan zien waar je bent terwijl je werkt.",
+  "locBannerBlocked": "Locatietoegang is geblokkeerd. Sta die toe in de app-instellingen.",
+  "locActionTurnOn": "Aanzetten",
+  "locActionAllow": "Toestaan",
+  "locRationaleTitle": "Je locatie delen?",
+  "locRationaleBody": "Vanakel Group deelt je positie met je team terwijl je werkt, ook als de app op de achtergrond draait. Zolang het actief is, zie je een melding. Je kunt dit altijd uitzetten in de instellingen van de telefoon.",
+  "locRationaleContinue": "Doorgaan",
+  "notNow": "Niet nu",
+  "batteryTitle": "Blijf delen op de achtergrond",
+  "batteryBody": "Sommige telefoons stoppen apps om batterij te sparen. Sta Vanakel Group toe zonder batterijbeperking te draaien zodat live volgen niet wordt onderbroken.",
+  "later": "Later",
+  "notifBlocked": "Meldingen staan uit: je mist meldingen over missies en interventies.",
+  "couldNotOpenMaps": "Er kon geen kaart-app worden geopend op deze telefoon.",
+  "couldNotOpenLink": "Deze link kon niet worden geopend."
 }
