@@ -101,6 +101,11 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         {!isTechnician && can('maintenance.view') && (
                             <SidebarItem icon={<RotateCcw size={20} className="text-orange-500" />} label={t.maintenance || 'Maintenance'} active={activeTab === 'entretien_list'} onClick={() => handleTabClick('entretien_list')} />
                         )}
+                        {isTechnician && (
+                            <div id="nav-profile">
+                                <SidebarItem icon={<User size={20} />} label={t.profile || 'Profile'} active={activeTab === 'profile'} onClick={() => handleTabClick('profile')} />
+                            </div>
+                        )}
                         {can('reports.view') && (
                             <div id="nav-reports">
                                 <SidebarItem icon={<FileText size={20} className="text-yellow-400" />} label={t.reports || 'Reports'} active={activeTab === 'reports'} onClick={() => handleTabClick('reports')} />

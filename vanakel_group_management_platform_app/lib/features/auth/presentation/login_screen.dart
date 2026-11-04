@@ -188,8 +188,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: l10n.email,
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    labelText: _selectedRole == 'PROFESSIONAL' ? 'Username' : l10n.email,
+                    prefixIcon: Icon(_selectedRole == 'PROFESSIONAL' ? Icons.person_outline : Icons.email_outlined),
                   ),
                 ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
 

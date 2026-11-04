@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:latlong2/latlong.dart';
 import '../../l10n/app_localizations.dart';
 import '../utils/launcher.dart';
@@ -9,18 +9,23 @@ class MapService {
   static const String userAgent = 'com.vanakelgroup.app';
 
   static final Map<String, LatLng?> _geocodeCache = {};
-  static final Dio _nominatim = Dio(BaseOptions(
-    baseUrl: 'https://nominatim.openstreetmap.org',
-    headers: {'User-Agent': userAgent},
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  ));
+  static final Dio _nominatim = Dio(
+    BaseOptions(
+      baseUrl: 'https://nominatim.openstreetmap.org',
+      headers: {'User-Agent': userAgent},
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+    ),
+  );
 
   /// Convert an address to coordinates using OpenStreetMap Nominatim (free, no key).
   /// Results are cached for the app session.
   static Future<LatLng?> geocode(String address) {
-    if (_geocodeCache.containsKey(address)) return Future.value(_geocodeCache[address]);
-    return _pending[address] ??= _enqueue(address);
+    final query = _geocodeQuery(address);
+    if (query.isEmpty) return Future.value(null);
+    if (_geocodeCache.containsKey(query))
+      return Future.value(_geocodeCache[query]);
+    return _pending[query] ??= _enqueue(query);
   }
 
   static final Map<String, Future<LatLng?>> _pending = {};
@@ -29,7 +34,9 @@ class MapService {
   /// Nominatim allows ~1 request per second, so lookups run one after another.
   static Future<LatLng?> _enqueue(String address) {
     final result = _queue.then((_) => _lookup(address));
-    _queue = result.then((_) => Future.delayed(const Duration(milliseconds: 1100)));
+    _queue = result.then(
+      (_) => Future.delayed(const Duration(milliseconds: 1100)),
+    );
     return result.whenComplete(() => _pending.remove(address));
   }
 
@@ -37,15 +44,23 @@ class MapService {
     if (_geocodeCache.containsKey(address)) return _geocodeCache[address];
 
     try {
-      final response = await _nominatim.get('/search', queryParameters: {
-        'q': address,
-        'format': 'json',
-        'limit': 1,
-      });
+      final nativeResult = await _nativeLookup(address);
+      if (nativeResult != null) {
+        _geocodeCache[address] = nativeResult;
+        return nativeResult;
+      }
+
+      final response = await _nominatim.get(
+        '/search',
+        queryParameters: {'q': address, 'format': 'json', 'limit': 1},
+      );
       final results = response.data as List;
       final point = results.isEmpty
           ? null
-          : LatLng(double.parse(results[0]['lat']), double.parse(results[0]['lon']));
+          : LatLng(
+              double.parse(results[0]['lat']),
+              double.parse(results[0]['lon']),
+            );
       _geocodeCache[address] = point;
       return point;
     } catch (e) {
@@ -54,44 +69,94 @@ class MapService {
     }
   }
 
+  static Future<LatLng?> _nativeLookup(String address) async {
+    try {
+      final results = await geocoding.locationFromAddress(address).timeout(
+        const Duration(seconds: 8),
+      );
+      if (results.isEmpty) return null;
+      return LatLng(results.first.latitude, results.first.longitude);
+    } catch (e) {
+      debugPrint('Native geocoding failed for "$address": $e');
+      return null;
+    }
+  }
+
+  static String _geocodeQuery(String address) {
+    final parts = address
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty && part.toLowerCase() != 'unknown')
+        .toList();
+    if (parts.isEmpty) return '';
+
+    final query = parts.join(', ');
+    return RegExp(
+          r'\b(belgium|belgique|belgië|be)\b',
+          caseSensitive: false,
+        ).hasMatch(query)
+        ? query
+        : '$query, Belgium';
+  }
+
   /// Opens navigation to [address] in whatever maps app the phone has, trying in order:
   /// Google Maps turn-by-turn, the Google Maps link (app or browser), then any app that handles
   /// a generic geo: link. Tells the user when none of them could be opened (it used to do nothing).
-  static Future<bool> openDirections(BuildContext context, String address) async {
+  static Future<bool> openDirections(
+    BuildContext context,
+    String address,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context)!;
     final query = address.trim();
     if (query.isEmpty || query == 'No Address') {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.noAddress), backgroundColor: Colors.red));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.noAddress), backgroundColor: Colors.red),
+      );
       return false;
     }
 
     final encoded = Uri.encodeComponent(query);
     final attempts = <Uri>[
       Uri.parse('google.navigation:q=$encoded&mode=d'),
-      Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving'),
+      Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving',
+      ),
       Uri.parse('geo:0,0?q=$encoded'),
     ];
     for (final uri in attempts) {
       if (await launchExternal(uri)) return true;
     }
-    messenger.showSnackBar(SnackBar(content: Text(l10n.couldNotOpenMaps), backgroundColor: Colors.red));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.couldNotOpenMaps),
+        backgroundColor: Colors.red,
+      ),
+    );
     return false;
   }
 
   /// Opens a position (latitude / longitude) in a maps app, with the same fallbacks and the same
   /// visible message as [openDirections].
-  static Future<bool> openPoint(BuildContext context, double latitude, double longitude) async {
+  static Future<bool> openPoint(
+    BuildContext context,
+    double latitude,
+    double longitude,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final message = AppLocalizations.of(context)!.couldNotOpenMaps;
     final attempts = <Uri>[
-      Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude'),
+      Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
+      ),
       Uri.parse('geo:$latitude,$longitude?q=$latitude,$longitude'),
     ];
     for (final uri in attempts) {
       if (await launchExternal(uri)) return true;
     }
-    messenger.showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+    messenger.showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
     return false;
   }
 

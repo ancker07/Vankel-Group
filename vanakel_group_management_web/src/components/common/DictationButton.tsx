@@ -6,7 +6,7 @@ import { Language } from '@/types';
 const SpeechRecognitionImpl: any =
     typeof window !== 'undefined' ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition : null;
 
-const SPEECH_LANG: Record<string, string> = { FR: 'fr-BE', NL: 'nl-BE', EN: 'en-GB' };
+const SPEECH_LANG: Record<string, string> = { FR: 'fr-FR', NL: 'nl-NL', EN: 'en-GB' };
 
 // Phones: Android Chrome repeats words in "continuous" mode, so there each phrase is one
 // recognition session and a new one is started automatically until the user stops.

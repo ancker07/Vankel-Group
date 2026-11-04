@@ -26,7 +26,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!password || !email) {
-            setError('Email and password are required');
+            setError(isTechnician ? 'Username and password are required' : 'Email and password are required');
             return;
         }
 
@@ -35,13 +35,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
 
         try {
             const data = await authService.login({
-                email: email,
+                ...(isTechnician ? { username: email } : { email }),
                 password: password,
                 role: role
             });
 
             if (data.success) {
-                onLogin(data.user?.name || email.split('@')[0], email, data.token, data.user);
+                onLogin(data.user?.name || email.split('@')[0], data.user?.email || email, data.token, data.user);
             } else {
                 if (data.message && data.message.includes('pending')) {
                     localStorage.setItem('vanakel_userEmail', email);
@@ -114,16 +114,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, onSignup, lang, 
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Identity</label>
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">{isTechnician ? 'Username' : 'Email'}</label>
                                 <div className="relative group/field transition-all">
                                     <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-zinc-600 transition-colors group-focus-within/field:text-white">
                                         <Mail size={18} />
                                     </div>
                                     <input
-                                        type="email"
+                                        type={isTechnician ? 'text' : 'email'}
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Email Address"
+                                        placeholder={isTechnician ? 'Username' : 'Email Address'}
                                         className={`w-full bg-zinc-900 border border-zinc-800 rounded-3xl pl-12 pr-5 py-5 text-sm font-bold text-white outline-none ${borderColor} transition-all placeholder:text-zinc-700`}
                                     />
                                 </div>

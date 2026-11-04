@@ -129,7 +129,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const email = localStorage.getItem('vanakel_userEmail');
-      if (email && (role === 'ADMIN' || role === 'SYNDIC')) {
+      if (role) {
         try {
           const response = await authService.getProfile(email);
           if (response.success) {

@@ -159,6 +159,16 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
 
                         </button>
                     )}
+                    {isTechnician && (
+                        <button
+                            id="mobile-nav-profile"
+                            onClick={() => handleTabClick('profile')}
+                            className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${activeTab === 'profile' ? 'text-brand-green' : 'text-zinc-500'}`}
+                        >
+                            <User size={20} />
+                            <span className="text-[10px] font-bold whitespace-nowrap">{t.profile_short || 'Profile'}</span>
+                        </button>
+                    )}
                 </>
 
             )}

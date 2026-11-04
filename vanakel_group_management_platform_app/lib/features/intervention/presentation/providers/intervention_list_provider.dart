@@ -69,5 +69,12 @@ final interventionListProvider = AsyncNotifierProvider<InterventionListNotifier,
 );
 
 final interventionDetailProvider = FutureProvider.family<Intervention, String>((ref, id) async {
+  final cachedInterventions = ref.watch(interventionListProvider).asData?.value;
+  if (cachedInterventions != null) {
+    for (final intervention in cachedInterventions) {
+      if (intervention.id == id) return intervention;
+    }
+  }
+
   return ref.watch(interventionRepositoryProvider).getInterventionById(id);
 });

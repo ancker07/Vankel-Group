@@ -31,7 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final response = await _dio.post(
         ApiConstants.login,
         data: {
-          'email': email,
+          if (role == 'PROFESSIONAL') 'username': email else 'email': email,
           'password': password,
           'role': role,
           if (deviceToken != null && deviceToken.isNotEmpty) 'fcm_token': deviceToken,

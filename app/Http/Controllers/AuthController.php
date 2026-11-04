@@ -69,13 +69,24 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['nullable', 'string'],
+            'username' => ['nullable', 'string'],
             'password' => ['required'],
             'role' => ['required', 'string'],
             'fcm_token' => ['nullable', 'string'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $identifier = trim((string) ($request->input('username') ?: $request->input('email')));
+        if ($identifier === '') {
+            throw ValidationException::withMessages(['email' => [__('Username or email is required.')]]);
+        }
+
+        $user = User::where('email', $identifier)->first();
+        if (!$user && !str_contains($identifier, '@')) {
+            $user = User::where('role', 'PROFESSIONAL')
+                ->whereRaw('LOWER(SUBSTRING_INDEX(email, "@", 1)) = ?', [strtolower($identifier)])
+                ->first();
+        }
 
         if ($user && Hash::check($request->password, $user->password)) {
             $requestedRole = strtoupper($request->role);

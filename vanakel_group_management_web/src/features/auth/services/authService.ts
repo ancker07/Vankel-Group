@@ -88,9 +88,9 @@ export const authService = {
         }
     },
 
-    getProfile: async (email: string): Promise<{ success: boolean; user?: any; message?: string }> => {
+    getProfile: async (email?: string | null): Promise<{ success: boolean; user?: any; message?: string }> => {
         try {
-            const response = await apiClient.post('/profile/details', { email });
+            const response = await apiClient.post('/profile/details', email ? { email } : {});
             return response.data;
         } catch (error: any) {
             const msg = error.response?.data?.message || 'Failed to fetch profile';
@@ -98,6 +98,5 @@ export const authService = {
         }
     }
 };
-
 
 
