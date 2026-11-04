@@ -44,6 +44,8 @@ Route::get('/missions/{id}', [InterventionController::class, 'getMissionById'])-
 Route::put('/missions/{id}', [InterventionController::class, 'updateMission'])->middleware('permission:missions.update');
 Route::post('/missions/{id}/approve', [InterventionController::class, 'approveMission'])->middleware('permission:missions.approve');
 Route::post('/missions/{id}/reject', [InterventionController::class, 'rejectMission'])->middleware('permission:missions.approve');
+Route::post('/missions/{id}/duplicate/dismiss', [\App\Http\Controllers\MissionDuplicateController::class, 'dismiss'])->middleware('permission:missions.approve');
+Route::post('/missions/{id}/duplicate/merge', [\App\Http\Controllers\MissionDuplicateController::class, 'merge'])->middleware('permission:missions.approve');
 
 // Interventions (POST creates a mission request or an intervention; the controller checks which)
 Route::post('/interventions', [InterventionController::class, 'store'])->middleware('permission:missions.create,interventions.create');

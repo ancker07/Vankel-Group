@@ -16,6 +16,22 @@ class Mission extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    public function updates()
+    {
+        return $this->hasMany(MissionUpdate::class);
+    }
+
+    public function possibleDuplicateOf()
+    {
+        return $this->belongsTo(Mission::class, 'possible_duplicate_of_id');
+    }
+
+    /** Missions that can still receive follow-ups (everything except rejected ones). */
+    public function scopeOpen($query)
+    {
+        return $query->where('status', '!=', 'REJECTED');
+    }
+
     public function building()
     {
         return $this->belongsTo(Building::class);

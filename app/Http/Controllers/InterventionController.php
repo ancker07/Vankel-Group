@@ -207,7 +207,7 @@ class InterventionController extends Controller
     {
         $user = auth('sanctum')->user();
 
-        $query = Mission::with(['documents', 'email', 'building', 'syndic', 'assignedUser:id,name,email,role,phone'])->latest();
+        $query = Mission::with(['documents', 'email', 'building', 'syndic', 'updates', 'assignedUser:id,name,email,role,phone'])->latest();
 
         if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
@@ -227,7 +227,7 @@ class InterventionController extends Controller
     public function getMissionById($id)
     {
         $user = auth('sanctum')->user();
-        $query = Mission::with(['documents', 'email', 'building', 'assignedUser:id,name,email,role,phone']);
+        $query = Mission::with(['documents', 'email', 'building', 'updates', 'assignedUser:id,name,email,role,phone']);
         
         if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {

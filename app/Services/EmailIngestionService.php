@@ -7,6 +7,7 @@ use App\Models\Building;
 use App\Models\Mission;
 use App\Models\Syndic;
 use Carbon\Carbon;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -14,11 +15,13 @@ class EmailIngestionService
 {
     protected $aiService;
     protected $notificationService;
+    protected MissionDeduplicator $deduper;
 
-    public function __construct(AiService $aiService, NotificationService $notificationService)
+    public function __construct(AiService $aiService, NotificationService $notificationService, ?MissionDeduplicator $deduper = null)
     {
         $this->aiService = $aiService;
         $this->notificationService = $notificationService;
+        $this->deduper = $deduper ?? app(MissionDeduplicator::class);
     }
 
     public function ingest(Email $email)
@@ -190,7 +193,30 @@ class EmailIngestionService
                 ];
             }
 
-            $result = DB::transaction(function () use ($email, $aiData, $isThread, $conversation) {
+            // ========= DUPLICATE PROTECTION: LOCK KEYS =========
+            // Everything that identifies "the same job" is locked until the mission is committed,
+            // so two workers can never both pass the duplicate check and both create a mission.
+            $missionDataPre = $aiData['mission'] ?? [];
+            $titlePre = $missionDataPre['title']['fr'] ?? (is_string($missionDataPre['title'] ?? null) ? $missionDataPre['title'] : null);
+            $refs = $this->deduper->extractReferences(
+                $missionDataPre['reference'] ?? null,
+                $titlePre,
+                $email->subject,
+                ...$conversation->pluck('subject')->all()
+            );
+            $threadIds = $conversation->pluck('thread_id')
+                ->push($email->thread_id ?: $email->message_id)
+                ->filter()->unique()->values()->all();
+
+            $lockKeys = array_map(fn ($r) => 'ref:' . $r, $refs);
+            foreach ($threadIds as $tid) {
+                $lockKeys[] = 'thread:' . md5($tid);
+            }
+            if ($addrKey = $this->deduper->addressKey($missionDataPre['address']['raw'] ?? null)) {
+                $lockKeys[] = $addrKey;
+            }
+
+            $result = $this->deduper->withLocks($lockKeys, fn () => DB::transaction(function () use ($email, $aiData, $isThread, $conversation, $refs, $threadIds) {
                 $missionData = $aiData['mission'] ?? [];
                 $rawAddress = $missionData['address']['raw'] ?? null;
                 
@@ -229,6 +255,9 @@ class EmailIngestionService
                 }
 
                 $mission = null;
+                $match = null;
+                $attachedTo = null;
+                $duplicateFlag = null;
                 if ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW') {
                     $title_fr = $missionData['title']['fr'] ?? (is_string($missionData['title'] ?? null) ? $missionData['title'] : $email->subject);
                     $title_en = $missionData['title']['en'] ?? $title_fr;
@@ -238,6 +267,19 @@ class EmailIngestionService
                     $desc_en = $missionData['description']['en'] ?? $desc_fr;
                     $desc_nl = $missionData['description']['nl'] ?? $desc_fr;
 
+                    // ========= DUPLICATE CHECK =========
+                    $match = $this->deduper->findMatch($refs, $threadIds, $building ? $building->id : null, $title_fr);
+                    if ($match && $match['auto']) {
+                        $attachedTo = $match['mission'];
+                        $this->deduper->attach($attachedTo, $email, $isThread ? $conversation : collect([$email]), $aiData, $match);
+                    } elseif ($match) {
+                        // borderline: create the mission but flag it for an admin
+                        $duplicateFlag = $match;
+                        Log::info("Mission dedup: email #{$email->id} flagged as possible duplicate of mission #{$match['mission']->id} (score {$match['score']})");
+                    }
+                }
+
+                if (!$attachedTo && ($aiData['classification'] === 'MISSION' || $aiData['classification'] === 'NEEDS_REVIEW')) {
                     $mission = Mission::create([
                         'building_id' => $building ? $building->id : null,
                         'syndic_id' => $syndicId,
@@ -254,10 +296,13 @@ class EmailIngestionService
                         'description_nl' => $desc_nl,
                         'sector' => $missionData['sector'] ?? 'GENERAL',
                         'urgency' => $missionData['urgency'] ?? 'MEDIUM',
-                        'status' => ($aiData['classification'] === 'MISSION' && $building) ? 'PENDING' : 'NEEDS_REVIEW',
+                        'status' => ($aiData['classification'] === 'MISSION' && $building && !$duplicateFlag) ? 'PENDING' : 'NEEDS_REVIEW',
                         'source_type' => 'EMAIL',
                         'source_message_id' => $email->message_id,
-                        'reference' => $missionData['reference'] ?? null,
+                        'thread_id' => $email->thread_id ?: $email->message_id,
+                        'reference' => $missionData['reference'] ?? ($refs[0] ?? null),
+                        'possible_duplicate_of_id' => $duplicateFlag ? $duplicateFlag['mission']->id : null,
+                        'duplicate_score' => $duplicateFlag ? $duplicateFlag['score'] : null,
                         'on_site_contact_name' => $missionData['contactOnSite']['name'] ?? null,
                         'on_site_contact_phone' => $missionData['contactOnSite']['phone'] ?? null,
                         'on_site_contact_email' => $missionData['contactOnSite']['email'] ?? null,
@@ -276,7 +321,7 @@ class EmailIngestionService
                     }
                 }
 
-                $status = $mission ? 'PROCESSED' : ($aiData['classification'] === 'NEEDS_REVIEW' ? 'NEEDS_REVIEW' : 'IGNORED');
+                $status = ($mission || $attachedTo) ? 'PROCESSED' : ($aiData['classification'] === 'NEEDS_REVIEW' ? 'NEEDS_REVIEW' : 'IGNORED');
 
                 // Mark ALL thread emails as ingested
                 $emailsToMark = $isThread ? $conversation : collect([$email]);
@@ -285,7 +330,9 @@ class EmailIngestionService
                         $e->update([
                             'ingested_at' => now(),
                             'ingestion_status' => $status,
-                            'ingestion_reason' => $aiData['reasons'][0] ?? null,
+                            'ingestion_reason' => $attachedTo
+                                ? "Attached to existing mission #{$attachedTo->id} ({$match['reason']})"
+                                : ($aiData['reasons'][0] ?? null),
                             'extracted_data' => $e->id === $email->id ? $aiData : null
                         ]);
                     }
@@ -294,17 +341,20 @@ class EmailIngestionService
                 return [
                     'success' => true,
                     'status' => $status,
-                    'mission_id' => $mission ? $mission->id : null,
+                    'mission_id' => $mission ? $mission->id : ($attachedTo ? $attachedTo->id : null),
+                    'attached_to_existing' => (bool) $attachedTo,
+                    'possible_duplicate_of' => $duplicateFlag ? $duplicateFlag['mission']->id : null,
                     'building_id' => $building ? $building->id : null,
                     'syndic_id' => $syndicId,
                     'is_thread' => $isThread,
                     'thread_emails_count' => $isThread ? $conversation->count() : 1,
                     'extracted_data' => $aiData
                 ];
-            });
+            }));
 
-            // Push the new mission to admins once it is committed (outside the transaction)
-            if (!empty($result['mission_id'])) {
+            // Push the new mission to admins once it is committed (outside the transaction).
+            // A follow-up attached to an existing mission is not a new mission.
+            if (!empty($result['mission_id']) && empty($result['attached_to_existing'])) {
                 try {
                     $this->notificationService->notifyNewMission(Mission::find($result['mission_id']));
                 } catch (\Exception $e) {
@@ -314,6 +364,15 @@ class EmailIngestionService
 
             return $result;
 
+        } catch (LockTimeoutException $e) {
+            // Another worker is processing the same job. Leave the email untouched so it is retried.
+            Log::warning("Mission dedup: email #{$email->id} not ingested, lock held by another worker; will retry.");
+
+            return [
+                'success' => true,
+                'status' => 'DEFERRED',
+                'reason' => 'Another ingestion is processing the same request; retry shortly'
+            ];
         } catch (\Exception $e) {
             Log::error("Email Ingestion Error: " . $e->getMessage());
             
