@@ -25,6 +25,18 @@ class User extends Authenticatable
         });
     }
 
+    /** The technician whose login (the part of the e-mail before the @) is $login; null if none. */
+    public static function technicianByLogin(string $login, bool $withTrashed = false): ?self
+    {
+        $login = strtolower($login);
+
+        return static::when($withTrashed, fn ($q) => $q->withTrashed())
+            ->where('role', 'PROFESSIONAL')
+            ->where('email', 'like', $login . '@%')
+            ->get()
+            ->first(fn (self $u) => strtolower(explode('@', $u->email)[0]) === $login);
+    }
+
     /** Error message if $role already has its maximum number of users (ignoring $exceptUserId), else null. */
     public static function roleLimitReached(?string $role, $exceptUserId = null): ?string
     {

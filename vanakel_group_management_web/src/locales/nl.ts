@@ -330,6 +330,8 @@ export default {
     access_users_count: "gebruiker(s)",
     access_role: "Rol",
     access_initial_password: "Startwachtwoord (min. 8)",
+    access_username: "Gebruikersnaam (om in te loggen)",
+    access_role_full: "limiet bereikt",
     access_password_note: "Deel dit wachtwoord privé en vraag de gebruiker het na de eerste login te wijzigen.",
     access_role_change_note: "Een rol wijzigen meldt de gebruiker af zodat de nieuwe toegang meteen geldt.",
     access_no_users: "Geen gebruikers gevonden.",

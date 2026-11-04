@@ -43,7 +43,7 @@ export const dataService = {
         const response = await apiClient.get('/permissions');
         return response.data;
     },
-    createUser: async (payload: { firstName: string; lastName: string; email: string; password: string; phone?: string; role: string; companyName?: string }) => {
+    createUser: async (payload: { firstName: string; lastName: string; email?: string; username?: string; password: string; phone?: string; role: string; companyName?: string }) => {
         const response = await apiClient.post('/users', payload);
         return response.data;
     },

@@ -52,6 +52,26 @@ class AccessControlTest extends TestCase
         $this->postJson('/api/users', $this->newUserPayload('DISPATCH'))->assertStatus(422)->assertJsonValidationErrors('role');
     }
 
+    public function test_technician_is_created_with_a_username_instead_of_an_email_and_can_log_in(): void
+    {
+        Sanctum::actingAs($this->makeUser('SUPERADMIN'));
+
+        $payload = $this->newUserPayload('PROFESSIONAL', ['username' => 'Jean.Tech']);
+        unset($payload['email']);
+
+        $this->postJson('/api/users', $payload)->assertCreated()->assertJsonPath('user.role', 'PROFESSIONAL');
+        $this->postJson('/api/users', $payload)->assertStatus(422)->assertJsonValidationErrors('username');
+
+        $noName = $this->newUserPayload('PROFESSIONAL');
+        unset($noName['email']);
+        $this->postJson('/api/users', $noName)->assertStatus(422)->assertJsonValidationErrors('username');
+
+        // an admin still needs an e-mail
+        $admin = $this->newUserPayload('ADMIN');
+        unset($admin['email']);
+        $this->postJson('/api/users', $admin)->assertStatus(422)->assertJsonValidationErrors('email');
+    }
+
     public function test_second_superadmin_can_be_created_by_a_superadmin(): void
     {
         Sanctum::actingAs($this->makeUser('SUPERADMIN'));

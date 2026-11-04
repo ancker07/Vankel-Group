@@ -31,15 +31,33 @@ class AuthController extends Controller
      */
     public function storeUser(Request $request)
     {
+        $isTechnician = $request->role === 'PROFESSIONAL';
+
         $request->validate([
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            // technicians sign in with a username (no real e-mail needed); everyone else uses an e-mail
+            'email' => [$isTechnician ? 'nullable' : 'required', 'string', 'email', 'max:255', 'unique:users'],
+            'username' => [$isTechnician ? 'required_without:email' : 'nullable', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z0-9._-]+$/'],
             'password' => 'required|string|min:8',
             'phone' => 'nullable|string|max:20',
             'role' => ['required', 'string', \Illuminate\Validation\Rule::in(\App\Support\PermissionCatalog::FIXED_ROLES)],
             'companyName' => 'nullable|string|max:255',
         ]);
+
+        $email = $request->email;
+        if ($isTechnician) {
+            $username = strtolower(trim((string) $request->input('username')));
+            $email = $request->filled('email') ? $request->email : $username . '@technician.vankel';
+            $login = strtolower(explode('@', $email)[0]);
+            if (User::technicianByLogin($login, true) || User::withTrashed()->where('email', $email)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('This username is already taken.'),
+                    'errors' => ['username' => [__('This username is already taken.')]],
+                ], 422);
+            }
+        }
 
         $role = Role::where('name', $request->role)->firstOrFail();
         if ($message = User::roleLimitReached($role->name)) {
@@ -51,7 +69,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $request->firstName . ' ' . $request->lastName,
-            'email' => $request->email,
+            'email' => $email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'phone' => $request->phone,
@@ -83,9 +101,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $identifier)->first();
         if (!$user && !str_contains($identifier, '@')) {
-            $user = User::where('role', 'PROFESSIONAL')
-                ->whereRaw('LOWER(SUBSTRING_INDEX(email, "@", 1)) = ?', [strtolower($identifier)])
-                ->first();
+            $user = User::technicianByLogin(strtolower($identifier));
         }
 
         if ($user && Hash::check($request->password, $user->password)) {

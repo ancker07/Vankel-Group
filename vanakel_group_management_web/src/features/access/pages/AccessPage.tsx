@@ -73,6 +73,9 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
 
     const assignableRoles = roles.filter(r => r.assignable);
     const creatableRoles = assignableRoles.filter(r => !r.full);
+    const isTechnician = userForm?.role === 'PROFESSIONAL';
+    // technician accounts use an internal address; show their username instead
+    const displayLogin = (u: UserRow) => u.email.endsWith('@technician.vankel') ? `@${u.email.split('@')[0]}` : u.email;
 
     const filteredUsers = useMemo(() => users.filter(u =>
         `${u.name} ${u.email} ${u.role_label || u.role}`.toLowerCase().includes(search.toLowerCase())
@@ -172,7 +175,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         </div>
                         {can('users.create') && (
                             <button
-                                onClick={() => { setError(''); setUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', role: creatableRoles[0]?.name || '', companyName: '' }); }}
+                                onClick={() => { setError(''); setUserForm({ firstName: '', lastName: '', email: '', username: '', password: '', phone: '', role: creatableRoles[0]?.name || '', companyName: '' }); }}
                                 className="px-4 py-2.5 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2"
                             >
                                 <Plus size={16} /> {t.access_create_user || 'Create user'}
@@ -184,7 +187,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                             <div key={u.id} className="p-4 flex flex-col md:flex-row md:items-center gap-3 justify-between">
                                 <div className="min-w-0">
                                     <p className="font-bold text-white truncate">{u.name}</p>
-                                    <p className="text-xs text-zinc-500 truncate">{u.email}{u.phone ? ` · ${u.phone}` : ''} · {u.status}</p>
+                                    <p className="text-xs text-zinc-500 truncate">{displayLogin(u)}{u.phone ? ` · ${u.phone}` : ''} · {u.status}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {can('users.update') ? (
@@ -259,32 +262,44 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                             <button onClick={() => setUserForm(null)} className="text-zinc-500 hover:text-white"><X size={20} /></button>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5 col-span-2">
+                                <label className={labelClass}>{t.access_role || 'Role'}</label>
+                                <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} className={inputClass}>
+                                    {assignableRoles.map(r => (
+                                        <option key={r.name} value={r.name} disabled={r.full}>
+                                            {r.label}{r.full ? ` (${t.access_role_full || 'limit reached'})` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                             {([
                                 ['firstName', t.firstName || 'First name', 'text'],
                                 ['lastName', t.lastName || 'Last name', 'text'],
-                                ['email', t.email || 'Email', 'email'],
+                                isTechnician
+                                    ? ['username', t.access_username || 'Username (used to sign in)', 'text']
+                                    : ['email', t.email || 'Email', 'email'],
                                 ['phone', t.phone || 'Phone', 'tel'],
                                 ['password', t.access_initial_password || 'Initial password (min. 8)', 'text'],
                                 ['companyName', t.companyName || 'Company', 'text'],
                             ] as const).map(([key, label, type]) => (
                                 <div key={key} className="space-y-1.5">
                                     <label className={labelClass}>{label}</label>
-                                    <input type={type} value={userForm[key]} onChange={e => setUserForm({ ...userForm, [key]: e.target.value })} className={inputClass} />
+                                    <input
+                                        type={type}
+                                        autoCapitalize={key === 'username' ? 'none' : undefined}
+                                        value={userForm[key] ?? ''}
+                                        onChange={e => setUserForm({ ...userForm, [key]: e.target.value })}
+                                        className={inputClass}
+                                    />
                                 </div>
                             ))}
-                            <div className="space-y-1.5 col-span-2">
-                                <label className={labelClass}>{t.access_role || 'Role'}</label>
-                                <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} className={inputClass}>
-                                    {creatableRoles.map(r => <option key={r.name} value={r.name}>{r.label}</option>)}
-                                </select>
-                            </div>
                         </div>
                         {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
                         <p className="text-xs text-zinc-500">{t.access_password_note || 'Share this password with the user privately and ask them to change it after their first login.'}</p>
                         <div className="flex gap-3">
                             <button onClick={() => setUserForm(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
                             <button
-                                disabled={isSaving || !userForm.firstName || !userForm.lastName || !userForm.email || userForm.password.length < 8 || !userForm.role}
+                                disabled={isSaving || !userForm.firstName || !userForm.lastName || (isTechnician ? userForm.username.trim().length < 3 : !userForm.email) || userForm.password.length < 8 || !userForm.role}
                                 onClick={saveUser}
                                 className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50"
                             >
@@ -303,7 +318,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                             <h3 className="text-lg font-black text-white uppercase">{t.access_reset_password || 'Change password'}</h3>
                             <button onClick={() => setResetPasswordUser(null)} className="text-zinc-500 hover:text-white"><X size={20} /></button>
                         </div>
-                        <p className="text-sm text-zinc-400">{resetPasswordUser.name} · {resetPasswordUser.email}</p>
+                        <p className="text-sm text-zinc-400">{resetPasswordUser.name} · {displayLogin(resetPasswordUser)}</p>
                         <div className="space-y-1.5">
                             <label className={labelClass}>{t.access_new_password || 'New password (min. 8)'}</label>
                             <input type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className={inputClass} />
