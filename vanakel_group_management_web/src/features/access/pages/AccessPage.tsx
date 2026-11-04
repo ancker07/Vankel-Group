@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { KeyRound, Users, Plus, Trash2, X, ShieldCheck, Lock, Search, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Users, Plus, Trash2, X, ShieldCheck, Lock, Search, RotateCcw } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { TRANSLATIONS } from '@/utils/constants';
 import { Language } from '@/types';
@@ -50,6 +50,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
     const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserRow | null>(null);
     const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null);
     const [newPassword, setNewPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     const load = async () => {
@@ -175,7 +176,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         </div>
                         {can('users.create') && (
                             <button
-                                onClick={() => { setError(''); setUserForm({ firstName: '', lastName: '', email: '', username: '', password: '', phone: '', role: creatableRoles[0]?.name || '', companyName: '' }); }}
+                                onClick={() => { setError(''); setShowPassword(false); setUserForm({ firstName: '', lastName: '', email: '', username: '', password: '', phone: '', role: creatableRoles[0]?.name || '', companyName: '' }); }}
                                 className="px-4 py-2.5 bg-brand-green text-brand-black rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2"
                             >
                                 <Plus size={16} /> {t.access_create_user || 'Create user'}
@@ -200,7 +201,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                     )}
                                     {can('users.update') && (
                                         <button
-                                            onClick={() => { setError(''); setNewPassword(''); setResetPasswordUser(u); }}
+                                            onClick={() => { setError(''); setNewPassword(''); setShowPassword(false); setResetPasswordUser(u); }}
                                             className="px-3 py-2.5 rounded-xl text-zinc-400 hover:text-brand-green hover:bg-zinc-900 border border-zinc-800 shrink-0 flex items-center gap-2"
                                             title={t.access_reset_password || 'Change password'}
                                             aria-label={t.access_reset_password || 'Change password'}
@@ -283,14 +284,21 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                                 ['companyName', t.companyName || 'Company', 'text'],
                             ] as const).map(([key, label, type]) => (
                                 <div key={key} className="space-y-1.5">
-                                    <label className={labelClass}>{label}</label>
+                                    <label className={labelClass}>{label}{isTechnician && (key === 'lastName' || key === 'companyName') ? ` (${t.access_optional || 'optional'})` : ''}</label>
+                                    <div className="relative">
                                     <input
-                                        type={type}
+                                        type={key === 'password' && !showPassword ? 'password' : type === 'password' ? 'text' : type}
                                         autoCapitalize={key === 'username' ? 'none' : undefined}
                                         value={userForm[key] ?? ''}
                                         onChange={e => setUserForm({ ...userForm, [key]: e.target.value })}
-                                        className={inputClass}
+                                        className={key === 'password' ? `${inputClass} pr-11` : inputClass}
                                     />
+                                    {key === 'password' && (
+                                        <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -299,7 +307,7 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         <div className="flex gap-3">
                             <button onClick={() => setUserForm(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase tracking-widest">{t.btnCancel || 'Cancel'}</button>
                             <button
-                                disabled={isSaving || !userForm.firstName || !userForm.lastName || (isTechnician ? userForm.username.trim().length < 3 : !userForm.email) || userForm.password.length < 8 || !userForm.role}
+                                disabled={isSaving || !userForm.firstName || (!isTechnician && !userForm.lastName) || (isTechnician ? userForm.username.trim().length < 3 : !userForm.email) || userForm.password.length < 8 || !userForm.role}
                                 onClick={saveUser}
                                 className="flex-1 py-3 bg-brand-green text-brand-black rounded-xl font-bold text-xs uppercase tracking-widest disabled:opacity-50"
                             >
@@ -321,7 +329,12 @@ const AccessPage: React.FC<{ lang: Language }> = ({ lang }) => {
                         <p className="text-sm text-zinc-400">{resetPasswordUser.name} · {displayLogin(resetPasswordUser)}</p>
                         <div className="space-y-1.5">
                             <label className={labelClass}>{t.access_new_password || 'New password (min. 8)'}</label>
-                            <input type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className={inputClass} />
+                            <div className="relative">
+                                <input type={showPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} className={`${inputClass} pr-11`} />
+                                <button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
                         </div>
                         {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>}
                         <p className="text-xs text-zinc-500">{t.access_reset_password_note || 'This signs the user out everywhere. Share the new password with them privately.'}</p>

@@ -271,6 +271,7 @@ class _ResetPasswordSheetState extends ConsumerState<_ResetPasswordSheet> {
   final _form = GlobalKey<FormState>();
   final _password = TextEditingController();
   bool _busy = false;
+  bool _hidePassword = true;
 
   @override
   void dispose() {
@@ -305,8 +306,11 @@ class _ResetPasswordSheetState extends ConsumerState<_ResetPasswordSheet> {
           const SizedBox(height: 12),
           TextFormField(
             controller: _password,
-            obscureText: true,
-            decoration: InputDecoration(labelText: l10n.admNewPasswordHint),
+            obscureText: _hidePassword,
+            decoration: InputDecoration(labelText: l10n.admNewPasswordHint, suffixIcon: IconButton(
+                icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => _hidePassword = !_hidePassword),
+              )),
             validator: (v) => (v ?? '').length < 8 ? l10n.admPasswordTooShort : null,
           ),
           const SizedBox(height: 12),
@@ -336,6 +340,7 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
   final _password = TextEditingController();
   String? _role;
   bool _busy = false;
+  bool _hidePassword = true;
 
   @override
   void dispose() {
@@ -400,8 +405,11 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _password,
-              obscureText: true,
-              decoration: InputDecoration(labelText: l10n.admNewPasswordHint),
+              obscureText: _hidePassword,
+              decoration: InputDecoration(labelText: l10n.admNewPasswordHint, suffixIcon: IconButton(
+                icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => _hidePassword = !_hidePassword),
+              )),
               validator: (v) => (v ?? '').length < 8 ? l10n.admPasswordTooShort : null,
             ),
             const SizedBox(height: 8),

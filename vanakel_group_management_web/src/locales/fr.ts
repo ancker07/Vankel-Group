@@ -248,6 +248,7 @@ export default {
     access_role: "Rôle",
     access_initial_password: "Mot de passe initial (min. 8)",
     access_username: "Nom d'utilisateur (pour se connecter)",
+    access_optional: "facultatif",
     access_role_full: "limite atteinte",
     access_password_note: "Communiquez ce mot de passe en privé et demandez à l'utilisateur de le changer après sa première connexion.",
     access_role_change_note: "Changer un rôle déconnecte l'utilisateur pour appliquer immédiatement ses nouveaux accès.",

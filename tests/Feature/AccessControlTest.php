@@ -62,6 +62,9 @@ class AccessControlTest extends TestCase
         $this->postJson('/api/users', $payload)->assertCreated()->assertJsonPath('user.role', 'PROFESSIONAL');
         $this->postJson('/api/users', $payload)->assertStatus(422)->assertJsonValidationErrors('username');
 
+        $minimal = ['firstName' => 'Solo', 'username' => 'solo.tech', 'password' => 'password123', 'role' => 'PROFESSIONAL'];
+        $this->postJson('/api/users', $minimal)->assertCreated()->assertJsonPath('user.name', 'Solo');
+
         $noName = $this->newUserPayload('PROFESSIONAL');
         unset($noName['email']);
         $this->postJson('/api/users', $noName)->assertStatus(422)->assertJsonValidationErrors('username');

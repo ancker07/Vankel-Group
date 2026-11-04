@@ -240,6 +240,7 @@ export default {
     access_role: "Role",
     access_initial_password: "Initial password (min. 8)",
     access_username: "Username (used to sign in)",
+    access_optional: "optional",
     access_role_full: "limit reached",
     access_password_note: "Share this password with the user privately and ask them to change it after their first login.",
     access_role_change_note: "Changing a role signs that user out so their new access applies right away.",
