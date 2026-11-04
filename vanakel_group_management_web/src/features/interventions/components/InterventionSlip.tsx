@@ -9,7 +9,8 @@ import {
 import { TRANSLATIONS, DELAY_REASONS } from '@/utils/constants';
 import { improveNote, optimizeIntervention } from '@/services/aiService';
 import { dataService } from '@/services/dataService';
-import { generateInterventionPDF } from '@/utils/pdfGenerator';
+import { generateInterventionPDF, loadImageAsDataUrl } from '@/utils/pdfGenerator';
+import { filterUploads, compressImage, rejectedMessage, IMAGE_EXTENSIONS } from '@/utils/uploads';
 import vankerLogo from '@/assets/logo_vankel.jpeg';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 import DictationButton from '@/components/common/DictationButton';
@@ -231,11 +232,18 @@ const InterventionSlip: React.FC<SlipProps> = ({
     }
   }, [delayReason, status]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const files = input.files ? (Array.from(input.files) as File[]) : [];
+    input.value = ''; // lets the same photo be picked again
+    if (files.length === 0) return;
 
-    const newFiles = (Array.from(files) as File[]).map(file => ({
+    const { accepted, rejected } = filterUploads(files, IMAGE_EXTENSIONS);
+    if (rejected.length > 0) alert(rejectedMessage(t.upload_rejected, rejected));
+
+    // phone photos are 5-12 MB: shrink them before they are uploaded
+    const prepared = await Promise.all(accepted.map(f => compressImage(f)));
+    const newFiles = prepared.map(file => ({
       url: URL.createObjectURL(file),
       file
     }));
@@ -243,10 +251,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
   };
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+    const input = e.target;
+    const files = input.files ? (Array.from(input.files) as File[]) : [];
+    input.value = '';
+    if (files.length === 0) return;
 
-    const newFiles = (Array.from(files) as File[]).map(file => ({
+    const { accepted, rejected } = filterUploads(files);
+    if (rejected.length > 0) alert(rejectedMessage(t.upload_rejected, rejected));
+
+    const newFiles = accepted.map(file => ({
       id: `new-${Math.random().toString(36).substr(2, 9)}`,
       name: file.name,
       type: 'OTHER',
@@ -321,13 +334,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
       // IMPORTANT: PDF report does NOT include photos - photos remain as separate file uploads
       if (mode === 'EMAIL') {
         try {
-          const response = await fetch(vankerLogo);
-          const blobLogo = await response.blob();
-          const reader = new FileReader();
-          const logoBase64 = await new Promise<string>((resolve) => {
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(blobLogo);
-          });
+          const logoBase64 = await loadImageAsDataUrl(vankerLogo);
 
           const pdfDoc = await generateInterventionPDF(
             updatedInterventionData as any,

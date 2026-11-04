@@ -168,6 +168,8 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
       final XFile? image = await _picker.pickImage(
         source: source,
         imageQuality: 70,
+        maxWidth: 1920,
+        maxHeight: 1920,
       );
       if (image != null) {
         setState(() {
@@ -183,13 +185,31 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
     try {
       final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'txt'],
+        // same list the server accepts (a type the server rejects would fail the whole save)
+        allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'],
+        allowMultiple: true,
       );
+      if (result == null) return;
 
-      if (result != null) {
-        setState(() {
-          _documents.add(File(result.files.single.path!));
-        });
+      final l10n = AppLocalizations.of(context)!;
+      const maxBytes = 10 * 1024 * 1024; // server limit: 10 MB per file
+      final accepted = <File>[];
+      for (final f in result.files) {
+        final filePath = f.path;
+        if (filePath == null) continue;
+        final file = File(filePath);
+        if (await file.length() > maxBytes) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.fileTooLarge(f.name)), backgroundColor: Colors.red),
+            );
+          }
+          continue;
+        }
+        accepted.add(file);
+      }
+      if (accepted.isNotEmpty && mounted) {
+        setState(() => _documents.addAll(accepted));
       }
     } catch (e) {
       debugPrint('Error picking document: $e');

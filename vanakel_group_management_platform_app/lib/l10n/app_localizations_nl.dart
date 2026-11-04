@@ -1108,4 +1108,39 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get admForbidden => 'Je hebt geen toegang tot dit onderdeel';
+
+  @override
+  String get pdfGenerating => 'PDF wordt gemaakt…';
+
+  @override
+  String get pdfNoViewer =>
+      'PDF opgeslagen, maar er is geen app gevonden om hem te openen. Installeer een PDF-lezer.';
+
+  @override
+  String pdfError(String error) {
+    return 'PDF kon niet worden gemaakt: $error';
+  }
+
+  @override
+  String fileTooLarge(String name) {
+    return '$name is groter dan 10 MB';
+  }
+
+  @override
+  String get speechPermission =>
+      'Toegang tot de microfoon staat uit. Sta die toe in de app-instellingen om te dicteren.';
+
+  @override
+  String get speechNetwork =>
+      'Spraakherkenning heeft een internetverbinding nodig.';
+
+  @override
+  String get speechLanguage =>
+      'Deze taal is niet beschikbaar voor spraak op je telefoon. Installeer ze in de spraakinstellingen van je telefoon.';
+
+  @override
+  String get speechRetry => 'Spraakherkenning is gestopt. Probeer het opnieuw.';
+
+  @override
+  String get openSettings => 'Instellingen';
 }

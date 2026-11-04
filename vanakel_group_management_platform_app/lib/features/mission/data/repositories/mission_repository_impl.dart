@@ -72,10 +72,16 @@ class MissionRepositoryImpl implements MissionRepository {
     }
   }
 
+  /// Uploads can take a while on mobile data and the server translates the text before answering.
+  static final _uploadOptions = Options(
+    sendTimeout: const Duration(minutes: 3),
+    receiveTimeout: const Duration(minutes: 2),
+  );
+
   @override
   Future<Mission> createMissionWithFiles(FormData data) async {
     try {
-      final response = await _dio.post(ApiConstants.interventions, data: data);
+      final response = await _dio.post(ApiConstants.interventions, data: data, options: _uploadOptions);
       return MissionModel.fromJson(response.data['data']).toEntity();
     } on DioException catch (e) {
       throw handleDioError(e);
@@ -87,7 +93,8 @@ class MissionRepositoryImpl implements MissionRepository {
     try {
       final response = await _dio.post(
           ApiConstants.missionUpdate.replaceFirst('{id}', id),
-          data: data);
+          data: data,
+          options: _uploadOptions);
       return MissionModel.fromJson(response.data['mission']).toEntity();
     } on DioException catch (e) {
       throw handleDioError(e);

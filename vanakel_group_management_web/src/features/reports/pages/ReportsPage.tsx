@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Intervention, Building, Professional, Syndic, Language } from '@/types';
 import { Search, Download, Eye, ChevronRight, FileText, Calendar, CheckCircle2, MapPin, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
-import { generateInterventionPDF } from '@/utils/pdfGenerator';
+import { generateInterventionPDF, loadImageAsDataUrl } from '@/utils/pdfGenerator';
 import vankerLogo from '@/assets/report_logo.jpeg';
 
 interface ReportsPageProps {
@@ -71,15 +71,8 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
       const professional = professionals.find(p => p.id === intervention.proId);
       const syndic = syndics.find(s => s.id === intervention.syndicId);
 
-      // Convert logo to base64 for PDF
       // NOTE: PDF reports do NOT include photos - photos remain as separate file uploads
-      const response = await fetch(vankerLogo);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      const logoBase64 = await new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
+      const logoBase64 = await loadImageAsDataUrl(vankerLogo);
 
       await generateInterventionPDF(
         intervention,

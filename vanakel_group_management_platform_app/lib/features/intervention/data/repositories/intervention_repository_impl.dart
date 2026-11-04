@@ -78,7 +78,11 @@ class InterventionRepositoryImpl implements InterventionRepository {
       final response = await _dio.request(
         ApiConstants.interventionUpdate.replaceFirst('{id}', id),
         data: finalData,
-        options: Options(method: method),
+        options: Options(
+          method: method,
+          sendTimeout: const Duration(minutes: 3),
+          receiveTimeout: const Duration(minutes: 2),
+        ),
       );
       return InterventionModel.fromJson(response.data).toEntity();
     } on DioException catch (e) {

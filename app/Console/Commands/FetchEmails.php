@@ -156,8 +156,8 @@ class FetchEmails extends Command
                         foreach ($attachments as $attachment) {
                             try {
                                 $filename = $attachment->getName();
-                                $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                                $safeFilename = str_replace(' ', '_', pathinfo($filename, PATHINFO_FILENAME)) . '_' . time() . '.' . $extension;
+                                // The sender controls the name: never keep a risky extension (.php, .html, .svg...)
+                                $safeFilename = \App\Support\UploadRules::safeFileName($filename, 'attachment');
                                 $path = 'email_attachments/' . $email->id . '/' . $safeFilename;
 
                                 Storage::disk('public')->put($path, $attachment->getContent());

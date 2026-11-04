@@ -1,9 +1,9 @@
+import '../../../core/utils/file_opener.dart';
 import 'widgets/mission_duplicate_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/api/api_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/enums/user_role_enum.dart';
@@ -456,7 +456,6 @@ class MissionDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildDocumentItem(Document document, BuildContext context) {
-    final fullUrl = ApiConstants.getStorageUrl(document.filePath);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -500,30 +499,7 @@ class MissionDetailsScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.open_in_new, color: AppTheme.brandGreen),
-            onPressed: () async {
-              final uri = Uri.parse(fullUrl);
-              try {
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                } else {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.couldNotOpen(document.fileName),
-                        ),
-                      ),
-                    );
-                  }
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                }
-              }
-            },
+            onPressed: () => openUploadedDocument(context, document),
           ),
         ],
       ),

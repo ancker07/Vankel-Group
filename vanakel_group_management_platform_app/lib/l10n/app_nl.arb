@@ -348,5 +348,14 @@
   "admReasonThread": "gesprek",
   "admReasonBuildingTitle": "gebouw + titel",
   "admReasonMerge": "samenvoeging",
-  "admForbidden": "Je hebt geen toegang tot dit onderdeel"
+  "admForbidden": "Je hebt geen toegang tot dit onderdeel",
+  "pdfGenerating": "PDF wordt gemaakt…",
+  "pdfNoViewer": "PDF opgeslagen, maar er is geen app gevonden om hem te openen. Installeer een PDF-lezer.",
+  "pdfError": "PDF kon niet worden gemaakt: {error}",
+  "fileTooLarge": "{name} is groter dan 10 MB",
+  "speechPermission": "Toegang tot de microfoon staat uit. Sta die toe in de app-instellingen om te dicteren.",
+  "speechNetwork": "Spraakherkenning heeft een internetverbinding nodig.",
+  "speechLanguage": "Deze taal is niet beschikbaar voor spraak op je telefoon. Installeer ze in de spraakinstellingen van je telefoon.",
+  "speechRetry": "Spraakherkenning is gestopt. Probeer het opnieuw.",
+  "openSettings": "Instellingen"
 }

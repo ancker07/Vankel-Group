@@ -1,4 +1,5 @@
 
+import { filterUploads, compressImage, rejectedMessage, IMAGE_EXTENSIONS, MAX_UPLOAD_MB, MAX_AVATAR_MB } from '@/utils/uploads';
 import React, { useState, useRef } from 'react';
 import { User, Mail, Phone, Shield, Building, Lock, LogOut, Edit2, Check, X, Camera } from 'lucide-react';
 import UserAvatar from '@/components/common/UserAvatar';
@@ -61,9 +62,22 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ userName, role, t, onLogout, 
         }
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target;
+        const picked = input.files?.[0];
+        input.value = '';
+        if (picked) {
+            const { rejected } = filterUploads([picked], IMAGE_EXTENSIONS, MAX_UPLOAD_MB * 3);
+            if (rejected.length > 0) {
+                alert(rejectedMessage(t.upload_rejected, rejected));
+                return;
+            }
+            // profile pictures are shown small: resize before upload (the server limit is 5 MB)
+            const file = await compressImage(picked, 1024, 0.85);
+            if (file.size > MAX_AVATAR_MB * 1024 * 1024) {
+                alert(rejectedMessage(t.upload_rejected, [picked.name]));
+                return;
+            }
             setImageFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {

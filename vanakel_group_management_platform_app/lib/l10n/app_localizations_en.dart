@@ -1106,4 +1106,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get admForbidden => 'You don\'t have access to this section';
+
+  @override
+  String get pdfGenerating => 'Generating PDF…';
+
+  @override
+  String get pdfNoViewer =>
+      'PDF saved, but no app was found to open it. Install a PDF viewer.';
+
+  @override
+  String pdfError(String error) {
+    return 'Could not create the PDF: $error';
+  }
+
+  @override
+  String fileTooLarge(String name) {
+    return '$name is larger than 10 MB';
+  }
+
+  @override
+  String get speechPermission =>
+      'Microphone access is off. Allow it in the app settings to dictate.';
+
+  @override
+  String get speechNetwork => 'Voice recognition needs an internet connection.';
+
+  @override
+  String get speechLanguage =>
+      'This language is not available for voice on your phone. Install it in your phone\'s speech settings.';
+
+  @override
+  String get speechRetry => 'Voice recognition stopped. Please try again.';
+
+  @override
+  String get openSettings => 'Settings';
 }

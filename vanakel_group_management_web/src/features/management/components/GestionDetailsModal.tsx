@@ -4,6 +4,8 @@ import { Building, Syndic, Intervention, Mission, Language } from '@/types';
 import { X, MapPin, Phone, Mail, User, ShieldCheck, Download, FileText, Calendar, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
 import HistoryEntryDetailModal from './HistoryEntryDetailModal';
+import { generateInterventionPDF, loadImageAsDataUrl } from '@/utils/pdfGenerator';
+import vankerLogo from '@/assets/report_logo.jpeg';
 
 interface GestionDetailsModalProps {
   building: Building;
@@ -17,42 +19,28 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
   const t = TRANSLATIONS[lang];
   const [selectedEntry, setSelectedEntry] = React.useState<Intervention | Mission | null>(null);
 
+  const downloadError = (e: unknown) => {
+    console.error('Download error:', e);
+    const errorMsg = lang === 'FR' ? 'Erreur de téléchargement' : lang === 'NL' ? 'Downloadfout' : 'Download error';
+    alert(`${errorMsg}: ${(e as Error)?.message || ''}`.trim());
+  };
+
+  /** Opens a stored document (photo, PDF, ...) in a new tab. */
   const handleDownload = (docName: string, url?: string) => {
-    if (url) {
-      window.open(url, '_blank');
+    if (!url) {
+      downloadError(new Error(docName));
       return;
     }
+    window.open(url, '_blank');
+  };
+
+  /** Generates the real intervention slip PDF (this used to download a blank page). */
+  const handleSlipDownload = async (entry: Intervention, filename: string) => {
     try {
-      // Minimal valid PDF Base64 (Blank Page) - Single line to prevent formatting issues
-      const validPdfBase64 = "JVBERi0xLjcKCjEgMCBvYmogPDwvVHlwZS9DYXRhbG9nL1BhZ2VzIDIgMCBSPj4gZW5kb2JqCjIgMCBvYmogPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj4gZW5kb2JqCjMgMCBvYmogPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA1OTUgODQyXS9QYXJlbnQgMiAwIFIvUmVzb3VyY2VzPDw+Pi9Db250ZW50cyA0IDAgUj4+IGVuZG9iago0IDAgb2JqIDw8L0xlbmd0aCAwPj4gc3RyZWFtCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDEwIDAwMDAwIG4gCjAwMDAwMDAwNjAgMDAwMDAgbiAKMDAwMDAwMDExNyAwMDAwMCBuIAowMDAwMDAwMjE4IDAwMDAwIG4gCnRyYWlsZXIgPDwvU2l6ZSA1L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMjY0CiUlRU9G";
-
-      // Strict cleaning of whitespace/newlines
-      const cleanBase64 = validPdfBase64.replace(/\s/g, '');
-
-      const byteCharacters = atob(cleanBase64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', docName);
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
+      const logoBase64 = await loadImageAsDataUrl(vankerLogo);
+      await generateInterventionPDF(entry, building, undefined, syndic, lang, logoBase64, true, filename);
     } catch (e) {
-      console.error("Download error:", e);
-      const errorMsg = lang === 'FR' ? "Erreur de téléchargement" : lang === 'NL' ? "Downloadfout" : "Download error";
-      alert(`${errorMsg}: ${(e as Error).message}`);
+      downloadError(e);
     }
   };
 
@@ -203,9 +191,9 @@ const GestionDetailsModal: React.FC<GestionDetailsModalProps> = ({ building, syn
                           <button
                             onClick={() => {
                               const cleanAddr = building.address.replace(/[\/\\:*?"<>|]/g, "-").trim();
-                              const cleanSyndic = syndic ? syndic.companyName.replace(/[\/\\:*?"<>|]/g, "-").trim() : 'NoSyndic';
+                              const cleanSyndic = syndic?.companyName ? syndic.companyName.replace(/[\/\\:*?"<>|]/g, "-").trim() : 'NoSyndic';
                               const filename = `Bon_INT - ${cleanAddr} - ${cleanSyndic}.pdf`;
-                              handleDownload(filename);
+                              handleSlipDownload(entry as Intervention, filename);
                             }}
                             className="flex items-center justify-between w-full px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg group transition-all text-xs font-bold text-zinc-300 hover:text-white"
                           >

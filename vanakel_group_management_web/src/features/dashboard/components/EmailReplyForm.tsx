@@ -1,4 +1,5 @@
 
+import { filterUploads, rejectedMessage, DOCUMENT_EXTENSIONS } from '@/utils/uploads';
 import React, { useState } from 'react';
 import { Send, X, Shield, Mail, AlertCircle, CheckCircle2, Sparkles, Paperclip, Trash2, Loader2 } from 'lucide-react';
 import { dataService } from '@/services/dataService';
@@ -33,10 +34,13 @@ const EmailReplyForm: React.FC<EmailReplyFormProps> = ({ emailId, onClose, onSuc
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            setAttachments(prev => [...prev, ...newFiles]);
-        }
+        const input = e.target;
+        const files = input.files ? (Array.from(input.files) as File[]) : [];
+        input.value = '';
+        if (files.length === 0) return;
+        const { accepted, rejected } = filterUploads(files, [...DOCUMENT_EXTENSIONS, 'zip']);
+        if (rejected.length > 0) alert(rejectedMessage(undefined, rejected));
+        setAttachments(prev => [...prev, ...accepted].slice(0, 10)); // the server accepts at most 10
     };
 
     const removeAttachment = (index: number) => {

@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Plus, MapPin, Search } from 'lucide-react';
 import { Building, Syndic, Language, InterventionStatus, Sector, Urgency } from '@/types';
 import { TRANSLATIONS, SECTORS, URGENCY } from '@/utils/constants';
+import { filterUploads, rejectedMessage } from '@/utils/uploads';
 import { Upload, Paperclip, Sparkles, Loader2 } from 'lucide-react';
 import CreateSyndicModal from '@/features/management/components/CreateSyndicModal';
 import { improveNote } from '@/services/aiService';
@@ -125,9 +126,13 @@ const CreateInterventionModal: React.FC<CreateInterventionModalProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setAttachedFiles(Array.from(e.target.files));
-    }
+    const input = e.target;
+    const files = input.files ? (Array.from(input.files) as File[]) : [];
+    input.value = '';
+    if (files.length === 0) return;
+    const { accepted, rejected } = filterUploads(files);
+    if (rejected.length > 0) alert(rejectedMessage(t.upload_rejected, rejected));
+    setAttachedFiles(accepted);
   };
 
 

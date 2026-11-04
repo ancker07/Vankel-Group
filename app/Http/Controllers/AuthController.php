@@ -361,7 +361,7 @@ class AuthController extends Controller
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'bio' => 'nullable|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:' . \App\Support\UploadRules::AVATAR_MAX_KB,
         ]);
 
         $user = $request->user();
@@ -375,12 +375,20 @@ class AuthController extends Controller
         if ($request->has('bio')) $user->bio = $request->bio;
         
         // Handle profile image upload
-        try {
-            if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('profiles', 'public');
-                $user->image_url = $path;
+        if ($request->hasFile('image')) {
+            $previous = $user->image_url;
+            try {
+                $user->image_url = $request->file('image')->store('profiles', 'public');
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Profile image upload failed for user {$user->id}: " . $e->getMessage());
+
+                return response()->json(['success' => false, 'message' => 'The profile picture could not be saved. Please try again.'], 500);
             }
-        } catch (\Exception $e) {}
+            // do not keep orphaned pictures
+            if ($previous && $previous !== $user->image_url && str_starts_with($previous, 'profiles/')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($previous);
+            }
+        }
 
         $user->save();
 

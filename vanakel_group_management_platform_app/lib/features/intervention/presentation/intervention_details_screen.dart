@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import '../../../core/utils/file_opener.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
@@ -44,6 +46,7 @@ class _InterventionDetailsScreenState
   String? _localDelayDetails;
   DateTime? _localDelayedRescheduleDate;
   final List<XFile> _selectedImages = [];
+  final List<File> _selectedDocs = [];
   final ImagePicker _picker = ImagePicker();
   bool _isImproving = false;
 
@@ -107,10 +110,88 @@ class _InterventionDetailsScreenState
     _isInitialized = true;
   }
 
+  /// Photos: camera or gallery. Photos are resized: full-size phone pictures are 5-12 MB.
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      setState(() => _selectedImages.add(image));
+    final l10n = AppLocalizations.of(context)!;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppTheme.zinc900,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: Text(l10n.camera),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.gallery),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    try {
+      if (source == ImageSource.camera) {
+        final image = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 70,
+          maxWidth: 1920,
+          maxHeight: 1920,
+        );
+        if (image != null && mounted) setState(() => _selectedImages.add(image));
+      } else {
+        final images = await _picker.pickMultiImage(imageQuality: 70, maxWidth: 1920, maxHeight: 1920);
+        if (images.isNotEmpty && mounted) setState(() => _selectedImages.addAll(images));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.pdfError(e.toString())), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  /// Documents (same types and 10 MB limit as the server accepts).
+  Future<void> _pickDocuments() async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'],
+        allowMultiple: true,
+      );
+      if (result == null) return;
+
+      const maxBytes = 10 * 1024 * 1024;
+      final accepted = <File>[];
+      for (final f in result.files) {
+        final filePath = f.path;
+        if (filePath == null) continue;
+        final file = File(filePath);
+        if (await file.length() > maxBytes) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.fileTooLarge(f.name)), backgroundColor: Colors.red),
+            );
+          }
+          continue;
+        }
+        accepted.add(file);
+      }
+      if (accepted.isNotEmpty && mounted) setState(() => _selectedDocs.addAll(accepted));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.pdfError(e.toString())), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -162,6 +243,15 @@ class _InterventionDetailsScreenState
         );
       }
 
+      for (final doc in _selectedDocs) {
+        formData.files.add(
+          MapEntry(
+            'files[]',
+            await dio.MultipartFile.fromFile(doc.path, filename: doc.path.split(Platform.pathSeparator).last),
+          ),
+        );
+      }
+
       await ref
           .read(interventionListProvider.notifier)
           .registerIntervention(id, formData);
@@ -170,6 +260,7 @@ class _InterventionDetailsScreenState
         setState(() {
           _isSaving = false;
           _selectedImages.clear();
+          _selectedDocs.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -964,7 +1055,7 @@ class _InterventionDetailsScreenState
               const SizedBox(width: 8),
               _buildSmallBtn(Icons.camera_alt_outlined, l10n.photos, _pickImage),
               const SizedBox(width: 8),
-              _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, () {}),
+              _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, _pickDocuments),
             ],
           ),
         ),
@@ -1152,7 +1243,8 @@ class _InterventionDetailsScreenState
               child: _buildMediaBox(
                 Icons.upload_file_outlined,
                 l10n.documents,
-                count: i.documents.length.toString(),
+                count: (i.documents.length + _selectedDocs.length).toString(),
+                onTap: _pickDocuments,
               ),
             ),
           ],
@@ -1160,23 +1252,70 @@ class _InterventionDetailsScreenState
         if (_selectedImages.isNotEmpty) ...[
           const SizedBox(height: 12),
           SizedBox(
-            height: 60,
+            height: 64,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _selectedImages.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) => ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(_selectedImages[index].path),
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                ),
+              itemBuilder: (context, index) => Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(_selectedImages[index].path),
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: -6,
+                    right: -6,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedImages.removeAt(index)),
+                      child: const CircleAvatar(
+                        radius: 10,
+                        backgroundColor: Colors.red,
+                        child: Icon(Icons.close, size: 12, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ],
+        for (var n = 0; n < _selectedDocs.length; n++)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.attach_file, size: 18, color: AppTheme.brandGreen),
+            title: Text(
+              _selectedDocs[n].path.split(Platform.pathSeparator).last,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: () => setState(() => _selectedDocs.removeAt(n)),
+            ),
+          ),
+        // files already uploaded to this intervention (tap to open)
+        for (final d in i.documents)
+          ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              d.isImage ? Icons.image_outlined : (d.isPdf ? Icons.picture_as_pdf_outlined : Icons.insert_drive_file_outlined),
+              size: 18,
+              color: AppTheme.zinc400,
+            ),
+            title: Text(d.fileName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+            trailing: const Icon(Icons.open_in_new, size: 16, color: AppTheme.brandGreen),
+            onTap: () => openUploadedDocument(context, d),
+          ),
         const SizedBox(height: 24),
         _buildAuditCard(l10n),
       ],

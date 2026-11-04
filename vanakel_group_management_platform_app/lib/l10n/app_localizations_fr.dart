@@ -1110,4 +1110,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get admForbidden => 'Vous n\'avez pas accès à cette section';
+
+  @override
+  String get pdfGenerating => 'Génération du PDF…';
+
+  @override
+  String get pdfNoViewer =>
+      'PDF enregistré, mais aucune application pour l\'ouvrir. Installez un lecteur PDF.';
+
+  @override
+  String pdfError(String error) {
+    return 'Impossible de créer le PDF : $error';
+  }
+
+  @override
+  String fileTooLarge(String name) {
+    return '$name dépasse 10 Mo';
+  }
+
+  @override
+  String get speechPermission =>
+      'L\'accès au micro est désactivé. Autorisez-le dans les réglages de l\'application pour dicter.';
+
+  @override
+  String get speechNetwork =>
+      'La reconnaissance vocale nécessite une connexion internet.';
+
+  @override
+  String get speechLanguage =>
+      'Cette langue n\'est pas disponible pour la voix sur votre téléphone. Installez-la dans les réglages vocaux du téléphone.';
+
+  @override
+  String get speechRetry =>
+      'La reconnaissance vocale s\'est arrêtée. Réessayez.';
+
+  @override
+  String get openSettings => 'Réglages';
 }

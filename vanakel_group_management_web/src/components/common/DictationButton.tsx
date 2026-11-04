@@ -8,6 +8,10 @@ const SpeechRecognitionImpl: any =
 
 const SPEECH_LANG: Record<string, string> = { FR: 'fr-BE', NL: 'nl-BE', EN: 'en-GB' };
 
+// Phones: Android Chrome repeats words in "continuous" mode, so there each phrase is one
+// recognition session and a new one is started automatically until the user stops.
+const IS_MOBILE = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 interface DictationButtonProps {
     lang: Language;
     /** Receives each finished sentence; the caller appends it to its text. */
@@ -21,39 +25,101 @@ const DictationButton: React.FC<DictationButtonProps> = ({ lang, onText, disable
     const [isListening, setIsListening] = useState(false);
     const [error, setError] = useState('');
     const recognitionRef = useRef<any>(null);
+    const wantListening = useRef(false); // true until the user stops (or a real error happens)
     const onTextRef = useRef(onText);
     onTextRef.current = onText;
 
-    useEffect(() => () => recognitionRef.current?.abort(), []);
+    useEffect(
+        () => () => {
+            wantListening.current = false;
+            recognitionRef.current?.abort();
+        },
+        []
+    );
+
+    const fail = (message: string) => {
+        wantListening.current = false;
+        setError(message);
+    };
+
+    const startSession = () => {
+        const recognition = new SpeechRecognitionImpl();
+        recognition.lang = SPEECH_LANG[lang] || 'fr-BE';
+        recognition.continuous = !IS_MOBILE;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event: any) => {
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    const text = event.results[i][0].transcript.trim();
+                    if (text) onTextRef.current(text);
+                }
+            }
+        };
+
+        recognition.onerror = (event: any) => {
+            switch (event.error) {
+                case 'no-speech': // silence: the session just ends
+                case 'aborted':
+                    break;
+                case 'not-allowed':
+                case 'service-not-allowed':
+                    fail(window.isSecureContext
+                        ? (t.dictate_denied || 'Microphone access was refused. Allow it in the browser address bar.')
+                        : (t.dictate_insecure || 'Voice dictation only works on a secure (https) page.'));
+                    break;
+                case 'audio-capture':
+                    fail(t.dictate_no_mic || 'No microphone was found.');
+                    break;
+                case 'network':
+                    fail(t.dictate_network || 'Voice recognition needs an internet connection.');
+                    break;
+                case 'language-not-supported':
+                    fail(t.dictate_language || 'This language is not supported for voice dictation in this browser.');
+                    break;
+                default:
+                    fail(t.dictate_retry || 'Voice dictation stopped. Please try again.');
+            }
+        };
+
+        recognition.onend = () => {
+            // Browsers end a session after a pause; keep listening until the user presses stop
+            if (wantListening.current) {
+                try {
+                    startSession();
+                    return;
+                } catch {
+                    wantListening.current = false;
+                }
+            }
+            setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+    };
 
     const toggle = () => {
         if (!SpeechRecognitionImpl) {
-            setError(t.dictate_unsupported || 'Voice dictation is not supported in this browser. Use Chrome or Edge.');
+            setError(t.dictate_unsupported || 'Voice dictation is not supported in this browser. Use Chrome, Edge or Safari.');
             return;
         }
         if (isListening) {
+            wantListening.current = false;
             recognitionRef.current?.stop();
+            setIsListening(false);
             return;
         }
 
-        const recognition = new SpeechRecognitionImpl();
-        recognition.lang = SPEECH_LANG[lang] || 'fr-BE';
-        recognition.continuous = true;
-        recognition.interimResults = false;
-        recognition.onresult = (event: any) => {
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) onTextRef.current(event.results[i][0].transcript.trim());
-            }
-        };
-        recognition.onerror = (event: any) => {
-            if (event.error === 'not-allowed') setError('Microphone access was refused.');
-        };
-        recognition.onend = () => setIsListening(false);
-
         setError('');
-        recognitionRef.current = recognition;
-        recognition.start();
-        setIsListening(true);
+        wantListening.current = true;
+        try {
+            startSession();
+            setIsListening(true);
+        } catch {
+            wantListening.current = false;
+            setError(t.dictate_retry || 'Voice dictation stopped. Please try again.');
+        }
     };
 
     return (

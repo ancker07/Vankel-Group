@@ -1,3 +1,4 @@
+import 'package:open_filex/open_filex.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -435,10 +436,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.all(8),
                         onPressed: () async {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Generating PDF...'),
-                                duration: Duration(seconds: 1)),
+                          final l10n = AppLocalizations.of(context)!;
+                          final messenger = ScaffoldMessenger.of(context);
+                          final lang = Localizations.localeOf(context).languageCode;
+                          messenger.hideCurrentSnackBar();
+                          messenger.showSnackBar(
+                            SnackBar(content: Text(l10n.pdfGenerating), duration: const Duration(seconds: 2)),
                           );
 
                           try {
@@ -460,17 +463,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               orElse: () => null,
                             );
 
-                            await PdfService.generateInterventionReport(
+                            final result = await PdfService.generateInterventionReport(
                               intervention: item,
                               building: building,
                               professional: pro,
                               syndic: syndic,
-                              lang: Localizations.localeOf(context).languageCode,
+                              lang: lang,
                             );
+                            messenger.hideCurrentSnackBar();
+                            if (result.type != ResultType.done) {
+                              messenger.showSnackBar(SnackBar(content: Text(l10n.pdfNoViewer)));
+                            }
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            messenger.hideCurrentSnackBar();
+                            messenger.showSnackBar(
                               SnackBar(
-                                  content: Text('Error generating PDF: $e'),
+                                  content: Text(l10n.pdfError(e.toString())),
                                   backgroundColor: Colors.red),
                             );
                           }

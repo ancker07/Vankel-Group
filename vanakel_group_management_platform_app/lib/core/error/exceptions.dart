@@ -45,11 +45,17 @@ AppExceptions handleDioError(DioException error) {
     case DioExceptionType.badResponse:
       final statusCode = error.response?.statusCode;
       final data = error.response?.data;
-      final message = data?['message'] ?? 'Server Error';
+      var message = (data is Map ? data['message'] : null)?.toString() ?? 'Server Error';
+      // Laravel validation: show the first field error (e.g. "file must not be greater than 10240 kilobytes")
+      final fieldErrors = data is Map ? data['errors'] : null;
+      if (statusCode == 422 && fieldErrors is Map && fieldErrors.isNotEmpty) {
+        final first = fieldErrors.values.first;
+        if (first is List && first.isNotEmpty) message = first.first.toString();
+      }
       
       if (statusCode == 401) return UnauthorizedException(message, statusCode);
       if (statusCode == 404) return NotFoundException(message, statusCode);
-      if (statusCode == 422) return ValidationException(message, statusCode, data?['errors']);
+      if (statusCode == 422) return ValidationException(message, statusCode, data is Map ? Map<String, dynamic>.from(data['errors'] ?? {}) : null);
       if (statusCode != null && statusCode >= 500) return ServerException(message, statusCode);
       
       return GenericException(message, statusCode);

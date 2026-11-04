@@ -10,9 +10,55 @@ declare module 'jspdf' {
     }
 }
 
-// Vanker Group Logo (Base64) - Placeholder for now, will be updated with actual base64 if needed
-// Or dynamically loaded in ReportsPage.tsx
-const LOGO_BASE64 = '';
+const DATE_LOCALES: Record<string, string> = { EN: 'en-GB', FR: 'fr-BE', NL: 'nl-BE' };
+
+const MARGIN = 15;
+const BOTTOM_MARGIN = 22; // keeps text clear of the footer
+const LINE = 5;
+
+/**
+ * jsPDF's built-in fonts only cover Latin-1. Emails and notes often contain
+ * typographic quotes, dashes, "…" or emoji, which would come out as garbage.
+ * Map the common ones to plain equivalents and replace anything else outside Latin-1.
+ */
+export const pdfSafeText = (value: unknown): string => {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/[‘’‚′]/g, "'")
+        .replace(/[“”„″]/g, '"')
+        .replace(/[–—−]/g, '-')
+        .replace(/…/g, '...')
+        .replace(/€/g, 'EUR')
+        .replace(/[   ]/g, ' ')
+        .replace(/[​-‍﻿]/g, '')
+        .replace(/\r\n?/g, '\n')
+        .replace(/[^\n\t\x20-\x7E¡-ÿ]/gu, '?');
+};
+
+const formatDate = (value: string | undefined, lang: Language): string => {
+    if (!value) return '';
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString(DATE_LOCALES[lang] || 'en-GB');
+};
+
+/** Fetches an image (e.g. the bundled logo) as a data URL; undefined if it cannot be loaded. */
+export const loadImageAsDataUrl = async (url: string): Promise<string | undefined> => {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return undefined;
+        const blob = await response.blob();
+        return await new Promise<string | undefined>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : undefined);
+            reader.onerror = () => resolve(undefined);
+            reader.readAsDataURL(blob);
+        });
+    } catch {
+        return undefined;
+    }
+};
+
+const imageFormat = (dataUrl: string): 'PNG' | 'JPEG' => (dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG');
 
 export const generateInterventionPDF = async (
     intervention: Intervention,
@@ -21,195 +67,207 @@ export const generateInterventionPDF = async (
     syndic: Syndic | undefined,
     lang: Language,
     logoBase64?: string,
-    savePdf: boolean = true
+    savePdf: boolean = true,
+    fileName?: string
 ) => {
     // IMPORTANT: This PDF generator is designed to EXCLUDE photos/images
     // Photos are handled as separate file uploads and should NOT be included in PDF reports
     // This ensures PDF reports remain lightweight and professional
-    const t = TRANSLATIONS[lang];
+    const t: any = TRANSLATIONS[lang] || TRANSLATIONS.EN;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentWidth = pageWidth - MARGIN * 2;
+
+    let y = 0;
+
+    /** Starts a new page when `needed` mm do not fit any more. */
+    const ensureSpace = (needed: number) => {
+        if (y + needed > pageHeight - BOTTOM_MARGIN) {
+            doc.addPage();
+            y = MARGIN + 5;
+        }
+    };
+
+    /** Writes wrapped text line by line, continuing on the next page when needed. */
+    const writeParagraph = (text: unknown, x = MARGIN, width = contentWidth) => {
+        const clean = pdfSafeText(text).trim();
+        if (!clean) return;
+        const lines: string[] = doc.splitTextToSize(clean, width);
+        for (const line of lines) {
+            ensureSpace(LINE);
+            doc.text(line, x, y);
+            y += LINE;
+        }
+    };
+
+    const sectionHeading = (label: string, underline = 45) => {
+        ensureSpace(20);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(pdfSafeText(label), MARGIN, y);
+        doc.setDrawColor(200);
+        doc.line(MARGIN, y + 2, MARGIN + underline, y + 2);
+        doc.setFont('helvetica', 'normal');
+        y += 12;
+    };
+
+    const subHeading = (label: string, color: [number, number, number] = [0, 0, 0]) => {
+        ensureSpace(14);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...color);
+        doc.text(pdfSafeText(label), MARGIN, y);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0);
+        y += 6;
+    };
 
     // 1. Header & Logo
     if (logoBase64) {
         try {
-            doc.addImage(logoBase64, 'JPEG', 15, 10, 35, 35);
+            doc.addImage(logoBase64, imageFormat(logoBase64), MARGIN, 10, 35, 35);
         } catch (e) {
             console.warn('Failed to add logo to PDF', e);
         }
     }
 
     doc.setFontSize(22);
-    doc.setTextColor(0, 0, 0); // Black
-    doc.setFont("helvetica", "bold");
-    doc.text("Vanakel Group", 60, 25);
-    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Vanakel Group', 60, 25);
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
     doc.setTextColor(150, 150, 150);
-    doc.text("(SRL)", 115, 25);
+    doc.text('(SRL)', 115, 25);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text("Excelsiorlaan 36-38,1930 Zaventem", 60, 32);
+    doc.text('Excelsiorlaan 36-38, 1930 Zaventem', 60, 32);
     doc.text('+32 475 99 99 09 | info@vanakelgroup.be', 60, 37);
-    doc.text("www.vanakelgroup.be", 60, 42);
+    doc.text('www.vanakelgroup.be', 60, 42);
 
-    // Divider
     doc.setDrawColor(200);
-    doc.line(15, 50, pageWidth - 15, 50);
+    doc.line(MARGIN, 50, pageWidth - MARGIN, 50);
 
     // 2. Report Title & Meta
     doc.setFontSize(18);
     doc.setTextColor(30, 30, 30);
-    doc.text(t.pdf_report_title || t.reports_title || 'Intervention Report', 15, 65);
+    doc.text(pdfSafeText(t.pdf_report_title || t.reports_title || 'Intervention Report'), MARGIN, 65);
 
+    const status = String(intervention.status || '');
     doc.setFontSize(10);
     doc.setTextColor(100);
-    doc.text(`${t.slip_id || 'Slip ID'}: ${intervention.id}`, 15, 75);
-    doc.text(`${t.created_at || 'Date'}: ${new Date(intervention.createdAt || intervention.scheduledDate).toLocaleDateString()}`, 15, 80);
-    doc.text(`${t.status || 'Status'}: ${t[`status_${intervention.status.toLowerCase()}`] || intervention.status}`, 15, 85);
+    doc.text(pdfSafeText(`${t.slip_id || 'Slip ID'}: ${intervention.id ?? ''}`), MARGIN, 75);
+    doc.text(pdfSafeText(`${t.created_at || 'Date'}: ${formatDate(intervention.createdAt || intervention.scheduledDate, lang)}`), MARGIN, 80);
+    doc.text(pdfSafeText(`${t.status || 'Status'}: ${t[`status_${status.toLowerCase()}`] || status}`), MARGIN, 85);
 
-    // 3. Main Content Sections
-    let currentY = 100;
+    y = 100;
+    doc.setTextColor(0);
 
-    // Section: Intervention Details
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text(t.interventionTitle || 'Intervention Details', 15, currentY);
-    doc.line(15, currentY + 2, 60, currentY + 2);
-
-    currentY += 12;
+    // 3. Intervention details (long descriptions continue on the next pages)
+    sectionHeading(t.interventionTitle || 'Intervention Details', 45);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(intervention.title, 15, currentY);
-
-    currentY += 8;
+    writeParagraph(intervention.title);
+    y += 3;
     doc.setFont('helvetica', 'normal');
-    const descriptionLines = doc.splitTextToSize(intervention.description, pageWidth - 30);
-    doc.text(descriptionLines, 15, currentY);
-    currentY += (descriptionLines.length * 5) + 12;
+    writeParagraph(intervention.description);
+    y += 8;
 
-    // Technical / Admin Notes
-    const adminNote = intervention.adminFeedback || (intervention as any).admin_feedback;
+    // Technical / Admin notes
+    const adminNote =
+        intervention.adminFeedback ||
+        (intervention as any).admin_feedback ||
+        (intervention.notes && intervention.notes.length > 0 ? intervention.notes[intervention.notes.length - 1]?.content : '');
     if (adminNote) {
+        subHeading(t.adminNote || 'Admin Note');
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text(t.adminNote || 'Admin Note', 15, currentY);
-        currentY += 6;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0);
-        const adminLines = doc.splitTextToSize(adminNote, pageWidth - 30);
-        doc.text(adminLines, 15, currentY);
-        currentY += (adminLines.length * 5) + 10;
-    } else if (intervention.notes && intervention.notes.length > 0) {
-        // ... (existing notes logic)
-        const latestNote = intervention.notes[intervention.notes.length - 1];
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text(t.adminNote || 'Admin Note', 15, currentY);
-        currentY += 6;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0);
-        const noteLines = doc.splitTextToSize(latestNote.content || '', pageWidth - 30);
-        doc.text(noteLines, 15, currentY);
-        currentY += (noteLines.length * 5) + 10;
+        writeParagraph(adminNote);
+        y += 6;
     }
 
-    // Delay Details
+    // Delay details
     const delayReason = intervention.delayReason || (intervention as any).delay_reason;
     const delayDetails = intervention.delayDetails || (intervention as any).delay_details;
-
-    if (intervention.status === 'DELAYED' && (delayReason || delayDetails)) {
+    if (status === 'DELAYED' && (delayReason || delayDetails)) {
+        subHeading(t.delayTitle || 'Reason for delay', [230, 100, 0]);
         doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(230, 100, 0); // Orange-ish
-        doc.text(t.delayTitle || 'Reason for delay', 15, currentY);
-        currentY += 6;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0);
-
-        let delayText = '';
-        if (delayReason) {
-            delayText += `${t.delayReasonLabel || 'Reason'}: ${delayReason}\n`;
-        }
-        if (delayDetails) {
-            delayText += `${delayDetails}`;
-        }
-
-        const delayLines = doc.splitTextToSize(delayText, pageWidth - 30);
-        doc.text(delayLines, 15, currentY);
-        currentY += (delayLines.length * 5) + 10;
+        if (delayReason) writeParagraph(`${t.delayReasonLabel || 'Reason'}: ${delayReason}`);
+        if (delayDetails) writeParagraph(delayDetails);
+        y += 6;
     }
 
-    currentY += 5;
+    // On-site contact
+    const contact = [intervention.onSiteContactName, intervention.onSiteContactPhone, intervention.onSiteContactEmail].filter(Boolean);
+    if (contact.length > 0) {
+        subHeading(t.onSiteContactLabel || 'On-site contact');
+        doc.setFontSize(10);
+        writeParagraph(contact.join('  |  '));
+        y += 6;
+    }
 
-    // Section: Building Information
+    y += 4;
+
+    // 4. Building information
     if (building) {
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(t.building_header || 'Building Information', 15, currentY);
-        doc.line(15, currentY + 2, 65, currentY + 2);
-
-        currentY += 12;
+        sectionHeading(t.building_header || 'Building Information', 50);
         doc.setFontSize(11);
-        doc.text(`${t.address || 'Address'}: ${building.address}`, 15, currentY);
-        currentY += 7;
-        doc.text(`${t.city || 'City'}: ${building.city}`, 15, currentY);
-        currentY += 15;
+        writeParagraph(`${t.address || 'Address'}: ${building.address ?? ''}`);
+        if (building.city) writeParagraph(`${t.city || 'City'}: ${building.city}`);
+        y += 10;
     }
 
-    // Section: Professional / Syndic Details
+    // 5. Professional / Syndic details (two columns, kept together on one page)
     if (professional || syndic) {
-        const leftX = 15;
+        ensureSpace(40);
+        const leftX = MARGIN;
         const rightX = pageWidth / 2 + 5;
-        const startY = currentY;
+        const colWidth = pageWidth / 2 - MARGIN - 5;
+        const startY = y;
 
-        if (syndic) {
+        const column = (x: number, heading: string, party: { companyName?: string; contactPerson?: string; email?: string }) => {
+            let cy = startY;
+            doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
-            doc.text(t.syndic || 'Syndic', leftX, currentY);
+            doc.setTextColor(0);
+            doc.text(pdfSafeText(heading), x, cy);
+            doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            currentY += 7;
-            doc.text(syndic.companyName, leftX, currentY);
-            currentY += 5;
-            doc.text(syndic.contactPerson, leftX, currentY);
-            currentY += 5;
-            doc.text(syndic.email, leftX, currentY);
-        }
+            cy += 7;
+            for (const value of [party.companyName, party.contactPerson, party.email]) {
+                const text = pdfSafeText(value).trim();
+                if (!text) continue;
+                for (const line of doc.splitTextToSize(text, colWidth) as string[]) {
+                    doc.text(line, x, cy);
+                    cy += LINE;
+                }
+            }
+            return cy;
+        };
 
-        currentY = startY; // Reset Y for second column
-        if (professional) {
-            doc.setFontSize(12);
-            doc.text(t.pro || 'Professional', rightX, currentY);
-            doc.setFontSize(10);
-            currentY += 7;
-            doc.text(professional.companyName, rightX, currentY);
-            currentY += 5;
-            doc.text(professional.contactPerson, rightX, currentY);
-            currentY += 5;
-            doc.text(professional.email, rightX, currentY);
-        }
-
-        currentY = Math.max(currentY, startY + 25) + 20;
+        const leftEnd = syndic ? column(leftX, t.syndic || 'Syndic', syndic) : startY;
+        const rightEnd = professional ? column(rightX, t.pro || 'Professional', professional) : startY;
+        y = Math.max(leftEnd, rightEnd, startY + 25) + 10;
     }
 
+    // 6. Footer on every page
+    const pageCount = doc.getNumberOfPages();
     const currentYear = new Date().getFullYear();
-    // 5. Footer
-    const pageCountSource = (doc as any).internal.getNumberOfPages();
-    for (let i = 1; i <= pageCountSource; i++) {
+    for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(9);
         doc.setTextColor(150);
-        const pageText = t.pdf_page_of ? t.pdf_page_of.replace('{current}', String(i)).replace('{total}', String(pageCountSource)) : `Page ${i} of ${pageCountSource}`;
-        doc.text(pageText, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
-        doc.text(`© Vanakel Group (SRL) ${currentYear}`, 15, doc.internal.pageSize.getHeight() - 10);
+        const pageText = t.pdf_page_of
+            ? String(t.pdf_page_of).replace('{current}', String(i)).replace('{total}', String(pageCount))
+            : `Page ${i} of ${pageCount}`;
+        doc.text(pdfSafeText(pageText), pageWidth / 2, pageHeight - 10, { align: 'center' });
+        doc.text(`\u00A9 Vanakel Group (SRL) ${currentYear}`, MARGIN, pageHeight - 10);
     }
 
-    // Save the PDF
-    const fileName = `Intervention_Report_${intervention.id}_${new Date().toISOString().split('T')[0]}.pdf`;
     if (savePdf) {
-        doc.save(fileName);
+        doc.save(fileName || `Intervention_Report_${intervention.id}_${new Date().toISOString().split('T')[0]}.pdf`);
     }
 
     // NOTE: Photos are intentionally NOT included in PDF reports

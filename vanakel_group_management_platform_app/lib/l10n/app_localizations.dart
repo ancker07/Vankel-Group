@@ -2199,6 +2199,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You don\'t have access to this section'**
   String get admForbidden;
+
+  /// No description provided for @pdfGenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating PDF…'**
+  String get pdfGenerating;
+
+  /// No description provided for @pdfNoViewer.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF saved, but no app was found to open it. Install a PDF viewer.'**
+  String get pdfNoViewer;
+
+  /// No description provided for @pdfError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the PDF: {error}'**
+  String pdfError(String error);
+
+  /// No description provided for @fileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is larger than 10 MB'**
+  String fileTooLarge(String name);
+
+  /// No description provided for @speechPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is off. Allow it in the app settings to dictate.'**
+  String get speechPermission;
+
+  /// No description provided for @speechNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice recognition needs an internet connection.'**
+  String get speechNetwork;
+
+  /// No description provided for @speechLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'This language is not available for voice on your phone. Install it in your phone\'s speech settings.'**
+  String get speechLanguage;
+
+  /// No description provided for @speechRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice recognition stopped. Please try again.'**
+  String get speechRetry;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get openSettings;
 }
 
 class _AppLocalizationsDelegate

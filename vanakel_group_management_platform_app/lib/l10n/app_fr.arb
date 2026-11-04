@@ -348,5 +348,14 @@
   "admReasonThread": "conversation",
   "admReasonBuildingTitle": "bâtiment + titre",
   "admReasonMerge": "fusion",
-  "admForbidden": "Vous n'avez pas accès à cette section"
+  "admForbidden": "Vous n'avez pas accès à cette section",
+  "pdfGenerating": "Génération du PDF…",
+  "pdfNoViewer": "PDF enregistré, mais aucune application pour l'ouvrir. Installez un lecteur PDF.",
+  "pdfError": "Impossible de créer le PDF : {error}",
+  "fileTooLarge": "{name} dépasse 10 Mo",
+  "speechPermission": "L'accès au micro est désactivé. Autorisez-le dans les réglages de l'application pour dicter.",
+  "speechNetwork": "La reconnaissance vocale nécessite une connexion internet.",
+  "speechLanguage": "Cette langue n'est pas disponible pour la voix sur votre téléphone. Installez-la dans les réglages vocaux du téléphone.",
+  "speechRetry": "La reconnaissance vocale s'est arrêtée. Réessayez.",
+  "openSettings": "Réglages"
 }

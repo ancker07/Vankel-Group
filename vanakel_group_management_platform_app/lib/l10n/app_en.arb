@@ -427,5 +427,28 @@
   "admReasonThread": "conversation",
   "admReasonBuildingTitle": "building + title",
   "admReasonMerge": "merge",
-  "admForbidden": "You don't have access to this section"
+  "admForbidden": "You don't have access to this section",
+  "pdfGenerating": "Generating PDF…",
+  "pdfNoViewer": "PDF saved, but no app was found to open it. Install a PDF viewer.",
+  "pdfError": "Could not create the PDF: {error}",
+  "@pdfError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fileTooLarge": "{name} is larger than 10 MB",
+  "@fileTooLarge": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "speechPermission": "Microphone access is off. Allow it in the app settings to dictate.",
+  "speechNetwork": "Voice recognition needs an internet connection.",
+  "speechLanguage": "This language is not available for voice on your phone. Install it in your phone's speech settings.",
+  "speechRetry": "Voice recognition stopped. Please try again.",
+  "openSettings": "Settings"
 }

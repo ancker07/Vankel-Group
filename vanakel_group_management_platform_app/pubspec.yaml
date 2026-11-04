@@ -103,6 +103,8 @@ flutter:
   assets:
     - assets/images/
     - assets/images/report_logo.jpeg
+    - assets/fonts/Roboto-Regular.ttf
+    - assets/fonts/Roboto-Bold.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

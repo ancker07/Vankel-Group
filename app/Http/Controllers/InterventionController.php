@@ -40,8 +40,7 @@ class InterventionController extends Controller
             'onSiteContactName' => 'required|string',
             'onSiteContactPhone' => 'required|string',
             'onSiteContactEmail' => 'nullable|string',
-            'files.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
-            'photos.*' => 'nullable|file|image|max:10240',
+            ...\App\Support\UploadRules::fileFields(),
         ]);
 
         // 1. Find or create building
@@ -461,7 +460,10 @@ class InterventionController extends Controller
             'onSiteContactName' => 'sometimes|nullable|string',
             'onSiteContactPhone' => 'sometimes|nullable|string',
             'onSiteContactEmail' => 'sometimes|nullable|string',
+            ...\App\Support\UploadRules::fileFields(),
         ]);
+        // files are saved below, they are not columns of the missions table
+        $validated = array_diff_key($validated, array_flip(['files', 'photos']));
 
         if (array_key_exists('sector', $validated)) {
             $validated['category'] = $validated['sector'];
@@ -560,8 +562,7 @@ class InterventionController extends Controller
             'delayed_reschedule_date' => 'sometimes|nullable|date',
             'completed_at' => 'sometimes|nullable|date',
             'syndic_id' => 'sometimes|nullable|string',
-            'files.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10240',
-            'photos.*' => 'nullable|file|image|max:10240',
+            ...\App\Support\UploadRules::fileFields(),
         ]);
 
         $oldStatus = $intervention->status;

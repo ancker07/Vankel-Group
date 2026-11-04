@@ -229,7 +229,8 @@ class EmailController extends Controller
         $request->validate([
             'body' => 'required|string',
             'account' => 'required|in:no-reply,redirection',
-            'attachments.*' => 'nullable|file|max:10240', // 10MB limit
+            'attachments' => 'nullable|array|max:10',
+            'attachments.*' => 'file|mimes:' . \App\Support\UploadRules::DOCUMENT_MIMES . ',zip|max:' . \App\Support\UploadRules::MAX_KB,
         ]);
 
         $email = Email::findOrFail($id);

@@ -217,7 +217,11 @@ class AuthRepositoryImpl implements AuthRepository {
         data = formData;
       }
 
-      final response = await _dio.post(ApiConstants.profileUpdate, data: data);
+      final response = await _dio.post(
+        ApiConstants.profileUpdate,
+        data: data,
+        options: Options(sendTimeout: const Duration(minutes: 2), receiveTimeout: const Duration(minutes: 1)),
+      );
       final user = UserModel.fromJson(response.data['user']).toEntity();
       // If email was updated, save it
       if (updateData.containsKey('email')) {
