@@ -160,7 +160,7 @@ export const dataService = {
 
     /** Is server speech-to-text usable for this user? */
     getTranscriptionStatus: async (): Promise<{ available: boolean }> => {
-        const response = await apiClient.get('/ai/transcribe/status', { timeout: 5000 });
+        const response = await apiClient.get('/ai/transcribe/status', { timeout: 5000, silent: true } as any);
         return response.data;
     },
     transcribeAudio: async (audio: Blob, language: string): Promise<string> => {
@@ -171,7 +171,8 @@ export const dataService = {
         const response = await apiClient.post('/ai/transcribe', form, {
             headers: { 'Content-Type': 'multipart/form-data' },
             timeout: 90000,
-        });
+            silent: true,
+        } as any);
         return response.data?.text ?? '';
     },
 

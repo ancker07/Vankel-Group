@@ -29,7 +29,8 @@ apiClient.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        loadingStore.start(config.method);
+        // Background work (dictation uploads) must not flash the loading indicator
+        if (!(config as any).silent) loadingStore.start(config.method);
         return config;
     },
     (error) => {
@@ -40,11 +41,11 @@ apiClient.interceptors.request.use(
 // Every request that started must end, whether it succeeded or failed
 apiClient.interceptors.response.use(
     (response) => {
-        loadingStore.end(response.config?.method);
+        if (!(response.config as any)?.silent) loadingStore.end(response.config?.method);
         return response;
     },
     (error) => {
-        loadingStore.end(error?.config?.method);
+        if (!error?.config?.silent) loadingStore.end(error?.config?.method);
         return Promise.reject(error);
     }
 );
