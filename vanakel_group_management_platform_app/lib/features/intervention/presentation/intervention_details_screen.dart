@@ -148,15 +148,24 @@ class _InterventionDetailsScreenState
           maxWidth: 1920,
           maxHeight: 1920,
         );
-        if (image != null && mounted) setState(() => _selectedImages.add(image));
+        if (image != null && mounted)
+          setState(() => _selectedImages.add(image));
       } else {
-        final images = await _picker.pickMultiImage(imageQuality: 70, maxWidth: 1920, maxHeight: 1920);
-        if (images.isNotEmpty && mounted) setState(() => _selectedImages.addAll(images));
+        final images = await _picker.pickMultiImage(
+          imageQuality: 70,
+          maxWidth: 1920,
+          maxHeight: 1920,
+        );
+        if (images.isNotEmpty && mounted)
+          setState(() => _selectedImages.addAll(images));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.pdfError(e.toString())), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(l10n.pdfError(e.toString())),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -182,18 +191,25 @@ class _InterventionDetailsScreenState
         if (await file.length() > maxBytes) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.fileTooLarge(f.name)), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text(l10n.fileTooLarge(f.name)),
+                backgroundColor: Colors.red,
+              ),
             );
           }
           continue;
         }
         accepted.add(file);
       }
-      if (accepted.isNotEmpty && mounted) setState(() => _selectedDocs.addAll(accepted));
+      if (accepted.isNotEmpty && mounted)
+        setState(() => _selectedDocs.addAll(accepted));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.pdfError(e.toString())), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(l10n.pdfError(e.toString())),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -203,13 +219,16 @@ class _InterventionDetailsScreenState
   /// the work over for review. The server checks the same rules; this just answers without a round trip.
   void _submitToAdmin(Intervention i, AppLocalizations l10n) {
     final messenger = ScaffoldMessenger.of(context);
-    void refuse(String message) =>
-        messenger.showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+    void refuse(String message) => messenger.showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
 
     final status = _localStatus ?? i.status;
-    if (status == InterventionStatus.pending) return refuse(l10n.submitNeedsStatus);
+    if (status == InterventionStatus.pending)
+      return refuse(l10n.submitNeedsStatus);
     final reason = _localDelayReason ?? i.delayReason;
-    if (status == InterventionStatus.delayed && (reason == null || reason.trim().isEmpty)) {
+    if (status == InterventionStatus.delayed &&
+        (reason == null || reason.trim().isEmpty)) {
       return refuse(l10n.submitNeedsDelayReason);
     }
     _executeRegister(i.id, mode: 'SUBMIT');
@@ -267,7 +286,10 @@ class _InterventionDetailsScreenState
         formData.files.add(
           MapEntry(
             'files[]',
-            await dio.MultipartFile.fromFile(doc.path, filename: doc.path.split(Platform.pathSeparator).last),
+            await dio.MultipartFile.fromFile(
+              doc.path,
+              filename: doc.path.split(Platform.pathSeparator).last,
+            ),
           ),
         );
       }
@@ -294,7 +316,10 @@ class _InterventionDetailsScreenState
           } else if (report.complete) {
             message = l10n.reportSentTo(report.sent.length);
           } else {
-            message = l10n.reportPartial(report.sent.length, report.failed.length);
+            message = l10n.reportPartial(
+              report.sent.length,
+              report.failed.length,
+            );
             color = AppTheme.brandOrange;
           }
         }
@@ -304,7 +329,11 @@ class _InterventionDetailsScreenState
           _selectedDocs.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: color, duration: const Duration(seconds: 6)),
+          SnackBar(
+            content: Text(message),
+            backgroundColor: color,
+            duration: const Duration(seconds: 6),
+          ),
         );
         Navigator.pop(context);
       }
@@ -312,7 +341,10 @@ class _InterventionDetailsScreenState
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorWithMessage(context, e)),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -336,8 +368,17 @@ class _InterventionDetailsScreenState
         professional: null,
         syndic: null,
         lang: Localizations.localeOf(context).languageCode,
+        photoPaths: _selectedImages.map((image) => image.path).toList(),
       );
-      formData.files.add(MapEntry('files[]', dio.MultipartFile.fromBytes(bytes, filename: PdfService.fileNameFor(id))));
+      formData.files.add(
+        MapEntry(
+          'files[]',
+          dio.MultipartFile.fromBytes(
+            bytes,
+            filename: PdfService.fileNameFor(id),
+          ),
+        ),
+      );
     } catch (e) {
       debugPrint('Report PDF not attached: $e');
     }
@@ -422,8 +463,13 @@ class _InterventionDetailsScreenState
         data: (intervention) {
           _initializeControllers(intervention);
           // A completed mission is read-only unless the role may reopen it (admin)
-          final locked = intervention.status == InterventionStatus.completed &&
-              !(ref.watch(authStateProvider).user?.can('interventions.reopen') ?? false);
+          final locked =
+              intervention.status == InterventionStatus.completed &&
+              !(ref
+                      .watch(authStateProvider)
+                      .user
+                      ?.can('interventions.reopen') ??
+                  false);
           Widget editable(Widget child) => locked
               ? IgnorePointer(child: Opacity(opacity: 0.6, child: child))
               : child;
@@ -442,15 +488,26 @@ class _InterventionDetailsScreenState
                           decoration: BoxDecoration(
                             color: AppTheme.brandGreen.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.brandGreen.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: AppTheme.brandGreen.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.lock_outline, color: AppTheme.brandGreen, size: 18),
+                              const Icon(
+                                Icons.lock_outline,
+                                color: AppTheme.brandGreen,
+                                size: 18,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Text(l10n.missionLocked,
-                                    style: const TextStyle(color: Colors.white, fontSize: 13)),
+                                child: Text(
+                                  l10n.missionLocked,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -475,8 +532,11 @@ class _InterventionDetailsScreenState
                       const SizedBox(height: 24),
                       _buildMapSection(intervention, l10n),
                       const SizedBox(height: 24),
-                      if (ref.watch(authStateProvider).user?.can('team.view') ?? false) ...[
-                        TeamMemberTracker(interventionId: widget.interventionId),
+                      if (ref.watch(authStateProvider).user?.can('team.view') ??
+                          false) ...[
+                        TeamMemberTracker(
+                          interventionId: widget.interventionId,
+                        ),
                         const SizedBox(height: 24),
                       ],
                       editable(_buildFeedbackSection(intervention, l10n)),
@@ -495,7 +555,10 @@ class _InterventionDetailsScreenState
           child: CircularProgressIndicator(color: AppTheme.brandGreen),
         ),
         error: (e, __) => Center(
-          child: Text(errorWithMessage(context, e), style: const TextStyle(color: Colors.white)),
+          child: Text(
+            errorWithMessage(context, e),
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
       ),
     );
@@ -514,20 +577,38 @@ class _InterventionDetailsScreenState
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.brandOrange.withValues(alpha: 0.5)),
       ),
-      child: Row(children: [
-        const Icon(Icons.hourglass_top_outlined, color: AppTheme.brandOrange, size: 22),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(l10n.awaitingAdminReview, style: const TextStyle(fontWeight: FontWeight.w800)),
-            if (who != null && who.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(l10n.submittedByOn(who, when), style: const TextStyle(fontSize: 12, color: AppTheme.zinc400)),
-              ),
-          ]),
-        ),
-      ]),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.hourglass_top_outlined,
+            color: AppTheme.brandOrange,
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.awaitingAdminReview,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                if (who != null && who.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      l10n.submittedByOn(who, when),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.zinc400,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -545,11 +626,24 @@ class _InterventionDetailsScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label.toUpperCase(),
-                      style: const TextStyle(
-                          fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+                  Text(
+                    label.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.zinc500,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -558,7 +652,10 @@ class _InterventionDetailsScreenState
       );
     }
 
-    final location = [TranslationHelper.address(context, i.address), i.city].where((e) => e != null && e.trim().isNotEmpty).join(', ');
+    final location = [
+      TranslationHelper.address(context, i.address),
+      i.city,
+    ].where((e) => e != null && e.trim().isNotEmpty).join(', ');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -571,12 +668,33 @@ class _InterventionDetailsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (i.interventionNumber != null && i.interventionNumber!.isNotEmpty)
-            Text('#${i.interventionNumber}',
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppTheme.brandGreen)),
-          Text(i.title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(
+              '#${i.interventionNumber}',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.brandGreen,
+              ),
+            ),
+          Text(
+            i.title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           row(Icons.place_outlined, l10n.propertyAddress, location),
-          row(Icons.business_outlined, l10n.syndicManager, i.syndicName ?? i.extractedSyndicName),
-          row(Icons.engineering_outlined, l10n.assignedProfessional, i.professionalName),
+          row(
+            Icons.business_outlined,
+            l10n.syndicManager,
+            i.syndicName ?? i.extractedSyndicName,
+          ),
+          row(
+            Icons.engineering_outlined,
+            l10n.assignedProfessional,
+            i.professionalName,
+          ),
         ],
       ),
     );
@@ -585,7 +703,10 @@ class _InterventionDetailsScreenState
   /// Admins / super admins manage syndic, contact and assignment; technicians don't.
   bool get _canManageAssignments {
     final user = ref.read(authStateProvider).user;
-    return user != null && (user.isSuperAdmin || user.can('missions.approve') || user.can('team.view'));
+    return user != null &&
+        (user.isSuperAdmin ||
+            user.can('missions.approve') ||
+            user.can('team.view'));
   }
 
   Future<void> _launch(String scheme, String value) async {
@@ -599,7 +720,13 @@ class _InterventionDetailsScreenState
     final phone = _contactPhoneController.text.trim();
     final email = _contactEmailController.text.trim();
 
-    Widget line(IconData icon, String label, String value, {String? scheme, Color? color}) {
+    Widget line(
+      IconData icon,
+      String label,
+      String value, {
+      String? scheme,
+      Color? color,
+    }) {
       final has = value.isNotEmpty;
       return InkWell(
         onTap: has && scheme != null ? () => _launch(scheme, value) : null,
@@ -607,26 +734,45 @@ class _InterventionDetailsScreenState
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: has && scheme != null ? AppTheme.brandGreen : AppTheme.zinc500),
+              Icon(
+                icon,
+                size: 18,
+                color: has && scheme != null
+                    ? AppTheme.brandGreen
+                    : AppTheme.zinc500,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label,
-                        style: const TextStyle(
-                            fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.zinc500,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(has ? value : '—',
-                        style: TextStyle(
-                            color: has ? (color ?? Colors.white) : AppTheme.zinc500,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600)),
+                    Text(
+                      has ? value : '—',
+                      style: TextStyle(
+                        color: has ? (color ?? Colors.white) : AppTheme.zinc500,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
               if (has && scheme != null)
-                Icon(scheme == 'tel' ? Icons.call : Icons.mail_outline, size: 18, color: AppTheme.brandGreen),
+                Icon(
+                  scheme == 'tel' ? Icons.call : Icons.mail_outline,
+                  size: 18,
+                  color: AppTheme.brandGreen,
+                ),
             ],
           ),
         ),
@@ -646,17 +792,28 @@ class _InterventionDetailsScreenState
         children: [
           Row(
             children: [
-              const Icon(Icons.person_outline, size: 16, color: AppTheme.zinc500),
+              const Icon(
+                Icons.person_outline,
+                size: 16,
+                color: AppTheme.zinc500,
+              ),
               const SizedBox(width: 8),
-              Text(l10n.onSiteContact,
-                  style: const TextStyle(
-                      fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.zinc500, letterSpacing: 1.2)),
+              Text(
+                l10n.onSiteContact,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.zinc500,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           line(Icons.badge_outlined, l10n.name, name),
           line(Icons.phone_outlined, l10n.phoneTitle, phone, scheme: 'tel'),
-          if (email.isNotEmpty) line(Icons.alternate_email, 'EMAIL', email, scheme: 'mailto'),
+          if (email.isNotEmpty)
+            line(Icons.alternate_email, 'EMAIL', email, scheme: 'mailto'),
         ],
       ),
     );
@@ -695,7 +852,9 @@ class _InterventionDetailsScreenState
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _buildTextField(l10n.name, _contactNameController)),
+              Expanded(
+                child: _buildTextField(l10n.name, _contactNameController),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildTextField(
@@ -732,7 +891,8 @@ class _InterventionDetailsScreenState
   }
 
   Widget _buildExtractedSyndicInfo(Intervention i, AppLocalizations l10n) {
-    if (_localSyndicId != null || i.extractedSyndicName == null) return const SizedBox.shrink();
+    if (_localSyndicId != null || i.extractedSyndicName == null)
+      return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -740,9 +900,7 @@ class _InterventionDetailsScreenState
       decoration: BoxDecoration(
         color: AppTheme.brandOrange.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppTheme.brandOrange.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: AppTheme.brandOrange.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -1067,9 +1225,11 @@ class _InterventionDetailsScreenState
 
   Widget _buildStatusSection(Intervention i, AppLocalizations l10n) {
     final user = ref.watch(authStateProvider).user;
-    final canChangeStatus = user != null &&
+    final canChangeStatus =
+        user != null &&
         user.can('interventions.update') &&
-        (i.status != InterventionStatus.completed || user.can('interventions.reopen'));
+        (i.status != InterventionStatus.completed ||
+            user.can('interventions.reopen'));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1150,7 +1310,11 @@ class _InterventionDetailsScreenState
           children: [
             DictationButton(controller: _adminNoteController),
             _buildSmallBtn(Icons.camera_alt_outlined, l10n.photos, _pickImage),
-            _buildSmallBtn(Icons.upload_file_outlined, l10n.documents, _pickDocuments),
+            _buildSmallBtn(
+              Icons.upload_file_outlined,
+              l10n.documents,
+              _pickDocuments,
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -1263,7 +1427,11 @@ class _InterventionDetailsScreenState
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.aiErrorWithMessage(errorText(context, e))),
+                      content: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.aiErrorWithMessage(errorText(context, e)),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -1370,7 +1538,8 @@ class _InterventionDetailsScreenState
                     top: -6,
                     right: -6,
                     child: GestureDetector(
-                      onTap: () => setState(() => _selectedImages.removeAt(index)),
+                      onTap: () =>
+                          setState(() => _selectedImages.removeAt(index)),
                       child: const CircleAvatar(
                         radius: 10,
                         backgroundColor: Colors.red,
@@ -1387,7 +1556,11 @@ class _InterventionDetailsScreenState
           ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.attach_file, size: 18, color: AppTheme.brandGreen),
+            leading: const Icon(
+              Icons.attach_file,
+              size: 18,
+              color: AppTheme.brandGreen,
+            ),
             title: Text(
               _selectedDocs[n].path.split(Platform.pathSeparator).last,
               maxLines: 1,
@@ -1405,12 +1578,25 @@ class _InterventionDetailsScreenState
             dense: true,
             contentPadding: EdgeInsets.zero,
             leading: Icon(
-              d.isImage ? Icons.image_outlined : (d.isPdf ? Icons.picture_as_pdf_outlined : Icons.insert_drive_file_outlined),
+              d.isImage
+                  ? Icons.image_outlined
+                  : (d.isPdf
+                        ? Icons.picture_as_pdf_outlined
+                        : Icons.insert_drive_file_outlined),
               size: 18,
               color: AppTheme.zinc400,
             ),
-            title: Text(d.fileName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-            trailing: const Icon(Icons.open_in_new, size: 16, color: AppTheme.brandGreen),
+            title: Text(
+              d.fileName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: const Icon(
+              Icons.open_in_new,
+              size: 16,
+              color: AppTheme.brandGreen,
+            ),
             onTap: () => openUploadedDocument(context, d),
           ),
         const SizedBox(height: 24),
@@ -1532,7 +1718,8 @@ class _InterventionDetailsScreenState
     // A user who cannot review work (a technician) hands it to the admin; admins keep "Register".
     final user = ref.watch(authStateProvider).user;
     final sendsToAdmin = user != null && !user.can('interventions.reopen');
-    final lockedForTechnician = sendsToAdmin && i.status == InterventionStatus.completed;
+    final lockedForTechnician =
+        sendsToAdmin && i.status == InterventionStatus.completed;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1548,7 +1735,9 @@ class _InterventionDetailsScreenState
           child: ElevatedButton(
             onPressed: (_isSaving || _isImproving || lockedForTechnician)
                 ? null
-                : () => sendsToAdmin ? _submitToAdmin(i, l10n) : _showRegisterOptionsModal(context, i, l10n),
+                : () => sendsToAdmin
+                      ? _submitToAdmin(i, l10n)
+                      : _showRegisterOptionsModal(context, i, l10n),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandGreen,
               foregroundColor: Colors.black,
@@ -1569,10 +1758,17 @@ class _InterventionDetailsScreenState
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(sendsToAdmin ? Icons.send_outlined : Icons.description_outlined, size: 18),
+                      Icon(
+                        sendsToAdmin
+                            ? Icons.send_outlined
+                            : Icons.description_outlined,
+                        size: 18,
+                      ),
                       const SizedBox(width: 10),
                       Text(
-                        sendsToAdmin ? l10n.sendToAdmin : l10n.registerInterventionTitle,
+                        sendsToAdmin
+                            ? l10n.sendToAdmin
+                            : l10n.registerInterventionTitle,
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 14,
@@ -1588,8 +1784,11 @@ class _InterventionDetailsScreenState
 
   /// Where the work is: a map preview and a big GPS button (same card as on a mission).
   Widget _buildMapSection(Intervention i, AppLocalizations l10n) {
-    final hasAddress = i.address.trim().isNotEmpty && i.address.trim() != 'No Address';
-    final address = hasAddress ? [i.address, if ((i.city ?? '').trim().isNotEmpty) i.city!].join(', ') : '';
+    final hasAddress =
+        i.address.trim().isNotEmpty && i.address.trim() != 'No Address';
+    final address = hasAddress
+        ? [i.address, if ((i.city ?? '').trim().isNotEmpty) i.city!].join(', ')
+        : '';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1622,21 +1821,27 @@ class _InterventionDetailsScreenState
                     children: [
                       Text(
                         TranslationHelper.address(context, i.address),
-                        style: const TextStyle(color: AppTheme.zinc300, fontSize: 14),
+                        style: const TextStyle(
+                          color: AppTheme.zinc300,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           // MapService shows a message when the phone has no maps app / no address
-                          onPressed: () => _openMap(address.isEmpty ? i.address : address),
+                          onPressed: () =>
+                              _openMap(address.isEmpty ? i.address : address),
                           icon: const Icon(Icons.navigation),
                           label: Text(l10n.openGps),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.brandGreen,
                             foregroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),
@@ -1788,7 +1993,10 @@ class _InterventionDetailsScreenState
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          AppFormat.dateMedium(context, startDate),
+                                          AppFormat.dateMedium(
+                                            context,
+                                            startDate,
+                                          ),
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 13,
@@ -1942,16 +2150,16 @@ class _InterventionDetailsScreenState
                                     },
                                   });
                               if (context.mounted) {
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        l10n.maintenancePlanCreatedSuccess,
-                                      ),
-                                      backgroundColor: AppTheme.brandGreen,
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.maintenancePlanCreatedSuccess,
                                     ),
-                                  );
-                                }
+                                    backgroundColor: AppTheme.brandGreen,
+                                  ),
+                                );
+                              }
                             } catch (e) {
                               setModalState(() => isSubmitting = false);
                               if (context.mounted) {
@@ -1994,7 +2202,11 @@ class _InterventionDetailsScreenState
     );
   }
 
-  void _showRegisterOptionsModal(BuildContext context, Intervention i, AppLocalizations l10n) {
+  void _showRegisterOptionsModal(
+    BuildContext context,
+    Intervention i,
+    AppLocalizations l10n,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -2139,7 +2351,8 @@ class _InterventionDetailsScreenState
   }
 
   /// Navigation to the address (see MapService.openDirections: several fallbacks + a visible message).
-  Future<void> _openMap(String address) => MapService.openDirections(context, address);
+  Future<void> _openMap(String address) =>
+      MapService.openDirections(context, address);
 }
 
 class _StatusBtn extends StatelessWidget {

@@ -83,9 +83,6 @@ export const generateInterventionPDF = async (
     savePdf: boolean = true,
     fileName?: string
 ) => {
-    // IMPORTANT: This PDF generator is designed to EXCLUDE photos/images
-    // Photos are handled as separate file uploads and should NOT be included in PDF reports
-    // This ensures PDF reports remain lightweight and professional
     const t: any = TRANSLATIONS[lang] || TRANSLATIONS.EN;
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -136,6 +133,14 @@ export const generateInterventionPDF = async (
         doc.setTextColor(0);
         y += 6;
     };
+
+    const photoUrls = [...new Set([
+        ...(intervention.photos || []),
+        ...(intervention.documents || [])
+            .filter(document => /^image\//i.test(document.type || '') || /\.(jpe?g|png|webp|gif)$/i.test(document.url || ''))
+            .map(document => document.url),
+    ].filter(Boolean))];
+    const photos = (await Promise.all(photoUrls.map(loadImageAsDataUrl))).filter((photo): photo is string => !!photo);
 
     // 1. Header & Logo
     if (logoBase64) {
@@ -265,6 +270,22 @@ export const generateInterventionPDF = async (
         y = Math.max(leftEnd, rightEnd, startY + 25) + 10;
     }
 
+    if (photos.length > 0) {
+        sectionHeading(t.intervention_photos || t.photos || 'Intervention Photos', 55);
+        for (const photo of photos) {
+            try {
+                const properties = doc.getImageProperties(photo);
+                const width = contentWidth;
+                const height = Math.min(120, (properties.height * width) / properties.width);
+                ensureSpace(height + 8);
+                doc.addImage(photo, imageFormat(photo), MARGIN, y, width, height);
+                y += height + 8;
+            } catch (error) {
+                console.warn('Failed to add intervention photo to PDF', error);
+            }
+        }
+    }
+
     // 6. Footer on every page
     const pageCount = doc.getNumberOfPages();
     const currentYear = new Date().getFullYear();
@@ -283,7 +304,5 @@ export const generateInterventionPDF = async (
         doc.save(fileName || `Intervention_Report_${intervention.id}_${new Date().toISOString().split('T')[0]}.pdf`);
     }
 
-    // NOTE: Photos are intentionally NOT included in PDF reports
-    // Photos should remain as separate file uploads for better performance and flexibility
     return doc;
 };

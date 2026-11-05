@@ -162,7 +162,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
   const [isImprovingDetails, setIsImprovingDetails] = useState(false);
   const isSyndic = role === 'SYNDIC';
   const isSuperAdminOrAdmin = role === 'SUPERADMIN' || role === 'ADMIN';
-  const canUpdateStatus = !readOnly && isSuperAdminOrAdmin && (intervention.status !== 'COMPLETED' || can('interventions.reopen'));
+  // A technician (PROFESSIONAL) sets Completed / Delayed on the work assigned to them, then sends it to the admin
+  const isTechnician = role === 'PROFESSIONAL' && can('interventions.update');
+  const canUpdateStatus = !readOnly && (isSuperAdminOrAdmin || isTechnician) && (intervention.status !== 'COMPLETED' || can('interventions.reopen'));
   const [isEditable, setIsEditable] = useState(!readOnly && (intervention.status !== 'COMPLETED' || can('interventions.reopen')) && !isSyndic);
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -298,6 +300,9 @@ const InterventionSlip: React.FC<SlipProps> = ({
     try {
       let updatedInterventionData = {
         ...intervention,
+        // the report shows the pictures as they are now, including the ones added in this update
+        photos: photos.map(p => p.url),
+        documents: documents.map(d => (d.file ? { ...d, type: d.file.type || d.type } : d)),
         status,
         adminFeedback: adminNote,
         delayedRescheduleDate: status === 'DELAYED' ? delayedDate : undefined,

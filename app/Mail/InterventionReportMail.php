@@ -69,7 +69,19 @@ class InterventionReportMail extends Mailable
     {
         $attachments = [];
 
-        foreach ($this->intervention->documents as $doc) {
+        $isImage = fn ($doc) => str_starts_with((string) $doc->file_type, 'image/')
+            || preg_match('/\.(jpe?g|png|webp|gif|heic)$/i', (string) $doc->file_name);
+        $isReport = fn ($doc) => preg_match('/^Intervention_Report_.*\.pdf$/i', (string) $doc->file_name);
+
+        // The report PDF already shows the pictures, so when there is one: attach only the newest report
+        // (not every older one) and not the pictures a second time. Without a report PDF (e.g. a save
+        // from the phone) the pictures are attached as before.
+        $latestReport = $this->intervention->documents->filter($isReport)->sortByDesc('id')->first();
+        $documents = $latestReport
+            ? $this->intervention->documents->reject(fn ($doc) => $isImage($doc) || ($isReport($doc) && $doc->id !== $latestReport->id))
+            : $this->intervention->documents;
+
+        foreach ($documents as $doc) {
             if (Storage::disk('public')->exists($doc->file_path)) {
                 $attachments[] = Attachment::fromPath(Storage::disk('public')->path($doc->file_path))
                     ->as($doc->file_name);

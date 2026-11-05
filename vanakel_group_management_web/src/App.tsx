@@ -75,6 +75,8 @@ import {
 import { TRANSLATIONS } from '@/utils/constants';
 import { runEmailIngestion } from '@/features/dashboard/services/emailIngestion';
 
+const LANGUAGE_STORAGE_KEY = 'vanakel_language';
+const isLanguage = (value: string | null): value is Language => value === 'EN' || value === 'FR' || value === 'NL';
 
 const App: React.FC = () => {
   const navigate = useNavigate();
@@ -88,13 +90,17 @@ const App: React.FC = () => {
     if (savedRole) return savedRole as Role;
     return null;
   });
-  const [lang, setLangState] = useState<Language>('FR');
-  useEffect(() => { setApiLanguage(lang); }, []); // the first request already carries the page language
+  const [lang, setLangState] = useState<Language>(() => {
+    const savedLanguage = sessionStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return isLanguage(savedLanguage) ? savedLanguage : 'FR';
+  });
+  useEffect(() => { setApiLanguage(lang); }, [lang]);
 
   // Picking a language also tells the server (when logged in), so notifications and e-mails follow it
   const setLang = (next: Language) => {
+    if (next === lang) return;
+    sessionStorage.setItem(LANGUAGE_STORAGE_KEY, next);
     setLangState(next);
-    setApiLanguage(next);
     if (localStorage.getItem('vanakel_authToken')) {
       dataService.updateLocale(next).catch(() => { /* offline / not allowed: the UI language still changes */ });
     }
@@ -1301,6 +1307,8 @@ const App: React.FC = () => {
                           lang={lang}
                           onRefresh={() => refreshGlobalData()}
                           isRefreshing={isRefreshing}
+                          isTechnician={isTechnician}
+                          canVerifySubmissions={can('interventions.reopen')}
                         />
                       } />
 

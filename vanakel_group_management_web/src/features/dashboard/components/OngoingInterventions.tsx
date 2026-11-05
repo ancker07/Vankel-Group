@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Clock, MapPin, Navigation, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar } from 'lucide-react';
-import { Intervention, Building, Syndic, Language, Document, User as UserType } from '@/types';
+import React, { useMemo, useState } from 'react';
+import { Clock, MapPin, Navigation, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar, CheckCircle2 } from 'lucide-react';
+import { Intervention, Building, Syndic, Language, Document, InterventionStatus } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 
@@ -14,10 +14,15 @@ interface OngoingInterventionsProps {
     lang: Language;
     onRefresh: () => void;
     isRefreshing: boolean;
+    isTechnician: boolean;
+    canVerifySubmissions: boolean;
 }
 
-const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang, onRefresh, isRefreshing }) => {
+type StatusFilter = 'ALL' | InterventionStatus;
+
+const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang, onRefresh, isRefreshing, isTechnician, canVerifySubmissions }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
 
     // Filter States
     const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +50,23 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
         return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesDate;
     });
 
-    const ongoingItems = filteredInterventions.filter(i => i.status === 'PENDING');
+    const statusCounts = useMemo(() => ({
+        ALL: filteredInterventions.length,
+        PENDING: filteredInterventions.filter(i => i.status === 'PENDING').length,
+        DELAYED: filteredInterventions.filter(i => i.status === 'DELAYED').length,
+        COMPLETED: filteredInterventions.filter(i => i.status === 'COMPLETED').length,
+    }), [filteredInterventions]);
+
+    const visibleInterventions = filteredInterventions.filter(i =>
+        isTechnician ? i.status === 'PENDING' : statusFilter === 'ALL' || i.status === statusFilter
+    );
+
+    const statusTabs: { id: StatusFilter; label: string; activeClass: string }[] = [
+        { id: 'ALL', label: t.all || 'All', activeClass: 'bg-zinc-700 text-white border-zinc-600' },
+        { id: 'PENDING', label: t.ongoing || 'Ongoing', activeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
+        { id: 'DELAYED', label: t.delayed || 'Delayed', activeClass: 'bg-orange-500/20 text-orange-300 border-orange-500/40' },
+        { id: 'COMPLETED', label: t.completed || 'Completed', activeClass: 'bg-brand-green/20 text-brand-green border-brand-green/40' },
+    ];
 
     const getLocalizedField = (obj: any, field: 'title' | 'description') => {
         if (lang === 'EN') return obj[`${field}_en`] || obj[field];
@@ -58,7 +79,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
             <div className="flex justify-between items-center bg-zinc-950 p-6 rounded-3xl border border-zinc-900 shadow-xl mb-8">
                 <div className="flex items-center gap-4">
                     <div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.ongoing}</h2>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{isTechnician ? (t.ongoing || 'Ongoing interventions') : (t.interventions || 'Interventions')}</h2>
                         <p className="text-zinc-600 text-xs mt-1">{t.ongoing_subtitle || 'Track your active maintenance and repair tasks'}</p>
                     </div>
                     <button
@@ -72,7 +93,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                 </div>
                 <div className="flex flex-col items-end gap-1">
                     <span className="bg-zinc-900 text-zinc-500 px-3 py-1 rounded-full text-xs font-bold border border-zinc-800">
-                        {ongoingItems.length} {t.items_count || 'Items'}
+                        {isTechnician ? statusCounts.PENDING : statusCounts.ALL} {t.items_count || 'Items'}
                     </span>
                 </div>
             </div>
@@ -160,14 +181,28 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                 </div>
             </div>
 
-            {ongoingItems.length === 0 ? (
+            {!isTechnician && <div className="flex flex-wrap gap-2">
+                {statusTabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setStatusFilter(tab.id)}
+                        className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${statusFilter === tab.id ? tab.activeClass : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'}`}
+                    >
+                        {tab.id === 'COMPLETED' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                        {tab.label}
+                        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-[10px]">{statusCounts[tab.id]}</span>
+                    </button>
+                ))}
+            </div>}
+
+            {visibleInterventions.length === 0 ? (
                 <div className="p-12 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20">
                     <Clock size={48} className="mx-auto text-zinc-700 mb-4" />
-                    <p className="text-zinc-500 font-medium">{t.no_ongoing_interventions || 'No ongoing interventions.'}</p>
+                    <p className="text-zinc-500 font-medium">{t.no_interventions_found || 'No interventions found.'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {ongoingItems.map(i => {
+                    {visibleInterventions.map(i => {
                         const b = buildings.find(build => build.id === i.buildingId);
                         const s = syndics.find(syn => syn.id === b?.linkedSyndicId);
                         const isMaintenance = i.isMaintenanceOccurrence;
@@ -193,11 +228,11 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
 
                                     <div className="relative z-10 p-4 h-full flex flex-col justify-between">
                                         <div className="flex justify-between items-start">
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg ${i.status === 'DELAYED' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg ${i.status === 'COMPLETED' ? 'bg-brand-green/20 text-brand-green border border-brand-green/30' : i.status === 'DELAYED' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
                                                 isMaintenance ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
                                                     'bg-zinc-900/80 text-zinc-300 border border-zinc-700/50'
                                                 }`}>
-                                                {isMaintenance ? (t.maintenance || 'Entretien') : (i.status === 'DELAYED' ? t.status_delayed : t.status_pending)}
+                                                {isMaintenance ? (t.maintenance || 'Entretien') : i.status === 'COMPLETED' ? t.status_completed : i.status === 'DELAYED' ? t.status_delayed : t.status_pending}
                                             </span>
                                             <div className="flex flex-col items-end gap-1.5">
                                                 <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date(i.scheduledDate).toLocaleDateString()}</span>
@@ -293,7 +328,18 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                              </div>
                                          )}
                                      </div>
-                                    <div className="pt-4 mt-4 border-t border-zinc-900/50">
+                                    <div className="pt-4 mt-4 border-t border-zinc-900/50 space-y-3">
+                                        {canVerifySubmissions && i.submittedAt && (
+                                            <button
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onSelect(i.id);
+                                                }}
+                                                className="w-full rounded-xl bg-orange-500 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-colors hover:bg-orange-400"
+                                            >
+                                                <span className="flex items-center justify-center gap-1.5"><ShieldCheck size={14} /> {t.verify_submission || 'Verify technician submission'}</span>
+                                            </button>
+                                        )}
                                         <span className="text-[10px] font-black uppercase tracking-widest text-brand-green flex items-center gap-1 group-hover:gap-2 transition-all">
                                             {t.viewSlip || 'VIEW SLIP'} <ChevronRight size={12} />
                                         </span>
@@ -313,6 +359,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                     initialIndex={viewerData.index}
                 />
             )}
+
         </div>
     );
 };

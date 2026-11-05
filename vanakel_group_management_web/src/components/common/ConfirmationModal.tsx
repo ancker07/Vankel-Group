@@ -11,6 +11,7 @@ interface ConfirmationModalProps {
   confirmLabel: string;
   cancelLabel: string;
   isDanger?: boolean;
+  confirmTone?: 'default' | 'warning';
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -21,7 +22,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   message,
   confirmLabel,
   cancelLabel,
-  isDanger = true
+  isDanger = true,
+  confirmTone = 'default'
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -75,9 +77,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               onClose();
             }}
             className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-950 outline-none ${
-              isDanger 
+              isDanger
                 ? 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500' 
-                : 'bg-brand-green text-brand-black hover:bg-brand-green-light focus:ring-brand-green'
+                : confirmTone === 'warning'
+                  ? 'bg-orange-500 text-white hover:bg-orange-400 focus:ring-orange-500'
+                  : 'bg-brand-green text-brand-black hover:bg-brand-green-light focus:ring-brand-green'
             }`}
           >
             {confirmLabel}
