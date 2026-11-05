@@ -80,6 +80,9 @@ class _InterventionDetailsScreenState
     _contactNameController.text = intervention.onSiteContactName ?? '';
     _contactPhoneController.text = intervention.onSiteContactPhone ?? '';
     _contactEmailController.text = intervention.onSiteContactEmail ?? '';
+    // incomplete contact: use what is known elsewhere (the mission, the customer's e-mail, the syndic)
+    if (_contactPhoneController.text.trim().isEmpty) _contactPhoneController.text = intervention.fallbackContactPhone ?? '';
+    if (_contactEmailController.text.trim().isEmpty) _contactEmailController.text = intervention.fallbackContactEmail ?? '';
 
     // Auto-fill logic from description if contact fields are empty after loading
     if (_contactNameController.text.isEmpty &&
@@ -526,11 +529,14 @@ class _InterventionDetailsScreenState
                       // Status control up top so admins / super admins can find it
                       editable(_buildStatusSection(intervention, l10n)),
                       const SizedBox(height: 24),
-                      if (_canManageAssignments)
-                        editable(_buildContactSection(intervention, l10n))
-                      else
-                        _buildTechnicianContactCard(l10n),
-                      const SizedBox(height: 24),
+                      // the on-site contact only when something is known about it
+                      if (_hasContact) ...[
+                        if (_canManageAssignments)
+                          editable(_buildContactSection(intervention, l10n))
+                        else
+                          _buildTechnicianContactCard(l10n),
+                        const SizedBox(height: 24),
+                      ],
                       _buildDescriptionSection(intervention, l10n),
                       const SizedBox(height: 24),
                       _buildMapSection(intervention, l10n),
@@ -703,6 +709,9 @@ class _InterventionDetailsScreenState
     );
   }
 
+  bool get _hasContact => [_contactNameController, _contactPhoneController, _contactEmailController]
+      .any((c) => c.text.trim().isNotEmpty);
+
   /// Admins / super admins manage syndic, contact and assignment; technicians don't.
   bool get _canManageAssignments {
     final user = ref.read(authStateProvider).user;
@@ -813,8 +822,8 @@ class _InterventionDetailsScreenState
             ],
           ),
           const SizedBox(height: 8),
-          line(Icons.badge_outlined, l10n.name, name),
-          line(Icons.phone_outlined, l10n.phoneTitle, phone, scheme: 'tel'),
+          if (name.isNotEmpty) line(Icons.badge_outlined, l10n.name, name),
+          if (phone.isNotEmpty) line(Icons.phone_outlined, l10n.phoneTitle, phone, scheme: 'tel'),
           if (email.isNotEmpty)
             line(Icons.alternate_email, 'EMAIL', email, scheme: 'mailto'),
         ],
@@ -852,28 +861,19 @@ class _InterventionDetailsScreenState
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(l10n.name, _contactNameController),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildTextField(
-                  l10n.phoneTitle,
-                  _contactPhoneController,
-                  hint: '+32 ...',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            l10n.emailOptional,
-            _contactEmailController,
-            hint: 'email@example.com',
-          ),
+          // only what is known is shown (an empty field is left out)
+          if (_contactNameController.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildTextField(l10n.name, _contactNameController),
+          ],
+          if (_contactPhoneController.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildTextField(l10n.phoneTitle, _contactPhoneController, hint: '+32 ...'),
+          ],
+          if (_contactEmailController.text.trim().isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildTextField(l10n.emailOptional, _contactEmailController, hint: 'email@example.com'),
+          ],
         ],
       ),
     );

@@ -33,6 +33,9 @@ class Intervention {
   final String? onSiteContactName;
   final String? onSiteContactPhone;
   final String? onSiteContactEmail;
+  /// Phone / e-mail to reach the customer when the on-site contact is incomplete (mission, customer e-mail, syndic).
+  final String? fallbackContactPhone;
+  final String? fallbackContactEmail;
 
   // Admin fields
   final String? adminFeedback;
@@ -79,6 +82,8 @@ class Intervention {
     this.onSiteContactName,
     this.onSiteContactPhone,
     this.onSiteContactEmail,
+    this.fallbackContactPhone,
+    this.fallbackContactEmail,
     this.adminFeedback,
     this.urgency,
     this.sector,
@@ -115,6 +120,8 @@ class Intervention {
     String? onSiteContactName,
     String? onSiteContactPhone,
     String? onSiteContactEmail,
+    String? fallbackContactPhone,
+    String? fallbackContactEmail,
     String? adminFeedback,
     String? urgency,
     String? sector,
@@ -154,6 +161,8 @@ class Intervention {
       onSiteContactName: onSiteContactName ?? this.onSiteContactName,
       onSiteContactPhone: onSiteContactPhone ?? this.onSiteContactPhone,
       onSiteContactEmail: onSiteContactEmail ?? this.onSiteContactEmail,
+      fallbackContactPhone: fallbackContactPhone ?? this.fallbackContactPhone,
+      fallbackContactEmail: fallbackContactEmail ?? this.fallbackContactEmail,
       adminFeedback: adminFeedback ?? this.adminFeedback,
       urgency: urgency ?? this.urgency,
       sector: sector ?? this.sector,
