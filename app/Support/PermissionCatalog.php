@@ -10,7 +10,7 @@ use App\Models\User;
  * Every permission the code checks, and the three fixed roles that hold them.
  *
  *   SUPERADMIN    platform operator: everything, and the only one who manages admins / super admins
- *   ADMIN         the system owner: every permission, manages the technicians
+ *   ADMIN         the system owner: every permission except ADMIN_EXCLUDED (AI settings, push notifications, contacts, maintenance), manages the technicians
  *   PROFESSIONAL  the technician: works on the interventions assigned to them
  *
  * Roles cannot be created, edited or deleted: what each role may do is defined HERE (one place,
@@ -76,6 +76,16 @@ class PermissionCatalog
         ],
     ];
 
+    /**
+     * Permissions the admin does NOT get (the admin otherwise holds everything): AI settings, push
+     * notifications, website contacts and maintenance plans are for the super admin only.
+     */
+    public const ADMIN_EXCLUDED = [
+        'settings.ai', 'notifications.broadcast',
+        'contacts.view', 'contacts.manage',
+        'maintenance.view', 'maintenance.manage',
+    ];
+
     /** The only roles that exist for staff. */
     public const FIXED_ROLES = ['SUPERADMIN', 'ADMIN', 'PROFESSIONAL'];
 
@@ -115,7 +125,11 @@ class PermissionCatalog
             return [];
         }
 
-        return $keys === ['*'] ? self::keys() : array_values(array_intersect($keys, self::keys()));
+        if ($keys === ['*']) {
+            return $role === 'ADMIN' ? array_values(array_diff(self::keys(), self::ADMIN_EXCLUDED)) : self::keys();
+        }
+
+        return array_values(array_intersect($keys, self::keys()));
     }
 
     public static function keys(): array

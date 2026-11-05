@@ -139,8 +139,15 @@ class AccessControlTest extends TestCase
         $this->makeUser('PROFESSIONAL', ['email' => 'tech@test.com']);
 
         $admin = $this->postJson('/api/login', ['email' => 'admin@test.com', 'password' => 'password123', 'role' => 'ADMIN'])->assertOk()->json('user.permissions');
-        $this->assertEqualsCanonicalizing(\App\Support\PermissionCatalog::keys(), $admin, 'the admin holds every permission');
-        foreach (['users.create', 'users.update', 'missions.approve', 'settings.ai', 'notifications.broadcast', 'stats.view'] as $owner) {
+        $this->assertEqualsCanonicalizing(
+            array_diff(\App\Support\PermissionCatalog::keys(), \App\Support\PermissionCatalog::ADMIN_EXCLUDED),
+            $admin,
+            'the admin holds every permission except AI settings, push notifications, contacts and maintenance'
+        );
+        foreach (\App\Support\PermissionCatalog::ADMIN_EXCLUDED as $superAdminOnly) {
+            $this->assertNotContains($superAdminOnly, $admin);
+        }
+        foreach (['users.create', 'users.update', 'missions.approve', 'stats.view'] as $owner) {
             $this->assertContains($owner, $admin);
         }
 

@@ -478,12 +478,12 @@ const InterventionSlip: React.FC<SlipProps> = ({
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          {can('maintenance.manage') && <button
             onClick={() => onOpenMaintenance?.(building.id)}
             className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 text-zinc-400 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest hover:border-brand-green hover:text-brand-green transition-all min-h-[44px]"
           >
             <RotateCcw size={14} /> <span className="hidden md:inline">{t.maintenance}</span>
-          </button>
+          </button>}
           {!isEditable && !isSyndic && !readOnly && (
             <button
               onClick={() => setShowEditConfirm(true)}

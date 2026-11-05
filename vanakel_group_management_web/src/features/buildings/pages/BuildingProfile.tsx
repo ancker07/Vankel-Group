@@ -1,4 +1,5 @@
 
+import { usePermissions } from '@/lib/permissions';
 import React, { useState, useMemo } from 'react';
 import {
   Building, Professional, Syndic, Intervention, Language, Note as NoteType, Document, Device, Role, Sector, MaintenancePlan
@@ -32,6 +33,7 @@ const BuildingProfile: React.FC<ProfileProps> = ({
   building, professionals, syndics, interventions, onClose, lang, onUpdateBuilding, onAddIntervention, onUpdateIntervention, onOpenIntervention, initialTab, maintenancePlans = []
 }) => {
   const [activeTab, setActiveTab] = useState<'data' | 'history' | 'notes' | 'plan' | 'docs' | 'entretien'>(initialTab || 'data');
+  const can = usePermissions();
   const [isHeaderImgLoading, setIsHeaderImgLoading] = useState(true);
   const t = TRANSLATIONS[lang];
   const pro = professionals.find(p => p.id === building.linkedProfessionalId);
@@ -203,7 +205,7 @@ const BuildingProfile: React.FC<ProfileProps> = ({
       <div className="flex border-b border-zinc-800 px-2 md:px-4 bg-zinc-950 sticky top-0 z-10 overflow-x-auto no-scrollbar whitespace-nowrap">
         <TabButton icon={<User size={18} />} label={t.tabs_data} active={activeTab === 'data'} onClick={() => setActiveTab('data')} />
         <TabButton icon={<History size={18} />} label={t.tabs_history} active={activeTab === 'history'} onClick={() => setActiveTab('history')} />
-        <TabButton icon={<RotateCcw size={18} />} label={t.maintenance || 'Entretien'} active={activeTab === 'entretien'} onClick={() => setActiveTab('entretien')} />
+        {can('maintenance.view') && <TabButton icon={<RotateCcw size={18} />} label={t.maintenance || 'Entretien'} active={activeTab === 'entretien'} onClick={() => setActiveTab('entretien')} />}
         <TabButton icon={<StickyNote size={18} />} label={t.tabs_notes} active={activeTab === 'notes'} onClick={() => setActiveTab('notes')} />
         <TabButton icon={<CalendarPlus size={18} />} label={t.tabs_plan} active={activeTab === 'plan'} onClick={() => setActiveTab('plan')} />
         <TabButton icon={<FileText size={18} />} label={t.tabs_docs} active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} />
@@ -272,7 +274,7 @@ const BuildingProfile: React.FC<ProfileProps> = ({
           </div>
         )}
 
-        {activeTab === 'entretien' && (
+        {activeTab === 'entretien' && can('maintenance.view') && (
           <div className="space-y-4 animate-in fade-in duration-300">
             <h4 className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-4">{t.maintenance || 'Entretien'}</h4>
             {maintenancePlans.length === 0 ? (

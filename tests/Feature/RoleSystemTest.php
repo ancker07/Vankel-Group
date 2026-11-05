@@ -126,9 +126,18 @@ class RoleSystemTest extends TestCase
     {
         Sanctum::actingAs($this->user('ADMIN'));
 
-        foreach (['/api/missions', '/api/interventions', '/api/buildings', '/api/maintenance-plans', '/api/emails', '/api/contacts',
-                  '/api/team', '/api/users/all', '/api/roles', '/api/settings/ai', '/api/superadmin/stats',
-                  '/api/superadmin/notifications/history'] as $url) {
+        foreach (['/api/missions', '/api/interventions', '/api/buildings', '/api/emails',
+                  '/api/team', '/api/users/all', '/api/roles', '/api/superadmin/stats'] as $url) {
+            $this->getJson($url)->assertOk();
+        }
+
+        // AI settings, push notifications, contacts and maintenance are for the super admin only
+        foreach (['/api/maintenance-plans', '/api/contacts', '/api/settings/ai', '/api/superadmin/notifications/history'] as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
+
+        Sanctum::actingAs($this->user('SUPERADMIN'));
+        foreach (['/api/maintenance-plans', '/api/contacts', '/api/settings/ai', '/api/superadmin/notifications/history'] as $url) {
             $this->getJson($url)->assertOk();
         }
     }
@@ -170,7 +179,7 @@ class RoleSystemTest extends TestCase
 
     public function test_every_permission_is_held_by_the_admin_and_none_by_accident_by_the_technician(): void
     {
-        $this->assertEqualsCanonicalizing(PermissionCatalog::keys(), PermissionCatalog::permissionsFor('ADMIN'));
+        $this->assertEqualsCanonicalizing(array_diff(PermissionCatalog::keys(), PermissionCatalog::ADMIN_EXCLUDED), PermissionCatalog::permissionsFor('ADMIN'));
         $this->assertEqualsCanonicalizing(PermissionCatalog::keys(), PermissionCatalog::permissionsFor('SUPERADMIN'));
         $this->assertNotContains('roles.manage', PermissionCatalog::keys());
         $this->assertSame([], array_diff(PermissionCatalog::permissionsFor('PROFESSIONAL'), PermissionCatalog::keys()));
