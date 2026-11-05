@@ -73,6 +73,34 @@ export const loadImageAsDataUrl = async (url: string): Promise<string | undefine
 
 const imageFormat = (dataUrl: string): 'PNG' | 'JPEG' => (dataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG');
 
+/**
+ * Shrinks a picture to at most `maxSide` px on its longest side (re-encoded as JPEG) so a report with
+ * 5-6 phone photos stays a reasonable size. Returns the original if it cannot be processed.
+ */
+const shrinkImage = (dataUrl: string, maxSide = 1400, quality = 0.82): Promise<string> =>
+    new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            if (scale === 1 && dataUrl.startsWith('data:image/jpeg')) return resolve(dataUrl);
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return resolve(dataUrl);
+                ctx.fillStyle = '#ffffff'; // transparent PNGs would turn black as JPEG
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            } catch {
+                resolve(dataUrl);
+            }
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+    });
+
 export const generateInterventionPDF = async (
     intervention: Intervention,
     building: Building | undefined,
@@ -147,7 +175,10 @@ export const generateInterventionPDF = async (
             })
             .map(document => document.url),
     ].filter(Boolean))];
-    const photos = (await Promise.all(photoUrls.map(loadImageAsDataUrl))).filter((photo): photo is string => !!photo);
+    const photos = (await Promise.all(photoUrls.map(async url => {
+        const dataUrl = await loadImageAsDataUrl(url);
+        return dataUrl ? shrinkImage(dataUrl) : undefined;
+    }))).filter((photo): photo is string => !!photo);
 
     // 1. Header & Logo
     if (logoBase64) {
@@ -279,17 +310,45 @@ export const generateInterventionPDF = async (
 
     if (photos.length > 0) {
         sectionHeading(t.intervention_photos || t.photos || 'Intervention Photos', 55);
-        for (const photo of photos) {
-            try {
-                const properties = doc.getImageProperties(photo);
-                const width = contentWidth;
-                const height = Math.min(120, (properties.height * width) / properties.width);
-                ensureSpace(height + 8);
-                doc.addImage(photo, imageFormat(photo), MARGIN, y, width, height);
-                y += height + 8;
-            } catch (error) {
-                console.warn('Failed to add intervention photo to PDF', error);
-            }
+
+        // One picture is shown large; two or more go in a two-column grid, each fitted into its cell
+        // without stretching, with a small label. Rows move to a new page when they do not fit.
+        const columns = photos.length === 1 ? 1 : 2;
+        const gap = 6;
+        const cellWidth = (contentWidth - gap * (columns - 1)) / columns;
+        const maxImageHeight = columns === 1 ? 150 : 85;
+        const captionHeight = 6;
+        const label = pdfSafeText(t.photo || 'Photo');
+
+        for (let rowStart = 0; rowStart < photos.length; rowStart += columns) {
+            const row = photos.slice(rowStart, rowStart + columns).map((photo, offset) => {
+                try {
+                    const properties = doc.getImageProperties(photo);
+                    const scale = Math.min(cellWidth / properties.width, maxImageHeight / properties.height);
+                    return { photo, number: rowStart + offset + 1, width: properties.width * scale, height: properties.height * scale };
+                } catch (error) {
+                    console.warn('Failed to add intervention photo to PDF', error);
+                    return null;
+                }
+            }).filter((item): item is { photo: string; number: number; width: number; height: number } => item !== null);
+            if (row.length === 0) continue;
+
+            const rowHeight = Math.max(...row.map(item => item.height)) + captionHeight;
+            ensureSpace(rowHeight + 6);
+
+            row.forEach((item, column) => {
+                const cellX = MARGIN + column * (cellWidth + gap);
+                const imageX = cellX + (cellWidth - item.width) / 2;
+                doc.addImage(item.photo, imageFormat(item.photo), imageX, y, item.width, item.height);
+                doc.setDrawColor(210);
+                doc.rect(imageX, y, item.width, item.height);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(120);
+                doc.text(`${label} ${item.number}`, cellX + cellWidth / 2, y + item.height + 4.5, { align: 'center' });
+                doc.setTextColor(0);
+            });
+            y += rowHeight + 6;
         }
     }
 

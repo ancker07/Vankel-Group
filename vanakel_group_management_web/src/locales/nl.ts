@@ -376,6 +376,7 @@ export default {
     description: 'Beschrijving interventie',
     adminNote: 'Interventiebeschrijving',
     photos: 'Foto\'s',
+    photo: 'Foto',
     docs: 'Documenten',
     auditTrace: 'Audit Traceerbaarheid',
     intInitialized: 'Interventie gestart op',

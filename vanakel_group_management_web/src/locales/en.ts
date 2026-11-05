@@ -292,6 +292,7 @@ export default {
     description: 'Intervention Description',
     adminNote: 'Technical Observations',
     photos: 'Photos',
+    photo: 'Photo',
     docs: 'Documents',
     auditTrace: 'Audit Traceability',
     intInitialized: 'Intervention initialized on',

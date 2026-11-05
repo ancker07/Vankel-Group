@@ -293,6 +293,7 @@ export default {
     description: 'Description de l\'intervention',
     adminNote: "Description de l'intervention",
     photos: 'Photos',
+    photo: 'Photo',
     docs: 'Documents',
     auditTrace: 'Traçabilité d\'Audit',
     intInitialized: 'Intervention initialisée le',
