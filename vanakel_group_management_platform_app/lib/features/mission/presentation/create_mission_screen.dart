@@ -251,9 +251,9 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           'status': widget.mission?.status.name.toUpperCase() ?? 'PENDING',
           'category': _sector,
           'sector': _sector,
-          'onSiteContactName': _contactNameController.text.isNotEmpty ? _contactNameController.text : (user?.name ?? l10n.userFallbackName),
-          'onSiteContactPhone': _contactPhoneController.text.isNotEmpty ? _contactPhoneController.text : (user?.phone ?? '+123456789'),
-          'onSiteContactEmail': _contactEmailController.text.isNotEmpty ? _contactEmailController.text : (user?.email ?? ''),
+          'onSiteContactName': _contactNameController.text.isNotEmpty ? _contactNameController.text : widget.mission != null ? '' : (user?.name ?? l10n.userFallbackName),
+          'onSiteContactPhone': _contactPhoneController.text.isNotEmpty ? _contactPhoneController.text : widget.mission != null ? '' : (user?.phone ?? '+123456789'),
+          'onSiteContactEmail': _contactEmailController.text.isNotEmpty ? _contactEmailController.text : widget.mission != null ? '' : (user?.email ?? ''),
           'type': 'mission',
           if (widget.mission != null) '_method': 'PUT',
         };

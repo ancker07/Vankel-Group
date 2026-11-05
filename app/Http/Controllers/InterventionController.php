@@ -252,7 +252,10 @@ class InterventionController extends Controller
     {
         $user = auth('sanctum')->user();
 
-        $query = Mission::with(['documents', 'email', 'building', 'syndic', 'updates', 'assignedUser:id,name,email,role,phone'])->latest();
+        $query = Mission::with(['documents', 'email', 'building', 'syndic', 'updates', 'assignedUser:id,name,email,role,phone'])
+            // Missions without any address stay visible, at the end of the list
+            ->orderByRaw("CASE WHEN building_id IS NULL AND (extracted_address IS NULL OR TRIM(extracted_address) = '') THEN 1 ELSE 0 END")
+            ->latest();
 
         if ($user && $user->isClient()) {
             $query->where(function ($q) use ($user) {
@@ -493,6 +496,7 @@ class InterventionController extends Controller
             'sector' => 'sometimes|string',
             'urgency' => 'sometimes|string',
             'buildingId' => 'sometimes|nullable|string',
+            'addressFull' => 'sometimes|nullable|string|max:255',
             'syndicId' => 'sometimes|nullable|string',
             'onSiteContactName' => 'sometimes|nullable|string',
             'onSiteContactPhone' => 'sometimes|nullable|string',
@@ -527,6 +531,27 @@ class InterventionController extends Controller
         if (array_key_exists('syndicId', $validated)) {
             $validated['syndic_id'] = $validated['syndicId'];
             unset($validated['syndicId']);
+        }
+
+        // The mobile app edits the address as text: link the mission to that building
+        $typedAddress = trim((string) ($validated['addressFull'] ?? ''));
+        unset($validated['addressFull']);
+        if ($typedAddress !== '' && !array_key_exists('building_id', $validated)) {
+            $normalize = fn (?string $address) => strtolower(preg_replace('/[^a-z0-9]/i', '', (string) $address));
+            $current = $mission->building?->address ?? $mission->extracted_address;
+
+            if ($normalize($typedAddress) !== $normalize($current)) {
+                // Exact match only: "Rue Haute 1" must never land on "Rue Haute 12"
+                $building = Building::all()->first(fn ($b) => $normalize($b->address) === $normalize($typedAddress))
+                    ?? Building::create([
+                        'address' => $typedAddress,
+                        'city' => 'Unknown',
+                        'syndic_id' => $validated['syndic_id'] ?? $mission->syndic_id,
+                        'admin_note' => 'Automatically created during mission update.',
+                    ]);
+                $validated['building_id'] = $building->id;
+                $validated['extracted_address'] = null;
+            }
         }
 
         // Re-translate if title or description changed

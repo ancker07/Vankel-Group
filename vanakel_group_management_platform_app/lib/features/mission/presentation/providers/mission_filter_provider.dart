@@ -91,12 +91,22 @@ final missionFilterProvider = NotifierProvider<MissionFilterNotifier, MissionFil
   MissionFilterNotifier.new,
 );
 
+/// Newest first; missions without an address stay visible, at the end.
+List<Mission> sortMissionsForList(List<Mission> missions) {
+  return missions
+    ..sort((a, b) {
+      final noAddressA = a.address.trim().isEmpty;
+      final noAddressB = b.address.trim().isEmpty;
+      if (noAddressA != noAddressB) return noAddressA ? 1 : -1;
+      return b.createdAt.compareTo(a.createdAt);
+    });
+}
+
 final filteredMissionListProvider = Provider<AsyncValue<List<Mission>>>((ref) {
   final missionsAsync = ref.watch(missionListProvider);
   final filter = ref.watch(missionFilterProvider);
 
   return missionsAsync.whenData((missions) {
-    // newest first
-    return missions.where((m) => filter.matches(m)).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return sortMissionsForList(missions.where((m) => filter.matches(m)).toList());
   });
 });

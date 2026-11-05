@@ -22,4 +22,19 @@ void main() {
     const filter = MissionFilter(status: MissionStatus.approved);
     expect(filter.matches(_m(4, 'APPROVED', assignee: 9)), isTrue);
   });
+
+  test('missions without an address stay visible, at the end of the list', () {
+    Mission m(int id, String created, {String? address}) => MissionModel.fromJson({
+          'id': id, 'title': 'M$id', 'description': 'd', 'status': 'PENDING', 'created_at': created,
+          if (address != null) 'extracted_address': address,
+        }).toEntity();
+
+    final sorted = sortMissionsForList([
+      m(1, '2026-11-06T10:00:00Z'),
+      m(2, '2026-11-01T10:00:00Z', address: 'Rue Haute 1'),
+      m(3, '2026-11-03T10:00:00Z', address: 'Rue Basse 2'),
+      m(4, '2026-11-02T10:00:00Z', address: '  '),
+    ]);
+    expect(sorted.map((x) => x.id).toList(), ['3', '2', '1', '4']);
+  });
 }

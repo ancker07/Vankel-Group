@@ -257,6 +257,7 @@ const App: React.FC = () => {
         const mappedMissions: Mission[] = apiMissions.map((m: any) => ({
           id: String(m.id),
           buildingId: String(m.building_id),
+          extractedAddress: m.extracted_address,
           requestedBy: m.requested_by,
           title: m.title,
           title_en: m.title_en,

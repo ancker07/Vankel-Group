@@ -40,7 +40,13 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const [selectedBuilding, setSelectedBuilding] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
 
+    const hasNoAddress = (m: any) =>
+        (!m.buildingId || m.buildingId === 'null') && !String(m.extractedAddress || '').trim();
+
+    // Newest first; missions without an address stay visible, at the end
     const sortedMissions = [...missions].sort((a, b) => {
+        const noAddressOrder = Number(hasNoAddress(a)) - Number(hasNoAddress(b));
+        if (noAddressOrder) return noAddressOrder;
         const dateA = new Date(a.timestamp || a.created_at || (a as any).received_at || 0).getTime();
         const dateB = new Date(b.timestamp || b.created_at || (b as any).received_at || 0).getTime();
         return dateB - dateA;
