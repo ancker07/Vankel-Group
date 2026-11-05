@@ -1143,6 +1143,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een deel van het dictaat kon niet worden uitgeschreven. Herhaal het alstublieft.';
 
   @override
+  String get editMission => 'Missie bewerken';
+
+  @override
   String get speechRetry => 'Spraakherkenning is gestopt. Probeer het opnieuw.';
 
   @override

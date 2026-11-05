@@ -1068,13 +1068,16 @@ const App: React.FC = () => {
         ...updatedMission,
         id: String(updatedMission.id),
         buildingId: updatedMission.building_id ? String(updatedMission.building_id) : m.buildingId,
+        extractedAddress: updatedMission.extracted_address,
         syndicId: updatedMission.syndic_id ? String(updatedMission.syndic_id) : m.syndicId
       } : m));
-      
-      addToast('Success', 'Mission updated successfully');
-    } catch (error) {
+
+      addToast('Success', response.message || t.mission_updated);
+      refreshGlobalData(true); // a typed address may have created a new building
+    } catch (error: any) {
       console.error('Failed to update mission:', error);
-      addToast('Error', 'Failed to update mission.');
+      addToast('Error', error?.response?.data?.message || t.mission_update_failed);
+      throw error; // the edit form stays open with what was typed
     }
   };
 

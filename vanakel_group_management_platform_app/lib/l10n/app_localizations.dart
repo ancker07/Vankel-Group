@@ -2248,6 +2248,12 @@ abstract class AppLocalizations {
   /// **'Part of the dictation could not be transcribed. Please repeat it.'**
   String get speechLost;
 
+  /// No description provided for @editMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit mission'**
+  String get editMission;
+
   /// No description provided for @speechRetry.
   ///
   /// In en, this message translates to:

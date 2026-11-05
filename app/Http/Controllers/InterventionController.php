@@ -491,8 +491,8 @@ class InterventionController extends Controller
         $mission = Mission::findOrFail($id);
         
         $validated = $request->validate([
-            'title' => 'sometimes|string',
-            'description' => 'sometimes|string',
+            'title' => 'sometimes|nullable|string',
+            'description' => 'sometimes|nullable|string',
             'sector' => 'sometimes|string',
             'urgency' => 'sometimes|string',
             'buildingId' => 'sometimes|nullable|string',
@@ -523,8 +523,16 @@ class InterventionController extends Controller
             unset($validated['onSiteContactEmail']);
         }
 
+        // A mission from an email may have no text yet: an empty field keeps what is there
+        foreach (['title', 'description'] as $field) {
+            if (array_key_exists($field, $validated) && blank($validated[$field])) {
+                unset($validated[$field]);
+            }
+        }
+
         if (array_key_exists('buildingId', $validated)) {
-            $validated['building_id'] = $validated['buildingId'];
+            // "null" / unknown ids (an unset value sent as text) simply mean: no building
+            $validated['building_id'] = Building::whereKey(ctype_digit((string) $validated['buildingId']) ? $validated['buildingId'] : 0)->value('id');
             unset($validated['buildingId']);
         }
 
@@ -536,7 +544,7 @@ class InterventionController extends Controller
         // The mobile app edits the address as text: link the mission to that building
         $typedAddress = trim((string) ($validated['addressFull'] ?? ''));
         unset($validated['addressFull']);
-        if ($typedAddress !== '' && !array_key_exists('building_id', $validated)) {
+        if ($typedAddress !== '' && empty($validated['building_id'])) {
             $normalize = fn (?string $address) => strtolower(preg_replace('/[^a-z0-9]/i', '', (string) $address));
             $current = $mission->building?->address ?? $mission->extracted_address;
 

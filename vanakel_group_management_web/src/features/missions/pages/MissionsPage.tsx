@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Edit2 } from 'lucide-react';
 import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Trash2, Search, Filter, Calendar, MessageSquare, Navigation } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
@@ -29,6 +30,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const can = usePermissions();
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+    const [openInEdit, setOpenInEdit] = useState(false);
     const [missionToDelete, setMissionToDelete] = useState<Mission | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
@@ -39,6 +41,10 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
     const [selectedUrgency, setSelectedUrgency] = useState('');
     const [selectedBuilding, setSelectedBuilding] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
+
+    // Same rule as the edit button in the mission details
+    const canEditMission = (m: Mission) =>
+        role !== 'SYNDIC' && can('missions.update') && (m.status === 'PENDING' || (m.status as string) === 'NEEDS_REVIEW');
 
     const hasNoAddress = (m: any) =>
         (!m.buildingId || m.buildingId === 'null') && !String(m.extractedAddress || '').trim();
@@ -67,7 +73,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
         return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesDate;
     });
 
-    const pendingMissions = filteredMissions.filter(m => m.status === 'PENDING');
+    const pendingMissions = filteredMissions.filter(m => m.status === 'PENDING' || (m.status as string) === 'NEEDS_REVIEW');
     const approvedMissions = filteredMissions.filter(m => m.status === 'APPROVED');
     const rejectedMissions = filteredMissions.filter(m => m.status === 'REJECTED');
 
@@ -92,6 +98,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                             onClick={(e) => {
                                 // Prevent modal if clicking buttons or specific file attachments
                                 if ((e.target as HTMLElement).closest('button')) return;
+                                setOpenInEdit(false);
                                 setSelectedMission(m);
                             }}
                             className="bg-zinc-950 border border-zinc-800 rounded-2xl flex flex-col hover:border-brand-green/30 transition-all group cursor-pointer overflow-hidden"
@@ -228,23 +235,32 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     </div>
                                 </div>
 
-                                {can('missions.delete') && onDelete && (
+                                {((can('missions.delete') && onDelete) || canEditMission(m)) && (
                                     <div className="flex justify-end px-4 py-2 border-t border-zinc-900/50 bg-zinc-950/50">
-                                        <button
+                                        {canEditMission(m) && (
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setOpenInEdit(true); setSelectedMission(m); }}
+                                                className="py-2 px-3 text-zinc-400 hover:text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-1.5 transition-all"
+                                            >
+                                                <Edit2 size={14} /> {t.edit}
+                                            </button>
+                                        )}
+                                        {can('missions.delete') && onDelete && <button
                                             onClick={(e) => { e.stopPropagation(); setMissionToDelete(m); }}
                                             className="py-2 px-3 text-zinc-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
                                         >
                                             <Trash2 size={14} /> {t.mission_delete || 'Delete'}
-                                        </button>
+                                        </button>}
                                     </div>
                                 )}
 
                                 {/* Action Buttons - Moved to bottom and stacked/row based on width */}
-                                {can('missions.approve') && m.status === 'PENDING' && (
+                                {can('missions.approve') && (m.status === 'PENDING' || (m.status as string) === 'NEEDS_REVIEW') && (
                                     <div className="flex gap-2 p-4 border-t border-zinc-900/50 bg-zinc-950/50">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                setOpenInEdit(false);
                                                 setSelectedMission(m);
                                             }}
                                             className="flex-1 py-2.5 px-4 bg-brand-green text-brand-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-green-light transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-green/10"
@@ -408,7 +424,8 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                 selectedMission && (
                     <MissionDetailsModal
                         mission={selectedMission}
-                        onClose={() => setSelectedMission(null)}
+                        startEditing={openInEdit}
+                        onClose={() => { setSelectedMission(null); setOpenInEdit(false); }}
                         building={buildings.find(b => String(b.id) === String(selectedMission.buildingId))}
                         buildings={buildings}
                         syndic={syndics.find(s => String(s.id) === String(selectedMission.syndicId || buildings.find(b => String(b.id) === String(selectedMission.buildingId))?.linkedSyndicId))}

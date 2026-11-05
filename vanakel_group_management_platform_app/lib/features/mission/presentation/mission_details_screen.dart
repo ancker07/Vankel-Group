@@ -44,8 +44,10 @@ class MissionDetailsScreen extends ConsumerWidget {
               
               return IconButton(
                 icon: const Icon(Icons.edit),
+                tooltip: l10n.editMission,
                 onPressed: () {
-                  final isAdmin = authState.user?.role == UserRole.admin;
+                  // stay in the portal this screen was opened from (super admins use the admin one)
+                  final isAdmin = authState.user?.role != UserRole.syndic;
                   final route = isAdmin ? '/admin/missions/create' : '/syndic/missions/create';
                   context.push(route, extra: mission);
                 },

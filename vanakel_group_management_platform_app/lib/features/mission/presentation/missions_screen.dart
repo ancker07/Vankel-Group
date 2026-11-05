@@ -716,6 +716,24 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _buildUrgencyBadge(widget.mission.urgency, l10n),
+                            if ((widget.mission.status == MissionStatus.pending ||
+                                    widget.mission.status == MissionStatus.needsReview) &&
+                                (ref.watch(authStateProvider).user?.can('missions.update') ?? false)) ...[
+                              const SizedBox(width: 8),
+                              Tooltip(
+                                message: l10n.editMission,
+                                child: _buildActionButton(
+                                  context,
+                                  ref,
+                                  Icons.edit_outlined,
+                                  AppTheme.brandGreen,
+                                  () => context.push(
+                                    widget.isAdmin ? '/admin/missions/create' : '/syndic/missions/create',
+                                    extra: widget.mission,
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (ref.watch(authStateProvider).user?.can('missions.delete') ?? false) ...[
                               const SizedBox(width: 8),
                               _buildActionButton(

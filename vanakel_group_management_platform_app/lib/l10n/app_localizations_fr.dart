@@ -1145,6 +1145,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une partie de la dictée n\'a pas pu être transcrite. Veuillez la répéter.';
 
   @override
+  String get editMission => 'Modifier la mission';
+
+  @override
   String get speechRetry =>
       'La reconnaissance vocale s\'est arrêtée. Réessayez.';
 

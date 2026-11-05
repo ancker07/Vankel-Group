@@ -100,4 +100,28 @@ class MissionAddressTest extends TestCase
         $this->assertNull($m->fresh()->extracted_address);
         $this->assertNotNull($m->fresh()->building_id);
     }
+
+    public function test_website_edit_of_a_mission_without_building_does_not_fail(): void
+    {
+        $m = $this->mission();
+        $this->putJson("/api/missions/{$m->id}", ['title' => 'New', 'description' => '', 'buildingId' => 'null', 'urgency' => 'HIGH'])->assertOk();
+        $fresh = $m->fresh();
+        $this->assertNull($fresh->building_id);
+        $this->assertSame('New', $fresh->title);
+        $this->assertSame('D', $fresh->description);
+    }
+
+    public function test_website_can_pick_a_building_or_type_a_new_address(): void
+    {
+        $b = Building::create(['address' => 'Rue Haute 1', 'city' => 'X']);
+        $m = $this->mission();
+        $this->putJson("/api/missions/{$m->id}", ['buildingId' => (string) $b->id])->assertOk();
+        $this->assertSame($b->id, $m->fresh()->building_id);
+
+        $this->putJson("/api/missions/{$m->id}", ['addressFull' => 'Rue Neuve 10'])->assertOk();
+        $this->assertSame('Rue Neuve 10', $m->fresh()->building->address);
+
+        $this->putJson("/api/missions/{$m->id}", ['buildingId' => '999999'])->assertOk();
+        $this->assertNull($m->fresh()->building_id);
+    }
 }

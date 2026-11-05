@@ -1140,6 +1140,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Part of the dictation could not be transcribed. Please repeat it.';
 
   @override
+  String get editMission => 'Edit mission';
+
+  @override
   String get speechRetry => 'Voice recognition stopped. Please try again.';
 
   @override

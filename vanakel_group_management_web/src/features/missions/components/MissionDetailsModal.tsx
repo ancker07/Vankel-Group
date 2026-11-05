@@ -15,7 +15,9 @@ interface MissionDetailsModalProps {
     onClose: () => void;
     onApprove?: (m: Mission) => void;
     onReject?: (m: Mission) => void;
-    onUpdate?: (id: string, payload: any) => void;
+    onUpdate?: (id: string, payload: any) => Promise<void> | void;
+    /** Open directly on the edit form (the Edit button of a mission card). */
+    startEditing?: boolean;
     role?: string;
 }
 
@@ -29,11 +31,13 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
     onApprove,
     onReject,
     onUpdate,
+    startEditing = false,
     role
 }) => {
     const t = TRANSLATIONS[lang] || TRANSLATIONS.EN;
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(startEditing);
+    const [newAddress, setNewAddress] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     // Editable state
@@ -42,13 +46,13 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
         description: mission.description || '',
         urgency: mission.urgency || 'MEDIUM',
         sector: mission.sector || 'GENERAL',
-        buildingId: String(mission.buildingId || ''),
+        buildingId: mission.buildingId && mission.buildingId !== 'null' ? String(mission.buildingId) : '',
         onSiteContactName: mission.onSiteContactName || '',
         onSiteContactPhone: mission.onSiteContactPhone || '',
         onSiteContactEmail: mission.onSiteContactEmail || ''
     });
 
-    const isPending = mission.status === 'PENDING';
+    const isPending = mission.status === 'PENDING' || mission.status === 'NEEDS_REVIEW';
     const can = usePermissions();
     // Changing a mission's status needs the missions.approve permission
     const showAdminActions = isPending && can('missions.approve');
@@ -60,8 +64,17 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
         if (!onUpdate) return;
         setIsSaving(true);
         try {
+            const address = newAddress.trim();
+            if (address) {
+                const { buildingId, ...rest } = editData;
+                await onUpdate(mission.id, { ...rest, addressFull: address });
+                onClose(); // the new building appears after the refresh
+                return;
+            }
             await onUpdate(mission.id, editData);
             setIsEditing(false);
+        } catch {
+            // the error is shown as a message; stay on the form so nothing typed is lost
         } finally {
             setIsSaving(false);
         }
@@ -276,6 +289,15 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                                             <option key={b.id} value={b.id}>{b.address}</option>
                                                         ))}
                                                     </select>
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t.mission_new_address}</span>
+                                                    <input
+                                                        value={newAddress}
+                                                        onChange={(e) => setNewAddress(e.target.value)}
+                                                        maxLength={255}
+                                                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-brand-green"
+                                                    />
                                                 </div>
                                             </div>
                                         ) : (

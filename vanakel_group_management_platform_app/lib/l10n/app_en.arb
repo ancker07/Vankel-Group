@@ -450,6 +450,7 @@
   "speechLanguage": "This language is not available for voice on your phone. Install it in your phone's speech settings.",
   "speechProcessing": "Transcribing…",
   "speechLost": "Part of the dictation could not be transcribed. Please repeat it.",
+  "editMission": "Edit mission",
   "speechRetry": "Voice recognition stopped. Please try again.",
   "openSettings": "Settings",
   "fillAllFields": "Please fill in all fields",

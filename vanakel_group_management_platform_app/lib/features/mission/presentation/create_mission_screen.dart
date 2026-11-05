@@ -46,6 +46,8 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
   bool _isLoading = false;
   List<dynamic> _syndics = [];
   String? _selectedSyndicId;
+  bool _shownSyndicMissing = false;
+  bool get _isEditing => widget.mission != null;
 
   final List<File> _images = [];
   final List<File> _documents = [];
@@ -80,6 +82,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
       }
     });
 
+    _selectedSyndicId = widget.mission?.syndicId;
     _urgency = widget.mission?.urgency ?? MissionUrgency.normal;
     _sector = widget.mission?.sector?.toUpperCase() ?? 'GENERAL';
     _selectedSyndicId = widget.mission?.syndicId;
@@ -155,6 +158,9 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           .getSyndics();
       setState(() {
         _syndics = syndics;
+        // A syndic that is not in the list cannot be shown in the dropdown (it would crash);
+        // the edit then simply leaves the mission's syndic as it is.
+        if (!syndics.any((s) => s['id'].toString() == _selectedSyndicId)) _shownSyndicMissing = true;
         // Pre-select first syndic if user is syndic and syndics are available
         final authState = ref.read(authStateProvider);
         if (_selectedSyndicId == null && authState.user?.role == UserRole.syndic && syndics.isNotEmpty) {
@@ -247,7 +253,8 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
           'addressFull': _addressController.text,
           'urgency': _urgency.name.toUpperCase(),
           'role': user?.role.name.toUpperCase() ?? 'SYNDIC',
-          'syndicId': _selectedSyndicId,
+          // when editing, an unset syndic must not erase the one the mission has
+          if (!_isEditing || _selectedSyndicId != null) 'syndicId': _selectedSyndicId,
           'status': widget.mission?.status.name.toUpperCase() ?? 'PENDING',
           'category': _sector,
           'sector': _sector,
@@ -359,8 +366,9 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                     controller: _addressController,
                     style: const TextStyle(color: Colors.white),
                     decoration: _buildInputDecoration(l10n.selectBuildingHint),
+                    // an existing mission can be saved first and get its address later
                     validator: (value) =>
-                        value == null || value.isEmpty ? l10n.required : null,
+                        !_isEditing && (value == null || value.isEmpty) ? l10n.required : null,
                   ),
                   const SizedBox(height: 20),
 
@@ -375,7 +383,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                           children: [
                             _buildLabel(l10n.syndic),
                             DropdownButtonFormField<String>(
-                              initialValue: _selectedSyndicId,
+                              initialValue: _shownSyndicMissing ? null : _selectedSyndicId,
                               dropdownColor: AppTheme.zinc900,
                               style: const TextStyle(color: Colors.white),
                               decoration: _buildInputDecoration(
@@ -395,7 +403,7 @@ class _CreateMissionScreenState extends ConsumerState<CreateMissionScreen> {
                                 });
                               },
                               validator: (value) =>
-                                  value == null || value.isEmpty
+                                  !_isEditing && (value == null || value.isEmpty)
                                   ? l10n.required
                                   : null,
                             ),

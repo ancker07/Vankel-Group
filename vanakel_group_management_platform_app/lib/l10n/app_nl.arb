@@ -357,6 +357,7 @@
   "speechLanguage": "Deze taal is niet beschikbaar voor spraak op je telefoon. Installeer ze in de spraakinstellingen van je telefoon.",
   "speechProcessing": "Bezig met uitschrijven…",
   "speechLost": "Een deel van het dictaat kon niet worden uitgeschreven. Herhaal het alstublieft.",
+  "editMission": "Missie bewerken",
   "speechRetry": "Spraakherkenning is gestopt. Probeer het opnieuw.",
   "openSettings": "Instellingen",
   "fillAllFields": "Vul alle velden in",
