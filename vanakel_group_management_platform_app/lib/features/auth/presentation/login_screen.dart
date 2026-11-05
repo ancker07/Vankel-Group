@@ -177,7 +177,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            authState.errorMessage!,
+                            authState.errorMessage == AuthNotifier.mobileNotAllowed
+                                ? l10n.mobileAccountNotAllowed
+                                : authState.errorMessage!,
                             style: const TextStyle(color: Colors.red, fontSize: 13),
                           ),
                         ),
@@ -188,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: _selectedRole == 'PROFESSIONAL' ? 'Username' : l10n.email,
+                    labelText: _selectedRole == 'PROFESSIONAL' ? l10n.loginUsername : l10n.email,
                     prefixIcon: Icon(_selectedRole == 'PROFESSIONAL' ? Icons.person_outline : Icons.email_outlined),
                   ),
                 ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),

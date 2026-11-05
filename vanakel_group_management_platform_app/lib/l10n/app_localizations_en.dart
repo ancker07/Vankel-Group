@@ -1463,4 +1463,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get submitNeedsDelayReason =>
       'Select the reason for the delay before sending to the admin';
+
+  @override
+  String get admUsername => 'Username (used to sign in)';
+
+  @override
+  String get admOptionalSuffix => 'optional';
+
+  @override
+  String get loginUsername => 'Username';
+
+  @override
+  String get missionDelete => 'Delete mission';
+
+  @override
+  String get missionDeleteConfirm => 'Delete this mission?';
+
+  @override
+  String get missionDeleteNote =>
+      'The mission is removed from the list. It is kept in the system and can be restored.';
+
+  @override
+  String get missionDeletedSuccess => 'Mission deleted';
+
+  @override
+  String get mobileAccountNotAllowed =>
+      'This account cannot sign in on the mobile app.';
+
+  @override
+  String get files => 'Files';
+
+  @override
+  String get photoCaption => 'Photo';
+
+  @override
+  String get verifySubmission => 'Verify technician submission';
 }

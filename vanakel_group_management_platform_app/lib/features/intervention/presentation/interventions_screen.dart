@@ -14,6 +14,8 @@ import 'providers/intervention_filter_provider.dart';
 import 'providers/intervention_provider.dart';
 import 'providers/intervention_list_provider.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/router/mobile_access.dart';
+import '../../auth/presentation/providers/auth_state_provider.dart';
 
 class InterventionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -60,6 +62,8 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
                     return _InterventionCard(
                       intervention: interventions[index],
                       isAdmin: widget.isAdmin,
+                      // an admin is shown which interventions a technician has sent for review
+                      canVerify: ref.watch(authStateProvider).user?.can('interventions.reopen') ?? false,
                     );
                   },
                 ),
@@ -135,13 +139,16 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          _FilterChip(
-            label: filter.status != null ? l10n.interventionStatusLabel(filter.status!) : l10n.status,
-            isActive: filter.status != null,
-            onTap: () => _showStatusPicker(context, filter, l10n),
-            onClear: filter.status != null ? () => ref.read(interventionFilterProvider.notifier).updateStatus(null) : null,
-          ),
-          const SizedBox(width: 8),
+          // a technician only has the interventions still to do, so there is no status to filter by
+          if (!(ref.watch(authStateProvider).user?.seesOnlyOpenInterventions ?? false)) ...[
+            _FilterChip(
+              label: filter.status != null ? l10n.interventionStatusLabel(filter.status!) : l10n.status,
+              isActive: filter.status != null,
+              onTap: () => _showStatusPicker(context, filter, l10n),
+              onClear: filter.status != null ? () => ref.read(interventionFilterProvider.notifier).updateStatus(null) : null,
+            ),
+            const SizedBox(width: 8),
+          ],
           _FilterChip(
             label: filter.sectorId != null ? l10n.sectorLabel(filter.sectorId!) : l10n.sector,
             isActive: filter.sectorId != null,
@@ -447,8 +454,9 @@ class _FilterChip extends StatelessWidget {
 class _InterventionCard extends StatelessWidget {
   final Intervention intervention;
   final bool isAdmin;
+  final bool canVerify;
 
-  const _InterventionCard({required this.intervention, required this.isAdmin});
+  const _InterventionCard({required this.intervention, required this.isAdmin, this.canVerify = false});
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +551,16 @@ class _InterventionCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildBadge(statusLabel, statusColor),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildBadge(statusLabel, statusColor),
+                            if (canVerify && intervention.submittedAt != null) ...[
+                              const SizedBox(height: 6),
+                              _buildBadge(l10n.verifySubmission, AppTheme.brandOrange),
+                            ],
+                          ],
+                        ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [

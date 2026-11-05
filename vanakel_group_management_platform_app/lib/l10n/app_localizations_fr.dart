@@ -1472,4 +1472,39 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get submitNeedsDelayReason =>
       'Sélectionnez le motif du retard avant d\'envoyer à l\'admin';
+
+  @override
+  String get admUsername => 'Nom d\'utilisateur (pour se connecter)';
+
+  @override
+  String get admOptionalSuffix => 'facultatif';
+
+  @override
+  String get loginUsername => 'Nom d\'utilisateur';
+
+  @override
+  String get missionDelete => 'Supprimer la mission';
+
+  @override
+  String get missionDeleteConfirm => 'Supprimer cette mission ?';
+
+  @override
+  String get missionDeleteNote =>
+      'La mission est retirée de la liste. Elle reste conservée dans le système et peut être restaurée.';
+
+  @override
+  String get missionDeletedSuccess => 'Mission supprimée';
+
+  @override
+  String get mobileAccountNotAllowed =>
+      'Ce compte ne peut pas se connecter à l\'application mobile.';
+
+  @override
+  String get files => 'Fichiers';
+
+  @override
+  String get photoCaption => 'Photo';
+
+  @override
+  String get verifySubmission => 'Vérifier la soumission du technicien';
 }

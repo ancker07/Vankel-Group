@@ -119,6 +119,22 @@ class MissionDetailsScreen extends ConsumerWidget {
                   ),
                 ),
               ],
+              // Delete (soft delete) for roles with missions.delete: the mission is hidden, not erased
+              if (authState.user?.can('missions.delete') ?? false) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () => _handleDelete(context, ref, mission, l10n),
+                    icon: const Icon(Icons.delete_outline),
+                    label: Text(l10n.missionDelete),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -440,7 +456,7 @@ class MissionDetailsScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context)!.attachments,
+            '${AppLocalizations.of(context)!.attachments} (${mission.documents.length})',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -448,8 +464,19 @@ class MissionDetailsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ...mission.documents.map(
-            (document) => _buildDocumentItem(document, context),
+          // many files scroll inside a limited box instead of stretching the whole screen
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: Scrollbar(
+              child: ListView(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                children: [
+                  for (final document in mission.documents)
+                    _buildDocumentItem(document, context),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -535,6 +562,50 @@ class MissionDetailsScreen extends ConsumerWidget {
             SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref, Mission mission, AppLocalizations l10n) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.zinc900,
+        title: Text(l10n.missionDeleteConfirm),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(mission.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(l10n.missionDeleteNote, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(l10n.cancel)),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.missionDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(missionListProvider.notifier).deleteMission(mission.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.missionDeletedSuccess), backgroundColor: Colors.green),
+        );
+        context.pop(); // back to the list
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
+        );
       }
     }
   }

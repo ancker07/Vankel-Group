@@ -3,16 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../core/enums/user_role_enum.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/language_selector.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
+import '../../features/auth/domain/entities/user.dart';
 import '../../features/mission/presentation/providers/mission_list_provider.dart';
 import '../../features/mission/presentation/providers/mission_filter_provider.dart';
 import '../../features/intervention/presentation/providers/intervention_list_provider.dart';
 import '../../features/intervention/presentation/providers/intervention_filter_provider.dart';
 import '../../features/notifications/presentation/providers/notification_provider.dart';
 import '../../core/api/api_constants.dart';
+import '../../core/router/mobile_access.dart';
 
 class ScaffoldWithNavBar extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -31,17 +32,16 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         notificationsAsync.value?.where((n) => !n.isRead).length ?? 0;
 
     final user = authState.user;
-    bool can(String permission) => user?.can(permission) ?? false;
 
     // Branch index (fixed by the router's StatefulShellRoute) -> tab spec.
-    // Missions/Interventions are only offered if the user's role grants the
-    // matching permission; Dashboard and Profile are always available.
+    // Same as the website: an admin has Missions + Interventions, a technician only Interventions.
+    // Dashboard and Profile are always available.
     final tabs = [
       _NavTab(branchIndex: 0, title: l10n.dashboard, visible: true,
           icon: Icons.dashboard_outlined, selectedIcon: Icons.dashboard, label: l10n.dashboard),
-      _NavTab(branchIndex: 1, title: l10n.missions, visible: can('missions.view'),
+      _NavTab(branchIndex: 1, title: l10n.missions, visible: user?.seesMissions ?? false,
           icon: Icons.assignment_outlined, selectedIcon: Icons.assignment, label: l10n.missions),
-      _NavTab(branchIndex: 2, title: l10n.interventions, visible: can('interventions.view'),
+      _NavTab(branchIndex: 2, title: l10n.interventions, visible: user?.seesInterventions ?? false,
           icon: Icons.build_outlined, selectedIcon: Icons.build, label: l10n.interventions),
       _NavTab(branchIndex: 3, title: l10n.profile, visible: true,
           icon: Icons.person_outline, selectedIcon: Icons.person, label: l10n.profile),
@@ -140,18 +140,9 @@ class ScaffoldWithNavBar extends ConsumerWidget {
               ),
               decoration: const BoxDecoration(color: AppTheme.zinc900),
             ),
-            if (authState.user?.role == UserRole.admin && can('buildings.view'))
-              _buildDrawerItem(
-                context,
-                icon: Icons.business_outlined,
-                label: l10n.management,
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/admin/dashboard/management');
-                },
-                isSelected: location == '/admin/dashboard/management',
-              ),
-            if (authState.user?.role == UserRole.admin && can('reports.view'))
+            // Admin: Reports, End of mission, Inbox, Team, Users. Technician: nothing here (only the tabs).
+            // Management, Maintenance, Contacts, Push, AI settings and System are not on the phone (see mobile_access.dart).
+            if (user?.seesReports ?? false)
               _buildDrawerItem(
                 context,
                 icon: Icons.assessment_outlined,
@@ -162,35 +153,18 @@ class ScaffoldWithNavBar extends ConsumerWidget {
                 },
                 isSelected: location == '/admin/dashboard/reports',
               ),
-            if (authState.user?.role == UserRole.admin && can('maintenance.view'))
+            if (user?.seesEndOfMission ?? false)
               _buildDrawerItem(
-                context,
-                icon: Icons.settings_backup_restore_outlined,
-                label: l10n.maintenance,
-                onTap: () {
-                  Navigator.pop(context);
-                  context.push('/admin/dashboard/maintenance');
-                },
-                isSelected: location == '/admin/dashboard/maintenance',
-              ),
-            // Admin tools: same areas as the website, shown by permission
-            ..._adminTools(context, l10n, location, can),
-            // End of mission: completed missions, for everyone
-            Builder(builder: (context) {
-              final path = authState.user?.role == UserRole.syndic
-                  ? '/syndic/dashboard/completed'
-                  : '/admin/dashboard/completed';
-              return _buildDrawerItem(
                 context,
                 icon: Icons.task_alt_outlined,
                 label: l10n.endOfMission,
                 onTap: () {
                   Navigator.pop(context);
-                  context.push(path);
+                  context.push('/admin/dashboard/completed');
                 },
-                isSelected: location == path,
-              );
-            }),
+                isSelected: location == '/admin/dashboard/completed',
+              ),
+            ..._adminTools(context, l10n, location, user),
             const Divider(color: AppTheme.zinc800, indent: 20, endIndent: 20),
             _buildDrawerItem(
               context,
@@ -239,22 +213,17 @@ class ScaffoldWithNavBar extends ConsumerWidget {
     );
   }
 
-  /// Drawer entries for the admin areas the website has. Each one needs the
-  /// same permission as on the website; the server enforces it as well.
+  /// Drawer entries for the admin areas (Inbox, Team, Users), by the same rules as the website.
   List<Widget> _adminTools(
     BuildContext context,
     AppLocalizations l10n,
     String location,
-    bool Function(String) can,
+    User? user,
   ) {
     final items = <({String path, IconData icon, String label, bool visible})>[
-      (path: '/admin/dashboard/emails', icon: Icons.mail_outline, label: l10n.admInbox, visible: can('emails.view')),
-      (path: '/admin/dashboard/contacts', icon: Icons.chat_bubble_outline, label: l10n.admContacts, visible: can('contacts.view')),
-      (path: '/admin/dashboard/team', icon: Icons.groups_outlined, label: l10n.admTeam, visible: can('team.view')),
-      (path: '/admin/dashboard/users', icon: Icons.key_outlined, label: l10n.admUsers, visible: can('users.view') || can('roles.manage')),
-      (path: '/admin/dashboard/push', icon: Icons.campaign_outlined, label: l10n.admPush, visible: can('notifications.broadcast')),
-      (path: '/admin/dashboard/ai-settings', icon: Icons.auto_awesome_outlined, label: l10n.admAiSettings, visible: can('settings.ai')),
-      (path: '/admin/dashboard/system', icon: Icons.insights_outlined, label: l10n.admSystem, visible: can('stats.view')),
+      (path: '/admin/dashboard/emails', icon: Icons.mail_outline, label: l10n.admInbox, visible: user?.seesInbox ?? false),
+      (path: '/admin/dashboard/team', icon: Icons.groups_outlined, label: l10n.admTeam, visible: user?.seesTeam ?? false),
+      (path: '/admin/dashboard/users', icon: Icons.key_outlined, label: l10n.admUsers, visible: user?.seesUsers ?? false),
     ];
     return [
       for (final i in items)

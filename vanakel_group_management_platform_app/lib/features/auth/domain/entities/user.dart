@@ -12,6 +12,9 @@ class User {
   final int? propertyCount;
   final bool isApproved;
 
+  /// The account's real role as the server names it (ADMIN, PROFESSIONAL, SUPERADMIN ...).
+  final String roleName;
+
   /// SUPERADMIN is mapped to [UserRole.admin]; this keeps the distinction
   /// (only a super admin can create admins; the admin owns everything else).
   final bool isSuperAdmin;
@@ -30,11 +33,17 @@ class User {
     this.companyName,
     this.propertyCount,
     this.isApproved = false,
+    this.roleName = '',
     this.isSuperAdmin = false,
     this.permissions = const [],
   });
 
   /// True if the user's role has the permission (the super admin has all).
+  /// The phone app is for two roles only: admin and technician.
+  bool get isTechnician => roleName.toUpperCase() == 'PROFESSIONAL';
+  bool get isPlainAdmin => roleName.toUpperCase() == 'ADMIN';
+  bool get mayUseMobileApp => isTechnician || isPlainAdmin;
+
   bool can(String permission) => isSuperAdmin || permissions.contains(permission);
 
   User copyWith({
@@ -48,6 +57,7 @@ class User {
     String? companyName,
     int? propertyCount,
     bool? isApproved,
+    String? roleName,
     bool? isSuperAdmin,
     List<String>? permissions,
   }) {
@@ -62,6 +72,7 @@ class User {
       companyName: companyName ?? this.companyName,
       propertyCount: propertyCount ?? this.propertyCount,
       isApproved: isApproved ?? this.isApproved,
+      roleName: roleName ?? this.roleName,
       isSuperAdmin: isSuperAdmin ?? this.isSuperAdmin,
       permissions: permissions ?? this.permissions,
     );

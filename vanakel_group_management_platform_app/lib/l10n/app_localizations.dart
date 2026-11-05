@@ -2823,6 +2823,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select the reason for the delay before sending to the admin'**
   String get submitNeedsDelayReason;
+
+  /// No description provided for @admUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username (used to sign in)'**
+  String get admUsername;
+
+  /// No description provided for @admOptionalSuffix.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get admOptionalSuffix;
+
+  /// No description provided for @loginUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get loginUsername;
+
+  /// No description provided for @missionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete mission'**
+  String get missionDelete;
+
+  /// No description provided for @missionDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this mission?'**
+  String get missionDeleteConfirm;
+
+  /// No description provided for @missionDeleteNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The mission is removed from the list. It is kept in the system and can be restored.'**
+  String get missionDeleteNote;
+
+  /// No description provided for @missionDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Mission deleted'**
+  String get missionDeletedSuccess;
+
+  /// No description provided for @mobileAccountNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This account cannot sign in on the mobile app.'**
+  String get mobileAccountNotAllowed;
+
+  /// No description provided for @files.
+  ///
+  /// In en, this message translates to:
+  /// **'Files'**
+  String get files;
+
+  /// No description provided for @photoCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get photoCaption;
+
+  /// No description provided for @verifySubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify technician submission'**
+  String get verifySubmission;
 }
 
 class _AppLocalizationsDelegate

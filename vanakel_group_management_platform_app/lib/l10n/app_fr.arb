@@ -452,5 +452,16 @@
   "awaitingAdminReview": "Envoyé à l'admin, en attente de validation",
   "submittedByOn": "Envoyé par {name} le {date}",
   "submitNeedsStatus": "Choisissez Terminé ou Retardé avant d'envoyer à l'admin",
-  "submitNeedsDelayReason": "Sélectionnez le motif du retard avant d'envoyer à l'admin"
+  "submitNeedsDelayReason": "Sélectionnez le motif du retard avant d'envoyer à l'admin",
+  "admUsername": "Nom d'utilisateur (pour se connecter)",
+  "admOptionalSuffix": "facultatif",
+  "loginUsername": "Nom d'utilisateur",
+  "missionDelete": "Supprimer la mission",
+  "missionDeleteConfirm": "Supprimer cette mission ?",
+  "missionDeleteNote": "La mission est retirée de la liste. Elle reste conservée dans le système et peut être restaurée.",
+  "missionDeletedSuccess": "Mission supprimée",
+  "mobileAccountNotAllowed": "Ce compte ne peut pas se connecter à l'application mobile.",
+  "files": "Fichiers",
+  "photoCaption": "Photo",
+  "verifySubmission": "Vérifier la soumission du technicien"
 }

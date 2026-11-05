@@ -635,5 +635,16 @@
     }
   },
   "submitNeedsStatus": "Choose Completed or Delayed before sending to the admin",
-  "submitNeedsDelayReason": "Select the reason for the delay before sending to the admin"
+  "submitNeedsDelayReason": "Select the reason for the delay before sending to the admin",
+  "admUsername": "Username (used to sign in)",
+  "admOptionalSuffix": "optional",
+  "loginUsername": "Username",
+  "missionDelete": "Delete mission",
+  "missionDeleteConfirm": "Delete this mission?",
+  "missionDeleteNote": "The mission is removed from the list. It is kept in the system and can be restored.",
+  "missionDeletedSuccess": "Mission deleted",
+  "mobileAccountNotAllowed": "This account cannot sign in on the mobile app.",
+  "files": "Files",
+  "photoCaption": "Photo",
+  "verifySubmission": "Verify technician submission"
 }

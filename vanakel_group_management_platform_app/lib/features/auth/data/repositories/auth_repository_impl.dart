@@ -34,6 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
           if (role == 'PROFESSIONAL') 'username': email else 'email': email,
           'password': password,
           'role': role,
+          'app': 'mobile', // the phone app only lets admins and technicians in
           if (deviceToken != null && deviceToken.isNotEmpty) 'fcm_token': deviceToken,
         },
       );

@@ -24,6 +24,7 @@ import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/management/presentation/management_screen.dart';
 import '../../features/report/presentation/reports_screen.dart';
 import '../../features/mission/domain/mission.dart';
+import 'mobile_access.dart';
 import '../../features/maintenance/presentation/maintenance_plans_screen.dart';
 import '../../features/admin/presentation/emails_screen.dart';
 import '../../features/admin/presentation/contacts_screen.dart';
@@ -107,7 +108,8 @@ final routerProvider = Provider<GoRouter>((ref) {
               : '/admin/dashboard';
         }
 
-        return null;
+        // Role rules (same as the website): a screen the menu does not offer cannot be opened by a link either
+        return mobileAccessRedirect(state.uri.path, authState.user);
       }
 
       // 2. Unauthenticated: Move away from protected pages to Onboarding

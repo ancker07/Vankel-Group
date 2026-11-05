@@ -78,19 +78,24 @@ class AdminRepository {
 
   Future<void> createUser({
     required String firstName,
-    required String lastName,
-    required String email,
+    String lastName = '',
+    String email = '',
+    String username = '',
     required String password,
     required String role,
     String? phone,
+    String? companyName,
   }) =>
       _run(() => _dio.post('/users', data: {
             'firstName': firstName,
-            'lastName': lastName,
-            'email': email,
+            if (lastName.isNotEmpty) 'lastName': lastName,
+            // technicians sign in with a username (no e-mail needed); everyone else with an e-mail
+            if (username.isNotEmpty) 'username': username,
+            if (email.isNotEmpty) 'email': email,
             'password': password,
             'role': role,
             if (phone != null && phone.isNotEmpty) 'phone': phone,
+            if (companyName != null && companyName.isNotEmpty) 'companyName': companyName,
           }));
 
   Future<void> approveUser(int id) => _run(() => _dio.post('/users/$id/approve'));

@@ -67,6 +67,7 @@
     "Your account has been deactivated.": "Votre compte a été désactivé.",
     "Username or email is required.": "Le nom d'utilisateur ou l'e-mail est obligatoire.",
     "Mission deleted.": "Mission supprimée.",
+    "This account cannot sign in on the mobile app.": "Ce compte ne peut pas se connecter à l'application mobile.",
     "This username is already taken.": "Ce nom d'utilisateur est déjà utilisé.",
     "Your message has been sent successfully.": "Votre message a bien été envoyé."
 }

@@ -1468,4 +1468,39 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get submitNeedsDelayReason =>
       'Selecteer de reden van de vertraging voordat u naar de beheerder verzendt';
+
+  @override
+  String get admUsername => 'Gebruikersnaam (om in te loggen)';
+
+  @override
+  String get admOptionalSuffix => 'optioneel';
+
+  @override
+  String get loginUsername => 'Gebruikersnaam';
+
+  @override
+  String get missionDelete => 'Missie verwijderen';
+
+  @override
+  String get missionDeleteConfirm => 'Deze missie verwijderen?';
+
+  @override
+  String get missionDeleteNote =>
+      'De missie verdwijnt uit de lijst. Ze blijft bewaard in het systeem en kan worden hersteld.';
+
+  @override
+  String get missionDeletedSuccess => 'Missie verwijderd';
+
+  @override
+  String get mobileAccountNotAllowed =>
+      'Dit account kan niet inloggen in de mobiele app.';
+
+  @override
+  String get files => 'Bestanden';
+
+  @override
+  String get photoCaption => 'Foto';
+
+  @override
+  String get verifySubmission => 'Inzending van de technicus controleren';
 }

@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/intervention_filter.dart';
 import '../../domain/intervention.dart';
 import 'intervention_list_provider.dart';
+import '../../../../core/router/mobile_access.dart';
+import '../../../auth/presentation/providers/auth_state_provider.dart';
 
 class InterventionFilterNotifier extends Notifier<InterventionFilter> {
   @override
@@ -66,7 +68,13 @@ final filteredInterventionListProvider = Provider<AsyncValue<List<Intervention>>
   final interventionsAsync = ref.watch(interventionListProvider);
   final filter = ref.watch(interventionFilterProvider);
 
+  // Like the website: a technician only sees the interventions that are still to do
+  final onlyOpen = ref.watch(authStateProvider).user?.seesOnlyOpenInterventions ?? false;
+
   return interventionsAsync.whenData((interventions) {
-    return interventions.where((i) => filter.matches(i)).toList();
+    return interventions
+        .where((i) => !onlyOpen || i.status == InterventionStatus.pending)
+        .where((i) => filter.matches(i))
+        .toList();
   });
 });

@@ -9,6 +9,8 @@ import '../../maintenance/domain/entities/maintenance_plan.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/translation_helper.dart';
 import 'widgets/maintenance_plan_form_sheet.dart';
+import '../../admin/presentation/admin_widgets.dart';
+import '../../auth/presentation/providers/auth_state_provider.dart';
 
 class MaintenancePlansScreen extends ConsumerWidget {
   const MaintenancePlansScreen({super.key});
@@ -20,7 +22,11 @@ class MaintenancePlansScreen extends ConsumerWidget {
     final buildingsAsync = ref.watch(buildingListProvider);
     final syndicsAsync = ref.watch(syndicListProvider);
 
-    return Scaffold(
+    final canManage = ref.watch(authStateProvider).user?.can('maintenance.manage') ?? false;
+
+    return PermissionGate(
+      anyOf: const ['maintenance.view'],
+      child: Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -65,7 +71,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFF97316))),
         error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: !canManage ? null : FloatingActionButton(
         backgroundColor: const Color(0xFF18181B),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -81,6 +87,7 @@ class MaintenancePlansScreen extends ConsumerWidget {
           );
         },
       ),
+    ),
     );
   }
 

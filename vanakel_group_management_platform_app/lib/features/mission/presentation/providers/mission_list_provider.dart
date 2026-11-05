@@ -37,6 +37,11 @@ class MissionListNotifier extends AsyncNotifier<List<Mission>> {
     }
   }
 
+  Future<void> deleteMission(String id) async {
+    await ref.read(missionRepositoryProvider).deleteMission(id);
+    ref.invalidateSelf();
+  }
+
   Future<void> refresh() async {
     ref.invalidateSelf();
   }

@@ -168,6 +168,9 @@ class AdminUser {
 
   bool get isPending => status == 'PENDING';
 
+  /// Technicians sign in with a username; their e-mail is an internal address, so show "@username" instead.
+  String get loginLabel => email.endsWith('@technician.vankel') ? '@${email.split('@').first}' : email;
+
   factory AdminUser.fromJson(Map<String, dynamic> j) => AdminUser(
         id: (j['id'] as num).toInt(),
         name: _str(j['name']) ?? '',

@@ -359,14 +359,24 @@ class PdfService {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final photo in photos)
-                  pw.Container(
-                    width: 250,
-                    height: 170,
-                    decoration: pw.BoxDecoration(
-                      border: pw.Border.all(color: PdfColors.grey300),
-                    ),
-                    child: pw.Image(photo, fit: pw.BoxFit.contain),
+                for (var index = 0; index < photos.length; index++)
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(
+                        width: 250,
+                        height: 170,
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(color: PdfColors.grey300),
+                        ),
+                        child: pw.Image(photos[index], fit: pw.BoxFit.contain),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        '${labels['photo']!} ${index + 1}',
+                        style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -466,6 +476,7 @@ class PdfService {
           'professional': "Professionnel",
           'documents': "Documents joints",
           'photos': "Photos de l'intervention",
+          'photo': 'Photo',
           'page': "Page",
           'of': "sur",
         };
@@ -485,6 +496,7 @@ class PdfService {
           'professional': "Professional",
           'documents': "Bijgevoegde documenten",
           'photos': "Interventiefoto's",
+          'photo': 'Foto',
           'page': "Pagina",
           'of': "van",
         };
@@ -504,6 +516,7 @@ class PdfService {
           'professional': "Professional",
           'documents': "Attached documents",
           'photos': "Intervention photos",
+          'photo': 'Photo',
           'page': "Page",
           'of': "of",
         };

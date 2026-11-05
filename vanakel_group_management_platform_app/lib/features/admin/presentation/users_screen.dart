@@ -133,7 +133,7 @@ class _UsersList extends ConsumerWidget {
                       ],
                     ),
                 ]),
-                Text(u.email, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
+                Text(u.loginLabel, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
                 if (u.phone != null) Text(u.phone!, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
                 const SizedBox(height: 6),
                 Text('${l10n.admRole}: ${l10n.roleLabelFor(u.role, u.roleLabel)}', style: const TextStyle(fontSize: 12)),
@@ -336,15 +336,19 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
   final _first = TextEditingController();
   final _last = TextEditingController();
   final _email = TextEditingController();
+  final _username = TextEditingController();
+  final _company = TextEditingController();
   final _phone = TextEditingController();
   final _password = TextEditingController();
   String? _role;
   bool _busy = false;
   bool _hidePassword = true;
 
+  bool get _isTechnician => _role == 'PROFESSIONAL';
+
   @override
   void dispose() {
-    for (final c in [_first, _last, _email, _phone, _password]) {
+    for (final c in [_first, _last, _email, _username, _company, _phone, _password]) {
       c.dispose();
     }
     super.dispose();
@@ -358,10 +362,12 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
       await ref.read(adminRepositoryProvider).createUser(
             firstName: _first.text.trim(),
             lastName: _last.text.trim(),
-            email: _email.text.trim(),
+            email: _isTechnician ? '' : _email.text.trim(),
+            username: _isTechnician ? _username.text.trim() : '',
             password: _password.text,
             role: _role!,
             phone: _phone.text.trim(),
+            companyName: _company.text.trim(),
           );
       ref.invalidate(adminUsersProvider);
       ref.invalidate(adminRolesProvider);
@@ -388,34 +394,10 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(l10n.admCreateUser, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: TextFormField(controller: _first, decoration: InputDecoration(labelText: l10n.admFirstName), validator: required)),
-              const SizedBox(width: 8),
-              Expanded(child: TextFormField(controller: _last, decoration: InputDecoration(labelText: l10n.admLastName), validator: required)),
-            ]),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(labelText: l10n.emailLabel),
-              validator: (v) => (v == null || !v.contains('@')) ? l10n.admRequired : null,
-            ),
-            const SizedBox(height: 8),
-            TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: l10n.phoneLabel)),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _password,
-              obscureText: _hidePassword,
-              decoration: InputDecoration(labelText: l10n.admNewPasswordHint, suffixIcon: IconButton(
-                icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                onPressed: () => setState(() => _hidePassword = !_hidePassword),
-              )),
-              validator: (v) => (v ?? '').length < 8 ? l10n.admPasswordTooShort : null,
-            ),
-            const SizedBox(height: 8),
             roles.when(
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text(e.toString()),
+              // every role is listed; one whose limit is reached is greyed out and says so
               data: (list) => DropdownButtonFormField<String>(
                 initialValue: _role,
                 decoration: InputDecoration(labelText: l10n.admRole),
@@ -430,6 +412,42 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
                 onChanged: (v) => setState(() => _role = v),
                 validator: (v) => v == null ? l10n.admRequired : null,
               ),
+            ),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: TextFormField(controller: _first, decoration: InputDecoration(labelText: l10n.admFirstName), validator: required)),
+              const SizedBox(width: 8),
+              Expanded(child: TextFormField(controller: _last, decoration: InputDecoration(labelText: '${l10n.admLastName} (${l10n.admOptionalSuffix})'))),
+            ]),
+            const SizedBox(height: 8),
+            if (_isTechnician)
+              TextFormField(
+                controller: _username,
+                autocorrect: false,
+                textCapitalization: TextCapitalization.none,
+                decoration: InputDecoration(labelText: l10n.admUsername),
+                validator: (v) => RegExp(r'^[A-Za-z0-9._-]{3,50}$').hasMatch((v ?? '').trim()) ? null : l10n.admRequired,
+              )
+            else
+              TextFormField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(labelText: l10n.emailLabel),
+                validator: (v) => (v == null || !v.contains('@')) ? l10n.admRequired : null,
+              ),
+            const SizedBox(height: 8),
+            TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: '${l10n.phoneLabel} (${l10n.admOptionalSuffix})')),
+            const SizedBox(height: 8),
+            TextFormField(controller: _company, decoration: InputDecoration(labelText: '${l10n.companyName} (${l10n.admOptionalSuffix})')),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _password,
+              obscureText: _hidePassword,
+              decoration: InputDecoration(labelText: l10n.admNewPasswordHint, suffixIcon: IconButton(
+                icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                onPressed: () => setState(() => _hidePassword = !_hidePassword),
+              )),
+              validator: (v) => (v ?? '').length < 8 ? l10n.admPasswordTooShort : null,
             ),
             const SizedBox(height: 16),
             SizedBox(

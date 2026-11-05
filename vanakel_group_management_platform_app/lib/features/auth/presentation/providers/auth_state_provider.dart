@@ -48,6 +48,9 @@ class AuthState {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
+  /// Error code (not a sentence) for "this account may not use the phone app"; the login screen shows it translated.
+  static const mobileNotAllowed = 'MOBILE_ACCOUNT_NOT_ALLOWED';
+
   late AuthRepository _repository;
 
   @override
@@ -108,6 +111,13 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
+      // The phone app is for admins and technicians only (e.g. an old super admin session is closed)
+      if (user != null && !user.mayUseMobileApp) {
+        await _repository.logout();
+        state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+        return;
+      }
+
       if (user != null) {
         state = state.copyWith(status: AuthStatus.authenticated, user: user);
         
@@ -134,6 +144,11 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(status: AuthStatus.authenticating, errorMessage: null);
     try {
       final user = await _repository.login(email, password, role);
+      if (!user.mayUseMobileApp) {
+        await _repository.logout();
+        state = state.copyWith(status: AuthStatus.error, errorMessage: mobileNotAllowed);
+        return;
+      }
       // Repository implementation already saves token and email
       state = state.copyWith(status: AuthStatus.authenticated, user: user);
       // Refresh profile to get accurate isApproved status

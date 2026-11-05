@@ -452,5 +452,16 @@
   "awaitingAdminReview": "Naar de beheerder gestuurd, wacht op controle",
   "submittedByOn": "Verzonden door {name} op {date}",
   "submitNeedsStatus": "Kies Voltooid of Vertraagd voordat u naar de beheerder verzendt",
-  "submitNeedsDelayReason": "Selecteer de reden van de vertraging voordat u naar de beheerder verzendt"
+  "submitNeedsDelayReason": "Selecteer de reden van de vertraging voordat u naar de beheerder verzendt",
+  "admUsername": "Gebruikersnaam (om in te loggen)",
+  "admOptionalSuffix": "optioneel",
+  "loginUsername": "Gebruikersnaam",
+  "missionDelete": "Missie verwijderen",
+  "missionDeleteConfirm": "Deze missie verwijderen?",
+  "missionDeleteNote": "De missie verdwijnt uit de lijst. Ze blijft bewaard in het systeem en kan worden hersteld.",
+  "missionDeletedSuccess": "Missie verwijderd",
+  "mobileAccountNotAllowed": "Dit account kan niet inloggen in de mobiele app.",
+  "files": "Bestanden",
+  "photoCaption": "Foto",
+  "verifySubmission": "Inzending van de technicus controleren"
 }

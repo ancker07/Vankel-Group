@@ -443,7 +443,10 @@ class _InterventionDetailsScreenState
         ),
         actions: [
           interventionAsync.when(
-            data: (i) => IconButton(
+            // only roles that may manage maintenance plans (not admin, not technician) get this button
+            data: (i) => !(ref.watch(authStateProvider).user?.can('maintenance.manage') ?? false)
+                ? const SizedBox.shrink()
+                : IconButton(
               icon: const Icon(Icons.rotate_left, color: AppTheme.brandOrange),
               tooltip: l10n.maintenance,
               onPressed: () => _showMaintenanceModal(context, i, l10n),

@@ -92,6 +92,7 @@ class AuthController extends Controller
             'password' => ['required'],
             'role' => ['required', 'string'],
             'fcm_token' => ['nullable', 'string'],
+            'app' => ['nullable', 'string'],
         ]);
 
         $identifier = trim((string) ($request->input('username') ?: $request->input('email')));
@@ -110,11 +111,21 @@ class AuthController extends Controller
             // The login screens offer two choices: ADMIN = staff app (any staff role, incl. custom
             // ones) and PROFESSIONAL = technician accounts only. SUPERADMIN = super admin only.
             // (SYNDIC = client app is no longer offered, but is still understood by the server.)
-            $roleMatch = match ($requestedRole) {
-                'SUPERADMIN' => $user->isSuperAdmin(),
-                'SYNDIC' => $user->isClient(),
-                'PROFESSIONAL' => $user->role === 'PROFESSIONAL',
-                default => !$user->isClient(),
+            // The phone app is only for admins and technicians: each choice takes exactly that role.
+            // (Super admins use the website; the legacy client role has no phone app any more.)
+            $mobile = strtolower((string) $request->input('app')) === 'mobile';
+            if ($mobile && !in_array($user->role, ['ADMIN', 'PROFESSIONAL'], true)) {
+                return response()->json(['success' => false, 'message' => __('This account cannot sign in on the mobile app.')], 403);
+            }
+
+            $roleMatch = match (true) {
+                $mobile => $requestedRole === 'PROFESSIONAL' ? $user->role === 'PROFESSIONAL' : $user->role === 'ADMIN',
+                default => match ($requestedRole) {
+                    'SUPERADMIN' => $user->isSuperAdmin(),
+                    'SYNDIC' => $user->isClient(),
+                    'PROFESSIONAL' => $user->role === 'PROFESSIONAL',
+                    default => !$user->isClient(),
+                },
             };
 
             if ($roleMatch) {

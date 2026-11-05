@@ -709,7 +709,22 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                           _getStatusLabel(widget.mission.status, l10n),
                           statusColor,
                         ),
-                        _buildUrgencyBadge(widget.mission.urgency, l10n),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildUrgencyBadge(widget.mission.urgency, l10n),
+                            if (ref.watch(authStateProvider).user?.can('missions.delete') ?? false) ...[
+                              const SizedBox(width: 8),
+                              _buildActionButton(
+                                context,
+                                ref,
+                                Icons.delete_outline,
+                                Colors.red,
+                                () => _handleDelete(context, ref),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -979,6 +994,52 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
     }
   }
 
+  /// Delete a mission (soft delete: hidden, kept in the system). Admin / super admin only.
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.zinc900,
+        title: Text(l10n.missionDeleteConfirm),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.mission.title, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(l10n.missionDeleteNote, style: const TextStyle(color: AppTheme.zinc400, fontSize: 12)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(l10n.cancel)),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.missionDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(missionListProvider.notifier).deleteMission(widget.mission.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.missionDeletedSuccess), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorWithMessage(context, e)), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _handleReject(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
     final result = await _showConfirmDialog(
@@ -1091,7 +1152,11 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...mission.documents.map((doc) => Padding(
+                    // limited height: a long attachment list scrolls inside the dialog
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 150),
+                      child: SingleChildScrollView(
+                        child: Column(children: mission.documents.map((doc) => Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1114,7 +1179,9 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                               ],
                             ),
                           ),
-                        )),
+                        )).toList()),
+                      ),
+                    ),
                   ],
                   if (isApprove) ...[
                     const SizedBox(height: 16),

@@ -13,6 +13,7 @@ class UserModel extends User {
     super.companyName,
     super.propertyCount,
     super.isApproved = false,
+    super.roleName = '',
     super.isSuperAdmin = false,
     super.permissions = const [],
   });
@@ -37,6 +38,7 @@ class UserModel extends User {
           json['is_approved'] == true ||
           json['status'] == 'APPROVED' ||
           json['status'] == 'ACTIVE',
+      roleName: (json['role'] as String?) ?? '',
       isSuperAdmin: (json['role'] as String?)?.toUpperCase() == 'SUPERADMIN' ||
           json['is_super_admin'] == true,
       permissions: (json['permissions'] as List?)?.map((e) => e.toString()).toList() ?? const [],
@@ -55,6 +57,7 @@ class UserModel extends User {
       'company_name': companyName,
       'property_count': propertyCount,
       'is_approved': isApproved ? 1 : 0,
+      'role_name': roleName,
       'is_super_admin': isSuperAdmin,
       'permissions': permissions,
     };
@@ -72,6 +75,7 @@ class UserModel extends User {
       companyName: companyName,
       propertyCount: propertyCount,
       isApproved: isApproved,
+      roleName: roleName,
       isSuperAdmin: isSuperAdmin,
       permissions: permissions,
     );

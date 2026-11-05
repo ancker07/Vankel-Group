@@ -90,6 +90,23 @@ class AccessControlTest extends TestCase
         $this->deleteJson("/api/missions/{$mission->id}")->assertNotFound();
     }
 
+    public function test_the_mobile_app_only_lets_admins_and_technicians_in_each_through_their_own_choice(): void
+    {
+        $this->makeUser('SUPERADMIN', ['email' => 'super@test.com']);
+        $this->makeUser('ADMIN', ['email' => 'admin@test.com']);
+        $this->makeUser('PROFESSIONAL', ['email' => 'tech@test.com']);
+        $login = fn (string $email, string $role) => $this->postJson('/api/login', ['email' => $email, 'password' => 'password123', 'role' => $role, 'app' => 'mobile']);
+
+        $login('admin@test.com', 'ADMIN')->assertOk();
+        $login('tech@test.com', 'PROFESSIONAL')->assertOk();
+        // no mixing: the technician cannot use the Admin choice, nor the admin the Technician choice
+        $login('tech@test.com', 'ADMIN')->assertStatus(401);
+        $login('admin@test.com', 'PROFESSIONAL')->assertStatus(401);
+        // super admins use the website only
+        $login('super@test.com', 'ADMIN')->assertForbidden();
+        $login('super@test.com', 'SUPERADMIN')->assertForbidden();
+    }
+
     public function test_second_superadmin_can_be_created_by_a_superadmin(): void
     {
         Sanctum::actingAs($this->makeUser('SUPERADMIN'));

@@ -59,6 +59,15 @@ class MissionRepositoryImpl implements MissionRepository {
   }
 
   @override
+  Future<void> deleteMission(String id) async {
+    try {
+      await _dio.delete(ApiConstants.missionUpdate.replaceFirst('{id}', id));
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  @override
   Future<Mission> createMission(Map<String, dynamic> data) async {
     try {
       final response = await _dio.post(
