@@ -55,7 +55,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                   n.type === 'STATUS_CHANGE' ? 'text-orange-500' :
                     'text-blue-400'
                 }`}>
-                {n.type.replace('_', ' ')}
+                {n.type.replace(/_/g, ' ')}
               </p>
               {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-brand-green shrink-0 animate-pulse"></div>}
             </div>
@@ -65,7 +65,11 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
                (lang.toLowerCase() === 'nl' && n.title_nl) ||
                n.title}
             </p>
-            <p className="text-xs text-zinc-500 truncate mb-1">{n.buildingAddress}</p>
+            {(() => {
+              const l = lang.toLowerCase();
+              const text = (l === 'en' && n.body_en) || (l === 'fr' && n.body_fr) || (l === 'nl' && n.body_nl) || n.body || n.buildingAddress;
+              return text ? <p className="text-xs text-zinc-500 line-clamp-3 mb-1">{text}</p> : null;
+            })()}
             <p className="text-[10px] text-zinc-600 text-right font-mono">
               {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(n.timestamp).toLocaleDateString()}
             </p>

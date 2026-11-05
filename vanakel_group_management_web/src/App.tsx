@@ -476,6 +476,48 @@ const App: React.FC = () => {
     refreshGlobalData(true);
   }, [role]);
 
+  // Notifications come from the server (the same ones the phone gets): load them after login and keep them fresh
+  useEffect(() => {
+    if (!role) {
+      setNotifications([]);
+      return;
+    }
+    let cancelled = false;
+    const loadNotifications = async () => {
+      try {
+        const rows: any[] = await dataService.getNotifications();
+        if (cancelled || !Array.isArray(rows)) return;
+        const fromServer: AppNotification[] = rows.map(n => ({
+          id: `srv-${n.id}`,
+          serverId: Number(n.id),
+          targetIds: [],
+          buildingId: '',
+          buildingAddress: '',
+          interventionId: n.data?.intervention_id ? String(n.data.intervention_id) : undefined,
+          title: n.title,
+          title_en: n.title_en ?? undefined,
+          title_fr: n.title_fr ?? undefined,
+          title_nl: n.title_nl ?? undefined,
+          body: n.body ?? undefined,
+          body_en: n.body_en ?? undefined,
+          body_fr: n.body_fr ?? undefined,
+          body_nl: n.body_nl ?? undefined,
+          type: String(n.type || 'UPDATED'),
+          timestamp: n.created_at,
+          read: !!n.is_read,
+        }));
+        // keep the local-only ones (e-mail ingestion results); replace everything that came from the server
+        setNotifications(prev => [...prev.filter(n => !n.serverId), ...fromServer]
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+      } catch (e) {
+        console.error('Failed to load notifications:', e);
+      }
+    };
+    loadNotifications();
+    const timer = window.setInterval(loadNotifications, 30000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [role]);
+
 
 
 

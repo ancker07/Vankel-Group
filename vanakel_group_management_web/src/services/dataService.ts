@@ -206,6 +206,19 @@ export const dataService = {
         const response = await apiClient.delete(`/contacts/${id}`);
         return response.data;
     },
+    /** The logged-in user's own notifications (same list the mobile app shows). */
+    getNotifications: async () => {
+        const response = await apiClient.get('/notifications');
+        return response.data;
+    },
+    markNotificationRead: async (id: string) => {
+        const response = await apiClient.post(`/notifications/${id}/read`);
+        return response.data;
+    },
+    markAllNotificationsRead: async () => {
+        const response = await apiClient.post('/notifications/read-all');
+        return response.data;
+    },
     sendPushNotification: async (payload: { title: string, body: string, target: 'all' | 'specific', user_ids?: number[] }) => {
         const response = await apiClient.post('/superadmin/send-notification', payload);
         return response.data;

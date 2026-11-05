@@ -1,4 +1,5 @@
 
+import { dataService } from '@/services/dataService';
 import React from 'react';
 import { Bell, Menu, MessageSquare } from 'lucide-react';
 import { Role, Language as LangType, AppNotification } from '@/types';
@@ -77,8 +78,15 @@ const Header: React.FC<HeaderProps> = ({
                             lang={lang}
                             notifications={notifications}
                             onClose={() => setShowNotifications(false)}
-                            onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
-                            onMarkAllRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                            onMarkRead={(id) => {
+                                const serverId = notifications.find(n => n.id === id)?.serverId;
+                                setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+                                if (serverId) dataService.markNotificationRead(String(serverId)).catch(() => {});
+                            }}
+                            onMarkAllRead={() => {
+                                setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                                dataService.markAllNotificationsRead().catch(() => {});
+                            }}
                             onSelect={(id) => setSelectedInterventionId(id)}
                             title="Notifications"
                         />

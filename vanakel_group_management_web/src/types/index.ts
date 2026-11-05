@@ -274,9 +274,12 @@ export interface AppNotification {
   body_en?: string;
   body_fr?: string;
   body_nl?: string;
-  type: 'CREATED' | 'UPDATED' | 'STATUS_CHANGE' | 'MISSION_DECISION' | 'MAINTENANCE_AUTO' | 'EMAIL_INGESTION' | 'EMAIL_INGESTION_ERROR';
+  // local ones use the first values; notifications from the server carry their own type (intervention, account, ...)
+  type: 'CREATED' | 'UPDATED' | 'STATUS_CHANGE' | 'MISSION_DECISION' | 'MAINTENANCE_AUTO' | 'EMAIL_INGESTION' | 'EMAIL_INGESTION_ERROR' | (string & {});
   timestamp: string;
   read: boolean;
+  /** Set when the notification comes from the server (id used to mark it read there). */
+  serverId?: number;
 }
 
 // --- EMAIL AUTOMATION TYPES ---
