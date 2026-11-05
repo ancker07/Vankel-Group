@@ -43,6 +43,7 @@ Route::middleware('permission')->group(function () {
 Route::get('/missions', [InterventionController::class, 'getMissions'])->middleware('permission:missions.view');
 Route::get('/missions/{id}', [InterventionController::class, 'getMissionById'])->middleware('permission:missions.view');
 Route::put('/missions/{id}', [InterventionController::class, 'updateMission'])->middleware('permission:missions.update');
+Route::delete('/missions/{id}', [InterventionController::class, 'destroyMission'])->middleware('permission:missions.delete');
 Route::post('/missions/{id}/approve', [InterventionController::class, 'approveMission'])->middleware('permission:missions.approve');
 Route::post('/missions/{id}/reject', [InterventionController::class, 'rejectMission'])->middleware('permission:missions.approve');
 Route::post('/missions/{id}/duplicate/dismiss', [\App\Http\Controllers\MissionDuplicateController::class, 'dismiss'])->middleware('permission:missions.approve');

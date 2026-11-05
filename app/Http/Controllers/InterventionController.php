@@ -425,6 +425,18 @@ class InterventionController extends Controller
         ]);
     }
 
+    /**
+     * Delete a mission (requires missions.delete). It is a soft delete: the mission is only hidden
+     * (deleted_at), with its files, updates and history, so it can be restored. Interventions made
+     * from it are untouched.
+     */
+    public function destroyMission($id)
+    {
+        Mission::findOrFail($id)->delete();
+
+        return response()->json(['success' => true, 'message' => __('Mission deleted.')]);
+    }
+
     public function updateMission(Request $request, $id)
     {
         $mission = Mission::findOrFail($id);

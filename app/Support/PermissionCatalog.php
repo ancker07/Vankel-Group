@@ -33,6 +33,7 @@ class PermissionCatalog
             'missions.create' => 'Create missions (requests)',
             'missions.update' => 'Edit missions',
             'missions.approve' => 'Approve / reject missions',
+            'missions.delete' => 'Delete missions',
         ],
         'Interventions' => [
             'interventions.view' => 'View interventions',

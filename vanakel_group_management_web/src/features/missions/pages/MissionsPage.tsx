@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Search, Filter, Calendar, MessageSquare, Navigation } from 'lucide-react';
+import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Trash2, Search, Filter, Calendar, MessageSquare, Navigation } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
@@ -16,6 +16,7 @@ interface MissionsPageProps {
     onApprove: (mission: Mission) => void;
     onReject: (mission: Mission) => void;
     onUpdate?: (id: string, payload: any) => void;
+    onDelete?: (id: string) => void | Promise<void>;
     t: any;
     role?: string;
     lang: Language;
@@ -24,10 +25,12 @@ interface MissionsPageProps {
 }
 
 
-const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, onUpdate, t, role, lang, onRefresh, isRefreshing }) => {
+const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndics, onCreateClick, onApprove, onReject, onUpdate, onDelete, t, role, lang, onRefresh, isRefreshing }) => {
     const can = usePermissions();
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
     const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+    const [missionToDelete, setMissionToDelete] = useState<Mission | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [expandedDescIds, setExpandedDescIds] = useState<Record<string, boolean>>({});
 
     // Filter States
@@ -214,6 +217,17 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                         </div>
                                     </div>
                                 </div>
+
+                                {can('missions.delete') && onDelete && (
+                                    <div className="flex justify-end px-4 py-2 border-t border-zinc-900/50 bg-zinc-950/50">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setMissionToDelete(m); }}
+                                            className="py-2 px-3 text-zinc-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 border border-zinc-800 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Trash2 size={14} /> {t.mission_delete || 'Delete'}
+                                        </button>
+                                    </div>
+                                )}
 
                                 {/* Action Buttons - Moved to bottom and stacked/row based on width */}
                                 {can('missions.approve') && m.status === 'PENDING' && (
@@ -407,6 +421,25 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                     />
                 )
             }
+            {missionToDelete && (
+                <div className="fixed inset-0 z-[170] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => !isDeleting && setMissionToDelete(null)}>
+                    <div className="bg-zinc-950 border border-zinc-800 w-full max-w-sm rounded-2xl p-6 text-center space-y-4" onClick={e => e.stopPropagation()}>
+                        <h4 className="text-lg font-bold text-white">{t.mission_delete_confirm || 'Delete this mission?'}</h4>
+                        <p className="text-sm text-zinc-400 truncate">{missionToDelete.title || t.mission_request}</p>
+                        <p className="text-xs text-zinc-600">{t.mission_delete_note || 'The mission is removed from the list. It is kept in the system and can be restored.'}</p>
+                        <div className="flex gap-3">
+                            <button disabled={isDeleting} onClick={() => setMissionToDelete(null)} className="flex-1 py-3 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-xl font-bold text-xs uppercase">{t.btnCancel || 'Cancel'}</button>
+                            <button
+                                disabled={isDeleting}
+                                onClick={async () => { setIsDeleting(true); try { await onDelete?.(missionToDelete.id); } finally { setIsDeleting(false); setMissionToDelete(null); } }}
+                                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-xs uppercase disabled:opacity-50"
+                            >
+                                {t.mission_delete || 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

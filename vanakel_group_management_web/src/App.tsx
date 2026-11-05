@@ -1046,6 +1046,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleDeleteMission = async (missionId: string) => {
+    try {
+      await dataService.deleteMission(missionId);
+      setMissions(prev => prev.filter(m => m.id !== missionId));
+      addToast(t.mission_deleted || 'Mission deleted', '');
+    } catch (error: any) {
+      console.error('Failed to delete mission:', error);
+      addToast("Error", error?.response?.data?.message || "Action failed. Please try again later.");
+    }
+  };
+
   const handleUpdateMission = async (id: string, payload: any) => {
     try {
       const response = await dataService.updateMission(id, payload);
@@ -1370,6 +1381,7 @@ const App: React.FC = () => {
                           onApprove={(m) => setMissionActionModal({ type: 'APPROVE', mission: m })}
                           onReject={(m) => setMissionActionModal({ type: 'REJECT', mission: m })}
                           onUpdate={handleUpdateMission}
+                          onDelete={handleDeleteMission}
                           t={t}
                           role={role || 'SYNDIC'}
                           lang={lang}

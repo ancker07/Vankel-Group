@@ -75,6 +75,21 @@ class AccessControlTest extends TestCase
         $this->postJson('/api/users', $admin)->assertStatus(422)->assertJsonValidationErrors('email');
     }
 
+    public function test_admin_can_delete_a_mission_but_a_technician_cannot(): void
+    {
+        $mission = \App\Models\Mission::create(['building_id' => Building::create(['address' => 'Street 1'])->id, 'title' => 'Leak', 'description' => 'Water on the floor.', 'status' => 'PENDING', 'requested_by' => 'SYNDIC']);
+
+        Sanctum::actingAs($this->makeUser('PROFESSIONAL'));
+        $this->deleteJson("/api/missions/{$mission->id}")->assertForbidden();
+        $this->assertNotNull(\App\Models\Mission::find($mission->id));
+
+        Sanctum::actingAs($this->makeUser('ADMIN'));
+        $this->deleteJson("/api/missions/{$mission->id}")->assertOk()->assertJsonPath('success', true);
+        $this->assertNull(\App\Models\Mission::find($mission->id));
+        $this->assertNotNull(\App\Models\Mission::withTrashed()->find($mission->id), 'soft delete keeps the row');
+        $this->deleteJson("/api/missions/{$mission->id}")->assertNotFound();
+    }
+
     public function test_second_superadmin_can_be_created_by_a_superadmin(): void
     {
         Sanctum::actingAs($this->makeUser('SUPERADMIN'));

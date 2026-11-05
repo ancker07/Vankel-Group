@@ -66,6 +66,7 @@
     "You cannot manage a user with more access than you.": "Vous ne pouvez pas gérer un utilisateur ayant plus de droits que vous.",
     "Your account has been deactivated.": "Votre compte a été désactivé.",
     "Username or email is required.": "Le nom d'utilisateur ou l'e-mail est obligatoire.",
+    "Mission deleted.": "Mission supprimée.",
     "This username is already taken.": "Ce nom d'utilisateur est déjà utilisé.",
     "Your message has been sent successfully.": "Votre message a bien été envoyé."
 }

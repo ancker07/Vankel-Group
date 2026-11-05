@@ -75,6 +75,10 @@ export const dataService = {
         const response = await apiClient.post(`/missions/${id}/reject`);
         return response.data;
     },
+    deleteMission: async (id: string) => {
+        const response = await apiClient.delete(`/missions/${id}`);
+        return response.data;
+    },
     updateMission: async (id: string, payload: any) => {
         const response = await apiClient.put(`/missions/${id}`, payload);
         return response.data;
