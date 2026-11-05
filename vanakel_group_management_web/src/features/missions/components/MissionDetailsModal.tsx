@@ -6,6 +6,9 @@ import { TRANSLATIONS, URGENCY, SECTORS } from '@/utils/constants';
 import DocumentViewerModal from '@/components/common/DocumentViewerModal';
 import { usePermissions } from '@/lib/permissions';
 
+const localizedText = (obj: any, field: 'title' | 'description', lang: Language): string =>
+    obj[`${field}_${lang.toLowerCase()}`] || obj[field] || '';
+
 interface MissionDetailsModalProps {
     mission: Mission;
     building?: Building;
@@ -42,8 +45,9 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
 
     // Editable state
     const [editData, setEditData] = useState({
-        title: mission.title || '',
-        description: mission.description || '',
+        // The form shows the same language as the card
+        title: localizedText(mission, 'title', lang),
+        description: localizedText(mission, 'description', lang),
         urgency: mission.urgency || 'MEDIUM',
         sector: mission.sector || 'GENERAL',
         buildingId: mission.buildingId && mission.buildingId !== 'null' ? String(mission.buildingId) : '',
@@ -72,7 +76,7 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                 return;
             }
             await onUpdate(mission.id, editData);
-            setIsEditing(false);
+            onClose(); // back to the list, which shows the saved mission
         } catch {
             // the error is shown as a message; stay on the form so nothing typed is lost
         } finally {

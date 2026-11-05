@@ -562,8 +562,19 @@ class InterventionController extends Controller
             }
         }
 
+        // The form shows the text in the user's language. Sent back unchanged, it must not
+        // replace the original text or trigger a new translation of every language.
+        $unchanged = fn (string $field) => !array_key_exists($field, $validated) || in_array(
+            $validated[$field],
+            [$mission->$field, $mission->{"{$field}_en"}, $mission->{"{$field}_fr"}, $mission->{"{$field}_nl"}],
+            true
+        );
+        if ($unchanged('title') && $unchanged('description')) {
+            unset($validated['title'], $validated['description']);
+        }
+
         // Re-translate if title or description changed
-        if ($request->has('title') || $request->has('description')) {
+        if (array_key_exists('title', $validated) || array_key_exists('description', $validated)) {
             $newTitle = $validated['title'] ?? $mission->title;
             $newDesc = $validated['description'] ?? $mission->description;
             $translations = $this->aiService->translateToFill($newTitle, $newDesc);

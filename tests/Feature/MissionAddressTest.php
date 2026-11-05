@@ -124,4 +124,28 @@ class MissionAddressTest extends TestCase
         $this->putJson("/api/missions/{$m->id}", ['buildingId' => '999999'])->assertOk();
         $this->assertNull($m->fresh()->building_id);
     }
+
+    public function test_saving_translated_text_unchanged_keeps_every_language(): void
+    {
+        $m = $this->mission([
+            'title' => 'Fuite', 'title_en' => 'Leak', 'title_fr' => 'Fuite', 'title_nl' => 'Lek',
+            'description' => 'Cave', 'description_en' => 'Cellar', 'description_fr' => 'Cave', 'description_nl' => 'Kelder',
+        ]);
+
+        // Opened in English, only the urgency changed
+        $this->putJson("/api/missions/{$m->id}", ['title' => 'Leak', 'description' => 'Cellar', 'urgency' => 'HIGH'])->assertOk();
+
+        $fresh = $m->fresh();
+        $this->assertSame('HIGH', $fresh->urgency);
+        $this->assertSame(['Fuite', 'Leak', 'Fuite', 'Lek'], [$fresh->title, $fresh->title_en, $fresh->title_fr, $fresh->title_nl]);
+        $this->assertSame(['Cave', 'Cellar', 'Cave', 'Kelder'], [$fresh->description, $fresh->description_en, $fresh->description_fr, $fresh->description_nl]);
+        Http::assertNothingSent();
+    }
+
+    public function test_changed_text_is_saved(): void
+    {
+        $m = $this->mission(['title' => 'Fuite', 'title_en' => 'Leak', 'description' => 'Cave', 'description_en' => 'Cellar']);
+        $this->putJson("/api/missions/{$m->id}", ['title' => 'Big leak', 'description' => 'Cellar'])->assertOk();
+        $this->assertSame('Big leak', $m->fresh()->title);
+    }
 }
