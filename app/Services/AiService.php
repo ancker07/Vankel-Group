@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Setting;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -11,9 +13,98 @@ class AiService
     /** Cost-efficient, multimodal-capable default: strong at structured extraction, native PDF + image input. */
     public const DEFAULT_MODEL = 'gpt-5-mini';
 
+    public const TRANSCRIPTION_MODELS = ['gpt-transcribe', 'gpt-4o-mini-transcribe', 'whisper-1'];
+
+    /** Trade words the model should recognise; hints only, never echoed when not spoken. */
+    private const TRANSCRIPTION_KEYWORDS = [
+        'en' => ['syndic', 'boiler', 'leak', 'intervention'],
+        'fr' => ['syndic', 'chaudière', 'fuite', 'débouchage', 'carrelage', 'menuiserie', 'intervention', 'GSM'],
+        'nl' => ['syndicus', 'verwarmingsketel', 'lekkage', 'ontstopping', 'tegelwerk', 'schrijnwerk', 'interventie', 'gsm'],
+    ];
+
     public function extractEmailData(string $content, array $attachments = [])
     {
         return $this->callOpenAi($content, $attachments, $this->resolveModel(), $this->resolveApiKey(), $this->getSystemPrompt());
+    }
+
+    public function hasApiKey(): bool
+    {
+        return (bool) (Setting::where('key', 'ai_api_key')->value('value') ?: env('OPENAI_API_KEY'));
+    }
+
+    /**
+     * Transcribes one recorded speech segment.
+     *
+     * @throws TranscriptionException
+     */
+    public function transcribeAudio(UploadedFile $audio, string $language): string
+    {
+        if (!$this->hasApiKey()) {
+            throw new TranscriptionException(503, 'AI API Key not configured.');
+        }
+
+        // The API recognises the format from the file name, and uploads may arrive without a useful one.
+        $extension = match (true) {
+            str_contains($audio->getMimeType(), 'webm') => 'webm',
+            str_contains($audio->getMimeType(), 'mp4'), str_contains($audio->getMimeType(), 'm4a') => 'm4a',
+            str_contains($audio->getMimeType(), 'mpeg') => 'mp3',
+            default => 'wav',
+        };
+
+        // Best model first. Each older model is tried when the one before it refuses or fails.
+        $lastStatus = 502;
+        foreach (self::TRANSCRIPTION_MODELS as $model) {
+            try {
+                $response = Http::withToken($this->resolveApiKey())
+                    ->timeout(60)
+                    ->asMultipart()
+                    ->attach('file', file_get_contents($audio->getRealPath()), "speech.{$extension}")
+                    ->post('https://api.openai.com/v1/audio/transcriptions', $this->transcriptionFields($model, $language));
+            } catch (ConnectionException $e) {
+                Log::warning('Transcription connection failed.', ['model' => $model, 'message' => $e->getMessage()]);
+                $lastStatus = 502;
+                continue;
+            }
+
+            if ($response->successful()) {
+                return trim((string) $response->json('text'));
+            }
+
+            Log::error("OpenAI transcription error [{$model}, " . $response->status() . ']: ' . $response->body());
+
+            // A bad key fails on every model, so stop there.
+            if ($response->status() === 401) {
+                throw new TranscriptionException(503, 'Upstream refused the key.');
+            }
+            $lastStatus = match (true) {
+                in_array($response->status(), [403, 404], true) => 503, // model unusable
+                $response->status() === 400 => 422,                     // unreadable audio or parameters
+                default => 502,                                         // rate limit / outage
+            };
+        }
+
+        throw new TranscriptionException($lastStatus, 'Upstream error.');
+    }
+
+    /** gpt-transcribe takes languages[] and keywords[]; the older models take a single language and a prompt. */
+    private function transcriptionFields(string $model, string $language): array
+    {
+        $keywords = self::TRANSCRIPTION_KEYWORDS[$language] ?? [];
+        $fields = [['name' => 'model', 'contents' => $model]];
+
+        if ($model === self::TRANSCRIPTION_MODELS[0]) {
+            $fields[] = ['name' => 'languages[]', 'contents' => $language];
+            foreach ($keywords as $keyword) {
+                $fields[] = ['name' => 'keywords[]', 'contents' => $keyword];
+            }
+
+            return $fields;
+        }
+
+        $fields[] = ['name' => 'language', 'contents' => $language];
+        $fields[] = ['name' => 'prompt', 'contents' => implode(', ', $keywords)];
+
+        return $fields;
     }
 
     protected function resolveModel(): string

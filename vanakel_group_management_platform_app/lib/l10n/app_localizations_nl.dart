@@ -1136,6 +1136,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze taal is niet beschikbaar voor spraak op je telefoon. Installeer ze in de spraakinstellingen van je telefoon.';
 
   @override
+  String get speechProcessing => 'Bezig met uitschrijven…';
+
+  @override
+  String get speechLost =>
+      'Een deel van het dictaat kon niet worden uitgeschreven. Herhaal het alstublieft.';
+
+  @override
   String get speechRetry => 'Spraakherkenning is gestopt. Probeer het opnieuw.';
 
   @override

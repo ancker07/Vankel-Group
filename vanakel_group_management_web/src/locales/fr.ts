@@ -222,6 +222,8 @@ export default {
     dictate_network: 'La reconnaissance vocale nécessite une connexion internet.',
     dictate_language: "Cette langue n'est pas prise en charge pour la dictée vocale dans ce navigateur.",
     dictate_retry: "La dictée vocale s'est arrêtée. Réessayez.",
+    dictate_processing: "Transcription…",
+    dictate_lost: "Une partie de la dictée n'a pas pu être transcrite. Veuillez la répéter.",
     dictate_listening: "À l'écoute… parlez maintenant",
     access_title: "Utilisateurs & rôles",
     access_subtitle: "Créez des utilisateurs et voyez ce que chacun des trois rôles peut faire.",

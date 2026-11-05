@@ -44,6 +44,8 @@ class ApiConstants {
 
   // AI Endpoints
   static const String improveNote = '/ai/improve';
+  static const String transcribe = '/ai/transcribe';
+  static const String transcribeStatus = '/ai/transcribe/status';
   static const String locationPreview = '/locations/preview';
 
   static String getStorageUrl(String? path) {

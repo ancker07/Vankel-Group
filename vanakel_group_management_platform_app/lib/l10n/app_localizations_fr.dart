@@ -1138,6 +1138,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette langue n\'est pas disponible pour la voix sur votre téléphone. Installez-la dans les réglages vocaux du téléphone.';
 
   @override
+  String get speechProcessing => 'Transcription…';
+
+  @override
+  String get speechLost =>
+      'Une partie de la dictée n\'a pas pu être transcrite. Veuillez la répéter.';
+
+  @override
   String get speechRetry =>
       'La reconnaissance vocale s\'est arrêtée. Réessayez.';
 

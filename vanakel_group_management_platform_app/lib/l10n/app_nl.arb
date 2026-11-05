@@ -355,6 +355,8 @@
   "speechPermission": "Toegang tot de microfoon staat uit. Sta die toe in de app-instellingen om te dicteren.",
   "speechNetwork": "Spraakherkenning heeft een internetverbinding nodig.",
   "speechLanguage": "Deze taal is niet beschikbaar voor spraak op je telefoon. Installeer ze in de spraakinstellingen van je telefoon.",
+  "speechProcessing": "Bezig met uitschrijven…",
+  "speechLost": "Een deel van het dictaat kon niet worden uitgeschreven. Herhaal het alstublieft.",
   "speechRetry": "Spraakherkenning is gestopt. Probeer het opnieuw.",
   "openSettings": "Instellingen",
   "fillAllFields": "Vul alle velden in",

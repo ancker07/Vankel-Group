@@ -305,6 +305,8 @@ export default {
     dictate_network: 'Spraakherkenning heeft een internetverbinding nodig.',
     dictate_language: 'Deze taal wordt in deze browser niet ondersteund voor spraakdictaat.',
     dictate_retry: 'Spraakdictaat is gestopt. Probeer het opnieuw.',
+    dictate_processing: "Bezig met uitschrijven…",
+    dictate_lost: "Een deel van het dictaat kon niet worden uitgeschreven. Herhaal het alstublieft.",
     dictate_listening: "Aan het luisteren… spreek nu",
     access_title: "Gebruikers & rollen",
     access_subtitle: "Maak gebruikers aan en bekijk wat elk van de drie rollen mag doen.",

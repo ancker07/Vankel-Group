@@ -1,4 +1,5 @@
 {
+    "Voice transcription failed.": "La transcription vocale a échoué.",
     "AI API Key not configured.": "La clé API de l'IA n'est pas configurée.",
     "AI improvement failed: :error": "L'amélioration par l'IA a échoué : :error",
     "AI settings updated successfully.": "Les paramètres de l'IA ont été mis à jour.",

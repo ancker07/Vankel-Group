@@ -1,13 +1,19 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import '../../core/api/api_constants.dart';
+import '../../core/api/dio_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../speech/cloud_dictation.dart';
+import '../speech/transcript_merger.dart';
 
 /// Microphone button: the user speaks and the words are appended to [controller].
 /// Afterwards the text can be polished with "Improve with AI".
-class DictationButton extends StatefulWidget {
+class DictationButton extends ConsumerStatefulWidget {
   final TextEditingController controller;
 
   const DictationButton({super.key, required this.controller});
@@ -36,10 +42,10 @@ class DictationButton extends StatefulWidget {
   }
 
   @override
-  State<DictationButton> createState() => _DictationButtonState();
+  ConsumerState<DictationButton> createState() => _DictationButtonState();
 }
 
-class _DictationButtonState extends State<DictationButton> {
+class _DictationButtonState extends ConsumerState<DictationButton> {
   /// NOTE: SpeechToText() is ONE object shared by the whole app. It remembers the status / error
   /// callbacks of whoever called initialize() first, so every use must register its own again
   /// (see _attach); otherwise a second screen never hears "done" and the button stays stuck.
@@ -54,10 +60,19 @@ class _DictationButtonState extends State<DictationButton> {
   bool _restartPending = false;
   bool _gotWordsThisRound = false;
   int _silentRounds = 0;
+  int _networkErrors = 0;
   String? _locale;
 
-  /// Text that was in the field before the current recognition round started.
-  String _baseText = '';
+  /// Keeps earlier words safe from whatever a recognition round reports next.
+  final TranscriptMerger _merger = TranscriptMerger();
+
+  /// Results of a finished round may still arrive; only the current round may write.
+  int _round = 0;
+
+  /// French and Dutch: server transcription (null = the device's recognition is in use).
+  CloudDictation? _cloud;
+  bool _isProcessing = false;
+  bool _starting = false;
 
   /// Stop after this many rounds in a row without a single word (nobody is speaking).
   static const _maxSilentRounds = 3;
@@ -65,6 +80,7 @@ class _DictationButtonState extends State<DictationButton> {
   @override
   void dispose() {
     _wantListening = false;
+    _cloud?.abort();
     _speech.cancel();
     // do not leave callbacks pointing at a closed screen
     _speech.statusListener = null;
@@ -122,6 +138,11 @@ class _DictationButtonState extends State<DictationButton> {
       case 'error_network_timeout':
       case 'error_server':
       case 'error_server_disconnected':
+        // Often a passing drop: start a new round a few times before giving up
+        if (++_networkErrors <= 3) {
+          _roundEnded();
+          return;
+        }
         _giveUp();
         _say(l10n.speechNetwork);
         return;
@@ -173,7 +194,115 @@ class _DictationButtonState extends State<DictationButton> {
     });
   }
 
+  void _appendText(String text) {
+    final current = widget.controller.text.trimRight();
+    final joined = current.isEmpty ? text : '$current $text';
+    widget.controller.value = TextEditingValue(
+      text: joined,
+      selection: TextSelection.collapsed(offset: joined.length),
+    );
+  }
+
+  /// French and Dutch use server transcription. False means: use the device's recognition.
+  Future<bool> _startCloud(String languageCode) async {
+    if (languageCode == 'en') return false;
+    final l10n = AppLocalizations.of(context)!;
+    final dio = ref.read(dioProvider);
+    try {
+      final status = await dio.get(ApiConstants.transcribeStatus);
+      if (status.data['available'] != true) return false;
+    } on DioException catch (e) {
+      // no permission for it: device recognition. Merely offline: record now, upload when back.
+      if (e.response != null) return false;
+    }
+
+    late final CloudDictation cloud;
+    cloud = CloudDictation(
+      transcribe: (wav) async {
+        final response = await dio.post(
+          ApiConstants.transcribe,
+          data: FormData.fromMap({
+            'language': languageCode,
+            'audio': MultipartFile.fromBytes(
+              wav,
+              filename: 'speech.wav',
+              contentType: DioMediaType('audio', 'wav'),
+            ),
+          }),
+        );
+        return (response.data['text'] ?? '').toString();
+      },
+      classify: (error) {
+        final status = error is DioException ? error.response?.statusCode : null;
+        if (status == 422 || status == 413) return SegmentFailure.skip;
+        if (status == 401 || status == 403 || status == 503) return SegmentFailure.unavailable;
+        return SegmentFailure.retry;
+      },
+      onText: (text) {
+        if (mounted) _appendText(text);
+      },
+      onLost: () => _say(l10n.speechLost),
+      onUnavailable: () {
+        cloud.abort();
+        if (mounted && identical(_cloud, cloud)) {
+          _cloud = null;
+          _startNative(languageCode);
+        }
+      },
+    );
+
+    final CloudStart started;
+    try {
+      started = await cloud.start();
+    } catch (_) {
+      cloud.abort();
+      return false;
+    }
+    if (!mounted) {
+      cloud.abort();
+      return true;
+    }
+    if (started == CloudStart.denied) {
+      _say(l10n.speechPermission, settings: true);
+      return true;
+    }
+    _cloud = cloud;
+    setState(() => _isListening = true);
+    return true;
+  }
+
   Future<void> _toggle() async {
+    if (_starting || _isProcessing) return;
+
+    final cloud = _cloud;
+    if (cloud != null) {
+      _cloud = null; // the user stopped: no fallback may restart the microphone
+      setState(() {
+        _isListening = false;
+        _isProcessing = true;
+      });
+      await cloud.stop();
+      if (mounted) setState(() => _isProcessing = false);
+      return;
+    }
+
+    if (!_wantListening) {
+      _starting = true;
+      try {
+        final languageCode = Localizations.localeOf(context).languageCode;
+        if (await _startCloud(languageCode)) return;
+        if (mounted) await _startNative(languageCode);
+      } finally {
+        _starting = false;
+      }
+      return;
+    }
+
+    _giveUp();
+    await _speech.stop();
+  }
+
+  Future<void> _startNative(String languageCode) async {
     final l10n = AppLocalizations.of(context)!;
 
     if (_wantListening) {
@@ -203,18 +332,20 @@ class _DictationButtonState extends State<DictationButton> {
       return;
     }
 
-    _locale = await _pickLocale(Localizations.localeOf(context).languageCode);
+    _locale = await _pickLocale(languageCode);
     if (!mounted) return;
 
     _wantListening = true;
     _restartPending = false;
     _silentRounds = 0;
+    _networkErrors = 0;
     await _listenOnce();
   }
 
   Future<void> _listenOnce() async {
     final l10n = AppLocalizations.of(context)!;
-    _baseText = widget.controller.text.trimRight();
+    _merger.startRound(widget.controller.text);
+    final round = ++_round;
     _gotWordsThisRound = false;
     setState(() => _isListening = true);
 
@@ -223,10 +354,18 @@ class _DictationButtonState extends State<DictationButton> {
       // localeId / pauseFor / listenFor arguments when listenOptions is given.
       await _speech.listen(
         onResult: (result) {
+          if (round != _round || !mounted) return; // late result of a finished round: already in the text
           final spoken = result.recognizedWords;
-          if (spoken.isNotEmpty) _gotWordsThisRound = true;
-          widget.controller.text = _baseText.isEmpty ? spoken : '$_baseText $spoken';
-          widget.controller.selection = TextSelection.collapsed(offset: widget.controller.text.length);
+          if (spoken.trim().isNotEmpty) {
+            _gotWordsThisRound = true;
+            _networkErrors = 0;
+          }
+          final merged = _merger.apply(spoken, currentFieldText: widget.controller.text);
+          if (merged == widget.controller.text) return;
+          widget.controller.value = TextEditingValue(
+            text: merged,
+            selection: TextSelection.collapsed(offset: merged.length),
+          );
         },
         listenOptions: SpeechListenOptions(
           partialResults: true,
@@ -266,7 +405,7 @@ class _DictationButtonState extends State<DictationButton> {
             Icon(_isListening ? Icons.mic : Icons.mic_none, size: 20, color: color),
             const SizedBox(width: 6),
             Text(
-              _isListening ? l10n.stopDictation : l10n.dictate,
+              _isProcessing ? l10n.speechProcessing : (_isListening ? l10n.stopDictation : l10n.dictate),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: color),
             ),
           ],

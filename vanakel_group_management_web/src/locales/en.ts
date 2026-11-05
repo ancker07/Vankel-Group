@@ -214,6 +214,8 @@ export default {
     dictate_network: 'Voice recognition needs an internet connection.',
     dictate_language: 'This language is not supported for voice dictation in this browser.',
     dictate_retry: 'Voice dictation stopped. Please try again.',
+    dictate_processing: "Transcribing…",
+    dictate_lost: "Part of the dictation could not be transcribed. Please repeat it.",
     dictate_listening: "Listening… speak now",
     access_title: "Users & roles",
     access_subtitle: "Create users and see what each of the three roles can do.",

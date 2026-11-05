@@ -1133,6 +1133,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'This language is not available for voice on your phone. Install it in your phone\'s speech settings.';
 
   @override
+  String get speechProcessing => 'Transcribing…';
+
+  @override
+  String get speechLost =>
+      'Part of the dictation could not be transcribed. Please repeat it.';
+
+  @override
   String get speechRetry => 'Voice recognition stopped. Please try again.';
 
   @override

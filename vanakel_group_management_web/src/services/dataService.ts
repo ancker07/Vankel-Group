@@ -158,6 +158,23 @@ export const dataService = {
         return response.data;
     },
 
+    /** Is server speech-to-text usable for this user? */
+    getTranscriptionStatus: async (): Promise<{ available: boolean }> => {
+        const response = await apiClient.get('/ai/transcribe/status', { timeout: 5000 });
+        return response.data;
+    },
+    transcribeAudio: async (audio: Blob, language: string): Promise<string> => {
+        const extension = audio.type.includes('mp4') ? 'm4a' : 'webm';
+        const form = new FormData();
+        form.append('audio', audio, `speech.${extension}`);
+        form.append('language', language);
+        const response = await apiClient.post('/ai/transcribe', form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 90000,
+        });
+        return response.data?.text ?? '';
+    },
+
     syncEmails: async () => {
         const response = await apiClient.post('/emails/sync');
         return response.data;

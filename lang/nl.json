@@ -1,4 +1,5 @@
 {
+    "Voice transcription failed.": "Spraaktranscriptie is mislukt.",
     "AI API Key not configured.": "De API-sleutel van de AI is niet ingesteld.",
     "AI improvement failed: :error": "De verbetering door de AI is mislukt: :error",
     "AI settings updated successfully.": "De AI-instellingen zijn bijgewerkt.",

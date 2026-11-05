@@ -96,6 +96,8 @@ Route::put('/superadmin/mobile-access', [SettingController::class, 'setMobileAcc
 Route::get('/settings/ai', [SettingController::class, 'getAiSettings'])->middleware('permission:settings.ai');
 Route::post('/settings/ai', [SettingController::class, 'updateAiSettings'])->middleware('permission:settings.ai');
 Route::post('/ai/improve', [SettingController::class, 'improveNote'])->middleware('permission:ai.use');
+Route::get('/ai/transcribe/status', [\App\Http\Controllers\TranscriptionController::class, 'status'])->middleware('permission:ai.use');
+Route::post('/ai/transcribe', [\App\Http\Controllers\TranscriptionController::class, 'transcribe'])->middleware(['permission:ai.use', 'throttle:120,1']);
 Route::post('/locations/preview', [LocationPreviewController::class, 'resolve'])->middleware('permission:interventions.view');
 
 // Team & location

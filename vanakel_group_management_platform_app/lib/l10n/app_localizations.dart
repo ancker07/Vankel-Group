@@ -2236,6 +2236,18 @@ abstract class AppLocalizations {
   /// **'This language is not available for voice on your phone. Install it in your phone\'s speech settings.'**
   String get speechLanguage;
 
+  /// No description provided for @speechProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Transcribing…'**
+  String get speechProcessing;
+
+  /// No description provided for @speechLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of the dictation could not be transcribed. Please repeat it.'**
+  String get speechLost;
+
   /// No description provided for @speechRetry.
   ///
   /// In en, this message translates to:

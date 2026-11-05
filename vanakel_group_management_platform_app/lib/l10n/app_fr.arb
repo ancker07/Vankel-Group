@@ -355,6 +355,8 @@
   "speechPermission": "L'accès au micro est désactivé. Autorisez-le dans les réglages de l'application pour dicter.",
   "speechNetwork": "La reconnaissance vocale nécessite une connexion internet.",
   "speechLanguage": "Cette langue n'est pas disponible pour la voix sur votre téléphone. Installez-la dans les réglages vocaux du téléphone.",
+  "speechProcessing": "Transcription…",
+  "speechLost": "Une partie de la dictée n'a pas pu être transcrite. Veuillez la répéter.",
   "speechRetry": "La reconnaissance vocale s'est arrêtée. Réessayez.",
   "openSettings": "Réglages",
   "fillAllFields": "Veuillez remplir tous les champs",
