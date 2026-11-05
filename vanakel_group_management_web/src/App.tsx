@@ -1327,14 +1327,14 @@ const App: React.FC = () => {
                       <Route path="management" element={
                         role === 'SYNDIC' ? (
                           <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} />
-                        ) : isTechnician ? (
+                        ) : isTechnician || role === 'ADMIN' ? (
                           <Navigate to="dashboard" replace />
                         ) : (
                           <GestionPage buildings={buildings} interventions={allInterventions} missions={missions} syndics={syndics} professionals={professionals} lang={lang} />
                         )
                       } />
                       <Route path="reports" element={role !== 'SYNDIC' && can('reports.view') ? <ReportsPage interventions={allInterventions} buildings={buildings} professionals={professionals} syndics={syndics} onViewIntervention={setSelectedInterventionId} lang={lang} /> : <Navigate to="/syndic/management" replace />} />
-                      <Route path="email_ingestion" element={role !== 'SYNDIC' && can('emails.manage') ? <EmailIngestionPage isIngesting={isIngesting} onIngestClick={handleEmailIngestion} emailLogs={emailLogs} lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
+                      <Route path="email_ingestion" element={role === 'SUPERADMIN' && can('emails.manage') ? <EmailIngestionPage isIngesting={isIngesting} onIngestClick={handleEmailIngestion} emailLogs={emailLogs} lang={lang} t={t} /> : <Navigate to="dashboard" replace />} />
                       <Route path="emails" element={role !== 'SYNDIC' && can('emails.view') ? <EmailsPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="emails/:id" element={role !== 'SYNDIC' && can('emails.view') ? <EmailDetailPage lang={lang} /> : <Navigate to="dashboard" replace />} />
                       <Route path="notifications" element={

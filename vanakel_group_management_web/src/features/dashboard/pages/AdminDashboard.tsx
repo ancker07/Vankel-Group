@@ -1,4 +1,5 @@
 
+import { usePermissions } from '@/lib/permissions';
 import React from 'react';
 import { Plus } from 'lucide-react';
 import DashboardStats from '../components/DashboardStats';
@@ -33,6 +34,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     lang,
     t
 }) => {
+    const can = usePermissions();
     return (
         <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -40,6 +42,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <h1 className="text-2xl md:text-3xl font-black text-white">{t.dashboard}</h1>
                     <p className="text-zinc-500 text-sm mt-1">{t.g_dash_stats}</p>
                 </div>
+                {/* a technician cannot create interventions or missions, so the button is not shown to them */}
+                {(can('interventions.create') || can('missions.create')) && (
                 <button
                     id="btn-create-intervention"
                     onClick={onCreateIntervention}
@@ -47,6 +51,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 >
                     <Plus size={16} strokeWidth={3} /> {t.createIntervention}
                 </button>
+                )}
             </div>
 
             <div id="dash-stats">

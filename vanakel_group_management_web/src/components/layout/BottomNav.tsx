@@ -91,7 +91,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ role, stats, t }) => {
 
 
                     </button>
-                    {role !== 'SYNDIC' && !isTechnician && can('buildings.view') && (
+                    {role === 'SUPERADMIN' && can('buildings.view') && (
                         <button
                             id="mobile-nav-management"
                             onClick={() => handleTabClick('management')}

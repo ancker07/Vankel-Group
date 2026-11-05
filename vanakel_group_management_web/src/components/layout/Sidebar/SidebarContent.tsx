@@ -77,10 +77,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                         {role === 'SUPERADMIN' && (
                             <p className="px-4 mb-2 text-[10px] font-black uppercase text-zinc-600 tracking-widest">{t.sidebar_system_tools}</p>
                         )}
-                        {can('emails.manage') && (
+                        {role === 'SUPERADMIN' && can('emails.manage') && (
                             <SidebarItem icon={<Mail size={20} className={isIngesting ? "animate-pulse text-brand-green" : ""} />} label={t.ingestion_menu} active={activeTab === 'email_ingestion'} onClick={() => handleTabClick('email_ingestion')} />
                         )}
-                        {!isTechnician && can('buildings.view') && (
+                        {role === 'SUPERADMIN' && can('buildings.view') && (
                             <div id="nav-management">
                                 <SidebarItem icon={<Building2 size={20} className="text-cyan-400" />} label={t.management || 'Management'} active={activeTab === 'management'} onClick={() => handleTabClick('management')} />
                             </div>
