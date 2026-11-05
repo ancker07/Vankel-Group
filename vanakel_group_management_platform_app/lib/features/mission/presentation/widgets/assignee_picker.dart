@@ -7,12 +7,30 @@ import '../../../admin/data/admin_models.dart';
 import '../../../admin/data/admin_repository.dart';
 
 /// The people a mission can be assigned to when it is approved: approved technicians and admins
-/// (the same list the website offers). Empty when the list cannot be loaded.
+/// (the same list the website offers). Falls back to the team list if the users list is not available.
 Future<List<AdminUser>> loadAssignableUsers(WidgetRef ref) async {
+  bool assignable(String role, String status) =>
+      (role == 'PROFESSIONAL' || role == 'ADMIN') && status == 'APPROVED';
+
   try {
-    final users = await ref.read(adminUsersProvider.future);
-    return users
-        .where((u) => (u.role == 'PROFESSIONAL' || u.role == 'ADMIN') && u.status == 'APPROVED')
+    final users = await ref.read(adminRepositoryProvider).users();
+    final list = users.where((u) => assignable(u.role, u.status)).toList();
+    if (list.isNotEmpty) return list;
+  } catch (_) {}
+
+  try {
+    final team = await ref.read(adminRepositoryProvider).team();
+    return team
+        .where((m) => assignable(m.role, m.status))
+        .map((m) => AdminUser(
+              id: m.id,
+              name: m.name,
+              email: m.email,
+              phone: m.phone,
+              role: m.role,
+              roleLabel: m.role,
+              status: m.status,
+            ))
         .toList();
   } catch (_) {
     return const [];
@@ -35,7 +53,7 @@ class AssigneePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (users.isEmpty) return const SizedBox.shrink();
+    final selected = users.where((u) => u.id == selectedId).firstOrNull;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,6 +101,14 @@ class AssigneePicker extends StatelessWidget {
             ),
           ),
         ),
+        if (selected != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(
+              '${selected.name} · ${selected.loginLabel}',
+              style: const TextStyle(color: AppTheme.zinc500, fontSize: 11),
+            ),
+          ),
       ],
     );
   }

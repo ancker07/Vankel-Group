@@ -20,6 +20,29 @@ class SettingController extends Controller
         ]);
     }
 
+    /** Public: lets the phone app ask whether it may work (also while it is switched off). */
+    public function appStatus()
+    {
+        return response()->json(['mobile_enabled' => \App\Support\MobileAccess::enabled()]);
+    }
+
+    public function getMobileAccess()
+    {
+        return response()->json(['enabled' => \App\Support\MobileAccess::enabled()]);
+    }
+
+    public function setMobileAccess(Request $request)
+    {
+        $data = $request->validate(['enabled' => 'required|boolean']);
+        \App\Support\MobileAccess::set((bool) $data['enabled']);
+
+        return response()->json([
+            'success' => true,
+            'enabled' => \App\Support\MobileAccess::enabled(),
+            'message' => $data['enabled'] ? __('Mobile access is on.') : __('Mobile access is off.'),
+        ]);
+    }
+
     public function improveNote(Request $request)
     {
         $request->validate(['text' => 'required|string']);

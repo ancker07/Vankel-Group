@@ -223,6 +223,14 @@ export const dataService = {
         const response = await apiClient.post('/notifications/read-all');
         return response.data;
     },
+    getMobileAccess: async () => {
+        const response = await apiClient.get('/superadmin/mobile-access');
+        return response.data;
+    },
+    setMobileAccess: async (enabled: boolean) => {
+        const response = await apiClient.put('/superadmin/mobile-access', { enabled });
+        return response.data;
+    },
     sendPushNotification: async (payload: { title: string, body: string, target: 'all' | 'specific', user_ids?: number[] }) => {
         const response = await apiClient.post('/superadmin/send-notification', payload);
         return response.data;

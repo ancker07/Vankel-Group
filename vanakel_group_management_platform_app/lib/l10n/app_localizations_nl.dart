@@ -1505,8 +1505,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get verifySubmission => 'Inzending van de technicus controleren';
 
   @override
-  String get assignToUser => 'Toewijzen aan (optioneel)';
+  String get assignToUser => 'Koppelen aan gebruiker (optioneel)';
 
   @override
-  String get assignNone => '— Niemand —';
+  String get assignNone => '— Geen gebruiker —';
+
+  @override
+  String get mobileDisabledTitle => 'Mobiele app uitgeschakeld';
+
+  @override
+  String get mobileDisabledMessage =>
+      'De mobiele app is momenteel uitgeschakeld door de beheerder. Probeer het later opnieuw.';
+
+  @override
+  String get mobileDisabledRetry => 'Opnieuw proberen';
+
+  @override
+  String get mobileDisabledStillOff => 'Nog steeds uitgeschakeld';
 }

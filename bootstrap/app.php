@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/*',
         ]);
         // every API answer (validation errors, messages) in the user's selected language
-        $middleware->api(append: [\App\Http\Middleware\SetLocale::class]);
+        $middleware->api(append: [\App\Http\Middleware\SetLocale::class, \App\Http\Middleware\BlockMobileWhenDisabled::class]);
         $middleware->alias([
             'permission' => \App\Http\Middleware\EnsurePermission::class,
         ]);

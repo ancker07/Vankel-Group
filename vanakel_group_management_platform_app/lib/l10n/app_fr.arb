@@ -464,6 +464,10 @@
   "files": "Fichiers",
   "photoCaption": "Photo",
   "verifySubmission": "Vérifier la soumission du technicien",
-  "assignToUser": "Assigner à (optionnel)",
-  "assignNone": "— Personne —"
+  "assignToUser": "Lier à un utilisateur (optionnel)",
+  "assignNone": "— Aucun utilisateur —",
+  "mobileDisabledTitle": "Application mobile désactivée",
+  "mobileDisabledMessage": "L'application mobile est actuellement désactivée par l'administrateur. Veuillez réessayer plus tard.",
+  "mobileDisabledRetry": "Réessayer",
+  "mobileDisabledStillOff": "Toujours désactivée"
 }

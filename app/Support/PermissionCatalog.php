@@ -73,6 +73,7 @@ class PermissionCatalog
             'stats.view' => 'View system statistics',
             'notifications.broadcast' => 'Send push notifications',
             'settings.ai' => 'Manage AI settings',
+            'settings.mobile' => 'Switch the mobile app on or off',
             'ai.use' => 'Use the AI writing assistant',
         ],
     ];
@@ -82,7 +83,7 @@ class PermissionCatalog
      * notifications, website contacts and maintenance plans are for the super admin only.
      */
     public const ADMIN_EXCLUDED = [
-        'settings.ai', 'notifications.broadcast',
+        'settings.ai', 'settings.mobile', 'notifications.broadcast',
         'contacts.view', 'contacts.manage',
         'maintenance.view', 'maintenance.manage',
     ];

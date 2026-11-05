@@ -464,6 +464,10 @@
   "files": "Bestanden",
   "photoCaption": "Foto",
   "verifySubmission": "Inzending van de technicus controleren",
-  "assignToUser": "Toewijzen aan (optioneel)",
-  "assignNone": "— Niemand —"
+  "assignToUser": "Koppelen aan gebruiker (optioneel)",
+  "assignNone": "— Geen gebruiker —",
+  "mobileDisabledTitle": "Mobiele app uitgeschakeld",
+  "mobileDisabledMessage": "De mobiele app is momenteel uitgeschakeld door de beheerder. Probeer het later opnieuw.",
+  "mobileDisabledRetry": "Opnieuw proberen",
+  "mobileDisabledStillOff": "Nog steeds uitgeschakeld"
 }

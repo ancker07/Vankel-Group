@@ -68,6 +68,9 @@
     "Username or email is required.": "Le nom d'utilisateur ou l'e-mail est obligatoire.",
     "Mission deleted.": "Mission supprimée.",
     "This account cannot sign in on the mobile app.": "Ce compte ne peut pas se connecter à l'application mobile.",
+    "The mobile app is currently switched off. Please try again later.": "L'application mobile est actuellement désactivée. Veuillez réessayer plus tard.",
+    "Mobile access is on.": "L'accès mobile est activé.",
+    "Mobile access is off.": "L'accès mobile est désactivé.",
     "This username is already taken.": "Ce nom d'utilisateur est déjà utilisé.",
     "Your message has been sent successfully.": "Votre message a bien été envoyé."
 }

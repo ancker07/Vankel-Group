@@ -1500,8 +1500,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifySubmission => 'Verify technician submission';
 
   @override
-  String get assignToUser => 'Assign to (optional)';
+  String get assignToUser => 'Link to user (optional)';
 
   @override
-  String get assignNone => '— Nobody —';
+  String get assignNone => '— No user —';
+
+  @override
+  String get mobileDisabledTitle => 'Mobile app switched off';
+
+  @override
+  String get mobileDisabledMessage =>
+      'The mobile app is currently switched off by the administrator. Please try again later.';
+
+  @override
+  String get mobileDisabledRetry => 'Try again';
+
+  @override
+  String get mobileDisabledStillOff => 'Still switched off';
 }

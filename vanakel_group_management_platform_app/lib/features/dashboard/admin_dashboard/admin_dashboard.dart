@@ -2,14 +2,12 @@ import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../mission/domain/mission.dart';
 import '../../intervention/domain/intervention.dart';
-import '../../../core/utils/translation_helper.dart';
 
 class AdminDashboard extends ConsumerWidget {
   const AdminDashboard({super.key});
@@ -43,46 +41,6 @@ class AdminDashboard extends ConsumerWidget {
           final completedInterventions = interventions
               .where((i) => i.status == InterventionStatus.completed)
               .length;
-
-          // Combine for recent activity (sort by date descending)
-          final allActivity = [
-            ...missions.map(
-              (m) => _ActivityItem(
-                id: m.id,
-                type: 'mission',
-                title: TranslationHelper.getLocalizedField(
-                  context: context,
-                  enValue: m.titleEn,
-                  frValue: m.titleFr,
-                  nlValue: m.titleNl,
-                  fallback: m.title,
-                ),
-                subtitle: TranslationHelper.address(context, m.address),
-                date: m.createdAt,
-                iconColor: AppTheme.brandOrange,
-                icon: Icons.assignment_outlined,
-              ),
-            ),
-            ...interventions.map(
-              (i) => _ActivityItem(
-                id: i.id,
-                type: 'intervention',
-                title: TranslationHelper.getLocalizedField(
-                  context: context,
-                  enValue: i.titleEn,
-                  frValue: i.titleFr,
-                  nlValue: i.titleNl,
-                  fallback: i.title,
-                ),
-                subtitle: TranslationHelper.address(context, i.address),
-                date: i.scheduledDate,
-                iconColor: AppTheme.brandGreen,
-                icon: Icons.engineering_outlined,
-              ),
-            ),
-          ]..sort((a, b) => b.date.compareTo(a.date));
-
-          final recentActivity = allActivity.take(5).toList();
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -140,99 +98,6 @@ class AdminDashboard extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                  Text(
-                    l10n.recentActivity,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 16),
-                  if (recentActivity.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Text(
-                          l10n.noRecentActivity,
-                          style: const TextStyle(color: AppTheme.zinc500),
-                        ),
-                      ),
-                    )
-                  else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: recentActivity.length,
-                      separatorBuilder: (c, i) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = recentActivity[index];
-                        return GestureDetector(
-                          onTap: () {
-                            if (item.type == 'mission') {
-                              context.go(
-                                '/admin/missions/details/${item.id}',
-                              );
-                            } else {
-                              context.go(
-                                '/admin/interventions/details/${item.id}',
-                              );
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.zinc950,
-                              border: Border.all(color: AppTheme.zinc800),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.zinc900,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    item.icon,
-                                    color: item.iconColor,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.title,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        item.subtitle,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.zinc500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  _formatTimeAgo(item.date),
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppTheme.zinc500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
                 ],
               ),
             ),
@@ -286,32 +151,4 @@ class AdminDashboard extends ConsumerWidget {
       ),
     );
   }
-
-  String _formatTimeAgo(DateTime date) {
-    final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) return '${diff.inDays}d ago';
-    if (diff.inHours > 0) return '${diff.inHours}h ago';
-    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
-    return 'now';
-  }
-}
-
-class _ActivityItem {
-  final String id;
-  final String type;
-  final String title;
-  final String subtitle;
-  final DateTime date;
-  final Color iconColor;
-  final IconData icon;
-
-  _ActivityItem({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.subtitle,
-    required this.date,
-    required this.iconColor,
-    required this.icon,
-  });
 }

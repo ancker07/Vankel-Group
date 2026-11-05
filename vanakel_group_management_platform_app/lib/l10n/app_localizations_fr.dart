@@ -1509,8 +1509,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get verifySubmission => 'Vérifier la soumission du technicien';
 
   @override
-  String get assignToUser => 'Assigner à (optionnel)';
+  String get assignToUser => 'Lier à un utilisateur (optionnel)';
 
   @override
-  String get assignNone => '— Personne —';
+  String get assignNone => '— Aucun utilisateur —';
+
+  @override
+  String get mobileDisabledTitle => 'Application mobile désactivée';
+
+  @override
+  String get mobileDisabledMessage =>
+      'L\'application mobile est actuellement désactivée par l\'administrateur. Veuillez réessayer plus tard.';
+
+  @override
+  String get mobileDisabledRetry => 'Réessayer';
+
+  @override
+  String get mobileDisabledStillOff => 'Toujours désactivée';
 }

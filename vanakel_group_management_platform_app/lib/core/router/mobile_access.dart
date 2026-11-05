@@ -50,3 +50,12 @@ String? mobileAccessRedirect(String path, User? user) {
   if (under('/admin/interventions')) return allowed(user.seesInterventions) ? null : _home;
   return null;
 }
+
+const mobileDisabledPath = '/mobile-disabled';
+
+/// While the super admin has the mobile app switched off every route leads to the "switched off" screen;
+/// once it is on again that screen leads back into the app. Null when no redirect is needed.
+String? mobileDisabledRedirect(String path, bool disabled) {
+  if (disabled) return path == mobileDisabledPath ? null : mobileDisabledPath;
+  return path == mobileDisabledPath ? '/splash' : null;
+}

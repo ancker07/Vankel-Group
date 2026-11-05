@@ -68,6 +68,9 @@
     "Username or email is required.": "Gebruikersnaam of e-mailadres is verplicht.",
     "Mission deleted.": "Missie verwijderd.",
     "This account cannot sign in on the mobile app.": "Dit account kan niet inloggen in de mobiele app.",
+    "The mobile app is currently switched off. Please try again later.": "De mobiele app is momenteel uitgeschakeld. Probeer het later opnieuw.",
+    "Mobile access is on.": "Mobiele toegang is ingeschakeld.",
+    "Mobile access is off.": "Mobiele toegang is uitgeschakeld.",
     "This username is already taken.": "Deze gebruikersnaam is al in gebruik.",
     "Your message has been sent successfully.": "Uw bericht is succesvol verzonden."
 }

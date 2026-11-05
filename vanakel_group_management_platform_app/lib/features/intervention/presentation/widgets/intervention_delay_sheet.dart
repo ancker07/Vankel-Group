@@ -109,7 +109,10 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
         color: AppTheme.zinc950,
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
+      // scrolls when the keyboard or a small screen leaves less room than the form needs (no overflow)
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -297,6 +300,7 @@ class _InterventionDelaySheetState extends State<InterventionDelaySheet> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

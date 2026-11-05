@@ -22,6 +22,7 @@ use App\Http\Controllers\LocationPreviewController;
 
 // Public
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/app-status', [SettingController::class, 'appStatus']); // the phone app asks whether it may work
 Route::post('/contacts', [ContactController::class, 'store']); // public website contact form
 // Public self-registration is disabled: accounts are created by users with users.create.
 
@@ -89,6 +90,9 @@ Route::get('/contacts', [ContactController::class, 'index'])->middleware('permis
 Route::delete('/contacts/{id}', [ContactController::class, 'destroy'])->middleware('permission:contacts.manage');
 
 // AI
+// Master switch for the whole mobile app (super admin only)
+Route::get('/superadmin/mobile-access', [SettingController::class, 'getMobileAccess'])->middleware('permission:settings.mobile');
+Route::put('/superadmin/mobile-access', [SettingController::class, 'setMobileAccess'])->middleware('permission:settings.mobile');
 Route::get('/settings/ai', [SettingController::class, 'getAiSettings'])->middleware('permission:settings.ai');
 Route::post('/settings/ai', [SettingController::class, 'updateAiSettings'])->middleware('permission:settings.ai');
 Route::post('/ai/improve', [SettingController::class, 'improveNote'])->middleware('permission:ai.use');

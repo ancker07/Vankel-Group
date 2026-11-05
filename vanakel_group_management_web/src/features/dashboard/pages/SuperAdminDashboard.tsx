@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
 import { dataService } from '@/services/dataService';
+import MobileAccessSwitch from '../components/MobileAccessSwitch';
 
 interface SuperAdminDashboardProps {
     requests: SignupRequest[];
@@ -114,6 +115,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({
                     {t.refresh || 'Refresh'}
                 </button>
             </div>
+            <MobileAccessSwitch t={t} />
             <div className="flex border-b border-zinc-900 bg-zinc-950/50 sticky top-0 z-10 overflow-x-auto no-scrollbar whitespace-nowrap px-4 md:px-0">
                 <button
                     onClick={() => setActiveTab('requests')}

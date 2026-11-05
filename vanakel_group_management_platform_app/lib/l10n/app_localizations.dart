@@ -2893,14 +2893,38 @@ abstract class AppLocalizations {
   /// No description provided for @assignToUser.
   ///
   /// In en, this message translates to:
-  /// **'Assign to (optional)'**
+  /// **'Link to user (optional)'**
   String get assignToUser;
 
   /// No description provided for @assignNone.
   ///
   /// In en, this message translates to:
-  /// **'— Nobody —'**
+  /// **'— No user —'**
   String get assignNone;
+
+  /// No description provided for @mobileDisabledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile app switched off'**
+  String get mobileDisabledTitle;
+
+  /// No description provided for @mobileDisabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The mobile app is currently switched off by the administrator. Please try again later.'**
+  String get mobileDisabledMessage;
+
+  /// No description provided for @mobileDisabledRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get mobileDisabledRetry;
+
+  /// No description provided for @mobileDisabledStillOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Still switched off'**
+  String get mobileDisabledStillOff;
 }
 
 class _AppLocalizationsDelegate

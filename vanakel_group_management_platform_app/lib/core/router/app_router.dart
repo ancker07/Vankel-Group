@@ -25,6 +25,8 @@ import '../../features/management/presentation/management_screen.dart';
 import '../../features/report/presentation/reports_screen.dart';
 import '../../features/mission/domain/mission.dart';
 import 'mobile_access.dart';
+import '../providers/mobile_access_provider.dart';
+import '../../features/auth/presentation/mobile_disabled_screen.dart';
 import '../../features/maintenance/presentation/maintenance_plans_screen.dart';
 import '../../features/admin/presentation/emails_screen.dart';
 import '../../features/admin/presentation/contacts_screen.dart';
@@ -54,6 +56,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       body: Center(child: Text(AppLocalizations.of(context)!.pageNotFound)),
     ),
     redirect: (context, state) {
+      // The super admin can switch the whole mobile app off: then nothing else may be opened
+      final switchedOff = ref.read(mobileAccessProvider).disabled;
+      final offRedirect = mobileDisabledRedirect(state.uri.path, switchedOff);
+      if (offRedirect != null) return offRedirect;
+      if (switchedOff) return null;
+
       final authState = ref.read(authStateProvider);
       
       if (kDebugMode) {
@@ -150,6 +158,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(path: mobileDisabledPath, builder: (context, state) => const MobileDisabledScreen()),
       GoRoute(
         path: '/otp',
         builder: (context, state) => const OtpScreen(),
@@ -367,12 +376,17 @@ class GoRouterRefreshListenable extends ChangeNotifier {
         notifyListeners();
       }
     });
+    _accessSubscription = ref.listen(mobileAccessProvider, (previous, next) {
+      if (previous?.disabled != next.disabled) notifyListeners();
+    });
   }
 
   late final ProviderSubscription _subscription;
+  late final ProviderSubscription _accessSubscription;
 
   @override
   void dispose() {
+    _accessSubscription.close();
     _subscription.close();
     super.dispose();
   }

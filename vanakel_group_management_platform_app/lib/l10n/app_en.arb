@@ -647,6 +647,10 @@
   "files": "Files",
   "photoCaption": "Photo",
   "verifySubmission": "Verify technician submission",
-  "assignToUser": "Assign to (optional)",
-  "assignNone": "— Nobody —"
+  "assignToUser": "Link to user (optional)",
+  "assignNone": "— No user —",
+  "mobileDisabledTitle": "Mobile app switched off",
+  "mobileDisabledMessage": "The mobile app is currently switched off by the administrator. Please try again later.",
+  "mobileDisabledRetry": "Try again",
+  "mobileDisabledStillOff": "Still switched off"
 }
