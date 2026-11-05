@@ -39,17 +39,22 @@ class AuthRepositoryImpl implements AuthRepository {
         },
       );
 
+      final loggedIn = UserModel.fromJson(response.data['user']).toEntity();
+      // Remember the account's real e-mail, not what was typed: a technician types a username, and a
+      // username sent where an e-mail is expected used to make the next app start look like a bad session.
+      final accountEmail = loggedIn.email.isNotEmpty ? loggedIn.email : email;
+
       final token = response.data['token'];
       if (token != null) {
         await _tokenService.saveToken(token);
-        await _tokenService.saveEmail(email);
+        await _tokenService.saveEmail(accountEmail);
         
         // Sync FCM token (retry once; the token can be late right after install)
         for (var attempt = 0; attempt < 2; attempt++) {
           try {
             final fcmToken = await NotificationService().getToken();
             if (fcmToken != null && fcmToken.isNotEmpty) {
-              await updateFcmToken(email, fcmToken);
+              await updateFcmToken(accountEmail, fcmToken);
               break;
             }
           } catch (e) {
@@ -70,7 +75,7 @@ class AuthRepositoryImpl implements AuthRepository {
         }
       }
 
-      return UserModel.fromJson(response.data['user']).toEntity();
+      return loggedIn;
     } on DioException catch (e) {
       throw handleDioError(e);
     }
@@ -192,9 +197,9 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return UserModel.fromJson(userJson).toEntity();
     } on DioException catch (e) {
-      // Handle both 401 (Unauthorized) and 422 (Unprocessable Entity)
-      // If the backend has been reinstalled, old tokens can cause validation errors or missing user errors
-      if (e.response?.statusCode == 401 || e.response?.statusCode == 422) {
+      // Only a 401 means the session is really over. A validation error (422) is a request problem, not a
+      // reason to sign the user out.
+      if (e.response?.statusCode == 401) {
         return null;
       }
       throw handleDioError(e);

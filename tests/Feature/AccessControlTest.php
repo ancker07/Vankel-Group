@@ -107,6 +107,32 @@ class AccessControlTest extends TestCase
         $login('super@test.com', 'SUPERADMIN')->assertForbidden();
     }
 
+    public function test_a_technician_whose_app_stored_the_username_as_email_stays_logged_in(): void
+    {
+        // the phone app used to remember the typed username as the account e-mail and sent it on every app start
+        $technician = $this->makeUser('PROFESSIONAL', ['email' => 'jean@technician.vankel']);
+        Sanctum::actingAs($technician);
+
+        $this->postJson('/api/check-status', ['email' => 'jean'])->assertOk()->assertJsonPath('success', true);
+        $this->postJson('/api/profile/details', ['email' => 'jean'])->assertOk()->assertJsonPath('user.role', 'PROFESSIONAL');
+        $this->postJson('/api/update-fcm-token', ['email' => 'jean', 'fcm_token' => 'abc'])->assertOk();
+        $this->postJson('/api/profile/update', ['email' => 'jean', 'phone' => '0470'])->assertOk();
+    }
+
+    public function test_the_language_the_app_shows_is_remembered_when_the_account_has_none_but_never_overwritten(): void
+    {
+        $this->makeUser('PROFESSIONAL', ['email' => 'nolang@test.com']);
+        $this->makeUser('PROFESSIONAL', ['email' => 'haslang@test.com', 'locale' => 'nl']);
+        $login = fn (string $email, string $lang) => $this->withHeader('Accept-Language', $lang)
+            ->postJson('/api/login', ['email' => $email, 'password' => 'password123', 'role' => 'PROFESSIONAL']);
+
+        $login('nolang@test.com', 'fr')->assertOk();
+        $this->assertSame('fr', User::where('email', 'nolang@test.com')->value('locale'));
+
+        $login('haslang@test.com', 'fr')->assertOk();
+        $this->assertSame('nl', User::where('email', 'haslang@test.com')->value('locale'), 'a saved choice is kept');
+    }
+
     public function test_second_superadmin_can_be_created_by_a_superadmin(): void
     {
         Sanctum::actingAs($this->makeUser('SUPERADMIN'));

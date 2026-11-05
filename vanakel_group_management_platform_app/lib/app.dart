@@ -8,6 +8,7 @@ import 'core/providers/locale_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/location_service.dart';
 import 'core/utils/notification_navigator.dart';
+import 'features/auth/domain/entities/user.dart';
 import 'features/auth/presentation/providers/auth_state_provider.dart';
 import 'features/notifications/presentation/providers/notification_provider.dart';
 
@@ -25,6 +26,18 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
   /// Only users whose role has the location.share permission share their location.
   bool _shouldTrack(AuthState auth) =>
       auth.status == AuthStatus.authenticated && (auth.user?.can('location.share') ?? false);
+
+  /// A notification tap waiting for the session to be restored.
+  Map<String, dynamic>? _pendingNotificationTap;
+
+  void _openNotification(User user, Map<String, dynamic> data) {
+    navigateForNotificationData(
+      ref.read(routerProvider),
+      user,
+      data['type'] as String? ?? '',
+      data,
+    );
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -59,6 +72,14 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
       } else {
         _locationService.stop();
       }
+      final pending = _pendingNotificationTap;
+      if (pending != null && next.status == AuthStatus.authenticated && next.user != null) {
+        _pendingNotificationTap = null;
+        // after the first frame, so the router has already moved on to the dashboard
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _openNotification(next.user!, pending);
+        });
+      }
     }, fireImmediately: true);
     NotificationService().onNotificationUpdate = () {
       if (mounted) {
@@ -69,10 +90,14 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
     };
     NotificationService().onNotificationTap = (data) {
       if (!mounted) return;
-      final router = ref.read(routerProvider);
       final user = ref.read(authStateProvider).user;
-      final type = data['type'] as String? ?? '';
-      navigateForNotificationData(router, user, type, data);
+      if (user == null) {
+        // The app was opened by the notification and the saved session is still being restored: keep the tap
+        // and open the screen as soon as the user is known (see the auth listener above).
+        _pendingNotificationTap = data;
+        return;
+      }
+      _openNotification(user, data);
     };
   }
 

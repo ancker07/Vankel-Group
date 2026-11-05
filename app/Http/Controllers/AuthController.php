@@ -129,6 +129,8 @@ class AuthController extends Controller
             };
 
             if ($roleMatch) {
+                $this->rememberLanguage($user, $request);
+
                 // Check status
                 if ($user->role !== 'SUPERADMIN' && $user->status === 'DEACTIVATED') {
                     return response()->json([
@@ -158,6 +160,17 @@ class AuthController extends Controller
             'success' => false,
             'message' => __('Invalid credentials or role mismatch')
         ], 401);
+    }
+
+    /**
+     * An account that has no saved language yet (e.g. a technician an admin created) gets the language the app is
+     * showing, so push notifications and e-mails follow it from the first moment. A saved choice is never overwritten.
+     */
+    private function rememberLanguage(User $user, Request $request): void
+    {
+        if (!$user->locale) {
+            $user->update(['locale' => \App\Http\Middleware\SetLocale::resolve($request)]);
+        }
     }
 
     /** The logged-in user with role, portal and permissions (apps refresh access with this). */
@@ -376,12 +389,14 @@ class AuthController extends Controller
     public function checkStatus(Request $request) 
     {
         $request->validate([
-            'email' => 'nullable|email'
+            'email' => 'nullable|string'
         ]);
 
         $user = $request->user();
 
         if ($user) {
+            $this->rememberLanguage($user, $request);
+
             return response()->json([
                 'success' => true,
                 'status' => $user->status
@@ -397,7 +412,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $request->validate([
-            'email' => 'nullable|email',
+            'email' => 'nullable|string',
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'bio' => 'nullable|string',
@@ -441,7 +456,7 @@ class AuthController extends Controller
     public function getProfile(Request $request)
     {
         $request->validate([
-            'email' => 'nullable|email'
+            'email' => 'nullable|string'
         ]);
 
         $user = $request->user();
@@ -480,7 +495,7 @@ class AuthController extends Controller
     public function changePassword(Request $request)
     {
         $request->validate([
-            'email' => 'nullable|email',
+            'email' => 'nullable|string',
             'current_password' => 'required',
             'new_password' => 'required|min:8|confirmed',
         ]);
@@ -528,7 +543,7 @@ class AuthController extends Controller
     public function updateFcmToken(Request $request)
     {
         $request->validate([
-            'email' => 'nullable|email',
+            'email' => 'nullable|string',
             'fcm_token' => 'present|nullable|string',
         ]);
 
