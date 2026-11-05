@@ -463,5 +463,7 @@
   "mobileAccountNotAllowed": "Ce compte ne peut pas se connecter à l'application mobile.",
   "files": "Fichiers",
   "photoCaption": "Photo",
-  "verifySubmission": "Vérifier la soumission du technicien"
+  "verifySubmission": "Vérifier la soumission du technicien",
+  "assignToUser": "Assigner à (optionnel)",
+  "assignNone": "— Personne —"
 }

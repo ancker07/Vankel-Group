@@ -34,11 +34,15 @@ class MissionRepositoryImpl implements MissionRepository {
   }
 
   @override
-  Future<Mission> approveMission(String id, {String? scheduledDate}) async {
+  Future<Mission> approveMission(String id, {String? scheduledDate, int? assignedUserId}) async {
     try {
       final response = await _dio.post(
         ApiConstants.approveMission.replaceFirst('{id}', id),
-        data: scheduledDate != null ? {'scheduled_date': scheduledDate} : null,
+        data: {
+          if (scheduledDate != null) 'scheduled_date': scheduledDate,
+          // the technician (or admin) who gets the work: the server creates the intervention for them
+          if (assignedUserId != null) 'assigned_user_id': assignedUserId,
+        },
       );
       return MissionModel.fromJson(response.data).toEntity();
     } on DioException catch (e) {

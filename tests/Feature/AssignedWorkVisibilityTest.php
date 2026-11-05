@@ -117,4 +117,26 @@ class AssignedWorkVisibilityTest extends TestCase
         $this->getJson('/api/missions')->assertOk()->assertJsonCount(2);
         $this->getJson('/api/interventions')->assertOk()->assertJsonCount(2);
     }
+
+    public function test_an_admin_approves_a_mission_for_a_technician_who_then_sees_and_is_told_about_it(): void
+    {
+        $admin = $this->makeUser('ADMIN');
+        $technician = $this->makeUser('PROFESSIONAL');
+        $other = $this->makeUser('PROFESSIONAL');
+        $building = Building::create(['address' => 'Street 1']);
+        $mission = $this->makeMission(['building_id' => $building->id, 'status' => 'PENDING']);
+
+        Sanctum::actingAs($admin);
+        $this->postJson("/api/missions/{$mission->id}/approve", ['assigned_user_id' => $technician->id])->assertOk();
+
+        $intervention = Intervention::where('building_id', $building->id)->firstOrFail();
+        $this->assertSame($technician->id, (int) $intervention->pro_id);
+        $this->assertSame(1, \App\Models\Notification::where('user_id', $technician->id)->count(), 'the technician is told');
+
+        Sanctum::actingAs($technician);
+        $this->getJson('/api/interventions')->assertOk()->assertJsonCount(1);
+
+        Sanctum::actingAs($other);
+        $this->getJson('/api/interventions')->assertOk()->assertJsonCount(0);
+    }
 }

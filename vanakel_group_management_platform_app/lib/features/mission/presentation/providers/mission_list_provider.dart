@@ -14,10 +14,10 @@ class MissionListNotifier extends AsyncNotifier<List<Mission>> {
     return ref.watch(missionRepositoryProvider).getMissions();
   }
 
-  Future<void> approveMission(String id, {String? scheduledDate}) async {
+  Future<void> approveMission(String id, {String? scheduledDate, int? assignedUserId}) async {
     final repository = ref.read(missionRepositoryProvider);
     try {
-      await repository.approveMission(id, scheduledDate: scheduledDate);
+      await repository.approveMission(id, scheduledDate: scheduledDate, assignedUserId: assignedUserId);
       ref.invalidateSelf();
       // Also refresh interventions as an approved mission creates one
       ref.invalidate(interventionListProvider);

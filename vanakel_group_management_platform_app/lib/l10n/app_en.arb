@@ -646,5 +646,7 @@
   "mobileAccountNotAllowed": "This account cannot sign in on the mobile app.",
   "files": "Files",
   "photoCaption": "Photo",
-  "verifySubmission": "Verify technician submission"
+  "verifySubmission": "Verify technician submission",
+  "assignToUser": "Assign to (optional)",
+  "assignNone": "— Nobody —"
 }

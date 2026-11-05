@@ -4,7 +4,7 @@ import '../domain/mission.dart';
 abstract class MissionRepository {
   Future<List<Mission>> getMissions();
   Future<Mission> getMissionById(String id);
-  Future<Mission> approveMission(String id, {String? scheduledDate});
+  Future<Mission> approveMission(String id, {String? scheduledDate, int? assignedUserId});
   Future<Mission> rejectMission(String id);
   /// Soft delete: the mission is hidden, not erased (admin / super admin).
   Future<void> deleteMission(String id);

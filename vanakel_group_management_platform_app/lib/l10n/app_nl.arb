@@ -463,5 +463,7 @@
   "mobileAccountNotAllowed": "Dit account kan niet inloggen in de mobiele app.",
   "files": "Bestanden",
   "photoCaption": "Foto",
-  "verifySubmission": "Inzending van de technicus controleren"
+  "verifySubmission": "Inzending van de technicus controleren",
+  "assignToUser": "Toewijzen aan (optioneel)",
+  "assignNone": "— Niemand —"
 }

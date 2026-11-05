@@ -14,6 +14,8 @@ import '../../../core/utils/translation_helper.dart';
 import '../../../core/services/map_service.dart';
 import '../../../shared/widgets/mission_map.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
+import '../../admin/data/admin_models.dart';
+import 'widgets/assignee_picker.dart';
 
 class MissionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -965,12 +967,15 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
 
   Future<void> _handleApprove(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
+    final assignees = await loadAssignableUsers(ref);
+    if (!context.mounted) return;
     final result = await _showConfirmDialog(
       context: context,
       title: l10n.approveMission,
       content: l10n.approveMissionConfirm,
       mission: widget.mission,
       isApprove: true,
+      assignees: assignees,
     );
 
     if (result != null && result['confirmed'] == true) {
@@ -978,6 +983,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
         await ref.read(missionListProvider.notifier).approveMission(
               widget.mission.id,
               scheduledDate: result['date'],
+              assignedUserId: result['assignee'] as int?,
             );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1074,8 +1080,10 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
     required String content,
     required Mission mission,
     required bool isApprove,
+    List<AdminUser> assignees = const [],
   }) {
     DateTime? selectedDate;
+    int? selectedAssignee;
 
     return showDialog<Map<String, dynamic>>(
       context: context,
@@ -1258,6 +1266,11 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                         ),
                       ),
                     ),
+                    AssigneePicker(
+                      users: assignees,
+                      selectedId: selectedAssignee,
+                      onChanged: (v) => setState(() => selectedAssignee = v),
+                    ),
                   ],
                 ],
               ),
@@ -1271,6 +1284,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                 onPressed: () => Navigator.pop(context, {
                   'confirmed': true,
                   'date': selectedDate?.toIso8601String(),
+                  'assignee': selectedAssignee,
                 }),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isApprove ? AppTheme.brandGreen : Colors.red,

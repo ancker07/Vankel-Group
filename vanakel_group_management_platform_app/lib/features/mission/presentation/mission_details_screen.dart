@@ -9,6 +9,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/enums/user_role_enum.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
+import '../../admin/data/admin_models.dart';
+import 'widgets/assignee_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../intervention/domain/document.dart';
 import '../domain/mission.dart';
@@ -534,6 +536,8 @@ class MissionDetailsScreen extends ConsumerWidget {
     );
   }
   Future<void> _handleApprove(BuildContext context, WidgetRef ref, Mission mission, AppLocalizations l10n) async {
+    final assignees = await loadAssignableUsers(ref);
+    if (!context.mounted) return;
     final result = await _showConfirmDialog(
       context: context,
       title: l10n.approveMission,
@@ -541,6 +545,7 @@ class MissionDetailsScreen extends ConsumerWidget {
       mission: mission,
       isApprove: true,
       l10n: l10n,
+      assignees: assignees,
     );
 
     if (result != null && result['confirmed'] == true) {
@@ -548,6 +553,7 @@ class MissionDetailsScreen extends ConsumerWidget {
         await ref.read(missionListProvider.notifier).approveMission(
           mission.id,
           scheduledDate: result['date'],
+          assignedUserId: result['assignee'] as int?,
         );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -647,8 +653,10 @@ class MissionDetailsScreen extends ConsumerWidget {
     required Mission mission,
     required bool isApprove,
     required AppLocalizations l10n,
+    List<AdminUser> assignees = const [],
   }) {
     DateTime? selectedDate;
+    int? selectedAssignee;
 
     return showDialog<Map<String, dynamic>>(
       context: context,
@@ -793,6 +801,11 @@ class MissionDetailsScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  AssigneePicker(
+                    users: assignees,
+                    selectedId: selectedAssignee,
+                    onChanged: (v) => setState(() => selectedAssignee = v),
+                  ),
                 ],
               ],
             ),
@@ -807,6 +820,7 @@ class MissionDetailsScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(context, {
                 'confirmed': true,
                 'date': selectedDate?.toIso8601String(),
+                'assignee': selectedAssignee,
               }),
               style: ElevatedButton.styleFrom(
                 backgroundColor: isApprove ? AppTheme.brandGreen : Colors.red,

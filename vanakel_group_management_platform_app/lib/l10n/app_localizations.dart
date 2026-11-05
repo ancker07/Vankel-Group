@@ -2889,6 +2889,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verify technician submission'**
   String get verifySubmission;
+
+  /// No description provided for @assignToUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign to (optional)'**
+  String get assignToUser;
+
+  /// No description provided for @assignNone.
+  ///
+  /// In en, this message translates to:
+  /// **'— Nobody —'**
+  String get assignNone;
 }
 
 class _AppLocalizationsDelegate

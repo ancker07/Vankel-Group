@@ -1503,4 +1503,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get verifySubmission => 'Inzending van de technicus controleren';
+
+  @override
+  String get assignToUser => 'Toewijzen aan (optioneel)';
+
+  @override
+  String get assignNone => '— Niemand —';
 }

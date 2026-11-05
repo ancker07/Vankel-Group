@@ -1498,4 +1498,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get verifySubmission => 'Verify technician submission';
+
+  @override
+  String get assignToUser => 'Assign to (optional)';
+
+  @override
+  String get assignNone => '— Nobody —';
 }
