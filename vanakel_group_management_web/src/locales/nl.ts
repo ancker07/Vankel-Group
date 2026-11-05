@@ -411,6 +411,7 @@ export default {
     mission_delete_confirm: 'Deze missie verwijderen?',
     mission_delete_note: 'De missie verdwijnt uit de lijst. Ze blijft bewaard in het systeem en kan worden hersteld.',
     mission_deleted: 'Missie verwijderd',
+    files: 'Bestanden',
     manual_intervention_created: 'Handmatige Interventie Aangemaakt',
     email_ingestion_mission: 'Missie Ontvangen via E-mail',
     status_change: 'Statuswijziging',

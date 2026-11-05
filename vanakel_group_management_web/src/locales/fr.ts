@@ -328,6 +328,7 @@ export default {
     mission_delete_confirm: 'Supprimer cette mission ?',
     mission_delete_note: 'La mission est retirée de la liste. Elle reste conservée dans le système et peut être restaurée.',
     mission_deleted: 'Mission supprimée',
+    files: 'Fichiers',
     manual_intervention_created: 'Intervention Manuelle Créée',
     email_ingestion_mission: 'Mission Reçue par Email',
     status_change: 'Changement de Statut',

@@ -189,7 +189,10 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                         )}
 
                                         {m.documents && m.documents.length > 0 && (
-                                            <div className="flex flex-wrap gap-2 mb-4">
+                                            <div className="mb-4 rounded-xl border border-zinc-900 bg-zinc-950/60">
+                                              <p className="px-3 pt-2 text-[9px] font-black uppercase tracking-widest text-zinc-600">{t.files || 'Files'} ({m.documents.length})</p>
+                                              {/* limited height: many attachments scroll inside the box instead of stretching the card */}
+                                              <div className="flex flex-wrap content-start gap-2 p-2 max-h-[84px] overflow-y-auto overscroll-contain [scrollbar-width:thin] [scrollbar-color:#3f3f46_transparent]">
                                                 {m.documents.map((doc, idx) => (
                                                     <button
                                                         key={doc.id || idx}
@@ -197,12 +200,13 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                             e.stopPropagation();
                                                             setViewerData({ docs: m.documents, index: idx });
                                                         }}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all shadow-sm"
+                                                        className="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-400 hover:text-brand-green hover:border-brand-green transition-all shadow-sm shrink-0"
                                                     >
                                                         <FileText size={14} />
                                                         <span className="truncate max-w-[100px]">{doc.name}</span>
                                                     </button>
                                                 ))}
+                                              </div>
                                             </div>
                                         )}
                                     </div>
