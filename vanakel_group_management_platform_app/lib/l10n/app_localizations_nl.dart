@@ -1522,4 +1522,32 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get mobileDisabledStillOff => 'Nog steeds uitgeschakeld';
+
+  @override
+  String get statusTabAll => 'Alle';
+
+  @override
+  String get statusTabOngoing => 'Lopende Interventies';
+
+  @override
+  String get statusTabDelayed => 'Vertraagd';
+
+  @override
+  String get statusTabCompleted => 'Voltooid';
+
+  @override
+  String get unassigned => 'Niet toegewezen';
+
+  @override
+  String get submitQueued =>
+      'Opgeslagen op deze telefoon. Het wordt automatisch naar de beheerder gestuurd zodra u weer online bent.';
+
+  @override
+  String submitSentWithoutFiles(int count) {
+    return 'Naar de beheerder gestuurd. $count bestand(en) konden niet worden geüpload (te groot of niet toegestaan).';
+  }
+
+  @override
+  String get submitNotSent =>
+      'Verzenden lukt nu niet. Uw werk blijft bewaard, probeer het zo opnieuw.';
 }

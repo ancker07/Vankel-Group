@@ -33,13 +33,14 @@ class AuthState {
   AuthState copyWith({
     AuthStatus? status,
     User? user,
+    bool clearUser = false, // `user: null` cannot clear it (null means "unchanged")
     String? errorMessage,
     bool? isSplashDone,
     Map<String, dynamic>? pendingUserData,
   }) {
     return AuthState(
       status: status ?? this.status,
-      user: user ?? this.user,
+      user: clearUser ? null : (user ?? this.user),
       errorMessage: errorMessage ?? this.errorMessage,
       isSplashDone: isSplashDone ?? this.isSplashDone,
       pendingUserData: pendingUserData ?? this.pendingUserData,
@@ -98,7 +99,7 @@ class AuthNotifier extends Notifier<AuthState> {
     // If no token exists, we are unauthenticated (if we were still in initial)
     if (token == null || email == null) {
       if (state.status == AuthStatus.initial) {
-        state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
       }
       return;
     }
@@ -114,7 +115,7 @@ class AuthNotifier extends Notifier<AuthState> {
       // The phone app is for admins and technicians only (e.g. an old super admin session is closed)
       if (user != null && !user.mayUseMobileApp) {
         await _repository.logout();
-        state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
         return;
       }
 
@@ -130,7 +131,7 @@ class AuthNotifier extends Notifier<AuthState> {
         } catch (e) {}
       } else {
         await tokenService.clearAll();
-        state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+        state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
       }
     } catch (e) {
       // Only set to unauthenticated if we were trying to auto-login from initial state
@@ -258,7 +259,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   Future<void> logout() async {
     await _repository.logout();
-    state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+    state = state.copyWith(status: AuthStatus.unauthenticated, clearUser: true);
   }
 }
 

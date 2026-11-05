@@ -1526,4 +1526,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mobileDisabledStillOff => 'Toujours désactivée';
+
+  @override
+  String get statusTabAll => 'Tous';
+
+  @override
+  String get statusTabOngoing => 'Interventions en cours';
+
+  @override
+  String get statusTabDelayed => 'Retardées';
+
+  @override
+  String get statusTabCompleted => 'Terminées';
+
+  @override
+  String get unassigned => 'Non assignée';
+
+  @override
+  String get submitQueued =>
+      'Enregistré sur ce téléphone. Il sera envoyé automatiquement à l\'administrateur dès que vous serez de nouveau en ligne.';
+
+  @override
+  String submitSentWithoutFiles(int count) {
+    return 'Envoyé à l\'administrateur. $count fichier(s) n\'ont pas pu être téléversés (trop volumineux ou non autorisés).';
+  }
+
+  @override
+  String get submitNotSent =>
+      'Envoi impossible pour le moment. Votre travail est conservé, veuillez réessayer dans un instant.';
 }

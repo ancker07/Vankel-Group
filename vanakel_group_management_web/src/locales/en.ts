@@ -136,6 +136,7 @@ export default {
 
     planned: 'Missions',
     delayed: 'Delayed',
+    all: 'All',
     completed: 'Completed',
     status_pending: 'In progress',
     status_delayed: 'Delayed',

@@ -7,14 +7,13 @@ import '../../../core/utils/app_format.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../core/utils/file_opener.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
-import 'providers/intervention_provider.dart';
+import '../data/intervention_submitter.dart';
 import 'widgets/intervention_delay_sheet.dart';
 import '../../../../core/utils/translation_helper.dart';
 
@@ -234,128 +233,133 @@ class _InterventionDetailsScreenState
     _executeRegister(i.id, mode: 'SUBMIT');
   }
 
+  /// Saves the intervention (register / send to admin / save + e-mail the report).
+  ///
+  /// The work goes through [InterventionSubmitter]: it retries, drops attachments the server refuses, and keeps
+  /// the submission on the phone to send later when there is no connection. So the user gets a clear, calm answer
+  /// in every case and the work is never lost; a red error is only for something that can truly never work.
   Future<void> _executeRegister(String id, {String mode = 'NONE'}) async {
     setState(() => _isSaving = true);
+    SubmitResult result;
     try {
-      final formData = dio.FormData();
-      formData.fields.addAll([
-        MapEntry('admin_feedback', _adminNoteController.text),
-        MapEntry('on_site_contact_name', _contactNameController.text),
-        MapEntry('on_site_contact_phone', _contactPhoneController.text),
-        MapEntry('on_site_contact_email', _contactEmailController.text),
-        MapEntry('save_mode', mode),
-      ]);
+      final fields = <String, String>{
+        'admin_feedback': _adminNoteController.text,
+        'on_site_contact_name': _contactNameController.text,
+        'on_site_contact_phone': _contactPhoneController.text,
+        'on_site_contact_email': _contactEmailController.text,
+        'save_mode': mode,
+        if (_localStatus != null) 'status': _localStatus!.name.toUpperCase(),
+        if (_localSyndicId != null) 'syndic_id': _localSyndicId!,
+        if (_localProId != null) 'pro_id': _localProId!,
+        if (_localStatus == InterventionStatus.delayed) ...{
+          if (_localDelayReason != null) 'delay_reason': _localDelayReason!,
+          if (_localDelayDetails != null) 'delay_details': _localDelayDetails!,
+          if (_localDelayedRescheduleDate != null)
+            'delayed_reschedule_date': _localDelayedRescheduleDate!.toIso8601String(),
+        },
+      };
 
-      if (_localStatus != null) {
-        formData.fields.add(
-          MapEntry('status', _localStatus!.name.toUpperCase()),
-        );
-      }
-      if (_localSyndicId != null) {
-        formData.fields.add(MapEntry('syndic_id', _localSyndicId!));
-      }
-      if (_localProId != null) {
-        formData.fields.add(MapEntry('pro_id', _localProId!));
-      }
-
-      if (_localStatus == InterventionStatus.delayed) {
-        if (_localDelayReason != null)
-          formData.fields.add(MapEntry('delay_reason', _localDelayReason!));
-        if (_localDelayDetails != null)
-          formData.fields.add(MapEntry('delay_details', _localDelayDetails!));
-        if (_localDelayedRescheduleDate != null) {
-          formData.fields.add(
-            MapEntry(
-              'delayed_reschedule_date',
-              _localDelayedRescheduleDate!.toIso8601String(),
-            ),
-          );
-        }
-      }
-
-      for (final image in _selectedImages) {
-        formData.files.add(
-          MapEntry(
-            'photos[]',
-            await dio.MultipartFile.fromFile(image.path, filename: image.name),
-          ),
-        );
-      }
-
-      for (final doc in _selectedDocs) {
-        formData.files.add(
-          MapEntry(
-            'files[]',
-            await dio.MultipartFile.fromFile(
-              doc.path,
-              filename: doc.path.split(Platform.pathSeparator).last,
-            ),
-          ),
-        );
-      }
+      final files = <SubmissionFile>[
+        for (final image in _selectedImages)
+          SubmissionFile(field: 'photos[]', path: image.path, filename: image.name),
+        for (final doc in _selectedDocs)
+          SubmissionFile(field: 'files[]', path: doc.path, filename: doc.path.split(Platform.pathSeparator).last),
+      ];
 
       // "Save & send e-mail": the PDF report goes along (same as on the website)
-      if (mode == 'EMAIL') await _attachReportPdf(formData, id);
+      if (mode == 'EMAIL') {
+        final pdf = await _reportPdfFile(id);
+        if (pdf != null) files.add(pdf);
+      }
 
-      final result = await ref
-          .read(interventionListProvider.notifier)
-          .registerIntervention(id, formData);
+      result = await ref.read(interventionSubmitterProvider).submit(
+            Submission(
+              id: InterventionSubmitter.newId(),
+              userId: ref.read(authStateProvider).user?.id,
+              interventionId: id,
+              fields: fields,
+              files: files,
+              createdAt: DateTime.now(),
+            ),
+            // a report e-mail has to go out now; everything else may wait on the phone for a connection
+            queueIfOffline: mode != 'EMAIL',
+          );
+    } catch (e) {
+      debugPrint('Register: preparing the submission failed: $e');
+      result = const SubmitResult(SubmitOutcome.rejected);
+    }
+    _finishRegister(id, mode, result);
+  }
 
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        // Say what really happened: who got the report (the e-mail is sent by the server right after the save)
-        var message = l10n.interventionRegisteredSuccess;
-        var color = AppTheme.brandGreen;
-        if (mode == 'SUBMIT') {
-          message = l10n.sentToAdminSuccess;
-        } else if (mode == 'EMAIL') {
-          final report = result.report;
-          if (report == null || !report.delivered) {
-            message = l10n.reportNotSent;
-            color = Colors.red;
-          } else if (report.complete) {
-            message = l10n.reportSentTo(report.sent.length);
-          } else {
-            message = l10n.reportPartial(
-              report.sent.length,
-              report.failed.length,
-            );
-            color = AppTheme.brandOrange;
-          }
+  /// Everything after the server answered. A UI problem here can never turn a saved job into an error.
+  void _finishRegister(String id, String mode, SubmitResult result) {
+    try {
+      if (result.isSafe) {
+        // the list and this screen show the new status (only when the server has it)
+        if (result.outcome != SubmitOutcome.queued) {
+          ref.invalidate(interventionListProvider);
+          ref.invalidate(interventionDetailProvider(id));
         }
-        setState(() {
-          _isSaving = false;
+      } else if (result.statusCode == 403 || result.statusCode == 404) {
+        // "not assigned to you" / gone: the list on screen is out of date, so reload it
+        ref.invalidate(interventionListProvider);
+      }
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+      var message = l10n.interventionRegisteredSuccess;
+      var color = AppTheme.brandGreen;
+
+      switch (result.outcome) {
+        case SubmitOutcome.sent:
+          if (mode == 'SUBMIT') {
+            message = l10n.sentToAdminSuccess;
+          } else if (mode == 'EMAIL') {
+            // say what really happened: who got the report (the server sends it right after the save)
+            final report = result.register.report;
+            if (report == null || !report.delivered) {
+              message = l10n.reportNotSent;
+              color = AppTheme.brandOrange;
+            } else if (report.complete) {
+              message = l10n.reportSentTo(report.sent.length);
+            } else {
+              message = l10n.reportPartial(report.sent.length, report.failed.length);
+              color = AppTheme.brandOrange;
+            }
+          }
+        case SubmitOutcome.sentWithoutFiles:
+          message = l10n.submitSentWithoutFiles(result.skippedFiles);
+          color = AppTheme.brandOrange;
+        case SubmitOutcome.queued:
+          message = l10n.submitQueued;
+          color = AppTheme.brandOrange;
+        case SubmitOutcome.rejected:
+          message = result.message ?? l10n.submitNotSent;
+          color = AppTheme.brandOrange;
+      }
+
+      setState(() {
+        _isSaving = false;
+        if (result.isSafe) {
           _selectedImages.clear();
           _selectedDocs.clear();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: color,
-            duration: const Duration(seconds: 6),
-          ),
-        );
-        Navigator.pop(context);
-      }
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: color, duration: const Duration(seconds: 6)),
+      );
+      if (result.isSafe) Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorWithMessage(context, e)),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      debugPrint('Register: showing the result failed: $e');
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
-  /// Builds the PDF report (with what the user just typed) and adds it to the save, so the e-mail
-  /// carries it. A PDF problem must never block the save / the e-mail.
-  Future<void> _attachReportPdf(dio.FormData formData, String id) async {
+  /// The PDF report as a file in the temporary folder, so it travels like any other attachment.
+  Future<SubmissionFile?> _reportPdfFile(String id) async {
     try {
       final current = ref.read(interventionDetailProvider(id)).value;
-      if (current == null) return;
+      if (current == null) return null;
       final report = current.copyWith(
         adminFeedback: _adminNoteController.text,
         status: _localStatus ?? current.status,
@@ -370,17 +374,13 @@ class _InterventionDetailsScreenState
         lang: Localizations.localeOf(context).languageCode,
         photoPaths: _selectedImages.map((image) => image.path).toList(),
       );
-      formData.files.add(
-        MapEntry(
-          'files[]',
-          dio.MultipartFile.fromBytes(
-            bytes,
-            filename: PdfService.fileNameFor(id),
-          ),
-        ),
-      );
+      final name = PdfService.fileNameFor(id);
+      final file = File('${Directory.systemTemp.path}${Platform.pathSeparator}$name');
+      await file.writeAsBytes(bytes, flush: true);
+      return SubmissionFile(field: 'files[]', path: file.path, filename: name);
     } catch (e) {
       debugPrint('Report PDF not attached: $e');
+      return null;
     }
   }
 
@@ -874,232 +874,8 @@ class _InterventionDetailsScreenState
             _contactEmailController,
             hint: 'email@example.com',
           ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.syndicCustomerInfo,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: AppTheme.zinc500,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildSyndicDropdown(l10n),
-          _buildExtractedSyndicInfo(i, l10n),
-          _buildSyndicInfoCard(l10n),
         ],
       ),
-    );
-  }
-
-  Widget _buildExtractedSyndicInfo(Intervention i, AppLocalizations l10n) {
-    if (_localSyndicId != null || i.extractedSyndicName == null)
-      return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.brandOrange.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.brandOrange.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.brandOrange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppTheme.brandOrange.withValues(alpha: 0.2),
-              ),
-            ),
-            child: const Icon(
-              Icons.shield_outlined,
-              size: 20,
-              color: AppTheme.brandOrange,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.extractedSyndicUnmatched,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.brandOrange,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  i.extractedSyndicName!,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  l10n.notMatchedToDatabase,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.zinc500,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSyndicInfoCard(AppLocalizations l10n) {
-    if (_localSyndicId == null) return const SizedBox.shrink();
-
-    final syndicsAsync = ref.watch(syndicListProvider);
-    return syndicsAsync.when(
-      data: (syndics) {
-        final syndic = syndics.firstWhere(
-          (s) => s['id'].toString() == _localSyndicId,
-          orElse: () => null,
-        );
-        if (syndic == null) return const SizedBox.shrink();
-
-        return Container(
-          margin: const EdgeInsets.only(top: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.brandGreen.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppTheme.brandGreen.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandGreen.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppTheme.brandGreen.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      size: 20,
-                      color: AppTheme.brandGreen,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.syndicManager,
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.zinc500,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          syndic['company_name'] ?? syndic['name'] ?? 'Unknown',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                        if (syndic['contact_person'] != null)
-                          Text(
-                            syndic['contact_person'].toString().toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.zinc500,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (syndic['phone'] != null)
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.smartphone_outlined,
-                            size: 14,
-                            color: AppTheme.brandGreen,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            syndic['phone'],
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.zinc300,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (syndic['email'] != null)
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const Icon(
-                            Icons.mail_outline,
-                            size: 14,
-                            color: AppTheme.zinc500,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              syndic['email'],
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppTheme.zinc500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -1144,44 +920,6 @@ class _InterventionDetailsScreenState
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSyndicDropdown(AppLocalizations l10n) {
-    final syndicsAsync = ref.watch(syndicListProvider);
-    return syndicsAsync.when(
-      data: (syndics) => Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.zinc900,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.zinc800),
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: _localSyndicId,
-            hint: Text(
-              l10n.selectCustomer,
-              style: const TextStyle(color: AppTheme.zinc500, fontSize: 13),
-            ),
-            isExpanded: true,
-            dropdownColor: AppTheme.zinc950,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            items: syndics
-                .map(
-                  (s) => DropdownMenuItem(
-                    value: s['id'].toString(),
-                    child: Text(s['company_name'] ?? s['name'] ?? ''),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) => setState(() => _localSyndicId = v),
-          ),
-        ),
-      ),
-      loading: () => const LinearProgressIndicator(),
-      error: (_, __) => Text(l10n.errorLoadingSyndics),
     );
   }
 

@@ -196,10 +196,56 @@ class InterventionController extends Controller
             return true;
         }
 
-        return $intervention->assignments()
-            ->where('user_id', $user->id)
-            ->whereNull('unassigned_at')
-            ->exists();
+        if ($intervention->assignments()->where('user_id', $user->id)->whereNull('unassigned_at')->exists()) {
+            return true;
+        }
+
+        // fallback: the mission this intervention was made from is assigned to the user
+        $missionId = $intervention->assignments()->whereNotNull('mission_id')->value('mission_id');
+
+        return $missionId !== null && Mission::where('id', $missionId)->where('assigned_user_id', $user->id)->exists();
+    }
+
+    /** Runs a side effect (notification, history, e-mail) whose failure must never undo or fail a save that already happened. */
+    private function bestEffort(callable $step, string $what, array &$warnings = []): void
+    {
+        try {
+            $step();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Intervention update: {$what} failed: " . $e->getMessage());
+            $warnings[] = $what;
+        }
+    }
+
+    /**
+     * The uploads of a technician's phone are checked one by one and a file that does not pass is left out
+     * (and reported in `warnings`) instead of failing the whole save. Admins keep the strict validation.
+     *
+     * @return array{0: array<int, \Illuminate\Http\UploadedFile>, 1: array<int, \Illuminate\Http\UploadedFile>, 2: array<int, string>}
+     */
+    private function acceptableUploads(Request $request): array
+    {
+        $rules = \App\Support\UploadRules::fileFields();
+        $photos = [];
+        $files = [];
+        $skipped = [];
+
+        foreach (['photos' => 'photos.*', 'files' => 'files.*'] as $field => $ruleKey) {
+            foreach ((array) $request->file($field) as $file) {
+                if (!$file instanceof \Illuminate\Http\UploadedFile) {
+                    continue;
+                }
+                $valid = !$file->getError()
+                    && \Illuminate\Support\Facades\Validator::make([$field => $file], [$field => str_replace('|', '|', $rules[$ruleKey])])->passes();
+                if ($valid) {
+                    $field === 'photos' ? $photos[] = $file : $files[] = $file;
+                } else {
+                    $skipped[] = (string) $file->getClientOriginalName();
+                }
+            }
+        }
+
+        return [$photos, $files, $skipped];
     }
 
     public function getMissions()
@@ -540,7 +586,23 @@ class InterventionController extends Controller
             ], 403);
         }
         
+        $actingUser = $request->user();
+        $lenientFiles = $this->isFieldWorker($actingUser); // a technician's phone must not lose a save over one bad file
+
+        // A retry of a save that already went through (the answer was lost on the way): answer "done" again
+        $submissionKey = $request->filled('submission_id') ? 'intervention-submission:' . $id . ':' . substr((string) $request->input('submission_id'), 0, 100) : null;
+        if ($submissionKey && \Illuminate\Support\Facades\Cache::has($submissionKey)) {
+            return response()->json([
+                'message' => __('Intervention updated successfully'),
+                'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic', 'submitter:id,name']),
+                'report' => null,
+                'submitted' => true,
+                'duplicate' => true,
+            ]);
+        }
+
         $validated = $request->validate([
+            'submission_id' => 'sometimes|nullable|string|max:100',
             'status' => 'sometimes|string',
             'pro_id' => 'sometimes|nullable',
             'scheduled_date' => 'sometimes|date',
@@ -553,7 +615,7 @@ class InterventionController extends Controller
             'delayed_reschedule_date' => 'sometimes|nullable|date',
             'completed_at' => 'sometimes|nullable|date',
             'syndic_id' => 'sometimes|nullable|string',
-            ...\App\Support\UploadRules::fileFields(),
+            ...($lenientFiles ? [] : \App\Support\UploadRules::fileFields()),
         ]);
 
         $oldStatus = $intervention->status;
@@ -615,7 +677,7 @@ class InterventionController extends Controller
             $validated['pro_id'] = null;
         }
 
-        $updateData = array_diff_key($validated, array_flip(['files', 'photos']));
+        $updateData = array_diff_key($validated, array_flip(['files', 'photos', 'submission_id']));
         
         // Parse date fields if they exist as ISO strings
         foreach (['scheduled_date', 'completed_at', 'delayed_reschedule_date'] as $field) {
@@ -629,10 +691,28 @@ class InterventionController extends Controller
         }
         
         $intervention->update($updateData);
-        
+
+        // The hand-over to the admin is the most important part: it is recorded right after the status, before anything
+        // that could fail (files, notifications).
+        if ($submitting) {
+            $intervention->update(['submitted_at' => now(), 'submitted_by' => $actor?->id]);
+        } elseif ($intervention->submitted_at && $actor?->hasPermission('interventions.reopen')
+            && ($request->has('save_mode') || array_key_exists('status', $validated))) {
+            $intervention->update(['submitted_at' => null, 'submitted_by' => null]);
+        }
+
+        // From here the save has happened: remember this submission, so a retry of it (the answer was lost) is answered
+        // "done" instead of being refused by the completed-lock.
+        if ($submissionKey) {
+            \Illuminate\Support\Facades\Cache::put($submissionKey, true, now()->addDay());
+        }
+
+        // Everything below is best effort: it is logged when it fails, but the save has happened and is reported as done.
+        $warnings = [];
+
         // Notify Syndic about Status Update
-        if (isset($updateData['status']) && $updateData['status'] !== $oldStatus) {
-             if ($intervention->syndic_id) {
+        if (isset($updateData['status']) && $updateData['status'] !== $oldStatus && $intervention->syndic_id) {
+            $this->bestEffort(function () use ($intervention, $updateData) {
                 $syndic = User::find($intervention->syndic_id);
                 if ($syndic) {
                     $newStatus = $updateData['status'];
@@ -647,50 +727,47 @@ class InterventionController extends Controller
                         'intervention'
                     );
                 }
-            }
+            }, 'syndic notification', $warnings);
         }
 
         // Record the assignment history and notify the newly assigned user
         if (array_key_exists('pro_id', $updateData) && $updateData['pro_id'] != $oldProId) {
-            $missionId = Assignment::where('intervention_id', $intervention->id)->whereNotNull('mission_id')->value('mission_id');
-            Assignment::record($intervention->id, $missionId, $updateData['pro_id'] ? (int) $updateData['pro_id'] : null, auth('sanctum')->id());
+            $this->bestEffort(function () use ($intervention, $updateData) {
+                $missionId = Assignment::where('intervention_id', $intervention->id)->whereNotNull('mission_id')->value('mission_id');
+                Assignment::record($intervention->id, $missionId, $updateData['pro_id'] ? (int) $updateData['pro_id'] : null, auth('sanctum')->id());
 
-            if ($updateData['pro_id']) {
-                $this->notifyAssignedUser(User::find($updateData['pro_id']), $intervention);
-            }
+                if ($updateData['pro_id']) {
+                    $this->notifyAssignedUser(User::find($updateData['pro_id']), $intervention);
+                }
+            }, 'assignment history', $warnings);
         }
 
-        // Handle Photo Uploads (Stored as Documents with image type)
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $file) {
-                $path = $file->store('photos', 'public');
-                $intervention->documents()->create([
-                    'file_path' => $path,
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_type' => $file->getClientMimeType(),
-                ]);
+        // Uploads: a technician's bad file is skipped and reported; each file is stored on its own so one failure
+        // does not lose the others.
+        $photoFiles = $request->file('photos') ?? [];
+        $documentFiles = $request->file('files') ?? [];
+        $skippedFiles = [];
+        if ($lenientFiles) {
+            [$photoFiles, $documentFiles, $skippedFiles] = $this->acceptableUploads($request);
+        }
+        foreach ([['photos', (array) $photoFiles], ['documents', (array) $documentFiles]] as [$folder, $uploads]) {
+            foreach ($uploads as $file) {
+                $this->bestEffort(function () use ($intervention, $file, $folder) {
+                    $path = $file->store($folder, 'public');
+                    $intervention->documents()->create([
+                        'file_path' => $path,
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_type' => $file->getClientMimeType(),
+                    ]);
+                }, 'file ' . $file->getClientOriginalName(), $warnings);
             }
         }
-
-        // Handle File Uploads (General Documents)
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $file) {
-                $path = $file->store('documents', 'public');
-                $intervention->documents()->create([
-                    'file_path' => $path,
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_type' => $file->getClientMimeType(),
-                ]);
-            }
+        foreach ($skippedFiles as $name) {
+            $warnings[] = 'file ' . $name;
         }
 
-        // Review: the technician's submission waits for the admin; an admin saving it counts as the review
         if ($submitting) {
-            $intervention->update(['submitted_at' => now(), 'submitted_by' => $actor?->id]);
-            $this->notifyReviewers($intervention->fresh(), $actor);
-        } elseif ($intervention->submitted_at && $actor?->hasPermission('interventions.reopen')
-            && ($request->has('save_mode') || array_key_exists('status', $validated))) {
-            $intervention->update(['submitted_at' => null, 'submitted_by' => null]);
+            $this->bestEffort(fn () => $this->notifyReviewers($intervention->fresh(), $actor), 'notification to the admins', $warnings);
         }
 
         // "Save & send e-mail": the report goes out right after the save (the phone only sends
@@ -707,6 +784,7 @@ class InterventionController extends Controller
             'intervention' => $intervention->fresh()->load(['documents', 'building', 'professional', 'syndic', 'submitter:id,name']),
             'report' => $report,
             'submitted' => $submitting,
+            'warnings' => $warnings,
         ]);
     }
 

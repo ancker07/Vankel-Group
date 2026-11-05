@@ -137,8 +137,9 @@ export default {
 
     planned: 'Missies',
     delayed: 'Vertraagd',
+    all: 'Alle',
     completed: 'Voltooid',
-    status_pending: 'In progress',
+    status_pending: 'In uitvoering',
     status_delayed: 'Vertraagd',
     status_completed: 'Voltooid',
     totalBuildings: 'Totaal Gebouwen',

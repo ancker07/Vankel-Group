@@ -652,5 +652,20 @@
   "mobileDisabledTitle": "Mobile app switched off",
   "mobileDisabledMessage": "The mobile app is currently switched off by the administrator. Please try again later.",
   "mobileDisabledRetry": "Try again",
-  "mobileDisabledStillOff": "Still switched off"
+  "mobileDisabledStillOff": "Still switched off",
+  "statusTabAll": "All",
+  "statusTabOngoing": "Ongoing Interventions",
+  "statusTabDelayed": "Delayed",
+  "statusTabCompleted": "Completed",
+  "unassigned": "Unassigned",
+  "submitQueued": "Saved on this phone. It will be sent to the admin automatically as soon as you are back online.",
+  "submitSentWithoutFiles": "Sent to the admin. {count} file(s) could not be uploaded (too large or not allowed).",
+  "@submitSentWithoutFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "submitNotSent": "Could not send right now. Your work is still here, please try again in a moment."
 }

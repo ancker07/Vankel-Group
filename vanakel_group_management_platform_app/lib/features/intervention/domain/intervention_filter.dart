@@ -40,24 +40,23 @@ class InterventionFilter {
     );
   }
 
+  /// The filters set with the chips and the search box. The status is chosen with the tabs (All / Ongoing /
+  /// Delayed / Completed), so it is not counted here.
   bool get isActive =>
       searchQuery.isNotEmpty ||
       sectorId != null ||
       urgency != null ||
       buildingId != null ||
-      scheduledDate != null ||
-      status != null;
+      scheduledDate != null;
 
+  /// Like the website: the selected status tab (null = All, every status) and all the other filters.
   bool matches(Intervention i) {
-    // If status filter is set, match exactly
-    if (status != null) {
-      if (i.status != status) return false;
-    } else {
-      // Default: Show only ongoing interventions (exclude completed)
-      // This preserves existing behavior when no status filter is selected
-      if (i.status == InterventionStatus.completed) return false;
-    }
+    if (status != null && i.status != status) return false;
+    return matchesIgnoringStatus(i);
+  }
 
+  /// Everything except the status: what the counts on the status tabs are based on.
+  bool matchesIgnoringStatus(Intervention i) {
     // Search query match
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toLowerCase();

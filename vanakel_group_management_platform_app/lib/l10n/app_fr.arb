@@ -469,5 +469,20 @@
   "mobileDisabledTitle": "Application mobile désactivée",
   "mobileDisabledMessage": "L'application mobile est actuellement désactivée par l'administrateur. Veuillez réessayer plus tard.",
   "mobileDisabledRetry": "Réessayer",
-  "mobileDisabledStillOff": "Toujours désactivée"
+  "mobileDisabledStillOff": "Toujours désactivée",
+  "statusTabAll": "Tous",
+  "statusTabOngoing": "Interventions en cours",
+  "statusTabDelayed": "Retardées",
+  "statusTabCompleted": "Terminées",
+  "unassigned": "Non assignée",
+  "submitQueued": "Enregistré sur ce téléphone. Il sera envoyé automatiquement à l'administrateur dès que vous serez de nouveau en ligne.",
+  "submitSentWithoutFiles": "Envoyé à l'administrateur. {count} fichier(s) n'ont pas pu être téléversés (trop volumineux ou non autorisés).",
+  "@submitSentWithoutFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "submitNotSent": "Envoi impossible pour le moment. Votre travail est conservé, veuillez réessayer dans un instant."
 }

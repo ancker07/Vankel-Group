@@ -469,5 +469,20 @@
   "mobileDisabledTitle": "Mobiele app uitgeschakeld",
   "mobileDisabledMessage": "De mobiele app is momenteel uitgeschakeld door de beheerder. Probeer het later opnieuw.",
   "mobileDisabledRetry": "Opnieuw proberen",
-  "mobileDisabledStillOff": "Nog steeds uitgeschakeld"
+  "mobileDisabledStillOff": "Nog steeds uitgeschakeld",
+  "statusTabAll": "Alle",
+  "statusTabOngoing": "Lopende Interventies",
+  "statusTabDelayed": "Vertraagd",
+  "statusTabCompleted": "Voltooid",
+  "unassigned": "Niet toegewezen",
+  "submitQueued": "Opgeslagen op deze telefoon. Het wordt automatisch naar de beheerder gestuurd zodra u weer online bent.",
+  "submitSentWithoutFiles": "Naar de beheerder gestuurd. {count} bestand(en) konden niet worden geüpload (te groot of niet toegestaan).",
+  "@submitSentWithoutFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "submitNotSent": "Verzenden lukt nu niet. Uw werk blijft bewaard, probeer het zo opnieuw."
 }

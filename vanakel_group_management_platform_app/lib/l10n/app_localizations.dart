@@ -2925,6 +2925,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Still switched off'**
   String get mobileDisabledStillOff;
+
+  /// No description provided for @statusTabAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get statusTabAll;
+
+  /// No description provided for @statusTabOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing Interventions'**
+  String get statusTabOngoing;
+
+  /// No description provided for @statusTabDelayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delayed'**
+  String get statusTabDelayed;
+
+  /// No description provided for @statusTabCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusTabCompleted;
+
+  /// No description provided for @unassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get unassigned;
+
+  /// No description provided for @submitQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this phone. It will be sent to the admin automatically as soon as you are back online.'**
+  String get submitQueued;
+
+  /// No description provided for @submitSentWithoutFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to the admin. {count} file(s) could not be uploaded (too large or not allowed).'**
+  String submitSentWithoutFiles(int count);
+
+  /// No description provided for @submitNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send right now. Your work is still here, please try again in a moment.'**
+  String get submitNotSent;
 }
 
 class _AppLocalizationsDelegate

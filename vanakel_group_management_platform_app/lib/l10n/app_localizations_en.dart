@@ -1517,4 +1517,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mobileDisabledStillOff => 'Still switched off';
+
+  @override
+  String get statusTabAll => 'All';
+
+  @override
+  String get statusTabOngoing => 'Ongoing Interventions';
+
+  @override
+  String get statusTabDelayed => 'Delayed';
+
+  @override
+  String get statusTabCompleted => 'Completed';
+
+  @override
+  String get unassigned => 'Unassigned';
+
+  @override
+  String get submitQueued =>
+      'Saved on this phone. It will be sent to the admin automatically as soon as you are back online.';
+
+  @override
+  String submitSentWithoutFiles(int count) {
+    return 'Sent to the admin. $count file(s) could not be uploaded (too large or not allowed).';
+  }
+
+  @override
+  String get submitNotSent =>
+      'Could not send right now. Your work is still here, please try again in a moment.';
 }

@@ -155,4 +155,66 @@ class InterventionSubmissionTest extends TestCase
         $this->assertNotNull($row['submitted_at']);
         $this->assertSame('Tom', $row['submitter']['name']);
     }
+
+    // ---- resilience: the technician's "send to admin" must not end in an error --------------------------------
+
+    public function test_a_retry_of_a_submission_whose_answer_was_lost_is_answered_as_done(): void
+    {
+        Sanctum::actingAs($this->technician);
+        $fields = ['save_mode' => 'SUBMIT', 'status' => 'COMPLETED', 'submission_id' => 'abc-123'];
+
+        $this->save($fields)->assertOk();
+        // the same submission again (the phone never got the answer): done, not "completed, only an admin can change it"
+        $this->save($fields)->assertOk()->assertJsonPath('duplicate', true);
+        // a different submission is still locked
+        $this->save(['submission_id' => 'other'] + $fields)->assertForbidden();
+    }
+
+    public function test_a_bad_attachment_is_skipped_and_reported_instead_of_failing_the_whole_send(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        Sanctum::actingAs($this->technician);
+
+        $this->save([
+            'save_mode' => 'SUBMIT', 'status' => 'COMPLETED',
+            'photos' => [\Illuminate\Http\UploadedFile::fake()->image('ok.jpg'), \Illuminate\Http\UploadedFile::fake()->create('virus.exe', 10)],
+            'files' => [\Illuminate\Http\UploadedFile::fake()->create('too-big.pdf', 20000)],
+        ])->assertOk()->assertJsonPath('intervention.status', 'COMPLETED')
+            ->assertJsonFragment(['warnings' => ['file virus.exe', 'file too-big.pdf']]);
+
+        $fresh = $this->intervention->fresh();
+        $this->assertNotNull($fresh->submitted_at);
+        $this->assertSame(['ok.jpg'], $fresh->documents()->pluck('file_name')->all(), 'only the valid photo was kept');
+    }
+
+    public function test_a_failing_notification_does_not_turn_a_saved_send_into_an_error(): void
+    {
+        $service = Mockery::mock(NotificationService::class)->makePartial();
+        $service->shouldReceive('notifyUser')->andThrow(new \RuntimeException('push service down'));
+        $this->app->instance(NotificationService::class, $service);
+        Sanctum::actingAs($this->technician);
+
+        $this->save(['save_mode' => 'SUBMIT', 'status' => 'COMPLETED'])
+            ->assertOk()
+            ->assertJsonPath('submitted', true)
+            ->assertJsonFragment(['warnings' => ['notification to the admins']]);
+
+        $this->assertNotNull($this->intervention->fresh()->submitted_at, 'the hand-over is recorded even though the push failed');
+    }
+
+    public function test_a_technician_assigned_through_the_mission_may_still_send(): void
+    {
+        $building = Building::create(['address' => 'Street 2']);
+        $other = User::create(['name' => 'Eve', 'email' => 'eve@test.be', 'password' => 'password123', 'role' => 'PROFESSIONAL', 'status' => 'APPROVED']);
+        $mission = \App\Models\Mission::create(['building_id' => $building->id, 'title' => 'm', 'description' => 'd', 'status' => 'APPROVED',
+            'requested_by' => 'SYNDIC', 'assigned_user_id' => $other->id]);
+        // the intervention's own pro_id points elsewhere, but its mission is assigned to Eve
+        $intervention = Intervention::create(['building_id' => $building->id, 'title' => 'x', 'description' => 'd', 'status' => 'PENDING', 'pro_id' => $this->admin->id]);
+        Assignment::record($intervention->id, $mission->id, $this->admin->id, null);
+        Assignment::where('intervention_id', $intervention->id)->update(['unassigned_at' => now()]);
+        Assignment::create(['intervention_id' => $intervention->id, 'mission_id' => $mission->id, 'user_id' => $this->admin->id, 'assigned_at' => now(), 'unassigned_at' => now()]);
+
+        Sanctum::actingAs($other);
+        $this->post("/api/interventions/{$intervention->id}", ['_method' => 'PUT', 'save_mode' => 'SUBMIT', 'status' => 'COMPLETED'], ['Accept' => 'application/json'])->assertOk();
+    }
 }

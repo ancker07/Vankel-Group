@@ -45,6 +45,8 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     return Column(
       children: [
         _buildTopBar(filter, l10n),
+        // a technician only has the interventions still to do (like the website): no status tabs
+        if (!(ref.watch(authStateProvider).user?.seesOnlyOpenInterventions ?? false)) const _StatusTabs(),
         _buildFilterBar(filter, buildingsAsync, l10n),
         Expanded(
           child: filteredInterventionsAsync.when(
@@ -139,16 +141,6 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // a technician only has the interventions still to do, so there is no status to filter by
-          if (!(ref.watch(authStateProvider).user?.seesOnlyOpenInterventions ?? false)) ...[
-            _FilterChip(
-              label: filter.status != null ? l10n.interventionStatusLabel(filter.status!) : l10n.status,
-              isActive: filter.status != null,
-              onTap: () => _showStatusPicker(context, filter, l10n),
-              onClear: filter.status != null ? () => ref.read(interventionFilterProvider.notifier).updateStatus(null) : null,
-            ),
-            const SizedBox(width: 8),
-          ],
           _FilterChip(
             label: filter.sectorId != null ? l10n.sectorLabel(filter.sectorId!) : l10n.sector,
             isActive: filter.sectorId != null,
@@ -191,44 +183,6 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  void _showStatusPicker(BuildContext context, InterventionFilter filter, AppLocalizations l10n) {
-    final options = [
-      {'label': l10n.inProgress, 'value': InterventionStatus.pending},
-      {'label': l10n.delayed, 'value': InterventionStatus.delayed},
-      {'label': l10n.completed, 'value': InterventionStatus.completed},
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppTheme.zinc950,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: AppTheme.zinc800, borderRadius: BorderRadius.circular(2)),
-            ),
-            const SizedBox(height: 20),
-            Text(l10n.selectStatus, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 16),
-            ...options.map((o) => ListTile(
-                  title: Text(o['label'] as String, textAlign: TextAlign.center, style: TextStyle(color: filter.status == o['value'] ? AppTheme.brandGreen : Colors.white)),
-                  onTap: () {
-                    ref.read(interventionFilterProvider.notifier).updateStatus(o['value'] as InterventionStatus);
-                    Navigator.pop(context);
-                  },
-                )),
-            const SizedBox(height: 20),
-          ],
-        ),
       ),
     );
   }
@@ -689,17 +643,26 @@ class _InterventionCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.shield_outlined, size: 14, color: AppTheme.zinc500),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  intervention.syndicName ?? intervention.extractedSyndicName ?? l10n.noSyndic,
-                                  style: TextStyle(fontSize: 11, color: AppTheme.zinc500, fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                              // who the work is assigned to (green) or "Unassigned", as on the website
+                              _infoLine(
+                                Icons.person_outline,
+                                (intervention.professionalName ?? '').trim().isNotEmpty
+                                    ? intervention.professionalName!
+                                    : l10n.unassigned,
+                                highlight: (intervention.professionalName ?? '').trim().isNotEmpty,
                               ),
+                              const SizedBox(height: 6),
+                              _infoLine(
+                                Icons.shield_outlined,
+                                intervention.syndicName ?? intervention.extractedSyndicName ?? l10n.noSyndic,
+                              ),
+                              if ((intervention.onSiteContactName ?? '').trim().isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                _infoLine(Icons.support_agent_outlined, intervention.onSiteContactName!),
+                              ],
                             ],
                           ),
                         ),
@@ -723,6 +686,22 @@ class _InterventionCard extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05);
+  }
+
+  Widget _infoLine(IconData icon, String text, {bool highlight = false}) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: highlight ? AppTheme.brandGreen : AppTheme.zinc500),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 11, color: highlight ? AppTheme.brandGreen : AppTheme.zinc500, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 
   /// Navigation to the address (see MapService.openDirections: several fallbacks + a visible message).
@@ -790,4 +769,87 @@ class MapGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// All / Ongoing Interventions / Delayed / Completed, each with its count: the same tabs as the website.
+class _StatusTabs extends ConsumerWidget {
+  const _StatusTabs();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final selected = ref.watch(interventionFilterProvider).status;
+    final counts = ref.watch(interventionStatusCountsProvider);
+
+    final tabs = <({InterventionStatus? status, String label, IconData icon, Color color})>[
+      (status: null, label: l10n.statusTabAll, icon: Icons.schedule, color: AppTheme.zinc300),
+      (status: InterventionStatus.pending, label: l10n.statusTabOngoing, icon: Icons.schedule, color: Colors.blue),
+      (status: InterventionStatus.delayed, label: l10n.statusTabDelayed, icon: Icons.schedule, color: AppTheme.brandOrange),
+      (status: InterventionStatus.completed, label: l10n.statusTabCompleted, icon: Icons.check_circle_outline, color: AppTheme.brandGreen),
+    ];
+
+    return Container(
+      height: 56,
+      color: AppTheme.zinc950,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: tabs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final tab = tabs[index];
+          final active = selected == tab.status;
+          return GestureDetector(
+            onTap: () => ref.read(interventionFilterProvider.notifier).updateStatus(tab.status),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: active
+                    ? (tab.status == null ? AppTheme.zinc800 : tab.color.withValues(alpha: 0.2))
+                    : AppTheme.zinc950,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: active
+                      ? (tab.status == null ? AppTheme.zinc500 : tab.color.withValues(alpha: 0.5))
+                      : AppTheme.zinc800,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(tab.icon, size: 14, color: active ? tab.color : AppTheme.zinc500),
+                  const SizedBox(width: 8),
+                  Text(
+                    tab.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: active ? (tab.status == null ? Colors.white : tab.color) : AppTheme.zinc500,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${counts.of(tab.status)}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: active ? Colors.white : AppTheme.zinc500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

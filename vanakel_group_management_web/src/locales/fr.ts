@@ -137,8 +137,9 @@ export default {
 
     planned: 'Missions',
     delayed: 'Retardées',
+    all: 'Tous',
     completed: 'Terminées',
-    status_pending: 'In progress',
+    status_pending: 'En cours',
     status_delayed: 'Retardé',
     status_completed: 'Terminé',
     totalBuildings: 'Total Bâtiments',
