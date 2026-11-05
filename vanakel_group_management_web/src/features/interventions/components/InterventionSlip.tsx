@@ -776,12 +776,21 @@ const InterventionSlip: React.FC<SlipProps> = ({
                           <iframe
                             title="team-member-location"
                             width="100%"
-                            height="100%"
                             frameBorder="0"
-                            style={{ border: 0, filter: 'invert(0.85) hue-rotate(180deg)' }}
+                            // taller than its box: the long OpenStreetMap credit strip at the bottom is cropped by the box (overflow-hidden)
+                            style={{ border: 0, height: 'calc(100% + 64px)', filter: 'invert(0.85) hue-rotate(180deg)' }}
                             src={`https://www.openstreetmap.org/export/embed.html?bbox=${tracking.member.longitude - 0.005},${tracking.member.latitude - 0.003},${tracking.member.longitude + 0.005},${tracking.member.latitude + 0.003}&layer=mapnik&marker=${tracking.member.latitude},${tracking.member.longitude}`}
                             allowFullScreen
                           />
+                          {/* short credit kept, as required by the OpenStreetMap licence */}
+                          <a
+                            href="https://www.openstreetmap.org/copyright"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute bottom-1 left-1 z-10 px-1.5 py-0.5 rounded bg-zinc-950/70 text-[8px] text-zinc-500 hover:text-zinc-300"
+                          >
+                            © OpenStreetMap
+                          </a>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <button
