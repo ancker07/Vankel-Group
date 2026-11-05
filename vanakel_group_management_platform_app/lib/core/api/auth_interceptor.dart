@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/locale_provider.dart';
 import '../providers/mobile_access_provider.dart';
 import '../services/auth_token_service.dart';
+import '../../features/auth/presentation/providers/auth_state_provider.dart';
 
 class AuthInterceptor extends Interceptor {
   final Ref _ref;
@@ -29,9 +30,12 @@ class AuthInterceptor extends Interceptor {
     if (err.response?.statusCode == 503 && body is Map && body['code'] == 'MOBILE_DISABLED') {
       _ref.read(mobileAccessProvider.notifier).disable();
     }
-    if (err.response?.statusCode == 401) {
-      // Handle logout or refresh token logic
-      _ref.read(authTokenServiceProvider).clearAll();
+    // A 401 on a signed-in session: the auth notifier checks with the server whether the login is really gone. The
+    // saved login is never wiped here, so a single odd answer cannot sign the user out.
+    if (err.response?.statusCode == 401 &&
+        _ref.read(authTokenServiceProvider).getToken() != null &&
+        !err.requestOptions.path.contains('/login')) {
+      _ref.read(authStateProvider.notifier).onUnauthorized();
     }
     super.onError(err, handler);
   }

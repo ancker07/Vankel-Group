@@ -1545,4 +1545,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get submitNotSent =>
       'Could not send right now. Your work is still here, please try again in a moment.';
+
+  @override
+  String get approveAndAssign => 'APPROVE & ASSIGN';
 }

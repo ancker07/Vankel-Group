@@ -11,6 +11,7 @@ import '../../../core/enums/user_role_enum.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../admin/data/admin_models.dart';
 import 'widgets/assignee_picker.dart';
+import 'widgets/mission_action_bar.dart';
 import 'package:go_router/go_router.dart';
 import '../../intervention/domain/document.dart';
 import '../domain/mission.dart';
@@ -55,6 +56,16 @@ class MissionDetailsScreen extends ConsumerWidget {
           ),
         ],
       ),
+      // Approve & assign / Reject stay pinned at the bottom: no scrolling to find them on a long mission
+      bottomNavigationBar: missionAsync.maybeWhen(
+        data: (mission) => canReviewMission(authState.user, mission)
+            ? MissionActionBar(
+                onApprove: () => _handleApprove(context, ref, mission, l10n),
+                onReject: () => _handleReject(context, ref, mission, l10n),
+              )
+            : null,
+        orElse: () => null,
+      ),
       body: missionAsync.when(
         data: (mission) => SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -87,40 +98,6 @@ class MissionDetailsScreen extends ConsumerWidget {
               ],
               MissionFollowUpsSection(mission: mission),
               const SizedBox(height: 32),
-              // Action Buttons: need the missions.approve permission
-              if ((authState.user?.can('missions.approve') ?? false) &&
-                  (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview)) ...[
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _handleApprove(context, ref, mission, l10n),
-                    icon: const Icon(Icons.check),
-                    label: Text(l10n.approveMission),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.brandGreen,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _handleReject(context, ref, mission, l10n),
-                    icon: const Icon(Icons.close),
-                    label: Text(l10n.rejectMission),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-              ],
               // Delete (soft delete) for roles with missions.delete: the mission is hidden, not erased
               if (authState.user?.can('missions.delete') ?? false) ...[
                 const SizedBox(height: 16),

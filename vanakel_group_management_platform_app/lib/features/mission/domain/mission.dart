@@ -32,6 +32,8 @@ class Mission {
   final DateTime createdAt;
   final bool isAiDetected;
   final String? buildingId;
+  /// Who the work is assigned to (set when an admin approves it for someone); null = not assigned yet.
+  final String? assignedUserId;
   final String? syndicId;
   final String? syndicName;
   final String? syndicEmail;
@@ -63,6 +65,7 @@ class Mission {
     required this.urgency,
     required this.createdAt,
     this.buildingId,
+    this.assignedUserId,
     this.syndicId,
     this.syndicName,
     this.syndicEmail,
@@ -95,6 +98,7 @@ class Mission {
     DateTime? createdAt,
     bool? isAiDetected,
     String? buildingId,
+    String? assignedUserId,
     String? syndicId,
     String? syndicName,
     String? syndicEmail,
@@ -125,6 +129,7 @@ class Mission {
       createdAt: createdAt ?? this.createdAt,
       isAiDetected: isAiDetected ?? this.isAiDetected,
       buildingId: buildingId ?? this.buildingId,
+      assignedUserId: assignedUserId ?? this.assignedUserId,
       syndicId: syndicId ?? this.syndicId,
       syndicName: syndicName ?? this.syndicName,
       syndicEmail: syndicEmail ?? this.syndicEmail,

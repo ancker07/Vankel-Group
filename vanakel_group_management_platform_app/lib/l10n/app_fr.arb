@@ -484,5 +484,6 @@
       }
     }
   },
-  "submitNotSent": "Envoi impossible pour le moment. Votre travail est conservé, veuillez réessayer dans un instant."
+  "submitNotSent": "Envoi impossible pour le moment. Votre travail est conservé, veuillez réessayer dans un instant.",
+  "approveAndAssign": "APPROUVER ET ASSIGNER"
 }

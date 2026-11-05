@@ -2973,6 +2973,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not send right now. Your work is still here, please try again in a moment.'**
   String get submitNotSent;
+
+  /// No description provided for @approveAndAssign.
+  ///
+  /// In en, this message translates to:
+  /// **'APPROVE & ASSIGN'**
+  String get approveAndAssign;
 }
 
 class _AppLocalizationsDelegate

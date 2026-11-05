@@ -667,5 +667,6 @@
       }
     }
   },
-  "submitNotSent": "Could not send right now. Your work is still here, please try again in a moment."
+  "submitNotSent": "Could not send right now. Your work is still here, please try again in a moment.",
+  "approveAndAssign": "APPROVE & ASSIGN"
 }

@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthTokenService {
   static const String _tokenKey = 'auth_token';
   static const String _emailKey = 'auth_email';
+  static const String _userKey = 'auth_user';
   final SharedPreferences _prefs;
 
   AuthTokenService(this._prefs);
@@ -35,6 +37,25 @@ class AuthTokenService {
   Future<void> clearAll() async {
     await _prefs.remove(_tokenKey);
     await _prefs.remove(_emailKey);
+    await _prefs.remove(_userKey);
+  }
+
+  /// The signed-in user's profile exactly as the server sent it. It lets the app open signed in at once on the next
+  /// start (also offline or while the server is busy); the server is asked afterwards.
+  Future<void> saveUserJson(Map<String, dynamic> user) async {
+    try {
+      await _prefs.setString(_userKey, jsonEncode(user));
+    } catch (_) {}
+  }
+
+  Map<String, dynamic>? getUserJson() {
+    try {
+      final raw = _prefs.getString(_userKey);
+      if (raw == null || raw.isEmpty) return null;
+      return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+    } catch (_) {
+      return null; // a damaged copy is simply not used
+    }
   }
 }
 

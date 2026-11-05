@@ -1554,4 +1554,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get submitNotSent =>
       'Envoi impossible pour le moment. Votre travail est conservé, veuillez réessayer dans un instant.';
+
+  @override
+  String get approveAndAssign => 'APPROUVER ET ASSIGNER';
 }

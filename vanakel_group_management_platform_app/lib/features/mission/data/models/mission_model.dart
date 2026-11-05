@@ -17,6 +17,7 @@ class MissionModel extends Mission {
     required super.urgency,
     required super.createdAt,
     super.buildingId,
+    super.assignedUserId,
     super.syndicId,
     super.syndicName,
     super.syndicEmail,
@@ -56,6 +57,7 @@ class MissionModel extends Mission {
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
       buildingId: json['building_id']?.toString() ?? json['buildingId']?.toString(),
+      assignedUserId: json['assigned_user_id']?.toString(),
       sector: json['sector'] as String?,
       onSiteContactName: json['on_site_contact_name'] as String? ?? json['onSiteContactName'] as String?,
       onSiteContactPhone: json['on_site_contact_phone'] as String? ?? json['onSiteContactPhone'] as String?,
@@ -171,6 +173,7 @@ class MissionModel extends Mission {
       urgency: urgency,
       createdAt: createdAt,
       buildingId: buildingId,
+      assignedUserId: assignedUserId,
       syndicId: syndicId,
       syndicName: syndicName,
       syndicEmail: syndicEmail,

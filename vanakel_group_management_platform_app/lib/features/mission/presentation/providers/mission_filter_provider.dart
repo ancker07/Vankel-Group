@@ -55,9 +55,12 @@ class MissionFilter {
         mission.description.toLowerCase().contains(searchQuery.toLowerCase()) ||
         mission.address.toLowerCase().contains(searchQuery.toLowerCase());
 
-    final matchesStatus = status != null 
-        ? mission.status == status 
-        : (mission.status != MissionStatus.completed && mission.status != MissionStatus.rejected);
+    // Default (no status picked), like the website's Missions page: only the missions still waiting for a decision,
+    // i.e. not yet approved into an intervention. Each of them has Approve & assign / Reject. Picking a status in the
+    // filter shows that status instead.
+    final matchesStatus = status != null
+        ? mission.status == status
+        : (mission.status == MissionStatus.pending || mission.status == MissionStatus.needsReview);
     final matchesUrgency = urgency == null || mission.urgency == urgency;
     final matchesSector = sector == null || mission.sector == sector;
     final matchesBuilding = buildingId == null || mission.buildingId == buildingId;
@@ -93,6 +96,7 @@ final filteredMissionListProvider = Provider<AsyncValue<List<Mission>>>((ref) {
   final filter = ref.watch(missionFilterProvider);
 
   return missionsAsync.whenData((missions) {
-    return missions.where((m) => filter.matches(m)).toList();
+    // newest first
+    return missions.where((m) => filter.matches(m)).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   });
 });

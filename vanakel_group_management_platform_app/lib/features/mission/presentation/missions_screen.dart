@@ -16,6 +16,7 @@ import '../../../shared/widgets/mission_map.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../admin/data/admin_models.dart';
 import 'widgets/assignee_picker.dart';
+import 'widgets/mission_action_bar.dart';
 
 class MissionsScreen extends ConsumerStatefulWidget {
   final bool isAdmin;
@@ -877,24 +878,6 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                         ),
                         Row(
                           children: [
-                            if ((ref.watch(authStateProvider).user?.can('missions.approve') ?? false) && (widget.mission.status == MissionStatus.pending || widget.mission.status == MissionStatus.needsReview)) ...[
-                              _buildActionButton(
-                                context,
-                                ref,
-                                Icons.check_circle_outline,
-                                Colors.green,
-                                () => _handleApprove(context, ref),
-                              ),
-                              const SizedBox(width: 12),
-                              _buildActionButton(
-                                context,
-                                ref,
-                                Icons.cancel_outlined,
-                                Colors.red,
-                                () => _handleReject(context, ref),
-                              ),
-                              const SizedBox(width: 12),
-                            ],
                             // Global Details Button
                             ElevatedButton(
                               onPressed: () {
@@ -939,6 +922,12 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                   ],
                 ),
               ),
+              // Same as the website card: big Approve & assign / Reject buttons on every mission waiting for a decision
+              if (canReviewMission(ref.watch(authStateProvider).user, widget.mission))
+                MissionActionBar(
+                  onApprove: () => _handleApprove(context, ref),
+                  onReject: () => _handleReject(context, ref),
+                ),
             ],
           ),
         ),

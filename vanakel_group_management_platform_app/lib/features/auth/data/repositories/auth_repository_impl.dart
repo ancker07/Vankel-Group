@@ -40,6 +40,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       final loggedIn = UserModel.fromJson(response.data['user']).toEntity();
+      await _tokenService.saveUserJson(Map<String, dynamic>.from(response.data['user'] as Map));
       // Remember the account's real e-mail, not what was typed: a technician types a username, and a
       // username sent where an e-mail is expected used to make the next app start look like a bad session.
       final accountEmail = loggedIn.email.isNotEmpty ? loggedIn.email : email;
@@ -195,7 +196,9 @@ class AuthRepositoryImpl implements AuthRepository {
       if (userJson == null) {
         return null;
       }
-      return UserModel.fromJson(userJson).toEntity();
+      final profile = Map<String, dynamic>.from(userJson as Map);
+      await _tokenService.saveUserJson(profile);
+      return UserModel.fromJson(profile).toEntity();
     } on DioException catch (e) {
       // Only a 401 means the session is really over. A validation error (422) is a request problem, not a
       // reason to sign the user out.
@@ -229,6 +232,7 @@ class AuthRepositoryImpl implements AuthRepository {
         options: Options(sendTimeout: const Duration(minutes: 2), receiveTimeout: const Duration(minutes: 1)),
       );
       final user = UserModel.fromJson(response.data['user']).toEntity();
+      await _tokenService.saveUserJson(Map<String, dynamic>.from(response.data['user'] as Map));
       // If email was updated, save it
       if (updateData.containsKey('email')) {
         await _tokenService.saveEmail(user.email);
@@ -246,6 +250,7 @@ class AuthRepositoryImpl implements AuthRepository {
         ApiConstants.profileDetails,
         data: {'email': email},
       );
+      await _tokenService.saveUserJson(Map<String, dynamic>.from(response.data['user'] as Map));
       return UserModel.fromJson(response.data['user']).toEntity();
     } on DioException catch (e) {
       throw handleDioError(e);

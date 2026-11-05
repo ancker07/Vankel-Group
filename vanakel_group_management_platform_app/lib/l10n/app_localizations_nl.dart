@@ -1550,4 +1550,7 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get submitNotSent =>
       'Verzenden lukt nu niet. Uw werk blijft bewaard, probeer het zo opnieuw.';
+
+  @override
+  String get approveAndAssign => 'GOEDKEUREN EN TOEWIJZEN';
 }
