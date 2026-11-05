@@ -136,8 +136,15 @@ export const generateInterventionPDF = async (
 
     const photoUrls = [...new Set([
         ...(intervention.photos || []),
+        // only the pictures we attached to the intervention: the ones copied from the original
+        // request (client e-mail / mission) get the same timestamp as the intervention itself
         ...(intervention.documents || [])
             .filter(document => /^image\//i.test(document.type || '') || /\.(jpe?g|png|webp|gif)$/i.test(document.url || ''))
+            .filter(document => {
+                const attachedAt = new Date(document.timestamp as any).getTime();
+                const createdAt = new Date(intervention.createdAt as any).getTime();
+                return !Number.isFinite(attachedAt) || !Number.isFinite(createdAt) || attachedAt - createdAt > 5000;
+            })
             .map(document => document.url),
     ].filter(Boolean))];
     const photos = (await Promise.all(photoUrls.map(loadImageAsDataUrl))).filter((photo): photo is string => !!photo);

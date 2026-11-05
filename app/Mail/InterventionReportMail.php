@@ -81,6 +81,11 @@ class InterventionReportMail extends Mailable
             ? $this->intervention->documents->reject(fn ($doc) => $isImage($doc) || ($isReport($doc) && $doc->id !== $latestReport->id))
             : $this->intervention->documents;
 
+        // pictures copied from the original request (same moment as the intervention itself) are not ours
+        $documents = $documents->reject(fn ($doc) => $isImage($doc)
+            && $doc->created_at && $this->intervention->created_at
+            && $doc->created_at->diffInSeconds($this->intervention->created_at, true) <= 5);
+
         foreach ($documents as $doc) {
             if (Storage::disk('public')->exists($doc->file_path)) {
                 $attachments[] = Attachment::fromPath(Storage::disk('public')->path($doc->file_path))
