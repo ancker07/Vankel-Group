@@ -10,7 +10,7 @@ import '../../../admin/data/admin_repository.dart';
 /// (the same list the website offers). Falls back to the team list if the users list is not available.
 Future<List<AdminUser>> loadAssignableUsers(WidgetRef ref) async {
   bool assignable(String role, String status) =>
-      (role == 'PROFESSIONAL' || role == 'ADMIN') && status == 'APPROVED';
+      (role == 'PROFESSIONAL' || role == 'ADMIN' || role == 'SUPERADMIN') && status == 'APPROVED';
 
   try {
     final users = await ref.read(adminRepositoryProvider).users();
@@ -43,11 +43,15 @@ class AssigneePicker extends StatelessWidget {
   final int? selectedId;
   final ValueChanged<int?> onChanged;
 
+  /// The logged-in admin: shows a "Do it myself" shortcut that picks them.
+  final int? selfId;
+
   const AssigneePicker({
     super.key,
     required this.users,
     required this.selectedId,
     required this.onChanged,
+    this.selfId,
   });
 
   @override
@@ -101,6 +105,24 @@ class AssigneePicker extends StatelessWidget {
             ),
           ),
         ),
+        if (selfId != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: Icon(selectedId == selfId ? Icons.check_circle : Icons.person_pin_circle_outlined, size: 18),
+                label: Text((selectedId == selfId ? l10n.assignedToYou : l10n.doItMyself).toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1)),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: selectedId == selfId ? Colors.black : AppTheme.brandGreen,
+                  backgroundColor: selectedId == selfId ? AppTheme.brandGreen : Colors.transparent,
+                  side: const BorderSide(color: AppTheme.brandGreen),
+                ),
+                onPressed: () => onChanged(selectedId == selfId ? null : selfId),
+              ),
+            ),
+          ),
         if (selected != null)
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 4),

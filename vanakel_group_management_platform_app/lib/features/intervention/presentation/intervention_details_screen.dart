@@ -1,3 +1,4 @@
+import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../../shared/widgets/mission_map.dart';
 import '../../../core/utils/launcher.dart';
@@ -524,6 +525,13 @@ class _InterventionDetailsScreenState
                         _buildReviewBanner(intervention, l10n),
                         const SizedBox(height: 16),
                       ],
+                      if (intervention.assignedToAdmin && _localProId == intervention.proId ||
+                          (_localProId != null &&
+                              _localProId == ref.read(authStateProvider).user?.id.toString() &&
+                              _canManageAssignments)) ...[
+                        const AdminBadge(show: true),
+                        const SizedBox(height: 12),
+                      ],
                       _buildSummaryCard(intervention, l10n),
                       const SizedBox(height: 24),
                       // Status control up top so admins / super admins can find it
@@ -991,6 +999,30 @@ class _InterventionDetailsScreenState
           ),
         ),
         const SizedBox(height: 16),
+        // An admin can take the task and do it themselves (saved with the normal Save)
+        if (canChangeStatus && _canManageAssignments) ...[
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              icon: Icon(
+                _localProId == user.id.toString() ? Icons.check_circle : Icons.person_pin_circle_outlined,
+                size: 18,
+              ),
+              label: Text(
+                (_localProId == user.id.toString() ? l10n.assignedToYou : l10n.doItMyself).toUpperCase(),
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _localProId == user.id.toString() ? Colors.black : AppTheme.brandGreen,
+                backgroundColor: _localProId == user.id.toString() ? AppTheme.brandGreen : Colors.transparent,
+                side: const BorderSide(color: AppTheme.brandGreen),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: () => setState(() => _localProId = _localProId == user.id.toString() ? null : user.id.toString()),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         Row(
           children: [
             Expanded(

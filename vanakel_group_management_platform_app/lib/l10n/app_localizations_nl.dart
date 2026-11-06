@@ -1521,6 +1521,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get assignNone => '— Geen gebruiker —';
 
   @override
+  String get doItMyself => 'Ik doe het zelf';
+
+  @override
+  String get adminTask => 'Admin-taak';
+
+  @override
+  String get assignedToYou => 'Aan u toegewezen';
+
+  @override
   String get mobileDisabledTitle => 'Mobiele app uitgeschakeld';
 
   @override

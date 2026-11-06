@@ -118,6 +118,8 @@ export interface Intervention {
   photos: string[]; // Photos are stored separately and NOT included in PDF reports
   documents: Document[]; // Documents are stored separately and NOT included in PDF reports
   proId: string;
+  /** The work is assigned to an admin / super admin (shown as a blue badge) */
+  assignedToAdmin?: boolean;
   professional?: User;
   signature?: string;
   completedAt?: string;
@@ -191,6 +193,8 @@ export interface Mission {
   proId?: string;
   assignedUserId?: string;
   assignedUser?: User;
+  /** The work is assigned to an admin / super admin (shown as a blue badge) */
+  assignedToAdmin?: boolean;
   syndicId?: string;
   category: string;
   sector: Sector; // Mandatory

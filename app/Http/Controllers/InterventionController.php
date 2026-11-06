@@ -780,6 +780,11 @@ class InterventionController extends Controller
                 $missionId = Assignment::where('intervention_id', $intervention->id)->whereNotNull('mission_id')->value('mission_id');
                 Assignment::record($intervention->id, $missionId, $updateData['pro_id'] ? (int) $updateData['pro_id'] : null, auth('sanctum')->id());
 
+                // the mission follows the new assignee, so the previous one loses access to it
+                if ($missionId) {
+                    Mission::where('id', $missionId)->update(['assigned_user_id' => $updateData['pro_id'] ? (int) $updateData['pro_id'] : null]);
+                }
+
                 if ($updateData['pro_id']) {
                     $this->notifyAssignedUser(User::find($updateData['pro_id']), $intervention);
                 }
@@ -856,7 +861,8 @@ class InterventionController extends Controller
 
     protected function notifyAssignedUser(?User $user, Intervention $intervention): void
     {
-        if (!$user) {
+        // Someone who takes the task themselves does not need a push about it
+        if (!$user || (int) $user->id === (int) auth('sanctum')->id()) {
             return;
         }
 

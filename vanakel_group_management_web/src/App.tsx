@@ -161,6 +161,12 @@ const App: React.FC = () => {
   const [signupRequests, setSignupRequests] = useState<SignupRequest[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  // The logged-in user (matched by login email) and whether a given assignee is an admin / super admin
+  const currentUserId = (() => { const me = allUsers.find(u => u.email && u.email === localStorage.getItem('vanakel_userEmail')); return me ? String(me.id) : undefined; })();
+  const isAdminAssignee = (proId?: string | null) => !!proId && (
+    allUsers.some(u => String(u.id) === String(proId) && (u.role === 'ADMIN' || u.role === 'SUPERADMIN')) ||
+    (String(proId) === currentUserId && (localStorage.getItem('vanakel_role') === 'ADMIN' || localStorage.getItem('vanakel_role') === 'SUPERADMIN'))
+  );
   const [superAdminStats, setSuperAdminStats] = useState<any>(null);
 
   // Feature State
@@ -276,6 +282,7 @@ const App: React.FC = () => {
           onSiteContactPhone: m.on_site_contact_phone,
           onSiteContactEmail: m.on_site_contact_email,
           assignedUserId: m.assigned_user_id ? String(m.assigned_user_id) : undefined,
+          assignedToAdmin: !!m.assigned_to_admin,
           assignedUser: m.assigned_user ? {
             id: String(m.assigned_user.id),
             name: m.assigned_user.name,
@@ -345,6 +352,7 @@ const App: React.FC = () => {
             };
           }),
           proId: String(i.pro_id || i.professional_id || ''),
+          assignedToAdmin: !!i.assigned_to_admin,
           professional: i.professional ? {
             id: String(i.professional.id),
             name: i.professional.name,
@@ -796,6 +804,7 @@ const App: React.FC = () => {
           ...i,
           ...updated,
           id: String(updated.id),
+          assignedToAdmin: isAdminAssignee(updated.proId ?? i.proId),
           status: updated.status,
           adminFeedback: updated.adminFeedback || updated.admin_feedback,
           submittedAt: updated.submitted_at || updated.submittedAt || undefined,
@@ -853,7 +862,7 @@ const App: React.FC = () => {
       }
 
       await dataService.updateIntervention(updated.id, payload);
-      setInterventions(prev => prev.map(i => i.id === String(updated.id) ? { ...i, ...updated, id: String(updated.id) } : i));
+      setInterventions(prev => prev.map(i => i.id === String(updated.id) ? { ...i, ...updated, id: String(updated.id), assignedToAdmin: isAdminAssignee(updated.proId ?? updated.pro_id ?? i.proId) } : i));
       addToast(t.updated || 'Success', t.updateSuccess || 'Intervention mise à jour.');
     } catch (error) {
       console.error('Failed to update intervention:', error);
@@ -1020,6 +1029,7 @@ const App: React.FC = () => {
           timestamp: d.created_at
         })),
         proId: String(serverIntervention.pro_id || ''),
+        assignedToAdmin: !!serverIntervention.assigned_to_admin || isAdminAssignee(serverIntervention.pro_id ? String(serverIntervention.pro_id) : ''),
         urgency: serverIntervention.urgency as Urgency,
         onSiteContactName: serverIntervention.on_site_contact_name,
         onSiteContactPhone: serverIntervention.on_site_contact_phone,
@@ -1428,6 +1438,7 @@ const App: React.FC = () => {
                     syndic={selectedIntSyndic}
                     syndics={syndics}
                     professionals={professionals}
+                    selfUserId={currentUserId}
                     lang={lang}
                     onClose={() => setSelectedInterventionId(null)}
                     onUpdate={handleInterventionUpdate}
@@ -1465,7 +1476,7 @@ const App: React.FC = () => {
 
 
                 {missionActionModal && (
-                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), email: u.email, role: u.role }))} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
+                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), email: u.email, role: u.role }))} selfUser={(() => { const me = allUsers.find(u => String(u.id) === currentUserId); return me ? { id: String(me.id), name: `${me.firstName} ${me.lastName}`.trim(), email: me.email, role: me.role } : undefined; })()} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
                 )}
                 {deletePlanId && (
                   <ConfirmationModal is onClose={() => setDeletePlanId(null)} onConfirm={handleDeleteMaintenance} title={t.confirmDeleteTitle || 'Confirm Deletion'} message={t.confirmDeleteMaintMsg || 'Delete this maintenance plan?'} confirmLabel={t.btnDelete || 'Delete'} cancelLabel={t.btnCancel || 'Cancel'} />

@@ -1525,6 +1525,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get assignNone => '— Aucun utilisateur —';
 
   @override
+  String get doItMyself => 'Je m\'en charge';
+
+  @override
+  String get adminTask => 'Tâche admin';
+
+  @override
+  String get assignedToYou => 'Vous est assignée';
+
+  @override
   String get mobileDisabledTitle => 'Application mobile désactivée';
 
   @override

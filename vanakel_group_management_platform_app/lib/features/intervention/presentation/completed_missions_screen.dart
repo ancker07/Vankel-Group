@@ -1,3 +1,4 @@
+import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/utils/app_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,6 +84,7 @@ class _CompletedTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (intervention.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 6)],
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),

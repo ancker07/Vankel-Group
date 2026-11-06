@@ -1,4 +1,5 @@
 
+import AdminBadge from '@/components/common/AdminBadge';
 import React from 'react';
 import { Intervention } from '@/types';
 import { URGENCY } from '@/utils/constants';
@@ -28,6 +29,7 @@ const LatestSlips: React.FC<LatestSlipsProps> = ({ interventions, onSelect, view
                     >
                         <div className="flex justify-between items-start">
                             <p className="text-xs font-bold text-white truncate w-32">{int.title}{int.interventionNumber ? ` – ${int.interventionNumber}` : ''}</p>
+                            <AdminBadge show={int.assignedToAdmin} label={t.admin_task} />
                             <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${int.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>{int.status}</span>
                         </div>
                         <div className="flex justify-between items-center mt-1">

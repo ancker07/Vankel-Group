@@ -1,4 +1,5 @@
 
+import AdminBadge from '@/components/common/AdminBadge';
 import React, { useState } from 'react';
 import { Edit2 } from 'lucide-react';
 import { ClipboardList, Plus, MapPin, ShieldCheck, Mail, Check, X, FileText, RotateCcw, ChevronRight, Trash2, Search, Filter, Calendar, MessageSquare, Navigation } from 'lucide-react';
@@ -137,7 +138,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     </div>
 
                                     <div className="pr-12">
-                                        <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(m, 'title') || t.mission_request}>{getLocalizedField(m, 'title') || t.mission_request}</h4>
+                                        <div className="flex items-center gap-2 min-w-0"><h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(m, 'title') || t.mission_request}>{getLocalizedField(m, 'title') || t.mission_request}</h4><AdminBadge show={m.assignedToAdmin} label={t.admin_task} /></div>
                                         <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
                                             <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
                                             <span className="truncate drop-shadow-md">{b?.address || 'Standalone Request'}</span>

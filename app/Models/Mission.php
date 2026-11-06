@@ -11,7 +11,7 @@ class Mission extends Model
 
     protected $guarded = [];
 
-    protected $appends = ['source_details', 'timestamp', 'buildingId', 'syndicId', 'extractedSyndicName'];
+    protected $appends = ['source_details', 'timestamp', 'buildingId', 'syndicId', 'extractedSyndicName', 'assigned_to_admin'];
 
     public function documents()
     {
@@ -42,6 +42,12 @@ class Mission extends Model
     public function syndic()
     {
         return $this->belongsTo(Syndic::class);
+    }
+
+    /** True when the work is assigned to an admin / super admin (shown as a badge in the apps). */
+    public function getAssignedToAdminAttribute(): bool
+    {
+        return $this->assigned_user_id !== null && $this->assignedUser?->isAdminRole() === true;
     }
 
     public function assignedUser()

@@ -1,3 +1,4 @@
+import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/utils/app_format.dart';
@@ -261,7 +262,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildStatusBadge(item.status),
+                          Row(mainAxisSize: MainAxisSize.min, children: [
+                            _buildStatusBadge(item.status),
+                            if (item.assignedToAdmin) ...[const SizedBox(width: 6), const AdminBadge(show: true)],
+                          ]),
                           Text(
                             TranslationHelper.getLocalizedField(
                               context: context,
@@ -376,6 +380,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       children: [
                         Row(
                           children: [
+                            if (item.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(width: 6)],
                             Expanded(
                               child: Text(
                                 TranslationHelper.getLocalizedField(

@@ -9,7 +9,7 @@ class Intervention extends Model
     //
     protected $guarded = [];
     
-    protected $appends = ['extractedSyndicName', 'contact_fallback'];
+    protected $appends = ['extractedSyndicName', 'contact_fallback', 'assigned_to_admin'];
 
     protected $casts = ['submitted_at' => 'datetime'];
 
@@ -32,6 +32,12 @@ class Intervention extends Model
     public function professional()
     {
         return $this->belongsTo(User::class, 'pro_id');
+    }
+
+    /** True when the work is assigned to an admin / super admin (shown as a badge in the apps). */
+    public function getAssignedToAdminAttribute(): bool
+    {
+        return $this->pro_id !== null && $this->professional?->isAdminRole() === true;
     }
 
     public function assignments()

@@ -1,4 +1,5 @@
 
+import AdminBadge from '@/components/common/AdminBadge';
 import { usePermissions } from '@/lib/permissions';
 import React, { useState, useMemo } from 'react';
 import {
@@ -339,6 +340,7 @@ const BuildingProfile: React.FC<ProfileProps> = ({
                         <span className="text-brand-green font-black text-[9px] uppercase tracking-[0.2em]">{i.category}</span>
                         <span className="bg-green-500/10 text-green-500 text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider">{t.status_completed}</span>
                       </div>
+                      <div className="mb-1"><AdminBadge show={i.assignedToAdmin} label={t.admin_task} /></div>
                       <h4 className="text-sm md:text-base font-bold text-white mb-1">
                         {(lang.toLowerCase() === 'en' && i.title_en) ||
                          (lang.toLowerCase() === 'fr' && i.title_fr) ||

@@ -1,3 +1,4 @@
+import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/utils/launcher.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
@@ -273,6 +274,7 @@ class MissionDetailsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
+          if (mission.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 8)],
           Text(
             TranslationHelper.getLocalizedField(
               context: context,
@@ -525,6 +527,7 @@ class MissionDetailsScreen extends ConsumerWidget {
       isApprove: true,
       l10n: l10n,
       assignees: assignees,
+      selfId: ref.read(authStateProvider).user?.id,
     );
 
     if (result != null && result['confirmed'] == true) {
@@ -633,6 +636,7 @@ class MissionDetailsScreen extends ConsumerWidget {
     required bool isApprove,
     required AppLocalizations l10n,
     List<AdminUser> assignees = const [],
+    int? selfId,
   }) {
     DateTime? selectedDate;
     int? selectedAssignee;
@@ -782,6 +786,7 @@ class MissionDetailsScreen extends ConsumerWidget {
                   ),
                   AssigneePicker(
                     users: assignees,
+                    selfId: selfId,
                     selectedId: selectedAssignee,
                     onChanged: (v) => setState(() => selectedAssignee = v),
                   ),

@@ -2920,6 +2920,24 @@ abstract class AppLocalizations {
   /// **'— No user —'**
   String get assignNone;
 
+  /// No description provided for @doItMyself.
+  ///
+  /// In en, this message translates to:
+  /// **'Do it myself'**
+  String get doItMyself;
+
+  /// No description provided for @adminTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin task'**
+  String get adminTask;
+
+  /// No description provided for @assignedToYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to you'**
+  String get assignedToYou;
+
   /// No description provided for @mobileDisabledTitle.
   ///
   /// In en, this message translates to:

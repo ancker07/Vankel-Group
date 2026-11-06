@@ -1,3 +1,4 @@
+import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/services/map_service.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/error/error_text.dart';
@@ -544,6 +545,7 @@ class _InterventionCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (intervention.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 6)],
                         Text(
                           TranslationHelper.getLocalizedField(
                             context: context,

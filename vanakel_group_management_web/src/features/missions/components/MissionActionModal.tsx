@@ -10,6 +10,8 @@ interface MissionActionModalProps {
     missionDate: string;
     setMissionDate: (date: string) => void;
     assignableUsers?: { id: string; name: string; email?: string; role: string }[];
+    /** The logged-in admin, so they can take the task themselves */
+    selfUser?: { id: string; name: string; email?: string; role: string };
     assignedUserId?: string;
     setAssignedUserId?: (id: string) => void;
     onCancel: () => void;
@@ -23,6 +25,7 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
     missionDate,
     setMissionDate,
     assignableUsers = [],
+    selfUser,
     assignedUserId = '',
     setAssignedUserId,
     onCancel,
@@ -30,7 +33,8 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
     t
 }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
-    const selectedAssignee = assignableUsers.find(u => u.id === assignedUserId);
+    const options = selfUser && !assignableUsers.some(u => u.id === selfUser.id) ? [selfUser, ...assignableUsers] : assignableUsers;
+    const selectedAssignee = options.find(u => u.id === assignedUserId);
 
     return (
         <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -92,12 +96,21 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:border-brand-green outline-none cursor-pointer transition-all"
                         >
                             <option value="">{t.assign_none || '— No user —'}</option>
-                            {assignableUsers.map(u => (
+                            {options.map(u => (
                                 <option key={u.id} value={u.id}>
                                     {u.name}{u.email ? ` — ${u.email}` : ''} ({u.role})
                                 </option>
                             ))}
                         </select>
+                        {selfUser && (
+                            <button
+                                type="button"
+                                onClick={() => setAssignedUserId(assignedUserId === selfUser.id ? '' : selfUser.id)}
+                                className={`w-full py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${assignedUserId === selfUser.id ? 'bg-brand-green text-brand-black border-brand-green' : 'bg-transparent border-brand-green/40 text-brand-green hover:bg-brand-green/10'}`}
+                            >
+                                {assignedUserId === selfUser.id ? t.assigned_to_you : t.do_it_myself}
+                            </button>
+                        )}
                         {selectedAssignee && (
                             <p className="text-[10px] text-zinc-500 break-all px-1">
                                 {selectedAssignee.name}{selectedAssignee.email ? ` · ${selectedAssignee.email}` : ''}

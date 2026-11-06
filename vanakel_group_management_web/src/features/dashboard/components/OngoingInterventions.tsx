@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import AdminBadge from '@/components/common/AdminBadge';
 import { Clock, MapPin, Navigation, ShieldCheck, User, ChevronRight, FileText, Eye, RotateCcw, Search, Filter, Calendar, CheckCircle2 } from 'lucide-react';
 import { Intervention, Building, Syndic, Language, Document, InterventionStatus } from '@/types';
 import { URGENCY, SECTORS } from '@/utils/constants';
@@ -245,7 +246,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                         </div>
 
                                         <div className="pr-12">
-                                            <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(i, 'title')}>{getLocalizedField(i, 'title')}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
+                                            <div className="flex items-center gap-2 min-w-0"><h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(i, 'title')}>{getLocalizedField(i, 'title')}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4><AdminBadge show={i.assignedToAdmin} label={t.admin_task} /></div>
                                             <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
                                                 <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
                                                 <span className="truncate drop-shadow-md" title={b?.address}>{b?.address}, {b?.city}</span>

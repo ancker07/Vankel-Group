@@ -29,6 +29,9 @@ class Intervention {
   final String? extractedSyndicName;
   final String? professionalName;
 
+  /// The work is assigned to an admin / super admin (shown as a blue badge).
+  final bool assignedToAdmin;
+
   // On-site contact
   final String? onSiteContactName;
   final String? onSiteContactPhone;
@@ -79,6 +82,7 @@ class Intervention {
     this.syndicName,
     this.extractedSyndicName,
     this.professionalName,
+    this.assignedToAdmin = false,
     this.onSiteContactName,
     this.onSiteContactPhone,
     this.onSiteContactEmail,
@@ -117,6 +121,7 @@ class Intervention {
     String? syndicName,
     String? extractedSyndicName,
     String? professionalName,
+    bool? assignedToAdmin,
     String? onSiteContactName,
     String? onSiteContactPhone,
     String? onSiteContactEmail,
@@ -158,6 +163,7 @@ class Intervention {
       syndicName: syndicName ?? this.syndicName,
       extractedSyndicName: extractedSyndicName ?? this.extractedSyndicName,
       professionalName: professionalName ?? this.professionalName,
+      assignedToAdmin: assignedToAdmin ?? this.assignedToAdmin,
       onSiteContactName: onSiteContactName ?? this.onSiteContactName,
       onSiteContactPhone: onSiteContactPhone ?? this.onSiteContactPhone,
       onSiteContactEmail: onSiteContactEmail ?? this.onSiteContactEmail,

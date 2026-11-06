@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import AdminBadge from '@/components/common/AdminBadge';
 import { CheckCircle2, MapPin, User, Calendar, Search, ChevronRight, Lock } from 'lucide-react';
 import { Intervention, Building, Professional, Language } from '@/types';
 import { TRANSLATIONS } from '@/utils/constants';
@@ -63,7 +64,7 @@ const CompletedMissionsPage: React.FC<CompletedMissionsPageProps> = ({ intervent
                             <button key={i.id} onClick={() => onSelect(i.id)} className="w-full text-left p-4 flex items-center gap-4 hover:bg-zinc-900/50 transition-colors">
                                 <CheckCircle2 size={20} className="text-brand-green shrink-0" />
                                 <div className="min-w-0 flex-1 space-y-1">
-                                    <p className="font-bold text-white truncate">{localizedTitle(i)}</p>
+                                    <div className="flex items-center gap-2 min-w-0"><p className="font-bold text-white truncate">{localizedTitle(i)}</p><AdminBadge show={i.assignedToAdmin} label={t.admin_task} /></div>
                                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
                                         <span className="flex items-center gap-1 min-w-0"><MapPin size={12} className="shrink-0" /> <span className="truncate">{b ? `${b.address}, ${b.city}` : '-'}</span></span>
                                         <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(i.completedAt || i.scheduledDate).toLocaleDateString()}</span>

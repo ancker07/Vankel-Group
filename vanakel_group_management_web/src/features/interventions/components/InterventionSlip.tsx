@@ -1,4 +1,5 @@
 
+import AdminBadge from '@/components/common/AdminBadge';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Intervention, Building, Professional, Syndic, Language, Role, InterventionStatus
@@ -29,6 +30,8 @@ interface SlipProps {
   onOpenMaintenance?: (buildingId: string) => void;
   role?: Role;
   readOnly?: boolean;
+  /** Id of the logged-in admin, so they can take the task themselves */
+  selfUserId?: string;
 }
 
 
@@ -73,7 +76,7 @@ const FormattedExtractedContent: React.FC<{ text: string }> = ({ text }) => {
 // --- Main Component ---
 
 const InterventionSlip: React.FC<SlipProps> = ({
-  intervention, building, professional, syndic, syndics = [], professionals = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly
+  intervention, building, professional, syndic, syndics = [], professionals = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly, selfUserId
 }) => {
 
   const t = TRANSLATIONS[lang];
@@ -476,6 +479,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
           <h3 className="text-sm md:text-lg font-bold text-white truncate w-full text-center">
             {getLocalizedField(intervention, 'title')}{intervention.interventionNumber ? ` – ${intervention.interventionNumber}` : ''}
           </h3>
+          <AdminBadge show={intervention.assignedToAdmin || (!!selfUserId && internalProId === selfUserId && isSuperAdminOrAdmin)} label={t.admin_task} className="mt-1" />
         </div>
         <div className="flex items-center gap-2">
           {can('maintenance.manage') && <button
@@ -1005,6 +1009,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
           <div className="space-y-8">
             <div className="space-y-3" id="slip-status">
               <label className="inline-block px-2 py-0.5 bg-brand-green text-brand-black text-[10px] font-black uppercase tracking-widest rounded mb-2">{t.updateStatus}</label>
+              {isSuperAdminOrAdmin && selfUserId && canUpdateStatus && (
+                <button
+                  type="button"
+                  onClick={() => setInternalProId(internalProId === selfUserId ? '' : selfUserId)}
+                  className={`w-full py-3 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all min-h-[44px] ${internalProId === selfUserId ? 'bg-brand-green text-brand-black border-brand-green' : 'bg-transparent border-brand-green/40 text-brand-green hover:bg-brand-green/10'}`}
+                >
+                  {internalProId === selfUserId ? t.assigned_to_you : t.do_it_myself}
+                </button>
+              )}
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {[
                   { id: 'PENDING', label: t.status_pending, activeColor: 'bg-zinc-600 text-white border-zinc-600', baseColor: 'bg-transparent border-zinc-800 text-zinc-500' },

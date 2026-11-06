@@ -1,4 +1,5 @@
 
+import AdminBadge from '@/components/common/AdminBadge';
 import React, { useMemo, useState } from 'react';
 import { X, Search, ChevronRight, AlertCircle } from 'lucide-react';
 import { Intervention, Mission, Building, Syndic, Language } from '@/types';
@@ -116,7 +117,7 @@ const DashboardListModal: React.FC<DashboardListModalProps> = ({
                         {getStatusBadge(item)}
                         <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wide truncate max-w-[150px]">{item.category}</span>
                       </div>
-                      <h4 className="text-sm font-bold text-white truncate">{getLocalizedField(item, 'title')}{'interventionNumber' in item && item.interventionNumber ? ` – ${item.interventionNumber}` : ''}</h4>
+                      <div className="flex items-center gap-2 min-w-0"><h4 className="text-sm font-bold text-white truncate">{getLocalizedField(item, 'title')}{'interventionNumber' in item && item.interventionNumber ? ` – ${item.interventionNumber}` : ''}</h4><AdminBadge show={item.assignedToAdmin} label={t.admin_task} /></div>
 
                       {/* Delay Reason Display */}
                       {isIntervention && (item as Intervention).status === 'DELAYED' && (item as Intervention).delayReason && (

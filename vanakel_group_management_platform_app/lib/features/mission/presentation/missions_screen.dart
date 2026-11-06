@@ -1,3 +1,4 @@
+import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_format.dart';
@@ -749,6 +750,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    if (widget.mission.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 8)],
                     Text(
                       TranslationHelper.getLocalizedField(
                         context: context,
@@ -1275,6 +1277,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                     ),
                     AssigneePicker(
                       users: assignees,
+                      selfId: ref.read(authStateProvider).user?.id,
                       selectedId: selectedAssignee,
                       onChanged: (v) => setState(() => selectedAssignee = v),
                     ),

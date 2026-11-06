@@ -111,6 +111,12 @@ class User extends Authenticatable
         return $this->role === PermissionCatalog::SUPERADMIN;
     }
 
+    /** Admin or super admin (the people who can do a task themselves). */
+    public function isAdminRole(): bool
+    {
+        return in_array(strtoupper((string) $this->role), ['ADMIN', 'SUPERADMIN'], true);
+    }
+
     /** Client users (syndics) only see their own data and use the syndic app. */
     public function isClient(): bool
     {

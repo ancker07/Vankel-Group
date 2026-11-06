@@ -1,4 +1,5 @@
 
+import AdminBadge from '@/components/common/AdminBadge';
 import React, { useState } from 'react';
 import { X, Mail, MapPin, ShieldCheck, User, Phone, AtSign, FileText, Calendar, Clock, AlertCircle, Edit2, Save, Undo2, Navigation } from 'lucide-react';
 import { Mission, Building, Syndic, Language, Document, Urgency, Sector } from '@/types';
@@ -158,7 +159,7 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                 placeholder={t.title || "Title"}
                             />
                         ) : (
-                            <h2 className="text-xl md:text-2xl font-black text-white leading-tight truncate">{getLocalizedField(mission, 'title') || t.mission_request}</h2>
+                            <div className="flex items-center gap-2 min-w-0"><h2 className="text-xl md:text-2xl font-black text-white leading-tight truncate">{getLocalizedField(mission, 'title') || t.mission_request}</h2><AdminBadge show={mission.assignedToAdmin} label={t.admin_task} /></div>
                         )}
                     </div>
                 </div>
