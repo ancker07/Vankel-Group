@@ -234,6 +234,7 @@ class MissionDetailsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (mission.assignedToAdmin) ...[const AdminBadge(show: true, large: true), const SizedBox(height: 14)],
           Row(
             children: [
               if (mission.isAiDetected) ...[
@@ -274,7 +275,6 @@ class MissionDetailsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          if (mission.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 8)],
           Text(
             TranslationHelper.getLocalizedField(
               context: context,

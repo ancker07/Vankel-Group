@@ -126,7 +126,6 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                 }`}>
                                                 {m.status}
                                             </span>
-                                            <AdminBadge show={m.assignedToAdmin} label={t.admin_task} className="backdrop-blur-md shadow-lg" />
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5">
                                             <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date((m as any).timestamp || (m as any).created_at || (m as any).received_at || Date.now()).toLocaleDateString()}</span>
@@ -165,6 +164,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                             <div className="flex flex-col flex-1 bg-zinc-950 relative z-10">
                                 <div className="flex-1 p-5 flex flex-col justify-between space-y-4">
                                     <div>
+                                        <AdminBadge large show={m.assignedToAdmin} label={t.admin_task} className="mb-4" />
                                         <p 
                                             onClick={(e) => {
                                                 e.stopPropagation();

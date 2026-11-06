@@ -159,13 +159,14 @@ const MissionDetailsModal: React.FC<MissionDetailsModalProps> = ({
                                 placeholder={t.title || "Title"}
                             />
                         ) : (
-                            <div className="flex items-center gap-2 min-w-0"><h2 className="text-xl md:text-2xl font-black text-white leading-tight truncate">{getLocalizedField(mission, 'title') || t.mission_request}</h2><AdminBadge show={mission.assignedToAdmin} label={t.admin_task} /></div>
+                            <h2 className="text-xl md:text-2xl font-black text-white leading-tight truncate">{getLocalizedField(mission, 'title') || t.mission_request}</h2>
                         )}
                     </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    <AdminBadge large show={mission.assignedToAdmin} label={t.admin_task} />
 
                     {/* Main Info Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

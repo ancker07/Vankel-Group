@@ -529,8 +529,8 @@ class _InterventionDetailsScreenState
                           (_localProId != null &&
                               _localProId == ref.read(authStateProvider).user?.id.toString() &&
                               _canManageAssignments)) ...[
-                        const AdminBadge(show: true),
-                        const SizedBox(height: 12),
+                        const AdminBadge(show: true, large: true),
+                        const SizedBox(height: 14),
                       ],
                       _buildSummaryCard(intervention, l10n),
                       const SizedBox(height: 24),

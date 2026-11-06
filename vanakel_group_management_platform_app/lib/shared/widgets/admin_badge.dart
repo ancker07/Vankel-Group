@@ -3,31 +3,41 @@ import '../../l10n/app_localizations.dart';
 
 /// Blue badge shown on every task / intervention that is assigned to an admin
 /// (the admin does it themselves). Shows nothing when [show] is false.
+/// [large] is a full-width banner, used inside cards and details (never on top of a map).
 class AdminBadge extends StatelessWidget {
   final bool show;
-  const AdminBadge({super.key, required this.show});
+  final bool large;
+  const AdminBadge({super.key, required this.show, this.large = false});
 
-  static const Color blue = Color(0xFF38BDF8);
+  static const Color blue = Color(0xFF0EA5E9);
 
   @override
   Widget build(BuildContext context) {
     if (!show) return const SizedBox.shrink();
     final label = AppLocalizations.of(context)!.adminTask.toUpperCase();
+    final content = Row(
+      mainAxisSize: large ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.verified_user, size: large ? 20 : 14, color: Colors.white),
+        SizedBox(width: large ? 8 : 5),
+        Text(label,
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: large ? 13 : 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: large ? 1.4 : 0.9)),
+      ],
+    );
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      width: large ? double.infinity : null,
+      padding: EdgeInsets.symmetric(horizontal: large ? 14 : 9, vertical: large ? 11 : 4),
       decoration: BoxDecoration(
-        color: blue.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: blue.withValues(alpha: 0.5)),
+        color: blue,
+        borderRadius: BorderRadius.circular(large ? 12 : 8),
+        boxShadow: large ? [BoxShadow(color: blue.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 3))] : null,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.verified_user_outlined, size: 11, color: blue),
-          const SizedBox(width: 4),
-          Text(label, style: const TextStyle(color: blue, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
-        ],
-      ),
+      child: content,
     );
   }
 }

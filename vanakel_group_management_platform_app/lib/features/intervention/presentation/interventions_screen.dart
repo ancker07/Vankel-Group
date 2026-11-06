@@ -545,7 +545,6 @@ class _InterventionCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (intervention.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 6)],
                         Text(
                           TranslationHelper.getLocalizedField(
                             context: context,
@@ -604,6 +603,7 @@ class _InterventionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (intervention.assignedToAdmin) ...[const AdminBadge(show: true, large: true), const SizedBox(height: 14)],
                     Text(
                       TranslationHelper.getLocalizedField(
                         context: context,

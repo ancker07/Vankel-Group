@@ -236,7 +236,6 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                                 }`}>
                                                 {isMaintenance ? (t.maintenance || 'Entretien') : i.status === 'COMPLETED' ? t.status_completed : i.status === 'DELAYED' ? t.status_delayed : t.status_pending}
                                             </span>
-                                            <AdminBadge show={i.assignedToAdmin} label={t.admin_task} className="backdrop-blur-md shadow-lg" />
                                             </div>
                                             <div className="flex flex-col items-end gap-1.5">
                                                 <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date(i.scheduledDate).toLocaleDateString()}</span>
@@ -272,6 +271,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                 </div>
 
                                 <div className="p-5 flex-1 flex flex-col relative z-10 bg-zinc-950">
+                                    <AdminBadge large show={i.assignedToAdmin} label={t.admin_task} className="mb-4" />
                                     <p className="text-xs text-zinc-400 mb-4 line-clamp-3 min-h-[48px] leading-relaxed">{getLocalizedField(i, 'description')}</p>
 
                                     {i.documents && i.documents.length > 0 && (

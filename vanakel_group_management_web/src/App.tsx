@@ -1444,6 +1444,8 @@ const App: React.FC = () => {
                     syndics={syndics}
                     professionals={professionals}
                     selfUserId={currentUserId}
+                    selfUserName={me?.name || userName}
+                    selfUserEmail={me?.email || localStorage.getItem('vanakel_userEmail') || undefined}
                     lang={lang}
                     onClose={() => setSelectedInterventionId(null)}
                     onUpdate={handleInterventionUpdate}

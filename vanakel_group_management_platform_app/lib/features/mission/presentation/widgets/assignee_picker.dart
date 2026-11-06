@@ -5,6 +5,7 @@ import '../../../../core/utils/app_labels.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../admin/data/admin_models.dart';
 import '../../../admin/data/admin_repository.dart';
+import '../../../auth/presentation/providers/auth_state_provider.dart';
 
 /// The people a mission can be assigned to when it is approved: approved technicians and admins
 /// (the same list the website offers). Falls back to the team list if the users list is not available.
@@ -12,29 +13,52 @@ Future<List<AdminUser>> loadAssignableUsers(WidgetRef ref) async {
   bool assignable(String role, String status) =>
       (role == 'PROFESSIONAL' || role == 'ADMIN' || role == 'SUPERADMIN') && status == 'APPROVED';
 
-  try {
-    final users = await ref.read(adminRepositoryProvider).users();
-    final list = users.where((u) => assignable(u.role, u.status)).toList();
-    if (list.isNotEmpty) return list;
-  } catch (_) {}
+  Future<List<AdminUser>> fetch() async {
+    try {
+      final users = await ref.read(adminRepositoryProvider).users();
+      final list = users.where((u) => assignable(u.role, u.status)).toList();
+      if (list.isNotEmpty) return list;
+    } catch (_) {}
 
-  try {
-    final team = await ref.read(adminRepositoryProvider).team();
-    return team
-        .where((m) => assignable(m.role, m.status))
-        .map((m) => AdminUser(
-              id: m.id,
-              name: m.name,
-              email: m.email,
-              phone: m.phone,
-              role: m.role,
-              roleLabel: m.role,
-              status: m.status,
-            ))
-        .toList();
-  } catch (_) {
-    return const [];
+    try {
+      final team = await ref.read(adminRepositoryProvider).team();
+      return team
+          .where((m) => assignable(m.role, m.status))
+          .map((m) => AdminUser(
+                id: m.id,
+                name: m.name,
+                email: m.email,
+                phone: m.phone,
+                role: m.role,
+                roleLabel: m.role,
+                status: m.status,
+              ))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
   }
+
+  final list = await fetch();
+
+  // The server's users list never includes the logged-in user, so add them: an admin can take the task themselves
+  // ("Do it myself" picks this entry).
+  final me = ref.read(authStateProvider).user;
+  if (me != null && assignable(me.roleName, 'APPROVED') && me.roleName != 'PROFESSIONAL' && !list.any((u) => u.id == me.id)) {
+    return [
+      AdminUser(
+        id: me.id,
+        name: me.name,
+        email: me.email,
+        phone: me.phone,
+        role: me.roleName,
+        roleLabel: me.roleName,
+        status: 'APPROVED',
+      ),
+      ...list,
+    ];
+  }
+  return list;
 }
 
 /// "Assign to" drop-down used in the approve dialogs. [selectedId] null = nobody.

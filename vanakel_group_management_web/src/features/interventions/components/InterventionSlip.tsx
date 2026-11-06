@@ -32,6 +32,8 @@ interface SlipProps {
   readOnly?: boolean;
   /** Id of the logged-in admin, so they can take the task themselves */
   selfUserId?: string;
+  selfUserName?: string;
+  selfUserEmail?: string;
 }
 
 
@@ -76,7 +78,7 @@ const FormattedExtractedContent: React.FC<{ text: string }> = ({ text }) => {
 // --- Main Component ---
 
 const InterventionSlip: React.FC<SlipProps> = ({
-  intervention, building, professional, syndic, syndics = [], professionals = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly, selfUserId
+  intervention, building, professional, syndic, syndics = [], professionals = [], lang, onClose, onUpdate, onOpenMaintenance, role, readOnly, selfUserId, selfUserName, selfUserEmail
 }) => {
 
   const t = TRANSLATIONS[lang];
@@ -97,7 +99,15 @@ const InterventionSlip: React.FC<SlipProps> = ({
 
   // Derived syndic for display
   const currentSyndic = syndics.find(s => s.id === internalSyndicId) || syndic;
-  const currentProfessional = professionals.find(p => p.id === internalProId) || professional;
+  // An admin who does the task is not in the technicians list: show them as the person in charge
+  const apiAssignee: any = (intervention as any).professional;
+  const adminAsPro: Professional | undefined =
+    internalProId && selfUserId && internalProId === selfUserId
+      ? { id: selfUserId, companyName: selfUserName || '', contactPerson: 'Admin', phone: '', landline: '', email: selfUserEmail || '', address: '' }
+      : internalProId && apiAssignee && String(apiAssignee.id) === String(internalProId)
+        ? { id: String(apiAssignee.id), companyName: apiAssignee.name || '', contactPerson: apiAssignee.role === 'ADMIN' || apiAssignee.role === 'SUPERADMIN' ? 'Admin' : '', phone: apiAssignee.phone || '', landline: '', email: apiAssignee.email || '', address: '' }
+        : undefined;
+  const currentProfessional = professionals.find(p => p.id === internalProId) || professional || adminAsPro;
 
   const can = usePermissions();
   // Who was assigned to this intervention and when (staff only)
@@ -479,7 +489,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
           <h3 className="text-sm md:text-lg font-bold text-white truncate w-full text-center">
             {getLocalizedField(intervention, 'title')}{intervention.interventionNumber ? ` – ${intervention.interventionNumber}` : ''}
           </h3>
-          <AdminBadge show={intervention.assignedToAdmin || (!!selfUserId && internalProId === selfUserId && isSuperAdminOrAdmin)} label={t.admin_task} className="mt-1" />
+
         </div>
         <div className="flex items-center gap-2">
           {can('maintenance.manage') && <button
@@ -1003,6 +1013,8 @@ const InterventionSlip: React.FC<SlipProps> = ({
             </div>
           </div>
         )}
+
+        <AdminBadge large show={intervention.assignedToAdmin || (!!selfUserId && internalProId === selfUserId && isSuperAdminOrAdmin)} label={t.admin_task} />
 
         {/* Controls Section */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-10">

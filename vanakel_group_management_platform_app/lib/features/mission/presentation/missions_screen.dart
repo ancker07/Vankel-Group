@@ -750,7 +750,6 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    if (widget.mission.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 8)],
                     Text(
                       TranslationHelper.getLocalizedField(
                         context: context,
@@ -784,6 +783,7 @@ class _MissionCardState extends ConsumerState<_MissionCard> {
                       ],
                     ),
                     const SizedBox(height: 16),
+                    if (widget.mission.assignedToAdmin) ...[const AdminBadge(show: true, large: true), const SizedBox(height: 14)],
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final localizedDescription = TranslationHelper.getLocalizedField(
