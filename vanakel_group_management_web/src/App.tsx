@@ -28,7 +28,7 @@ import PushNotificationsPage from '@/features/dashboard/pages/PushNotificationsP
 import TeamPage from '@/features/team/pages/TeamPage';
 import AccessPage from '@/features/access/pages/AccessPage';
 import CompletedMissionsPage from '@/features/interventions/pages/CompletedMissionsPage';
-import { setAuthUser, clearAuthUser, usePermissions } from '@/lib/permissions';
+import { setAuthUser, clearAuthUser, usePermissions, getAuthUserId } from '@/lib/permissions';
 
 import BuildingProfile from '@/features/buildings/pages/BuildingProfile';
 import InterventionSlip from '@/features/interventions/components/InterventionSlip';
@@ -122,6 +122,7 @@ const App: React.FC = () => {
         if (!res?.user) return;
         const changed = JSON.stringify(res.user.permissions) !== localStorage.getItem('vanakel_permissions');
         setAuthUser(res.user);
+        setMe({ id: String(res.user.id), name: res.user.name, email: res.user.email, role: res.user.role });
         if (res.user.role === 'PROFESSIONAL' && role !== 'PROFESSIONAL') {
           setRole('PROFESSIONAL');
           localStorage.setItem('vanakel_role', 'PROFESSIONAL');
@@ -162,7 +163,9 @@ const App: React.FC = () => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   // The logged-in user (matched by login email) and whether a given assignee is an admin / super admin
-  const currentUserId = (() => { const me = allUsers.find(u => u.email && u.email === localStorage.getItem('vanakel_userEmail')); return me ? String(me.id) : undefined; })();
+  // The logged-in account (from login and /me); the users list does not include yourself
+  const [me, setMe] = useState<{ id: string; name: string; email?: string; role: string } | null>(null);
+  const currentUserId = me?.id || getAuthUserId();
   const isAdminAssignee = (proId?: string | null) => !!proId && (
     allUsers.some(u => String(u.id) === String(proId) && (u.role === 'ADMIN' || u.role === 'SUPERADMIN')) ||
     (String(proId) === currentUserId && (localStorage.getItem('vanakel_role') === 'ADMIN' || localStorage.getItem('vanakel_role') === 'SUPERADMIN'))
@@ -1168,6 +1171,7 @@ const App: React.FC = () => {
                 localStorage.setItem('vanakel_authToken', token);
               }
               setAuthUser(user);
+              if (user?.id) setMe({ id: String(user.id), name: user.name, email: user.email, role: user.role });
               
               const isUserApproved = user?.status === 'APPROVED' || user?.status === 'ACTIVE' || !token;
               setIsApproved(isUserApproved);
@@ -1192,6 +1196,7 @@ const App: React.FC = () => {
             lang={lang}
             onLogin={(name, resolvedEmail, token, user) => {
               setAuthUser(user);
+              if (user?.id) setMe({ id: String(user.id), name: user.name, email: user.email, role: user.role });
               setRole('SUPERADMIN');
               localStorage.setItem('vanakel_role', 'SUPERADMIN');
               setUserName(name || 'Super Admin');
@@ -1476,7 +1481,7 @@ const App: React.FC = () => {
 
 
                 {missionActionModal && (
-                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), email: u.email, role: u.role }))} selfUser={(() => { const me = allUsers.find(u => String(u.id) === currentUserId); return me ? { id: String(me.id), name: `${me.firstName} ${me.lastName}`.trim(), email: me.email, role: me.role } : undefined; })()} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
+                  <MissionActionModal type={missionActionModal.type} mission={missionActionModal.mission} missionDate={missionDate} setMissionDate={setMissionDate} assignableUsers={allUsers.filter(u => (u.role === 'PROFESSIONAL' || u.role === 'ADMIN') && u.status === 'APPROVED').map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}`.trim(), email: u.email, role: u.role }))} selfUser={currentUserId && can('missions.approve') ? { id: currentUserId, name: me?.name || userName, email: me?.email || localStorage.getItem('vanakel_userEmail') || undefined, role: me?.role || (role as string) } : undefined} assignedUserId={missionAssignee} setAssignedUserId={setMissionAssignee} onCancel={() => { setMissionActionModal(null); setMissionAssignee(''); }} onConfirm={() => { if (missionActionModal.type === 'APPROVE') handleApproveMission(missionActionModal.mission, missionDate, missionAssignee); else handleRejectMission(missionActionModal.mission.id); setMissionActionModal(null); setMissionDate(''); setMissionAssignee(''); }} t={t} />
                 )}
                 {deletePlanId && (
                   <ConfirmationModal is onClose={() => setDeletePlanId(null)} onConfirm={handleDeleteMaintenance} title={t.confirmDeleteTitle || 'Confirm Deletion'} message={t.confirmDeleteMaintMsg || 'Delete this maintenance plan?'} confirmLabel={t.btnDelete || 'Delete'} cancelLabel={t.btnCancel || 'Cancel'} />

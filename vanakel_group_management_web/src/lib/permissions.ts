@@ -5,6 +5,12 @@ import { useSyncExternalStore } from 'react';
 
 const STORAGE_KEY = 'vanakel_permissions';
 const ROLE_LABEL_KEY = 'vanakel_roleLabel';
+const USER_ID_KEY = 'vanakel_userId';
+
+/** Id of the logged-in user (the users list does not include yourself). */
+export const getAuthUserId = (): string | undefined => {
+    try { return localStorage.getItem(USER_ID_KEY) || undefined; } catch { return undefined; }
+};
 
 const read = (): string[] => {
     try {
@@ -19,11 +25,12 @@ const listeners = new Set<() => void>();
 
 const notify = () => listeners.forEach(l => l());
 
-export const setAuthUser = (user: { permissions?: string[]; role_label?: string } | null) => {
+export const setAuthUser = (user: { id?: number | string; permissions?: string[]; role_label?: string } | null) => {
     permissions = user?.permissions || [];
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(permissions));
         if (user?.role_label) localStorage.setItem(ROLE_LABEL_KEY, user.role_label);
+        if (user?.id !== undefined && user?.id !== null) localStorage.setItem(USER_ID_KEY, String(user.id));
     } catch { /* storage unavailable */ }
     notify();
 };
@@ -33,6 +40,7 @@ export const clearAuthUser = () => {
     try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(ROLE_LABEL_KEY);
+        localStorage.removeItem(USER_ID_KEY);
     } catch { /* storage unavailable */ }
     notify();
 };

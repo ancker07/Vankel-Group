@@ -7,7 +7,7 @@ const AdminBadge: React.FC<{ show?: boolean; label: string; className?: string }
     return (
         <span
             title={label}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/40 text-sky-400 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shrink-0 ${className}`}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-950/85 border border-sky-400/60 text-sky-300 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shrink-0 ${className}`}
         >
             <ShieldCheck size={11} /> {label}
         </span>

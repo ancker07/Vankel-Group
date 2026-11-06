@@ -229,12 +229,15 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
 
                                     <div className="relative z-10 p-4 h-full flex flex-col justify-between">
                                         <div className="flex justify-between items-start">
+                                            <div className="flex flex-col items-start gap-1.5">
                                             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg ${i.status === 'COMPLETED' ? 'bg-brand-green/20 text-brand-green border border-brand-green/30' : i.status === 'DELAYED' ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
                                                 isMaintenance ? 'bg-orange-500/20 text-orange-500 border border-orange-500/30' :
                                                     'bg-zinc-900/80 text-zinc-300 border border-zinc-700/50'
                                                 }`}>
                                                 {isMaintenance ? (t.maintenance || 'Entretien') : i.status === 'COMPLETED' ? t.status_completed : i.status === 'DELAYED' ? t.status_delayed : t.status_pending}
                                             </span>
+                                            <AdminBadge show={i.assignedToAdmin} label={t.admin_task} className="backdrop-blur-md shadow-lg" />
+                                            </div>
                                             <div className="flex flex-col items-end gap-1.5">
                                                 <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date(i.scheduledDate).toLocaleDateString()}</span>
                                                 {i.urgency && (
@@ -246,7 +249,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                                         </div>
 
                                         <div className="pr-12">
-                                            <div className="flex items-center gap-2 min-w-0"><h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(i, 'title')}>{getLocalizedField(i, 'title')}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4><AdminBadge show={i.assignedToAdmin} label={t.admin_task} /></div>
+                                            <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(i, 'title')}>{getLocalizedField(i, 'title')}{i.interventionNumber ? ` – ${i.interventionNumber}` : ''}</h4>
                                             <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
                                                 <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
                                                 <span className="truncate drop-shadow-md" title={b?.address}>{b?.address}, {b?.city}</span>

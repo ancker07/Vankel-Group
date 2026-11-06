@@ -126,6 +126,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                                 }`}>
                                                 {m.status}
                                             </span>
+                                            <AdminBadge show={m.assignedToAdmin} label={t.admin_task} className="backdrop-blur-md shadow-lg" />
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5">
                                             <span className="text-[10px] font-mono text-white/90 bg-black/50 border border-white/10 px-2 py-0.5 rounded backdrop-blur-md">{new Date((m as any).timestamp || (m as any).created_at || (m as any).received_at || Date.now()).toLocaleDateString()}</span>
@@ -138,7 +139,7 @@ const MissionsPage: React.FC<MissionsPageProps> = ({ missions, buildings, syndic
                                     </div>
 
                                     <div className="pr-12">
-                                        <div className="flex items-center gap-2 min-w-0"><h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(m, 'title') || t.mission_request}>{getLocalizedField(m, 'title') || t.mission_request}</h4><AdminBadge show={m.assignedToAdmin} label={t.admin_task} /></div>
+                                        <h4 className="font-bold text-white mb-1 truncate drop-shadow-md text-lg" title={getLocalizedField(m, 'title') || t.mission_request}>{getLocalizedField(m, 'title') || t.mission_request}</h4>
                                         <div className="flex items-center gap-1.5 text-zinc-300 text-xs font-medium">
                                             <MapPin size={12} className="text-brand-green drop-shadow-sm shrink-0" />
                                             <span className="truncate drop-shadow-md">{b?.address || 'Standalone Request'}</span>
