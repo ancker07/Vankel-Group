@@ -126,4 +126,117 @@ class TranscriptionTest extends TestCase
         $this->post('/api/ai/transcribe', ['audio' => $this->wav(), 'language' => 'nl'], ['Accept' => 'application/json', 'Accept-Language' => 'nl'])
             ->assertStatus(502)->assertJsonPath('error', 'Spraaktranscriptie is mislukt.');
     }
+
+    public function test_technicians_and_admins_can_use_french_and_dutch_dictation(): void
+    {
+        Http::fake([self::URL => Http::response(['text' => 'ok'])]);
+
+        foreach (['PROFESSIONAL', 'ADMIN'] as $role) {
+            Sanctum::actingAs(User::create([
+                'name' => $role, 'email' => strtolower($role) . uniqid() . '@test.com', 'password' => 'password123',
+                'role' => $role, 'status' => 'APPROVED',
+            ]));
+
+            $this->getJson('/api/ai/transcribe/status')->assertOk()->assertExactJson(['available' => true]);
+            foreach (['fr', 'nl'] as $language) {
+                $this->send($language)->assertOk()->assertExactJson(['text' => 'ok']);
+            }
+        }
+    }
+
+    public function test_older_models_get_a_sentence_in_the_dictation_language(): void
+    {
+        foreach (['fr' => 'Dictée en français', 'nl' => 'Dictaat in het Nederlands', 'en' => 'Dictation in English'] as $language => $sentence) {
+            Http::fakeSequence(self::URL)->push([], 400)->push([], 400)->push(['text' => 'ok']);
+            $this->send($language)->assertOk();
+            Http::assertSent(fn (ClientRequest $r) => str_contains($r->body(), 'whisper-1')
+                && str_contains($r->body(), $sentence)
+                && preg_match('/name="language".*?\r\n\r\n' . $language . '\r\n/s', $r->body()));
+            $this->app->forgetInstance(\Illuminate\Http\Client\Factory::class);
+            Http::clearResolvedInstances();
+        }
+    }
+
+    public function test_invented_phrases_from_noise_are_dropped(): void
+    {
+        foreach (['Thank you.', 'Merci.', 'Bedankt voor het kijken!', "Merci d'avoir regardé cette vidéo"] as $invented) {
+            Http::fake([self::URL => Http::response(['text' => $invented])]);
+            $this->send('fr')->assertOk()->assertExactJson(['text' => '']);
+            $this->app->forgetInstance(\Illuminate\Http\Client\Factory::class);
+            Http::clearResolvedInstances();
+        }
+        Http::fake([self::URL => Http::response(['text' => 'Merci de vérifier la fuite au 3e étage.'])]);
+        $this->send('fr')->assertOk()->assertExactJson(['text' => 'Merci de vérifier la fuite au 3e étage.']);
+    }
+
+    private const RESPONSES = 'https://api.openai.com/v1/responses';
+
+    private function speak(string $spoken, string $appLanguage, ?string $translation = null, int $translationStatus = 200)
+    {
+        $this->app->forgetInstance(\Illuminate\Http\Client\Factory::class);
+        Http::clearResolvedInstances();
+        Http::fake([
+            self::URL => Http::response(['text' => $spoken]),
+            self::RESPONSES => Http::response(['output_text' => json_encode(['text' => $translation ?? ''])], $translationStatus),
+        ]);
+
+        return $this->send($appLanguage);
+    }
+
+    public function test_whatever_is_spoken_is_written_in_the_selected_language(): void
+    {
+        // English spoken, app in French
+        $this->speak('Hi, we are testing the intervention update status', 'fr', "Bonjour, nous testons le statut de mise à jour de l'intervention")
+            ->assertOk()->assertExactJson(['text' => "Bonjour, nous testons le statut de mise à jour de l'intervention"]);
+        Http::assertSent(fn (ClientRequest $r) => $r->url() === self::RESPONSES
+            && str_contains($r->body(), 'into French') && str_contains($r->body(), 'we are testing'));
+
+        // French spoken, app in Dutch
+        $this->speak('Il faut vérifier la chaudière dans la cave pour le propriétaire', 'nl', 'De ketel in de kelder moet gecontroleerd worden voor de eigenaar')
+            ->assertOk()->assertExactJson(['text' => 'De ketel in de kelder moet gecontroleerd worden voor de eigenaar']);
+        Http::assertSent(fn (ClientRequest $r) => $r->url() === self::RESPONSES && str_contains($r->body(), 'into Dutch'));
+
+        // Dutch spoken, app in English
+        $this->speak('De verwarmingsketel lekt en dat moet de eigenaar weten', 'en', 'The boiler is leaking and the owner must know')
+            ->assertOk()->assertExactJson(['text' => 'The boiler is leaking and the owner must know']);
+        Http::assertSent(fn (ClientRequest $r) => $r->url() === self::RESPONSES && str_contains($r->body(), 'into English'));
+    }
+
+    public function test_the_selected_language_is_never_translated(): void
+    {
+        foreach ([
+            'fr' => 'Il faut vérifier la chaudière dans la cave pour le propriétaire',
+            'nl' => 'De verwarmingsketel lekt en dat moet de eigenaar weten',
+            'en' => 'The boiler is leaking and you have to check it for the owner',
+        ] as $language => $spoken) {
+            $this->speak($spoken, $language)->assertOk()->assertExactJson(['text' => $spoken]);
+            Http::assertSentCount(1); // only the transcription, no translation call
+        }
+    }
+
+    public function test_if_the_translation_fails_the_spoken_text_is_kept(): void
+    {
+        $this->speak('Hi, we are testing the intervention update status', 'fr', null, 500)
+            ->assertOk()->assertExactJson(['text' => 'Hi, we are testing the intervention update status']);
+    }
+
+    public function test_the_selected_language_is_the_first_one_the_model_listens_for(): void
+    {
+        Http::fake([self::URL => Http::response(['text' => 'ok'])]);
+        foreach (['fr', 'nl', 'en'] as $language) {
+            $this->send($language)->assertOk();
+            Http::assertSent(function (ClientRequest $r) use ($language) {
+                preg_match_all('/name="languages\[\]".*?\r\n\r\n(\w+)\r\n/s', $r->body(), $m);
+
+                return ($m[1][0] ?? null) === $language && count($m[1]) === 3 && count(array_unique($m[1])) === 3;
+            });
+        }
+    }
+
+    public function test_a_correct_answer_is_not_retried(): void
+    {
+        Http::fake([self::URL => Http::response(['text' => 'De verwarmingsketel lekt en dat moet de eigenaar weten'])]);
+        $this->send('nl')->assertOk();
+        Http::assertSentCount(1);
+    }
 }

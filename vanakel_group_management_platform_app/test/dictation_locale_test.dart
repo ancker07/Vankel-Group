@@ -21,4 +21,12 @@ void main() {
     expect(DictationButton.chooseLocale([], 'fr'), isNull);
     expect(DictationButton.chooseLocale(['fr_FR'], 'de'), isNull);
   });
+
+  test('a phone without French / Dutch speech is reported, not silently recognised in another language', () {
+    expect(DictationButton.languageMissing(['en_US', 'en_GB'], 'fr'), isTrue);
+    expect(DictationButton.languageMissing(['en_US', 'fr_FR'], 'nl'), isTrue);
+    expect(DictationButton.languageMissing(['en_US', 'fr_FR'], 'fr'), isFalse);
+    expect(DictationButton.languageMissing(const [], 'nl'), isFalse); // list unknown: let the phone choose
+    expect(DictationButton.languageMissing(['fr_FR'], 'en'), isFalse); // English is never blocked
+  });
 }

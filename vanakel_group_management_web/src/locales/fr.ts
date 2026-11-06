@@ -305,7 +305,7 @@ export default {
     docRepo: 'Répertoire Documentaire',
     ticketHeader: 'Bon d\'Intervention',
     description: 'Description de l\'intervention',
-    adminNote: "Description de l'intervention",
+    adminNote: "Observations techniques",
     photos: 'Photos',
     photo: 'Photo',
     docs: 'Documents',

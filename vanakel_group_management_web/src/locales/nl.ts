@@ -388,7 +388,7 @@ export default {
     docRepo: 'Documentenarchief',
     ticketHeader: 'Interventiebon',
     description: 'Beschrijving interventie',
-    adminNote: 'Interventiebeschrijving',
+    adminNote: 'Technische observaties',
     photos: 'Foto\'s',
     photo: 'Foto',
     docs: 'Documenten',

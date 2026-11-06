@@ -9,7 +9,7 @@ import 'package:record/record.dart';
 /// natural pauses; each is transcribed and appended exactly once, in the order spoken.
 const int sampleRate = 16000;
 const int _bytesPerMs = sampleRate * 2 ~/ 1000;
-const int _maxSegmentMs = 25000;
+const int _maxSegmentMs = 15000;
 const int _pauseMs = 800;
 const int _minSpeechMs = 200;
 const int _preRollMs = 300;
@@ -49,7 +49,22 @@ class SpeechSegmenter {
   BytesBuilder _buffer = BytesBuilder(copy: true);
   int _speechMs = 0;
   int _silenceMs = 0;
-  double _noiseFloor = 0.002;
+  bool _inSpeech = false;
+
+  // The background level is learned from the audio itself: the quiet 10th percentile of the last
+  // few seconds. A fixed or slowly-adapting floor mistook ordinary noise (street, building site,
+  // a running machine) for speech, so no pause was ever found and nothing was sent for transcription.
+  static const int _windowMs = 10000;
+  final List<({double level, int ms})> _recent = [];
+  int _recentMs = 0;
+
+  /// Quiet background level of the last seconds of audio.
+  double get backgroundLevel {
+    if (_recent.isEmpty) return 0;
+    final sorted = _recent.map((c) => c.level).toList()..sort();
+    // never above a loud-street level: audio louder than that is speech (someone who starts talking at once)
+    return math.min(0.03, sorted[((sorted.length - 1) * 0.1).floor()]);
+  }
 
   void feed(Uint8List pcm) {
     _buffer.add(pcm);
@@ -57,8 +72,18 @@ class SpeechSegmenter {
     if (ms == 0) return;
 
     final level = _rms(pcm);
-    _noiseFloor = level < _noiseFloor ? level : _noiseFloor * 1.002;
-    if (level > math.max(0.01, _noiseFloor * 3)) {
+    _recent.add((level: level, ms: ms));
+    _recentMs += ms;
+    while (_recentMs > _windowMs && _recent.length > 1) {
+      _recentMs -= _recent.removeAt(0).ms;
+    }
+
+    // Speech must stand clearly above the background; once speaking, a smaller margin keeps it going
+    // (a brief dip or a noise spike does not break a word or a pause).
+    final floor = backgroundLevel;
+    final speaking = level > math.max(0.008, floor * 2.5) || (_inSpeech && level > math.max(0.006, floor * 2.0));
+    _inSpeech = speaking;
+    if (speaking) {
       _speechMs += ms;
       _silenceMs = 0;
     } else {

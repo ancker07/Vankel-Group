@@ -1437,6 +1437,7 @@ const App: React.FC = () => {
                 {/* Intervention Slip Overlay */}
                 {selectedInterventionId && selectedIntervention && (
                   <InterventionSlip
+                    key={selectedIntervention.id}
                     intervention={selectedIntervention}
                     building={buildings.find(b => b.id === selectedIntervention.buildingId)!}
                     professional={professionals.find(p => p.id === selectedIntervention.proId)}

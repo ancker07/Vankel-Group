@@ -41,6 +41,11 @@ class DictationButton extends ConsumerStatefulWidget {
     return null;
   }
 
+  /// The phone lists its speech languages but has none for the app's French or Dutch. Recognising anyway would
+  /// silently use the phone's own language (often English) and produce the wrong words, so the user is told instead.
+  static bool languageMissing(List<String> available, String languageCode) =>
+      languageCode != 'en' && available.isNotEmpty && chooseLocale(available, languageCode) == null;
+
   @override
   ConsumerState<DictationButton> createState() => _DictationButtonState();
 }
@@ -93,9 +98,13 @@ class _DictationButtonState extends ConsumerState<DictationButton> {
     _speech.errorListener = _onError;
   }
 
+  bool _languageMissing = false;
+
   Future<String?> _pickLocale(String languageCode) async {
+    _languageMissing = false;
     try {
       final available = (await _speech.locales()).map((l) => l.localeId).toList();
+      _languageMissing = DictationButton.languageMissing(available, languageCode);
       return DictationButton.chooseLocale(available, languageCode);
     } catch (_) {
       return null; // let the phone choose
@@ -334,6 +343,10 @@ class _DictationButtonState extends ConsumerState<DictationButton> {
 
     _locale = await _pickLocale(languageCode);
     if (!mounted) return;
+    if (_languageMissing) {
+      _say(l10n.speechLanguage);
+      return;
+    }
 
     _wantListening = true;
     _restartPending = false;

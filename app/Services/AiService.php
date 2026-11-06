@@ -22,6 +22,29 @@ class AiService
         'nl' => ['syndicus', 'verwarmingsketel', 'lekkage', 'ontstopping', 'tegelwerk', 'schrijnwerk', 'interventie', 'gsm'],
     ];
 
+    /** Context sentence in the dictation language: it keeps the model on that language (and Belgian spelling). */
+    private const TRANSCRIPTION_PROMPTS = [
+        'en' => 'Dictation in English by a building technician. Vocabulary: %s.',
+        'fr' => "Dictée en français (Belgique) par un technicien du bâtiment. Ne pas traduire. Vocabulaire : %s.",
+        'nl' => 'Dictaat in het Nederlands (Vlaams) door een technicus in de bouw. Niet vertalen. Woordenschat: %s.',
+    ];
+
+    /** Common words that belong to ONE of our languages (shared ones like "de", "en", "is" are left out). */
+    private const LANGUAGE_WORDS = [
+        'en' => ['the', 'and', 'to', 'of', 'you', 'that', 'it', 'for', 'with', 'this', 'are', 'was', 'have', 'we', 'they', 'not', 'but', 'there', 'what', 'please', 'testing', 'hi', 'hello', 'thank', 'should', 'would', 'will'],
+        'fr' => ['le', 'la', 'les', 'des', 'et', 'est', 'une', 'du', 'que', 'pour', 'dans', 'pas', 'il', 'sur', 'avec', 'je', 'ce', 'nous', 'vous', 'au', 'aux', 'ne', 'qui', 'sont', 'mais', 'très', 'cette', 'bonjour', 'merci'],
+        'nl' => ['het', 'een', 'van', 'dat', 'op', 'niet', 'voor', 'met', 'zijn', 'ik', 'er', 'aan', 'wij', 'maar', 'dit', 'ook', 'wordt', 'naar', 'bij', 'nog', 'deze', 'jullie', 'heeft', 'goedendag', 'dank'],
+    ];
+
+    private const LANGUAGE_NAMES = ['en' => 'English', 'fr' => 'French', 'nl' => 'Dutch'];
+
+    /** What speech models invent from silence or noise; never real dictation. */
+    private const TRANSCRIPTION_HALLUCINATIONS = [
+        'thank you', 'thank you for watching', 'thanks for watching', 'bye', 'you',
+        'merci', "merci d'avoir regardé cette vidéo", 'merci davoir regardé', 'sous-titres réalisés par la communauté damara', 'sous-titrage st 501', 'sous-titrage société radio-canada',
+        'bedankt', 'bedankt voor het kijken', 'ondertitels ingediend door de amara.org gemeenschap', 'ondertiteling door de amara.org gemeenschap',
+    ];
+
     public function extractEmailData(string $content, array $attachments = [])
     {
         return $this->callOpenAi($content, $attachments, $this->resolveModel(), $this->resolveApiKey(), $this->getSystemPrompt());
@@ -67,7 +90,15 @@ class AiService
             }
 
             if ($response->successful()) {
-                return trim((string) $response->json('text'));
+                $text = $this->cleanTranscript((string) $response->json('text'));
+
+                // Whatever language was spoken, the text is written in the language the user selected.
+                $spoken = $this->detectOtherLanguage($text, $language);
+                if ($spoken !== null) {
+                    $text = $this->translateTranscript($text, $language, $spoken);
+                }
+
+                return $text;
             }
 
             Log::error("OpenAI transcription error [{$model}, " . $response->status() . ']: ' . $response->body());
@@ -86,6 +117,71 @@ class AiService
         throw new TranscriptionException($lastStatus, 'Upstream error.');
     }
 
+    /** Trims, and drops the stock phrases a model invents from silence or noise. */
+    private function cleanTranscript(string $text): string
+    {
+        $text = trim($text);
+        $plain = mb_strtolower(trim(preg_replace('/[\p{P}\s]+/u', ' ', $text)));
+        $known = array_map(fn ($p) => mb_strtolower(trim(preg_replace('/[\p{P}\s]+/u', ' ', $p))), self::TRANSCRIPTION_HALLUCINATIONS);
+
+        return in_array($plain, $known, true) ? '' : $text;
+    }
+
+    /**
+     * The language the text is clearly written in, when that is another of our languages than the selected one
+     * (e.g. English spoken while the app is in French). Null when it matches, or when it cannot be told.
+     */
+    private function detectOtherLanguage(string $text, string $selected): ?string
+    {
+        $words = preg_split('/[^\p{L}\']+/u', mb_strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
+        if (count($words) < 3) {
+            return null; // too short to tell
+        }
+        $score = fn (string $lang) => count(array_filter($words, fn ($w) => in_array($w, self::LANGUAGE_WORDS[$lang], true)));
+        $own = $score($selected);
+
+        $best = null;
+        $bestScore = 0;
+        foreach (array_diff(array_keys(self::LANGUAGE_WORDS), [$selected]) as $other) {
+            $points = $score($other);
+            if ($points > $bestScore) {
+                [$best, $bestScore] = [$other, $points];
+            }
+        }
+
+        // clearly another language: at least two of its words and more than the selected one, or one of its words
+        // with none of the selected language's
+        return $best !== null && $bestScore > $own && ($bestScore >= 2 || $own === 0) ? $best : null;
+    }
+
+    /** Writes a dictated text in the selected language. If the translation fails the text is kept as spoken. */
+    private function translateTranscript(string $text, string $target, string $spoken): string
+    {
+        try {
+            $result = $this->callOpenAi(
+                "Dictated text ({$this->languageName($spoken)}):\n{$text}",
+                [],
+                $this->resolveModel(),
+                $this->resolveApiKey(),
+                'You translate a short dictated note from a building technician into ' . $this->languageName($target)
+                . '. Keep the meaning, numbers, names, addresses and technical terms exactly. Do not add or remove anything. '
+                . 'Return JSON: {"text": "<the translation>"}.'
+            );
+            $translated = trim((string) ($result['text'] ?? ''));
+
+            return $translated !== '' ? $translated : $text;
+        } catch (\Throwable $e) {
+            Log::warning('Dictation translation failed, keeping the spoken text: ' . $e->getMessage());
+
+            return $text;
+        }
+    }
+
+    private function languageName(string $code): string
+    {
+        return self::LANGUAGE_NAMES[$code] ?? $code;
+    }
+
     /** gpt-transcribe takes languages[] and keywords[]; the older models take a single language and a prompt. */
     private function transcriptionFields(string $model, string $language): array
     {
@@ -93,7 +189,10 @@ class AiService
         $fields = [['name' => 'model', 'contents' => $model]];
 
         if ($model === self::TRANSCRIPTION_MODELS[0]) {
-            $fields[] = ['name' => 'languages[]', 'contents' => $language];
+            // the selected language first (the focus), the others after: a technician may speak another one
+            foreach (array_merge([$language], array_diff(array_keys(self::LANGUAGE_NAMES), [$language])) as $heard) {
+                $fields[] = ['name' => 'languages[]', 'contents' => $heard];
+            }
             foreach ($keywords as $keyword) {
                 $fields[] = ['name' => 'keywords[]', 'contents' => $keyword];
             }
@@ -102,7 +201,8 @@ class AiService
         }
 
         $fields[] = ['name' => 'language', 'contents' => $language];
-        $fields[] = ['name' => 'prompt', 'contents' => implode(', ', $keywords)];
+        $fields[] = ['name' => 'prompt', 'contents' => sprintf(self::TRANSCRIPTION_PROMPTS[$language] ?? '%s', implode(', ', $keywords))];
+        $fields[] = ['name' => 'temperature', 'contents' => '0'];
 
         return $fields;
     }

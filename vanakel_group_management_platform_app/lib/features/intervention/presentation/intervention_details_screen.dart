@@ -63,6 +63,27 @@ class _InterventionDetailsScreenState
     _contactEmailController = TextEditingController();
   }
 
+  /// The screen is reused for another task (same route, different id): nothing typed or chosen for the
+  /// previous task may stay on screen, or be saved onto this one.
+  @override
+  void didUpdateWidget(InterventionDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.interventionId == widget.interventionId) return;
+    _isInitialized = false;
+    _adminNoteController.clear();
+    _contactNameController.clear();
+    _contactPhoneController.clear();
+    _contactEmailController.clear();
+    _localStatus = null;
+    _localSyndicId = null;
+    _localProId = null;
+    _localDelayReason = null;
+    _localDelayDetails = null;
+    _localDelayedRescheduleDate = null;
+    _selectedImages.clear();
+    _selectedDocs.clear();
+  }
+
   @override
   void dispose() {
     _adminNoteController.dispose();
