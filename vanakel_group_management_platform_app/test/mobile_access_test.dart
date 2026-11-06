@@ -33,7 +33,8 @@ void main() {
       [admin.seesMissions, admin.seesInterventions, admin.seesEndOfMission, admin.seesReports, admin.seesInbox, admin.seesTeam, admin.seesUsers],
       everyElement(isTrue),
     );
-    expect(admin.seesOnlyOpenInterventions, isFalse);
+    // "Ongoing interventions" is only the work in progress, for every role (completed = End of mission)
+    expect(admin.seesOnlyOpenInterventions, isTrue);
   });
 
   test('technician menu: only Interventions (the ones still to do)', () {

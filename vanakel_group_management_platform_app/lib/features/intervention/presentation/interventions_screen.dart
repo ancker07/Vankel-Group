@@ -46,7 +46,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
     return Column(
       children: [
         _buildTopBar(filter, l10n),
-        // a technician only has the interventions still to do (like the website): no status tabs
+        // only the work in progress is listed, for every role (like the website): no status tabs
         if (!(ref.watch(authStateProvider).user?.seesOnlyOpenInterventions ?? false)) const _StatusTabs(),
         _buildFilterBar(filter, buildingsAsync, l10n),
         Expanded(

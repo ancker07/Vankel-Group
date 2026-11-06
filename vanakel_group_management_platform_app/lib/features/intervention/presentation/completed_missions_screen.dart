@@ -1,3 +1,4 @@
+import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/utils/app_format.dart';
 import 'package:flutter/material.dart';
@@ -49,14 +50,15 @@ class CompletedMissionsScreen extends ConsumerWidget {
   }
 }
 
-class _CompletedTile extends StatelessWidget {
+class _CompletedTile extends ConsumerWidget {
   final Intervention intervention;
   final bool isAdmin;
 
   const _CompletedTile({required this.intervention, required this.isAdmin});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final canVerify = ref.watch(authStateProvider).user?.can('interventions.reopen') ?? false;
     final title = TranslationHelper.getLocalizedField(
       context: context,
       enValue: intervention.titleEn,
@@ -85,6 +87,22 @@ class _CompletedTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (intervention.assignedToAdmin) ...[const AdminBadge(show: true), const SizedBox(height: 6)],
+                  // work a technician sent in for review is verified from here, now that it is no longer under "Ongoing"
+                  if (canVerify && intervention.submittedAt != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandOrange.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.brandOrange.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.verifySubmission.toUpperCase(),
+                        style: const TextStyle(color: AppTheme.brandOrange, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),

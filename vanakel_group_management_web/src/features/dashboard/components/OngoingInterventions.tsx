@@ -19,11 +19,8 @@ interface OngoingInterventionsProps {
     canVerifySubmissions: boolean;
 }
 
-type StatusFilter = 'ALL' | InterventionStatus;
-
 const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventions, buildings, syndics, onSelect, t, lang, onRefresh, isRefreshing, isTechnician, canVerifySubmissions }) => {
     const [viewerData, setViewerData] = useState<{ docs: Document[], index: number } | null>(null);
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
 
     // Filter States
     const [searchQuery, setSearchQuery] = useState('');
@@ -51,23 +48,12 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
         return matchesSearch && matchesSector && matchesUrgency && matchesBuilding && matchesDate;
     });
 
-    const statusCounts = useMemo(() => ({
-        ALL: filteredInterventions.length,
-        PENDING: filteredInterventions.filter(i => i.status === 'PENDING').length,
-        DELAYED: filteredInterventions.filter(i => i.status === 'DELAYED').length,
-        COMPLETED: filteredInterventions.filter(i => i.status === 'COMPLETED').length,
-    }), [filteredInterventions]);
-
-    const visibleInterventions = filteredInterventions.filter(i =>
-        isTechnician ? i.status === 'PENDING' : statusFilter === 'ALL' || i.status === statusFilter
+    // "Ongoing interventions" is only the work in progress: completed ones are under "End of mission", delayed ones
+    // under the dashboard's Delayed list and the reports. Nothing else is ever shown here, for every role.
+    const visibleInterventions = useMemo(
+        () => filteredInterventions.filter(i => i.status === 'PENDING'),
+        [filteredInterventions]
     );
-
-    const statusTabs: { id: StatusFilter; label: string; activeClass: string }[] = [
-        { id: 'ALL', label: t.all || 'All', activeClass: 'bg-zinc-700 text-white border-zinc-600' },
-        { id: 'PENDING', label: t.ongoing || 'Ongoing', activeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/40' },
-        { id: 'DELAYED', label: t.delayed || 'Delayed', activeClass: 'bg-orange-500/20 text-orange-300 border-orange-500/40' },
-        { id: 'COMPLETED', label: t.completed || 'Completed', activeClass: 'bg-brand-green/20 text-brand-green border-brand-green/40' },
-    ];
 
     const getLocalizedField = (obj: any, field: 'title' | 'description') => {
         if (lang === 'EN') return obj[`${field}_en`] || obj[field];
@@ -80,7 +66,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
             <div className="flex justify-between items-center bg-zinc-950 p-6 rounded-3xl border border-zinc-900 shadow-xl mb-8">
                 <div className="flex items-center gap-4">
                     <div>
-                        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{isTechnician ? (t.ongoing || 'Ongoing interventions') : (t.interventions || 'Interventions')}</h2>
+                        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.ongoing || 'Ongoing interventions'}</h2>
                         <p className="text-zinc-600 text-xs mt-1">{t.ongoing_subtitle || 'Track your active maintenance and repair tasks'}</p>
                     </div>
                     <button
@@ -94,7 +80,7 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                 </div>
                 <div className="flex flex-col items-end gap-1">
                     <span className="bg-zinc-900 text-zinc-500 px-3 py-1 rounded-full text-xs font-bold border border-zinc-800">
-                        {isTechnician ? statusCounts.PENDING : statusCounts.ALL} {t.items_count || 'Items'}
+                        {visibleInterventions.length} {t.items_count || 'Items'}
                     </span>
                 </div>
             </div>
@@ -182,24 +168,10 @@ const OngoingInterventions: React.FC<OngoingInterventionsProps> = ({ interventio
                 </div>
             </div>
 
-            {!isTechnician && <div className="flex flex-wrap gap-2">
-                {statusTabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setStatusFilter(tab.id)}
-                        className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${statusFilter === tab.id ? tab.activeClass : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'}`}
-                    >
-                        {tab.id === 'COMPLETED' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
-                        {tab.label}
-                        <span className="rounded-full bg-black/20 px-1.5 py-0.5 text-[10px]">{statusCounts[tab.id]}</span>
-                    </button>
-                ))}
-            </div>}
-
             {visibleInterventions.length === 0 ? (
                 <div className="p-12 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20">
                     <Clock size={48} className="mx-auto text-zinc-700 mb-4" />
-                    <p className="text-zinc-500 font-medium">{t.no_interventions_found || 'No interventions found.'}</p>
+                    <p className="text-zinc-500 font-medium">{t.no_ongoing_interventions || t.no_interventions_found || 'No ongoing interventions.'}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

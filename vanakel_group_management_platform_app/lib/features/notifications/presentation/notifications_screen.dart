@@ -35,36 +35,47 @@ class NotificationsScreen extends ConsumerWidget {
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.brandGreen)),
         error: (err, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
-              const SizedBox(height: 16),
-              Text(errorWithMessage(context, err), style: const TextStyle(color: Colors.white)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.read(notificationProvider.notifier).fetchNotifications(),
-                child: Text(l10n.retry),
-              ),
-            ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  errorWithMessage(context, err),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.read(notificationProvider.notifier).fetchNotifications(),
+                  child: Text(l10n.retry),
+                ),
+              ],
+            ),
           ),
         ),
         data: (notifications) => notifications.isEmpty
             ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.notifications_none_outlined,
-                      size: 64,
-                      color: AppTheme.zinc800,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      l10n.noNotificationsYet,
-                      style: const TextStyle(color: AppTheme.zinc500),
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.notifications_none_outlined,
+                        size: 64,
+                        color: AppTheme.zinc800,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.noNotificationsYet,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppTheme.zinc500),
+                      ),
+                    ],
+                  ),
                 ),
               )
             : RefreshIndicator(
@@ -132,31 +143,48 @@ class _NotificationTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        TranslationHelper.getLocalizedField(
-                          context: context,
-                          enValue: item.titleEn,
-                          frValue: item.titleFr,
-                          nlValue: item.titleNl,
-                          fallback: item.title,
+                  LayoutBuilder(
+                    builder: (context, box) => Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // the title takes what is left and wraps: a long French / Dutch title must never push the row off the screen
+                        Expanded(
+                          child: Text(
+                            TranslationHelper.getLocalizedField(
+                              context: context,
+                              enValue: item.titleEn,
+                              frValue: item.titleFr,
+                              nlValue: item.titleNl,
+                              fallback: item.title,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: !item.isRead ? FontWeight.bold : FontWeight.normal,
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
-                        style: TextStyle(
-                          fontWeight: !item.isRead ? FontWeight.bold : FontWeight.normal,
-                          color: Colors.white,
-                          fontSize: 14,
+                        const SizedBox(width: 8),
+                        // "3 days ago" never takes more than 40% of the line (large fonts, long words in other languages)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: box.maxWidth * 0.4),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Text(
+                              AppFormat.timeAgo(context, item.createdAt),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppTheme.zinc500,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        AppFormat.timeAgo(context, item.createdAt),
-                        style: const TextStyle(
-                          color: AppTheme.zinc500,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(

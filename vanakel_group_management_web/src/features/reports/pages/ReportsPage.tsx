@@ -66,25 +66,40 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
     completed: interventions.filter(i => i.status === 'COMPLETED' || i.status === 'DELAYED').length,
   };
 
+  /** Builds the PDF report of an intervention (no photos: they stay separate uploads). */
+  const buildPdf = async (intervention: Intervention, save: boolean) => {
+    const building = buildings.find(b => b.id === intervention.buildingId);
+    const professional = professionals.find(p => p.id === intervention.proId);
+    const syndic = syndics.find(s => s.id === intervention.syndicId);
+    const logoBase64 = await loadImageAsDataUrl(vankerLogo);
+
+    return generateInterventionPDF(intervention, building, professional, syndic, lang, logoBase64, save);
+  };
+
   const handleDownloadPDF = async (intervention: Intervention) => {
     try {
-      const building = buildings.find(b => b.id === intervention.buildingId);
-      const professional = professionals.find(p => p.id === intervention.proId);
-      const syndic = syndics.find(s => s.id === intervention.syndicId);
-
-      // NOTE: PDF reports do NOT include photos - photos remain as separate file uploads
-      const logoBase64 = await loadImageAsDataUrl(vankerLogo);
-
-      await generateInterventionPDF(
-        intervention,
-        building,
-        professional,
-        syndic,
-        lang,
-        logoBase64
-      );
+      await buildPdf(intervention, true);
     } catch (e) {
       console.error(e);
+      alert("PDF Generation Failed");
+    }
+  };
+
+  /** Opens the PDF report in a new tab (not the detail screen). */
+  const openPdf = async (intervention: Intervention) => {
+    // The tab is opened right away, inside the click: browsers block a tab opened after the PDF is built
+    const tab = window.open('', '_blank');
+    try {
+      const doc = await buildPdf(intervention, false);
+      const url = String(doc.output('bloburl'));
+      if (tab) {
+        tab.location.href = url;
+      } else {
+        window.location.href = url; // pop-ups blocked: show it in this tab instead
+      }
+    } catch (e) {
+      console.error(e);
+      tab?.close();
       alert("PDF Generation Failed");
     }
   };
@@ -126,7 +141,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
             latestSlips.map(slip => {
               const building = buildings.find(b => b.id === slip.buildingId);
               return (
-                <div key={slip.id} className="bg-zinc-950 border border-zinc-800 rounded-xl hover:border-brand-green/30 transition-all group flex flex-col relative overflow-hidden h-full">
+                <div key={slip.id} onClick={() => openPdf(slip)} className="bg-zinc-950 border border-zinc-800 rounded-xl hover:border-brand-green/30 transition-all group flex flex-col relative overflow-hidden h-full cursor-pointer">
                   {/* Top Thumbnail Map Area */}
                   <div className="h-32 relative shrink-0">
                     <div className="absolute inset-0 z-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
@@ -185,7 +200,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                         {slip.id} • {new Date(slip.createdAt || slip.scheduledDate).toLocaleDateString()}
                       </span>
                       <button
-                        onClick={() => onViewIntervention(slip.id)}
+                        onClick={(e) => { e.stopPropagation(); openPdf(slip); }}
                         className="text-[10px] font-black uppercase tracking-widest text-brand-green hover:underline flex items-center gap-1"
                       >
                         {t.view} <ChevronRight size={10} />
@@ -279,7 +294,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                           </>
                         )}
                       </span>
-                      <button onClick={() => onViewIntervention(item.id)} className="p-1.5 text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.view}>
+                      <button onClick={() => openPdf(item)} className="p-1.5 text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.view}>
                         <Eye size={14} />
                       </button>
                       <button onClick={() => handleDownloadPDF(item)} className="p-1.5 text-zinc-500 hover:text-brand-green bg-zinc-900 hover:bg-zinc-800 rounded-lg transition-all" title={t.download_pdf}>
@@ -315,7 +330,7 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
                       <span className="text-[10px] text-zinc-600">{new Date(item.createdAt || item.scheduledDate).toLocaleDateString()}</span>
                       <div className="flex gap-2">
                         <button onClick={() => handleDownloadPDF(item)} className="p-2 bg-zinc-900 rounded-lg text-zinc-400 hover:text-white"><Download size={14} /></button>
-                        <button onClick={() => onViewIntervention(item.id)} className="px-3 py-2 bg-zinc-900 rounded-lg text-xs font-bold text-white hover:bg-brand-green hover:text-black transition-colors">{t.view}</button>
+                        <button onClick={() => openPdf(item)} className="px-3 py-2 bg-zinc-900 rounded-lg text-xs font-bold text-white hover:bg-brand-green hover:text-black transition-colors">{t.view}</button>
                       </div>
                     </div>
                   </div>

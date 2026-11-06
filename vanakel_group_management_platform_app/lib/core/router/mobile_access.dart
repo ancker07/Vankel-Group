@@ -17,8 +17,9 @@ extension MobileAccess on User {
   bool get seesTeam => isPlainAdmin && can('team.view');
   bool get seesUsers => isPlainAdmin && can('users.view');
 
-  /// Like the website: a technician only sees the interventions that are still to do.
-  bool get seesOnlyOpenInterventions => isTechnician;
+  /// "Ongoing interventions" is only the work in progress, for every role (like the website): completed work is
+  /// under "End of mission", delayed work under the dashboard / reports. No status tabs, nothing else listed.
+  bool get seesOnlyOpenInterventions => true;
 }
 
 const _home = '/admin/dashboard';

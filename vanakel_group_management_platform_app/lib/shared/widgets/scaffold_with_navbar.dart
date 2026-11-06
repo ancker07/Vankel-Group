@@ -41,7 +41,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           icon: Icons.dashboard_outlined, selectedIcon: Icons.dashboard, label: l10n.dashboard),
       _NavTab(branchIndex: 1, title: l10n.missions, visible: user?.seesMissions ?? false,
           icon: Icons.assignment_outlined, selectedIcon: Icons.assignment, label: l10n.missions),
-      _NavTab(branchIndex: 2, title: l10n.interventions, visible: user?.seesInterventions ?? false,
+      _NavTab(branchIndex: 2, title: l10n.statusTabOngoing, visible: user?.seesInterventions ?? false,
           icon: Icons.build_outlined, selectedIcon: Icons.build, label: l10n.interventions),
       _NavTab(branchIndex: 3, title: l10n.profile, visible: true,
           icon: Icons.person_outline, selectedIcon: Icons.person, label: l10n.profile),

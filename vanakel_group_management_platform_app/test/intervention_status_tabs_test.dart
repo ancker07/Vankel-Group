@@ -57,28 +57,28 @@ Future<ProviderContainer> _container(String role) async {
 }
 
 void main() {
-  test('All shows every intervention (completed too) and the tab counts add up, like the website', () async {
+  test('the Ongoing list shows only work in progress, for admins too (no completed, no delayed)', () async {
     final container = await _container('ADMIN');
 
     final counts = container.read(interventionStatusCountsProvider);
-    expect((counts.all, counts.pending, counts.delayed, counts.completed), (7, 4, 1, 2));
-    expect(container.read(filteredInterventionListProvider).value!.length, 7);
+    expect((counts.all, counts.pending, counts.delayed, counts.completed), (4, 4, 0, 0));
+    expect(container.read(filteredInterventionListProvider).value!.length, 4);
 
+    // a leftover Completed / Delayed status filter cannot bring those back
     container.read(interventionFilterProvider.notifier).updateStatus(InterventionStatus.completed);
-    expect(container.read(filteredInterventionListProvider).value!.map((i) => i.id).toSet(), {'6', '7'});
-    // switching tabs does not change the counts
-    expect(container.read(interventionStatusCountsProvider).all, 7);
-
+    expect(container.read(filteredInterventionListProvider).value, isEmpty);
     container.read(interventionFilterProvider.notifier).updateStatus(InterventionStatus.delayed);
-    expect(container.read(filteredInterventionListProvider).value!.single.id, '5');
+    expect(container.read(filteredInterventionListProvider).value, isEmpty);
+    // switching the filter does not change the counts
+    expect(container.read(interventionStatusCountsProvider).all, 4);
   });
 
-  test('the other filters change the counts, the selected tab does not', () async {
+  test('the other filters change the counts, the selected status does not', () async {
     final container = await _container('ADMIN');
     container.read(interventionFilterProvider.notifier).updateSector('PLUMBING');
 
     final counts = container.read(interventionStatusCountsProvider);
-    expect((counts.all, counts.pending, counts.delayed, counts.completed), (3, 2, 0, 1));
+    expect((counts.all, counts.pending, counts.delayed, counts.completed), (2, 2, 0, 0));
   });
 
   test('the list is newest first', () async {
