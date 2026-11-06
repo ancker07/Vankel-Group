@@ -1015,7 +1015,7 @@ const InterventionSlip: React.FC<SlipProps> = ({
                   onClick={() => setInternalProId(internalProId === selfUserId ? '' : selfUserId)}
                   className={`w-full py-3 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all min-h-[44px] ${internalProId === selfUserId ? 'bg-brand-green text-brand-black border-brand-green' : 'bg-transparent border-brand-green/40 text-brand-green hover:bg-brand-green/10'}`}
                 >
-                  {internalProId === selfUserId ? t.assigned_to_you : t.do_it_myself}
+                  <span key={internalProId === selfUserId ? 'on' : 'off'}>{internalProId === selfUserId ? t.assigned_to_you : t.do_it_myself}</span>
                 </button>
               )}
               <div className="grid grid-cols-3 gap-2 md:gap-3">

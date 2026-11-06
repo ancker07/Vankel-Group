@@ -108,7 +108,7 @@ const MissionActionModal: React.FC<MissionActionModalProps> = ({
                                 onClick={() => setAssignedUserId(assignedUserId === selfUser.id ? '' : selfUser.id)}
                                 className={`w-full py-2.5 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${assignedUserId === selfUser.id ? 'bg-brand-green text-brand-black border-brand-green' : 'bg-transparent border-brand-green/40 text-brand-green hover:bg-brand-green/10'}`}
                             >
-                                {assignedUserId === selfUser.id ? t.assigned_to_you : t.do_it_myself}
+                                <span key={assignedUserId === selfUser.id ? 'on' : 'off'}>{assignedUserId === selfUser.id ? t.assigned_to_you : t.do_it_myself}</span>
                             </button>
                         )}
                         {selectedAssignee && (
