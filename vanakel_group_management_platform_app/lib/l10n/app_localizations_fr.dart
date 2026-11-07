@@ -267,6 +267,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get latestSlips => 'Derniers bordereaux';
 
   @override
+  String get latestReports => 'Derniers rapports';
+
+  @override
+  String get viewAll => 'Voir tout';
+
+  @override
+  String get noReportsYet => 'Aucun rapport pour le moment';
+
+  @override
   String get fullHistory => 'Historique complet';
 
   @override

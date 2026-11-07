@@ -52,6 +52,36 @@ class AdminDoesTaskTest extends TestCase
         $this->assertSame('COMPLETED', $intervention->fresh()->status);
     }
 
+    public function test_the_closing_date_follows_the_status_and_the_list_shows_the_new_status(): void
+    {
+        $technician = $this->makeUser('PROFESSIONAL');
+        $building = Building::create(['address' => 'Street 1']);
+        $intervention = Intervention::create([
+            'title' => 'Leak', 'description' => 'Water.', 'status' => 'PENDING', 'urgency' => 'LOW',
+            'building_id' => $building->id, 'pro_id' => $technician->id, 'scheduled_date' => now(),
+        ]);
+
+        // the phone sends a status, no date
+        Sanctum::actingAs($technician);
+        $this->postJson("/api/interventions/{$intervention->id}", ['_method' => 'PUT', 'status' => 'COMPLETED', 'save_mode' => 'SUBMIT'])->assertOk();
+        $this->assertNotNull($intervention->fresh()->completed_at);
+
+        // what the phone fetches right after saving
+        $listed = collect($this->getJson('/api/interventions')->assertOk()->json())->firstWhere('id', $intervention->id);
+        $this->assertSame('COMPLETED', $listed['status']);
+        $this->assertNotNull($listed['completed_at']);
+        $this->assertNotNull($listed['updated_at']);
+
+        // reopened by an admin: no longer closed
+        Sanctum::actingAs($this->makeUser('ADMIN'));
+        $this->putJson("/api/interventions/{$intervention->id}", ['status' => 'PENDING'])->assertOk();
+        $this->assertNull($intervention->fresh()->completed_at);
+
+        // a date the website sends is kept
+        $this->putJson("/api/interventions/{$intervention->id}", ['status' => 'COMPLETED', 'completed_at' => '2026-05-01T10:00:00Z'])->assertOk();
+        $this->assertStringStartsWith('2026-05-01', (string) $intervention->fresh()->completed_at);
+    }
+
     public function test_super_admin_can_take_a_mission_themselves(): void
     {
         $super = $this->makeUser('SUPERADMIN');

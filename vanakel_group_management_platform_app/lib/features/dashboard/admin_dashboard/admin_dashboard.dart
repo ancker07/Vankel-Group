@@ -2,7 +2,9 @@ import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/router/mobile_access.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../report/presentation/widgets/latest_reports_section.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
@@ -16,6 +18,7 @@ class AdminDashboard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final canSeeMissions = ref.watch(authStateProvider).user?.can('missions.view') ?? false;
+    final seesReports = ref.watch(authStateProvider).user?.seesReports ?? false;
     final missionsAsync = ref.watch(missionListProvider);
     final interventionsAsync = ref.watch(interventionListProvider);
 
@@ -98,6 +101,11 @@ class AdminDashboard extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  // same rule as the Reports page: a technician has neither
+                  if (seesReports) ...[
+                    const SizedBox(height: 24),
+                    LatestReportsSection(interventions: interventions),
+                  ],
                 ],
               ),
             ),
@@ -141,6 +149,8 @@ class AdminDashboard extends ConsumerWidget {
           ),
           Text(
             title,
+            maxLines: 1, // a long label on a narrow phone must not break the card
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,

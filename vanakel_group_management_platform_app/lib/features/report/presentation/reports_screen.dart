@@ -2,15 +2,13 @@ import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/error/error_text.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/utils/app_format.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../intervention/domain/intervention.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/services/pdf_service.dart';
-import '../../intervention/presentation/providers/intervention_provider.dart';
 import '../../../core/utils/translation_helper.dart';
+import 'report_actions.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -39,14 +37,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       body: interventionsAsync.when(
         data: (interventions) {
-          // Filter: ONLY Completed and Delayed
-          final allReports = interventions.where((i) => 
-            i.status.name.toLowerCase() == 'completed' || 
-            i.status.name.toLowerCase() == 'delayed'
-          ).toList();
-
-          // Sort: Newest first
-          allReports.sort((a, b) => b.scheduledDate.compareTo(a.scheduledDate));
+          // Only completed and delayed work, the latest first
+          final allReports = latestReports(interventions);
 
           final totalCount = interventions.length;
           final completedCount = allReports.length;
@@ -201,62 +193,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  /// Opens the PDF report of an intervention (what the user wants from a report card, not the detail screen).
-  Future<void> _openReport(Intervention item) async {
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    final lang = Localizations.localeOf(context).languageCode;
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.pdfGenerating), duration: const Duration(seconds: 2)),
-    );
-
-    try {
-      // Fetch data reliably using .future
-      final buildings = await ref.read(buildingListProvider.future);
-      final syndics = await ref.read(syndicListProvider.future);
-      final professionals = await ref.read(professionalListProvider.future);
-
-      final building = buildings.firstWhere(
-        (b) => b['id']?.toString() == item.buildingId,
-        orElse: () => null,
-      );
-      final syndic = syndics.firstWhere(
-        (s) => s['id']?.toString() == item.syndicId,
-        orElse: () => null,
-      );
-      final pro = professionals.firstWhere(
-        (p) => p['id']?.toString() == item.proId,
-        orElse: () => null,
-      );
-
-      final result = await PdfService.generateInterventionReport(
-        intervention: item,
-        building: building,
-        professional: pro,
-        syndic: syndic,
-        lang: lang,
-      );
-      messenger.hideCurrentSnackBar();
-      if (result.type != ResultType.done) {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.pdfNoViewer)));
-      }
-    } catch (e) {
-      messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(
-            content: Text(l10n.pdfError(e.toString())),
-            backgroundColor: Colors.red),
-      );
-    }
-  }
-
   Widget _buildLatestSlipCard(Intervention item) {
     final isDelayed = item.status.name.toLowerCase() == 'delayed';
     final themeColor = isDelayed ? Colors.orange : const Color(0xFF22C55E);
 
     return GestureDetector(
-      onTap: () => _openReport(item),
+      onTap: () => openInterventionReport(context, ref, item),
       child: Container(
         width: 280,
         margin: const EdgeInsets.only(right: 12, bottom: 8),
@@ -397,7 +339,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final themeColor = isDelayed ? Colors.orange : const Color(0xFF22C55E);
 
     return InkWell(
-      onTap: () => _openReport(item),
+      onTap: () => openInterventionReport(context, ref, item),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
@@ -488,7 +430,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       IconButton(
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.all(8),
-                        onPressed: () => _openReport(item),
+                        onPressed: () => openInterventionReport(context, ref, item),
                         icon: const Icon(Icons.picture_as_pdf_outlined,
                             color: Colors.white24, size: 18),
                       ),

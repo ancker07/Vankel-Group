@@ -14,6 +14,7 @@ import '../../../core/utils/file_opener.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_list_provider.dart';
+import '../../../core/providers/refresh_work_data.dart';
 import '../data/intervention_submitter.dart';
 import 'widgets/intervention_delay_sheet.dart';
 import '../../../../core/utils/translation_helper.dart';
@@ -266,8 +267,9 @@ class _InterventionDetailsScreenState
   Future<void> _executeRegister(String id, {String mode = 'NONE'}) async {
     setState(() => _isSaving = true);
     SubmitResult result;
+    var fields = const <String, String>{};
     try {
-      final fields = <String, String>{
+      fields = <String, String>{
         'admin_feedback': _adminNoteController.text,
         'on_site_contact_name': _contactNameController.text,
         'on_site_contact_phone': _contactPhoneController.text,
@@ -313,22 +315,17 @@ class _InterventionDetailsScreenState
       debugPrint('Register: preparing the submission failed: $e');
       result = const SubmitResult(SubmitOutcome.rejected);
     }
-    _finishRegister(id, mode, result);
+    _finishRegister(id, mode, fields, result);
   }
 
   /// Everything after the server answered. A UI problem here can never turn a saved job into an error.
-  void _finishRegister(String id, String mode, SubmitResult result) {
+  void _finishRegister(String id, String mode, Map<String, String> fields, SubmitResult result) {
     try {
-      if (result.isSafe) {
-        // the list and this screen show the new status (only when the server has it)
-        if (result.outcome != SubmitOutcome.queued) {
-          ref.invalidate(interventionListProvider);
-          ref.invalidate(interventionDetailProvider(id));
-        }
-      } else if (result.statusCode == 403 || result.statusCode == 404) {
-        // "not assigned to you" / gone: the list on screen is out of date, so reload it
-        ref.invalidate(interventionListProvider);
-      }
+      // The whole app shows the new status at once (Ongoing, Reports, End of mission, the dashboard), also when the
+      // work is still waiting on the phone. Then the latest data is fetched in every case, even after a failure: the
+      // server may have saved it and only the answer was lost, or the list on screen may be out of date (403 / 404).
+      if (result.isSafe) ref.read(interventionListProvider.notifier).markSaved(id, fields);
+      ref.read(workDataRefresherProvider).afterChange();
       if (!mounted) return;
 
       final l10n = AppLocalizations.of(context)!;
@@ -449,6 +446,7 @@ class _InterventionDetailsScreenState
           onPressed: () => Navigator.pop(context),
         ),
         title: interventionAsync.when(
+          skipLoadingOnReload: true,
           data: (i) => Text(
             TranslationHelper.getLocalizedField(
               context: context,
@@ -487,7 +485,9 @@ class _InterventionDetailsScreenState
           ),
         ],
       ),
+      // the list behind this screen refreshes by itself: what the user is typing here must not be disturbed
       body: interventionAsync.when(
+        skipLoadingOnReload: true,
         data: (intervention) {
           _initializeControllers(intervention);
           // A completed mission is read-only unless the role may reopen it (admin)

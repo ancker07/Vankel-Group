@@ -1,10 +1,13 @@
 import '../../../auth/presentation/providers/auth_state_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/mission.dart';
 import 'mission_provider.dart';
 import '../../../intervention/presentation/providers/intervention_list_provider.dart';
 
 class MissionListNotifier extends AsyncNotifier<List<Mission>> {
+  int _newestLoad = 0;
+
   @override
   Future<List<Mission>> build() async {
     // A role without the mission permission (e.g. a technician) has no missions at all: do not
@@ -44,6 +47,23 @@ class MissionListNotifier extends AsyncNotifier<List<Mission>> {
 
   Future<void> refresh() async {
     ref.invalidateSelf();
+  }
+
+  /// Fetches the latest data while the list stays on screen; when it fails the list simply stays as it is.
+  Future<void> refreshQuietly() async {
+    if (state.isLoading) {
+      ref.invalidateSelf();
+      return;
+    }
+    final user = ref.read(authStateProvider).user;
+    if (user != null && !user.can('missions.view')) return;
+    final load = ++_newestLoad;
+    try {
+      final fresh = await ref.read(missionRepositoryProvider).getMissions();
+      if (ref.mounted && load == _newestLoad) state = AsyncData(fresh);
+    } catch (e) {
+      debugPrint('Missions not refreshed: $e');
+    }
   }
 }
 

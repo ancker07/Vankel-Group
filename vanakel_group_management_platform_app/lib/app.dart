@@ -6,6 +6,7 @@ import 'l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/providers/locale_provider.dart';
+import 'core/providers/refresh_work_data.dart';
 import 'core/providers/reset_user_data.dart';
 import 'features/intervention/data/intervention_submitter.dart';
 import 'features/intervention/presentation/providers/intervention_list_provider.dart';
@@ -43,12 +44,21 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
     _deliveringOutbox = true;
     try {
       final delivered = await ref.read(interventionSubmitterProvider).flush(userId: user.id);
-      if (delivered > 0 && mounted) ref.invalidate(interventionListProvider); // the lists show the new statuses
+      if (delivered > 0 && mounted) ref.read(workDataRefresherProvider).lists(); // the lists show the new statuses
     } catch (_) {
       // nothing to do: it stays on the phone and is tried again
     } finally {
       _deliveringOutbox = false;
     }
+  }
+
+  /// Sends what is waiting, then fetches what others changed (a technician's phone, the website, an admin). Only while
+  /// the app is on screen: the phone must not spend data and battery in the background.
+  Future<void> _syncWithServer() async {
+    await _deliverOutbox();
+    if (!mounted || ref.read(authStateProvider).status != AuthStatus.authenticated) return;
+    if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) return;
+    ref.read(workDataRefresherProvider).lists();
   }
 
   /// A notification tap waiting for the session to be restored.
@@ -68,7 +78,7 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
     // Back on screen (also when returning from the phone's Settings after the user fixed GPS or
     // the permission): check again and (re)start sharing. Never started from the background:
     // Android 12+ forbids starting a foreground service there.
-    if (state == AppLifecycleState.resumed) _deliverOutbox();
+    if (state == AppLifecycleState.resumed) _syncWithServer();
     if (state == AppLifecycleState.resumed && _shouldTrack(ref.read(authStateProvider))) {
       _locationService.start();
     }
@@ -78,7 +88,7 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _outboxTimer = Timer.periodic(const Duration(minutes: 1), (_) => _deliverOutbox());
+    _outboxTimer = Timer.periodic(const Duration(minutes: 1), (_) => _syncWithServer());
     // Texts the OS shows (not Flutter widgets) must follow the language too
     ref.listenManual<Locale>(localeProvider, (previous, next) async {
       final l10n = lookupAppLocalizations(next);
@@ -118,6 +128,8 @@ class _VanakelAppState extends ConsumerState<VanakelApp> with WidgetsBindingObse
         ref.invalidate(notificationProvider);
         // We also want to fetch immediately after invalidate
         ref.read(notificationProvider.notifier).fetchNotifications();
+        // a notification usually means the work changed (a technician sent a task, a status was updated)
+        ref.read(workDataRefresherProvider).lists();
       }
     };
     NotificationService().onNotificationTap = (data) {

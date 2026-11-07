@@ -266,6 +266,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get latestSlips => 'Laatste fiches';
 
   @override
+  String get latestReports => 'Laatste rapporten';
+
+  @override
+  String get viewAll => 'Alles bekijken';
+
+  @override
+  String get noReportsYet => 'Nog geen rapporten';
+
+  @override
   String get fullHistory => 'Volledige geschiedenis';
 
   @override

@@ -37,6 +37,7 @@ class InterventionModel extends Intervention {
     super.delayDetails,
     super.delayedRescheduleDate,
     super.completedAt,
+    super.updatedAt,
     super.submittedAt,
     super.submittedByName,
     super.interventionNumber,
@@ -107,6 +108,7 @@ class InterventionModel extends Intervention {
       completedAt: json['completed_at'] != null
           ? DateTime.tryParse(json['completed_at'] as String)
           : null,
+      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString())?.toLocal() : null,
       interventionNumber: (json['intervention_number'] ?? json['interventionNumber'])?.toString(),
       isMaintenance: json['is_maintenance_occurrence'] == true || json['isMaintenance'] == true,
       documents: (json['documents'] as List<dynamic>?)

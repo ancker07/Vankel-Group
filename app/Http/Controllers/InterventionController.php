@@ -733,7 +733,16 @@ class InterventionController extends Controller
                 }
             }
         }
-        
+
+        // The closing date follows the status, whichever app saved it (the phone does not send one)
+        if (isset($updateData['status']) && $updateData['status'] !== $oldStatus) {
+            if ($updateData['status'] === 'COMPLETED') {
+                $updateData['completed_at'] = !empty($updateData['completed_at']) ? $updateData['completed_at'] : now()->toDateTimeString();
+            } elseif ($oldStatus === 'COMPLETED') {
+                $updateData['completed_at'] = null;
+            }
+        }
+
         $intervention->update($updateData);
 
         // The hand-over to the admin is the most important part: it is recorded right after the status, before anything

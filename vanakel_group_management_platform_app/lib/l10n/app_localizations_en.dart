@@ -266,6 +266,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get latestSlips => 'Latest Slips';
 
   @override
+  String get latestReports => 'Latest reports';
+
+  @override
+  String get viewAll => 'View all';
+
+  @override
+  String get noReportsYet => 'No reports yet';
+
+  @override
   String get fullHistory => 'Full History';
 
   @override

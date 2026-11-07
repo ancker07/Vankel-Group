@@ -52,6 +52,9 @@ class Intervention {
   final DateTime? delayedRescheduleDate;
   final DateTime? completedAt;
 
+  /// When the record last changed (a status update, a note...): Reports lists the latest work first.
+  final DateTime? updatedAt;
+
   /// Set when a technician sent the work to the admin for review (cleared when an admin saves it).
   final DateTime? submittedAt;
   final String? submittedByName;
@@ -96,6 +99,7 @@ class Intervention {
     this.delayDetails,
     this.delayedRescheduleDate,
     this.completedAt,
+    this.updatedAt,
     this.submittedAt,
     this.submittedByName,
     this.documents = const [],
@@ -134,6 +138,7 @@ class Intervention {
     String? delayDetails,
     DateTime? delayedRescheduleDate,
     DateTime? completedAt,
+    DateTime? updatedAt,
     DateTime? submittedAt,
     String? submittedByName,
     String? interventionNumber,
@@ -177,6 +182,7 @@ class Intervention {
       delayDetails: delayDetails ?? this.delayDetails,
       delayedRescheduleDate: delayedRescheduleDate ?? this.delayedRescheduleDate,
       completedAt: completedAt ?? this.completedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       submittedAt: submittedAt ?? this.submittedAt,
       submittedByName: submittedByName ?? this.submittedByName,
       documents: documents ?? this.documents,

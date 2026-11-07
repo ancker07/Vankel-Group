@@ -598,6 +598,24 @@ abstract class AppLocalizations {
   /// **'Latest Slips'**
   String get latestSlips;
 
+  /// No description provided for @latestReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest reports'**
+  String get latestReports;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAll;
+
+  /// No description provided for @noReportsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reports yet'**
+  String get noReportsYet;
+
   /// No description provided for @fullHistory.
   ///
   /// In en, this message translates to:

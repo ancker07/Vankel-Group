@@ -273,6 +273,10 @@ class InterventionSubmitter {
   Future<int> pendingCount({int? userId}) async =>
       (await _store.load()).where((s) => userId == null || s.userId == userId).length;
 
+  /// The work of [userId] still waiting on the phone, oldest first.
+  Future<List<Submission>> waitingFor(int userId) async =>
+      (await _store.load()).where((s) => s.userId == userId).toList();
+
   /// Sends what is waiting on the phone for [userId]. Called when the app starts, comes back to the screen and
   /// every minute. Returns how many were delivered.
   Future<int> flush({required int userId}) async {
@@ -301,6 +305,9 @@ class InterventionSubmitter {
             keep.add(submission);
         }
       }
+      // the user may have saved more work while this was sending: that must stay in the outbox
+      final sentAlong = all.map((s) => s.id).toSet();
+      keep.addAll((await _store.load()).where((s) => !sentAlong.contains(s.id)));
       await _store.save(keep);
     } catch (e) {
       debugPrint('Outbox flush failed: $e');
