@@ -10,10 +10,13 @@ class MissionRepositoryImpl implements MissionRepository {
 
   MissionRepositoryImpl(this._dio);
 
+  // the lists are always asked from the server itself, never from a cache on the way (proxy, CDN, WebView)
+  static final _noCache = Options(headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'});
+
   @override
   Future<List<Mission>> getMissions() async {
     try {
-      final response = await _dio.get(ApiConstants.missions);
+      final response = await _dio.get(ApiConstants.missions, options: _noCache);
       final List<dynamic> data = response.data;
       return data
           .map((json) => MissionModel.fromJson(json).toEntity())

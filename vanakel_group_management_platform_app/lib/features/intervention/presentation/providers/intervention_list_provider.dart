@@ -23,9 +23,20 @@ Intervention withSavedFields(Intervention i, Map<String, String> fields, DateTim
 
 class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
   int _newestLoad = 0; // an older answer that arrives late must not overwrite newer data
+  int _saves = 0; // how many saves this phone made: an answer asked for before a save is out of date
 
   @override
-  Future<List<Intervention>> build() => _load(ref.watch(interventionRepositoryProvider));
+  Future<List<Intervention>> build() async {
+    final savesBefore = _saves;
+    final fresh = await _load(ref.watch(interventionRepositoryProvider));
+    if (savesBefore != _saves) {
+      // A full reload (refresh button, pull to refresh, a new mission...) left before the user saved a status. Its
+      // answer still has the old status: keep what is on screen, the refresh started by the save brings the rest.
+      final current = state.value;
+      if (current != null) return current;
+    }
+    return fresh;
+  }
 
   /// What the server says, with the work still waiting on this phone on top: until it is delivered the server does
   /// not know about it, and a task the technician finished must not come back in the list.
@@ -36,6 +47,8 @@ class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
     if (submitter == null) return list;
 
     for (final work in await submitter.waitingFor(userId!)) {
+      // only photos left to upload (a newer save already reached the server): nothing to show on top of it
+      if (work.fields.keys.every((k) => k == 'save_mode')) continue;
       final index = list.indexWhere((i) => i.id == work.interventionId);
       if (index != -1) list[index] = withSavedFields(list[index], work.fields, work.createdAt);
     }
@@ -47,10 +60,25 @@ class InterventionListNotifier extends AsyncNotifier<List<Intervention>> {
     final current = state.value;
     if (current == null) return;
     _newestLoad++; // anything still on its way was asked for before this save
+    _saves++;
     final now = DateTime.now();
     state = AsyncData([
       for (final i in current) i.id == id ? withSavedFields(i, fields, now) : i,
     ]);
+  }
+
+  /// The refresh button: what is on screen goes and the spinner shows until the server's answer (the data, or the
+  /// error with its retry button) is in. Fetched here rather than by rebuilding: a rebuild would keep the old data on
+  /// screen and, on an error, retry by itself without end. A quiet refresh still on its way cannot land after it.
+  Future<void> reloadFromServer() async {
+    final load = ++_newestLoad;
+    state = const AsyncLoading();
+    try {
+      final fresh = await _load(ref.read(interventionRepositoryProvider));
+      if (ref.mounted && load == _newestLoad) state = AsyncData(fresh);
+    } catch (e, st) {
+      if (ref.mounted && load == _newestLoad) state = AsyncError(e, st);
+    }
   }
 
   /// Fetches the latest data while the list stays on screen; when it fails the list simply stays as it is.

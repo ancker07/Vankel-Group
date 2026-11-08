@@ -1,3 +1,5 @@
+import '../../../core/providers/refresh_work_data.dart';
+import '../../../core/error/error_text.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
 import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/utils/app_format.dart';
@@ -26,7 +28,7 @@ class CompletedMissionsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.endOfMission)),
       body: interventionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString(), style: const TextStyle(color: AppTheme.zinc400))),
+        error: (e, _) => Center(child: Text(errorWithMessage(context, e), style: const TextStyle(color: AppTheme.zinc400))),
         data: (interventions) {
           final completed = interventions.where((i) => i.status == InterventionStatus.completed).toList()
             ..sort((a, b) => (b.completedAt ?? b.scheduledDate).compareTo(a.completedAt ?? a.scheduledDate));
@@ -36,7 +38,7 @@ class CompletedMissionsScreen extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(interventionListProvider),
+            onRefresh: () => ref.read(workDataRefresherProvider).pull(),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: completed.length,

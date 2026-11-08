@@ -677,5 +677,13 @@
     }
   },
   "submitNotSent": "Could not send right now. Your work is still here, please try again in a moment.",
-  "approveAndAssign": "APPROVE & ASSIGN"
+  "approveAndAssign": "APPROVE & ASSIGN",
+  "pdfShare": "Share",
+  "pdfPrint": "Print",
+  "pdfOpenWith": "Open with another app",
+  "pdfCannotDisplay": "This PDF cannot be shown here. You can share it or open it with another app.",
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Tooltip of the top-bar button that reloads the latest data from the server"
+  }
 }

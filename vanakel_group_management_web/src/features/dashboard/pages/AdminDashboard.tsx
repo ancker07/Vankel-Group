@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import DashboardStats from '../components/DashboardStats';
 import ActivityChart from '../components/ActivityChart';
 import LatestSlips from '../components/LatestSlips';
-import { Intervention } from '@/types';
+import { Intervention, Building, Professional, Syndic, Language } from '@/types';
 
 interface AdminDashboardProps {
     stats: any;
@@ -16,6 +16,9 @@ interface AdminDashboardProps {
     onStatClick: (type: any) => void;
     onCreateIntervention: () => void;
     onSelectIntervention: (id: string) => void;
+    buildings: Building[];
+    professionals: Professional[];
+    syndics: Syndic[];
     onViewFullHistory: () => void;
     lang: string;
     t: any;
@@ -30,6 +33,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onStatClick,
     onCreateIntervention,
     onSelectIntervention,
+    buildings,
+    professionals,
+    syndics,
     onViewFullHistory,
     lang,
     t
@@ -68,7 +74,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 />
                 <LatestSlips
                     interventions={allInterventions}
-                    onSelect={onSelectIntervention}
+                    pdfContext={{ buildings, professionals, syndics, lang: lang as Language }}
                     viewAll={onViewFullHistory}
                     t={t}
                 />

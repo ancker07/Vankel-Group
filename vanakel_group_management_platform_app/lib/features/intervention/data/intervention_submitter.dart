@@ -178,6 +178,14 @@ class InterventionSubmitter {
   }
 
   Future<SubmitResult> _submit(Submission submission, bool queueIfOffline) async {
+    final result = await _send(submission, queueIfOffline);
+    if (result.outcome == SubmitOutcome.sent || result.outcome == SubmitOutcome.sentWithoutFiles) {
+      await supersede(interventionId: submission.interventionId, userId: submission.userId, before: submission.createdAt);
+    }
+    return result;
+  }
+
+  Future<SubmitResult> _send(Submission submission, bool queueIfOffline) async {
     try {
       final response = await _sendWithRetries(submission, withFiles: true);
       return SubmitResult(SubmitOutcome.sent, register: response.register, warnings: response.warnings);
@@ -269,6 +277,35 @@ class InterventionSubmitter {
     if (list.length > 50) list.removeRange(0, list.length - 50);
     await _store.save(list);
   }
+
+  /// A newer save of this intervention reached the server: the older ones still waiting on the phone are out of date.
+  /// Sent later they would put back their old status (e.g. "In progress" over "Completed"), and until then the lists
+  /// would show it. Only their photos / files are kept, so nothing the technician took is lost.
+  Future<void> supersede({required String interventionId, required int? userId, DateTime? before}) async {
+    try {
+      final all = await _store.load();
+      var changed = false;
+      final keep = <Submission>[];
+      for (final s in all) {
+        final older = s.interventionId == interventionId && s.userId == userId &&
+            (before == null || s.createdAt.isBefore(before));
+        if (!older) {
+          keep.add(s);
+          continue;
+        }
+        changed = true;
+        if (s.files.isEmpty) continue;
+        keep.add(Submission(
+          id: s.id, userId: s.userId, interventionId: s.interventionId,
+          fields: const {'save_mode': 'NONE'}, files: s.files, createdAt: s.createdAt, attempts: s.attempts,
+        ));
+      }
+      if (changed) await _store.save(keep);
+    } catch (e) {
+      debugPrint('Outbox not updated after a newer save: $e');
+    }
+  }
+
 
   Future<int> pendingCount({int? userId}) async =>
       (await _store.load()).where((s) => userId == null || s.userId == userId).length;

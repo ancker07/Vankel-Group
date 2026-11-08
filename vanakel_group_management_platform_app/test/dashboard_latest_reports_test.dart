@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vanakel_group_management_platform_app/features/report/presentation/pdf_viewer_screen.dart';
+import 'package:vanakel_group_management_platform_app/features/intervention/presentation/intervention_details_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vanakel_group_management_platform_app/features/auth/data/models/user_model.dart';
@@ -27,15 +29,16 @@ Intervention _i(int id, String status, {String? updated, String title = ''}) => 
 
 class _Repo implements InterventionRepository {
   final List<Intervention> list;
-  _Repo(this.list);
+  final bool failingLists; // e.g. a role that may not load the users, or no network
+  _Repo(this.list, {this.failingLists = false});
   @override
   Future<List<Intervention>> getInterventions() async => list;
   @override
-  Future<List<dynamic>> getBuildings() async => [];
+  Future<List<dynamic>> getBuildings() async => failingLists ? throw Exception('403') : [];
   @override
-  Future<List<dynamic>> getSyndics() async => [];
+  Future<List<dynamic>> getSyndics() async => failingLists ? throw Exception('403') : [];
   @override
-  Future<List<dynamic>> getProfessionals() async => [];
+  Future<List<dynamic>> getProfessionals() async => failingLists ? throw Exception('403') : [];
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
@@ -70,13 +73,13 @@ final _data = [
   _i(21, 'PENDING', updated: '2026-09-02T10:00:00Z'),
 ];
 
-Future<void> _open(WidgetTester tester, List<Intervention> list, {String role = 'ADMIN', List<String> permissions = _admin, String lang = 'en', Size size = const Size(1080, 2340)}) async {
+Future<void> _open(WidgetTester tester, List<Intervention> list, {String role = 'ADMIN', List<String> permissions = _admin, String lang = 'en', Size size = const Size(1080, 2340), bool failingLists = false}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(ProviderScope(
     overrides: [
-      interventionRepositoryProvider.overrideWithValue(_Repo(list)),
+      interventionRepositoryProvider.overrideWithValue(_Repo(list, failingLists: failingLists)),
       missionRepositoryProvider.overrideWithValue(_Missions()),
       authStateProvider.overrideWith(() => _Auth(role, permissions)),
     ],
@@ -116,13 +119,30 @@ void main() {
     expect(find.text('REPORTS PAGE'), findsOneWidget);
   });
 
-  testWidgets('a tap on a report starts the PDF and stays on the dashboard, no detail screen', (tester) async {
+  testWidgets('a tap on a report opens its PDF inside the app (no PDF app needed), never the detail screen', (tester) async {
     await _open(tester, _data);
     await tester.tap(find.text('Task 8'));
-    await tester.pump();
+    for (var i = 0; i < 40 && find.byType(PdfViewerScreen).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+    }
+    expect(find.byType(PdfViewerScreen), findsOneWidget, reason: 'many Android tablets have no PDF app');
+    expect(find.byType(InterventionDetailsScreen), findsNothing);
     final l10n = lookupAppLocalizations(const Locale('en'));
-    expect(find.text(l10n.pdfGenerating), findsOneWidget);
-    expect(find.byType(AdminDashboard), findsOneWidget);
+    expect(find.byTooltip(l10n.pdfShare), findsOneWidget);
+    expect(find.byTooltip(l10n.pdfOpenWith), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('the report still opens when a name list cannot be loaded (no permission / network)', (tester) async {
+    await _open(tester, _data, failingLists: true);
+    await tester.tap(find.text('Task 8'));
+    for (var i = 0; i < 40 && find.byType(PdfViewerScreen).evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+    }
+    expect(find.byType(PdfViewerScreen), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 3));
   });

@@ -2,12 +2,15 @@
 import AdminBadge from '@/components/common/AdminBadge';
 import React from 'react';
 import { Intervention } from '@/types';
+import { openReportPdf, ReportPdfContext } from '@/lib/reportPdf';
 import { URGENCY } from '@/utils/constants';
+import { latestReports, reportTime } from '@/lib/interventionSync';
 
 
 interface LatestSlipsProps {
     interventions: Intervention[];
-    onSelect: (id: string) => void;
+    /** Everything the PDF report needs: a click opens the report, like on the Reports page */
+    pdfContext: ReportPdfContext;
     viewAll: () => void;
     t: any;
     className?: string;
@@ -15,25 +18,29 @@ interface LatestSlipsProps {
 }
 
 
-const LatestSlips: React.FC<LatestSlipsProps> = ({ interventions, onSelect, viewAll, t, className, hideTitle }) => {
+const LatestSlips: React.FC<LatestSlipsProps> = ({ interventions, pdfContext, viewAll, t, className, hideTitle }) => {
+    // the latest reports: completed / delayed work, the most recently written first (the server sends the oldest
+    // first, so without this the dashboard showed the five oldest jobs, also ones still in progress)
+    const latest = React.useMemo(() => latestReports(interventions).slice(0, 5), [interventions]);
     return (
         <div className={`bg-zinc-950 border border-zinc-800 rounded-2xl p-4 md:p-6 flex flex-col ${className}`}>
             {!hideTitle && <h3 className="font-bold text-white mb-4">{t.latest_slips}</h3>}
 
             <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                {interventions.slice(0, 5).map(int => (
+                {latest.length === 0 && <p className="text-xs text-zinc-600 text-center py-6">{t.no_reports_yet}</p>}
+                {latest.map(int => (
                     <div
                         key={int.id}
-                        onClick={() => onSelect(int.id)}
+                        onClick={() => openReportPdf(int, pdfContext)}
                         className="p-3 bg-zinc-900/50 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer border border-transparent hover:border-zinc-800"
                     >
                         <div className="flex justify-between items-start">
                             <p className="text-xs font-bold text-white truncate w-32">{int.title}{int.interventionNumber ? ` – ${int.interventionNumber}` : ''}</p>
                             <AdminBadge show={int.assignedToAdmin} label={t.admin_task} />
-                            <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${int.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>{int.status}</span>
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded font-black uppercase ${int.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>{int.status}</span>
                         </div>
                         <div className="flex justify-between items-center mt-1">
-                            <p className="text-[10px] text-zinc-500">{new Date(int.scheduledDate).toLocaleDateString()}</p>
+                            <p className="text-[10px] text-zinc-500">{new Date(reportTime(int) || int.scheduledDate).toLocaleDateString()}</p>
                             {int.urgency && (
                                 <div className="flex items-center gap-1.5">
                                     <div className={`w-1.5 h-1.5 rounded-full ${URGENCY.find(u => u.id === int.urgency)?.color.replace('text-', 'bg-') || 'bg-zinc-600'}`} />

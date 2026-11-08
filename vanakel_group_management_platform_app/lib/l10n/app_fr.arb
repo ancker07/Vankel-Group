@@ -494,5 +494,10 @@
     }
   },
   "submitNotSent": "Envoi impossible pour le moment. Votre travail est conservé, veuillez réessayer dans un instant.",
-  "approveAndAssign": "APPROUVER ET ASSIGNER"
+  "approveAndAssign": "APPROUVER ET ASSIGNER",
+  "pdfShare": "Partager",
+  "pdfPrint": "Imprimer",
+  "pdfOpenWith": "Ouvrir avec une autre application",
+  "pdfCannotDisplay": "Ce PDF ne peut pas être affiché ici. Vous pouvez le partager ou l'ouvrir avec une autre application.",
+  "refresh": "Actualiser"
 }

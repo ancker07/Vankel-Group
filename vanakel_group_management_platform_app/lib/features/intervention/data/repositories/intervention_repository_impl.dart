@@ -10,10 +10,13 @@ class InterventionRepositoryImpl implements InterventionRepository {
 
   InterventionRepositoryImpl(this._dio);
 
+  // the lists are always asked from the server itself, never from a cache on the way (proxy, CDN, WebView)
+  static final _noCache = Options(headers: {'Cache-Control': 'no-cache', 'Pragma': 'no-cache'});
+
   @override
   Future<List<Intervention>> getInterventions() async {
     try {
-      final response = await _dio.get(ApiConstants.interventions);
+      final response = await _dio.get(ApiConstants.interventions, options: _noCache);
       final List<dynamic> data = response.data;
       return data
           .map((json) => InterventionModel.fromJson(json).toEntity())

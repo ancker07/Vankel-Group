@@ -45,6 +45,7 @@ import OnboardingTour from '@/features/dashboard/components/OnboardingTour';
 import { dataService } from '@/services/dataService';
 import { authService } from '@/features/auth/services/authService';
 import { STORAGE_BASE_URL, setApiLanguage } from '@/lib/apiClient';
+import { mapApiIntervention, keepUnchanged } from '@/lib/interventionSync';
 
 import {
   mockSyndics,
@@ -204,18 +205,26 @@ const App: React.FC = () => {
   const [isTourActive, setIsTourActive] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
 
+  // Only the newest refresh may write: an older answer that lands late (slow tablet / phone network) still has
+  // the data from before a save, and would put a completed or delayed intervention back into "Ongoing".
+  const refreshSeq = useRef(0);
+
   const refreshGlobalData = async (silent = false) => {
+    const mySeq = ++refreshSeq.current;
+    const isNewest = () => mySeq === refreshSeq.current;
     if (!silent) setIsRefreshing(true);
     try {
       // Only load what the role may see; one refused request must not blank the whole app
       // ...but do remember which ones failed so the user can see it (and retry)
       const failed: string[] = [];
+      const failedLabels = new Set<string>();
       const load = <T,>(allowed: boolean, request: () => Promise<T>, label = 'data') =>
         allowed
           ? request().catch((err: any) => {
               console.error(`Failed to load ${label}:`, err);
               const status = err?.response?.status;
               failed.push(status ? `${label} (${status})` : `${label} (no response)`);
+              failedLabels.add(label);
               return [] as unknown as T;
             })
           : Promise.resolve([] as unknown as T);
@@ -227,6 +236,7 @@ const App: React.FC = () => {
         load(can('users.view'), dataService.getPendingUsers, 'pending users'),
         load(!isTechnician && can('maintenance.view'), dataService.getMaintenancePlans, 'maintenance plans')
       ]);
+      if (!isNewest()) return; // a newer refresh (e.g. the one started by a save) is on its way: it has the right data
       setLoadErrors(failed);
 
       if (apiBuildings) {
@@ -315,71 +325,11 @@ const App: React.FC = () => {
         setMissions(mappedMissions);
       }
 
-      if (apiInterventions) {
-        const mappedInterventions: Intervention[] = apiInterventions.map((i: any) => ({
-          id: String(i.id),
-          buildingId: String(i.building_id),
-          title: i.title,
-          title_en: i.title_en,
-          title_fr: i.title_fr,
-          title_nl: i.title_nl,
-          category: i.category,
-          sector: i.sector as Sector,
-          description: i.description,
-          description_en: i.description_en,
-          description_fr: i.description_fr,
-          description_nl: i.description_nl,
-          scheduledDate: i.scheduled_date || i.created_at,
-          createdAt: i.created_at,
-          status: i.status as InterventionStatus,
-          notes: i.notes || [],
-          photos: (i.photos || []).map((p: string) => {
-            let path = p;
-            if (path && path.includes('localhost')) {
-              path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
-            }
-            return path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`;
-          }),
-          documents: (i.documents || []).map((d: any) => {
-            let path = d.file_path;
-            if (path && path.includes('localhost')) {
-              path = path.replace(/http:\/\/localhost(:\d+)?\/storage\//, '').replace(/http:\/\/localhost(:\d+)?\//, '');
-            }
-            return {
-              id: String(d.id),
-              name: d.file_name,
-              type: 'OTHER',
-              status: 'APPROVED',
-              url: d.url || (path.startsWith('http') ? path : `${STORAGE_BASE_URL}/${path}`),
-              timestamp: d.created_at
-            };
-          }),
-          proId: String(i.pro_id || i.professional_id || ''),
-          assignedToAdmin: !!i.assigned_to_admin,
-          professional: i.professional ? {
-            id: String(i.professional.id),
-            name: i.professional.name,
-            email: i.professional.email,
-            phone: i.professional.phone,
-            role: i.professional.role,
-            company_name: i.professional.company_name,
-          } : undefined,
-          urgency: i.urgency as Urgency,
-          onSiteContactName: i.on_site_contact_name,
-          onSiteContactPhone: i.on_site_contact_phone,
-          onSiteContactEmail: i.on_site_contact_email,
-          sourceType: i.source_type || 'MANUAL',
-          syndicId: i.syndic_id ? String(i.syndic_id) : undefined,
-          adminFeedback: i.admin_feedback,
-          submittedAt: i.submitted_at || undefined,
-          submittedByName: i.submitter?.name,
-          delayReason: i.delay_reason,
-          delayDetails: i.delay_details,
-          delayedRescheduleDate: i.delayed_reschedule_date,
-          delayedAt: i.delayed_at,
-          completedAt: i.completed_at
-        }));
-        setInterventions(mappedInterventions);
+      // a failed request keeps what is on screen (never blank the list because the network hiccuped)
+      if (apiInterventions && !failedLabels.has('interventions')) {
+        const mappedInterventions: Intervention[] = apiInterventions.map(mapApiIntervention);
+        // objects that did not change are kept, so an open slip does not lose photos it has not saved yet
+        setInterventions(prev => keepUnchanged(prev, mappedInterventions));
       }
 
       if (apiSyndics) {
@@ -480,13 +430,49 @@ const App: React.FC = () => {
       console.error("Failed to fetch dynamic data:", error);
       setLoadErrors(prev => [...prev, 'dashboard data']);
     } finally {
-      if (!silent) setIsRefreshing(false);
+      if (!silent || isNewest()) setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     refreshGlobalData(true);
   }, [role]);
+
+  // Keep the lists in step with what others do (a technician completing a job on the phone, another admin...):
+  // every minute, and whenever the page comes back (tablets and phones suspend background tabs for hours).
+  // Not while an intervention is open: its form must not change under the user's hands; closing it refreshes.
+  const refreshRef = useRef(refreshGlobalData);
+  refreshRef.current = refreshGlobalData;
+  const slipOpenRef = useRef(false);
+  slipOpenRef.current = !!selectedInterventionId;
+  const lastAutoRefresh = useRef(0);
+  useEffect(() => {
+    if (!role) return;
+    const refreshIfVisible = (minGapMs: number) => {
+      if (document.visibilityState !== 'visible' || slipOpenRef.current) return;
+      if (Date.now() - lastAutoRefresh.current < minGapMs) return;
+      lastAutoRefresh.current = Date.now();
+      refreshRef.current(true);
+    };
+    const timer = window.setInterval(() => refreshIfVisible(30000), 60000);
+    const onBack = () => refreshIfVisible(5000);
+    document.addEventListener('visibilitychange', onBack);
+    window.addEventListener('focus', onBack);
+    window.addEventListener('pageshow', onBack); // iPad Safari restoring the page from its cache
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onBack);
+      window.removeEventListener('focus', onBack);
+      window.removeEventListener('pageshow', onBack);
+    };
+  }, [role]);
+
+  // An intervention was closed: show what changed meanwhile
+  const prevSelectedId = useRef<string | null>(null);
+  useEffect(() => {
+    if (prevSelectedId.current && !selectedInterventionId && role) refreshRef.current(true);
+    prevSelectedId.current = selectedInterventionId;
+  }, [selectedInterventionId, role]);
 
   // Notifications come from the server (the same ones the phone gets): load them after login and keep them fresh
   useEffect(() => {
@@ -803,21 +789,14 @@ const App: React.FC = () => {
     try {
       // If skipApi is true, we just update local state because the API was already called by the child component
       if (skipApi) {
-        setInterventions(prev => prev.map(i => i.id === String(updated.id) ? {
-          ...i,
-          ...updated,
-          id: String(updated.id),
-          assignedToAdmin: isAdminAssignee(updated.proId ?? i.proId),
-          status: updated.status,
-          adminFeedback: updated.adminFeedback || updated.admin_feedback,
-          submittedAt: updated.submitted_at || updated.submittedAt || undefined,
-          submittedByName: updated.submitter?.name || updated.submittedByName,
-          delayReason: updated.delayReason || updated.delay_reason,
-          delayDetails: updated.delayDetails || updated.delay_details,
-          onSiteContactName: updated.onSiteContactName || updated.on_site_contact_name,
-          onSiteContactPhone: updated.onSiteContactPhone || updated.on_site_contact_phone,
-          onSiteContactEmail: updated.onSiteContactEmail || updated.on_site_contact_email,
+        // `updated` is the server's answer to the save (snake_case): map it like the list, so the status, the
+        // photos and the report date are right on every screen at once (Ongoing, Reports, the dashboard)
+        const saved = mapApiIntervention(updated);
+        setInterventions(prev => prev.map(i => i.id === saved.id ? {
+          ...saved,
+          assignedToAdmin: saved.assignedToAdmin || isAdminAssignee(saved.proId || i.proId),
         } : i));
+        refreshGlobalData(true); // and the server's latest for everything else (counts, missions, other users' work)
         return;
       }
 
@@ -865,7 +844,8 @@ const App: React.FC = () => {
       }
 
       await dataService.updateIntervention(updated.id, payload);
-      setInterventions(prev => prev.map(i => i.id === String(updated.id) ? { ...i, ...updated, id: String(updated.id), assignedToAdmin: isAdminAssignee(updated.proId ?? updated.pro_id ?? i.proId) } : i));
+      setInterventions(prev => prev.map(i => i.id === String(updated.id) ? { ...i, ...updated, id: String(updated.id), updatedAt: new Date().toISOString(), assignedToAdmin: isAdminAssignee(updated.proId ?? updated.pro_id ?? i.proId) } : i));
+      refreshGlobalData(true);
       addToast(t.updated || 'Success', t.updateSuccess || 'Intervention mise à jour.');
     } catch (error) {
       console.error('Failed to update intervention:', error);
@@ -1315,6 +1295,9 @@ const App: React.FC = () => {
                             onStatClick={handleStatClick}
                             onCreateIntervention={() => setShowCreateModal(true)}
                             onSelectIntervention={setSelectedInterventionId}
+                            buildings={buildings}
+                            professionals={professionals}
+                            syndics={syndics}
                             onViewFullHistory={() => navigate('/admin/reports')}
                             lang={lang}
                             t={t}

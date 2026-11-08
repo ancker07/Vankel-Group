@@ -113,6 +113,7 @@ export interface Intervention {
   description_nl?: string;
   scheduledDate: string;
   createdAt?: string; // New field for tracking creation time
+  updatedAt?: string; // last save (the report's date)
   status: InterventionStatus;
   notes: Note[];
   photos: string[]; // Photos are stored separately and NOT included in PDF reports

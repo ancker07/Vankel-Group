@@ -49,6 +49,22 @@ class MissionListNotifier extends AsyncNotifier<List<Mission>> {
     ref.invalidateSelf();
   }
 
+  /// The refresh button: what is on screen goes and the spinner shows until the server's answer (the data, or the
+  /// error with its retry button) is in. Fetched here rather than by rebuilding: a rebuild would keep the old data on
+  /// screen and, on an error, retry by itself without end. A quiet refresh still on its way cannot land after it.
+  Future<void> reloadFromServer() async {
+    final user = ref.read(authStateProvider).user;
+    if (user != null && !user.can('missions.view')) return; // no missions for this role: nothing to ask
+    final load = ++_newestLoad;
+    state = const AsyncLoading();
+    try {
+      final fresh = await ref.read(missionRepositoryProvider).getMissions();
+      if (ref.mounted && load == _newestLoad) state = AsyncData(fresh);
+    } catch (e, st) {
+      if (ref.mounted && load == _newestLoad) state = AsyncError(e, st);
+    }
+  }
+
   /// Fetches the latest data while the list stays on screen; when it fails the list simply stays as it is.
   Future<void> refreshQuietly() async {
     if (state.isLoading) {

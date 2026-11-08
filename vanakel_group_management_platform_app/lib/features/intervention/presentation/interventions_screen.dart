@@ -1,3 +1,4 @@
+import '../../../shared/widgets/pull_to_refresh_fill.dart';
 import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/services/map_service.dart';
 import '../../../core/utils/app_labels.dart';
@@ -13,7 +14,7 @@ import '../domain/intervention_filter.dart';
 import '../domain/intervention.dart';
 import 'providers/intervention_filter_provider.dart';
 import 'providers/intervention_provider.dart';
-import 'providers/intervention_list_provider.dart';
+import '../../../core/providers/refresh_work_data.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/router/mobile_access.dart';
 import '../../auth/presentation/providers/auth_state_provider.dart';
@@ -53,10 +54,15 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
           child: filteredInterventionsAsync.when(
             skipLoadingOnReload: false,
             data: (interventions) {
-              if (interventions.isEmpty) return _buildEmptyState(filter.isActive, l10n);
+              if (interventions.isEmpty) {
+                return PullToRefreshFill(
+                  onRefresh: () => ref.read(workDataRefresherProvider).pull(),
+                  child: _buildEmptyState(filter.isActive, l10n),
+                );
+              }
               
               return RefreshIndicator(
-                onRefresh: () => ref.read(interventionListProvider.notifier).refresh(),
+                onRefresh: () => ref.read(workDataRefresherProvider).pull(),
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: interventions.length,
@@ -345,7 +351,7 @@ class _InterventionsScreenState extends ConsumerState<InterventionsScreen> {
           Text(errorWithMessage(context, error), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => ref.invalidate(interventionListProvider),
+            onPressed: () => ref.read(workDataRefresherProvider).force(), // the spinner shows, not the old error
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandGreen,
               foregroundColor: Colors.black,
@@ -433,12 +439,15 @@ class _InterventionCard extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
-          onTap: () {
-            if (isAdmin) {
-              context.push('/admin/interventions/details/${intervention.id}');
-            } else {
-              context.push('/syndic/interventions/details/${intervention.id}');
-            }
+          onTap: () async {
+            // taken before leaving: after a save this card is gone from the list (and its context with it)
+            final container = ProviderScope.containerOf(context, listen: false);
+            await context.push(isAdmin
+                ? '/admin/interventions/details/${intervention.id}'
+                : '/syndic/interventions/details/${intervention.id}');
+            // Back on Ongoing: always show the server's latest (a task completed or delayed is gone), whatever
+            // happened in between (saved, saved offline, changed on another device, the tablet slept...)
+            container.read(workDataRefresherProvider).lists();
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

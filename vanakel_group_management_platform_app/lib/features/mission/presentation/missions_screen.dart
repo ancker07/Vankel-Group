@@ -1,3 +1,5 @@
+import '../../../shared/widgets/pull_to_refresh_fill.dart';
+import '../../../core/providers/refresh_work_data.dart';
 import '../../../shared/widgets/admin_badge.dart';
 import '../../../core/utils/app_labels.dart';
 import '../../../core/error/error_text.dart';
@@ -52,7 +54,9 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
             skipLoadingOnReload: false,
             data: (filteredMissions) {
               if (filteredMissions.isEmpty) {
-                return Center(
+                return PullToRefreshFill(
+                  onRefresh: () => ref.read(workDataRefresherProvider).pull(),
+                  child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -88,11 +92,12 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                         ),
                     ],
                   ).animate().fadeIn().scale(),
+                ),
                 );
               }
 
               return RefreshIndicator(
-                onRefresh: () => ref.read(missionListProvider.notifier).refresh(),
+                onRefresh: () => ref.read(workDataRefresherProvider).pull(),
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: filteredMissions.length,
@@ -116,7 +121,7 @@ class _MissionsScreenState extends ConsumerState<MissionsScreen> {
                   Text(errorWithMessage(context, error), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () => ref.invalidate(missionListProvider),
+                    onPressed: () => ref.read(workDataRefresherProvider).force(), // the spinner shows, not the old error
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandGreen,
                       foregroundColor: Colors.black,

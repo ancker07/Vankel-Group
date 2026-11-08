@@ -7,9 +7,8 @@ import '../../core/theme/app_theme.dart';
 import '../widgets/language_selector.dart';
 import '../../features/auth/presentation/providers/auth_state_provider.dart';
 import '../../features/auth/domain/entities/user.dart';
-import '../../features/mission/presentation/providers/mission_list_provider.dart';
 import '../../features/mission/presentation/providers/mission_filter_provider.dart';
-import '../../features/intervention/presentation/providers/intervention_list_provider.dart';
+import '../../core/providers/refresh_work_data.dart';
 import '../../features/intervention/presentation/providers/intervention_filter_provider.dart';
 import '../../features/notifications/presentation/providers/notification_provider.dart';
 import '../../core/api/api_constants.dart';
@@ -71,19 +70,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // 1. Reset filters to show full results on refresh
-              ref.read(missionFilterProvider.notifier).reset();
-              ref.read(interventionFilterProvider.notifier).reset();
-
-              // 2. Invalidate specific data providers
-              ref.invalidate(missionListProvider);
-              ref.invalidate(interventionListProvider);
-              ref.invalidate(notificationProvider);
-            },
-          ),
+          const _ForceRefreshButton(),
           IconButton(
             onPressed: () => context.push('/notifications'),
             icon: Badge(
@@ -332,4 +319,46 @@ class _NavTab {
     required this.selectedIcon,
     required this.label,
   });
+}
+
+/// Brings the Dashboard, Missions and Ongoing screens up to date from the server whatever happened before (the
+/// automatic refresh failed, the tablet slept, data changed on another device): the screens show the spinner until
+/// the latest data is in, and so does the button, which cannot be pressed again meanwhile.
+class _ForceRefreshButton extends ConsumerStatefulWidget {
+  const _ForceRefreshButton();
+
+  @override
+  ConsumerState<_ForceRefreshButton> createState() => _ForceRefreshButtonState();
+}
+
+class _ForceRefreshButtonState extends ConsumerState<_ForceRefreshButton> {
+  bool _loading = false;
+
+  Future<void> _refresh() async {
+    setState(() => _loading = true);
+    // the full lists, like the website after a refresh
+    ref.read(missionFilterProvider.notifier).reset();
+    ref.read(interventionFilterProvider.notifier).reset();
+    ref.invalidate(notificationProvider);
+    try {
+      await ref.read(workDataRefresherProvider).force();
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: AppLocalizations.of(context)!.refresh,
+      onPressed: _loading ? null : _refresh,
+      icon: _loading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandGreen),
+            )
+          : const Icon(Icons.refresh),
+    );
+  }
 }

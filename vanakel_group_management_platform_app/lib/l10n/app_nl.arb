@@ -494,5 +494,10 @@
     }
   },
   "submitNotSent": "Verzenden lukt nu niet. Uw werk blijft bewaard, probeer het zo opnieuw.",
-  "approveAndAssign": "GOEDKEUREN EN TOEWIJZEN"
+  "approveAndAssign": "GOEDKEUREN EN TOEWIJZEN",
+  "pdfShare": "Delen",
+  "pdfPrint": "Afdrukken",
+  "pdfOpenWith": "Openen met een andere app",
+  "pdfCannotDisplay": "Deze PDF kan hier niet worden getoond. U kunt hem delen of openen met een andere app.",
+  "refresh": "Vernieuwen"
 }

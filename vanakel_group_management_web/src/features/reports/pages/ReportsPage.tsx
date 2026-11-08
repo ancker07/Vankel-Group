@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
+import { reportTime } from '@/lib/interventionSync';
 import AdminBadge from '@/components/common/AdminBadge';
 import { Intervention, Building, Professional, Syndic, Language } from '@/types';
 import { Search, Download, Eye, ChevronRight, FileText, Calendar, CheckCircle2, MapPin, Clock } from 'lucide-react';
 import { TRANSLATIONS } from '@/utils/constants';
-import { generateInterventionPDF, loadImageAsDataUrl } from '@/utils/pdfGenerator';
-import vankerLogo from '@/assets/report_logo.jpeg';
+import { openReportPdf, downloadReportPdf } from '@/lib/reportPdf';
 
 interface ReportsPageProps {
   interventions: Intervention[];
@@ -28,14 +28,11 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
       return obj[`${field}_fr`] || obj[field];
   };
 
-  // Sorting: Newest createdAt first, fallback to scheduledDate
-  const sortedInterventions = useMemo(() => {
-    return [...interventions].sort((a, b) => {
-      const dateA = new Date(a.createdAt || a.scheduledDate).getTime();
-      const dateB = new Date(b.createdAt || b.scheduledDate).getTime();
-      return dateB - dateA;
-    });
-  }, [interventions]);
+  // The most recently written report first (an old job completed today is the latest report, not the oldest)
+  const sortedInterventions = useMemo(
+    () => [...interventions].sort((a, b) => reportTime(b) - reportTime(a)),
+    [interventions]
+  );
 
   // Latest Slips (Top 10) - Filtered for COMPLETED and DELAYED
   const latestSlips = sortedInterventions.filter(i => i.status === 'COMPLETED' || i.status === 'DELAYED').slice(0, 10);
@@ -66,43 +63,9 @@ const ReportsPage: React.FC<ReportsPageProps> = ({
     completed: interventions.filter(i => i.status === 'COMPLETED' || i.status === 'DELAYED').length,
   };
 
-  /** Builds the PDF report of an intervention (no photos: they stay separate uploads). */
-  const buildPdf = async (intervention: Intervention, save: boolean) => {
-    const building = buildings.find(b => b.id === intervention.buildingId);
-    const professional = professionals.find(p => p.id === intervention.proId);
-    const syndic = syndics.find(s => s.id === intervention.syndicId);
-    const logoBase64 = await loadImageAsDataUrl(vankerLogo);
-
-    return generateInterventionPDF(intervention, building, professional, syndic, lang, logoBase64, save);
-  };
-
-  const handleDownloadPDF = async (intervention: Intervention) => {
-    try {
-      await buildPdf(intervention, true);
-    } catch (e) {
-      console.error(e);
-      alert("PDF Generation Failed");
-    }
-  };
-
-  /** Opens the PDF report in a new tab (not the detail screen). */
-  const openPdf = async (intervention: Intervention) => {
-    // The tab is opened right away, inside the click: browsers block a tab opened after the PDF is built
-    const tab = window.open('', '_blank');
-    try {
-      const doc = await buildPdf(intervention, false);
-      const url = String(doc.output('bloburl'));
-      if (tab) {
-        tab.location.href = url;
-      } else {
-        window.location.href = url; // pop-ups blocked: show it in this tab instead
-      }
-    } catch (e) {
-      console.error(e);
-      tab?.close();
-      alert("PDF Generation Failed");
-    }
-  };
+  const pdfContext = { buildings, professionals, syndics, lang };
+  const handleDownloadPDF = (intervention: Intervention) => downloadReportPdf(intervention, pdfContext);
+  const openPdf = (intervention: Intervention) => openReportPdf(intervention, pdfContext);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">

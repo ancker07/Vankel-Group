@@ -1,10 +1,11 @@
+import '../../../shared/widgets/pull_to_refresh_fill.dart';
+import '../../../core/providers/refresh_work_data.dart';
 import '../../../core/error/error_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../mission/presentation/providers/mission_list_provider.dart';
 import '../../intervention/presentation/providers/intervention_list_provider.dart';
 import '../../intervention/domain/intervention.dart';
 import '../../../core/utils/translation_helper.dart';
@@ -19,12 +20,9 @@ class SyndicDashboard extends ConsumerWidget {
 
     return interventionsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text(errorWithMessage(context, err))),
+      error: (err, stack) => _dashboardError(context, ref, err),
       data: (interventions) => RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(missionListProvider);
-          ref.invalidate(interventionListProvider);
-        },
+        onRefresh: () => ref.read(workDataRefresherProvider).pull(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
@@ -219,4 +217,28 @@ class SyndicDashboard extends ConsumerWidget {
         return AppTheme.zinc500;
     }
   }
+}
+
+/// The dashboard could not load: the reason, a retry button, and pull to refresh.
+Widget _dashboardError(BuildContext context, WidgetRef ref, Object err) {
+  final refresher = ref.read(workDataRefresherProvider);
+  return PullToRefreshFill(
+    onRefresh: refresher.pull,
+    child: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(errorWithMessage(context, err), textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: refresher.force,
+              child: Text(AppLocalizations.of(context)!.retry),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
