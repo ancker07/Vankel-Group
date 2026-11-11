@@ -96,6 +96,41 @@ class ResetSystemDataTest extends TestCase
             ->assertOk();
     }
 
+    public function test_only_account_leaves_one_super_admin_and_nobody_else(): void
+    {
+        Storage::fake('public');
+        $oldSuper = $this->user('SUPERADMIN', 'old-super@test.com');
+        $oldSuper->update(['image_url' => UploadedFile::fake()->image('me.jpg')->store('profiles', 'public')]);
+        $oldSuper->createToken('web');
+        $this->user('SUPERADMIN', 'second-super@test.com');
+        $this->user('ADMIN', 'admin@test.com');
+        $this->seedBusinessData($this->user('PROFESSIONAL', 'tech@test.com'));
+
+        $this->artisan('system:reset', [
+            '--force' => true, '--only-account' => true,
+            '--admin-email' => 'Owner@example.test', '--admin-name' => 'Owner', '--admin-password' => 'Exemple-l’été-déjà',
+        ])->assertSuccessful();
+
+        $only = User::sole();
+        $this->assertSame('Owner@example.test', $only->email);
+        $this->assertSame('SUPERADMIN', $only->role);
+        $this->assertSame(0, DB::table('personal_access_tokens')->count());
+        $this->assertSame(0, DB::table('missions')->count());
+        $this->assertEmpty(Storage::disk('public')->allFiles('profiles'));
+
+        $this->postJson('/api/login', ['email' => 'Owner@example.test', 'password' => 'Exemple-l’été-déjà', 'role' => 'ADMIN'])
+            ->assertOk();
+    }
+
+    public function test_only_account_without_an_email_aborts_before_deleting(): void
+    {
+        $this->user('SUPERADMIN', 'super@test.com');
+
+        $this->artisan('system:reset', ['--force' => true, '--only-account' => true])->assertFailed();
+
+        $this->assertSame(1, DB::table('users')->count());
+    }
+
     public function test_an_invalid_admin_email_aborts_before_deleting(): void
     {
         $this->user('SUPERADMIN', 'super@test.com');
